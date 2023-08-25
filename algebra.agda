@@ -341,6 +341,9 @@ inverseDistributes a b = grpCancel (
     op (inv b) b                           ≡⟨ lInverse b ⟩
     e ∎)
 
+grpInvE : {{_ : Group A}} → (inv e) ≡ e
+grpInvE = groupInjective e (eqTrans (rInverse e) (sym (lIdentity e)))
+
 -- https://en.wikipedia.org/wiki/Vector_space
 record VectorSpace (scalar : Type l) : Type (lsuc l) where
   field
