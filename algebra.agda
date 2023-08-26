@@ -48,12 +48,12 @@ a ~> f = f a
 infixr 0 _~>_
 
 -- Or
-data _\/_ (A : Type l)(B : Type l') : Type (ℓ-max l l') where
+data _\/_ (A : Type l)(B : Type l') : Type (l ⊔ l') where
   inl : A → A \/ B
   inr : B → A \/ B
 
 -- And
-data _/\_ (A : Type l)(B : Type l') : Type (ℓ-max l l') where
+data _/\_ (A : Type l)(B : Type l') : Type (l ⊔ l') where
   _,_ : A → B → A /\ B
 
 -- https://en.wikipedia.org/wiki/De_Morgan's_laws
@@ -75,7 +75,7 @@ merelyLEM A f = f (inr (λ x → f (inl x)))
 
 -- https://en.wikipedia.org/wiki/Functor_(functional_programming)
 -- https://en.wikipedia.org/wiki/Functor
-record Functor (f : Type al → Type bl) : Type (ℓ-max (lsuc al) (lsuc bl))  where
+record Functor (f : Type al → Type bl) : Type (lsuc al ⊔ lsuc bl)  where
   field
     map : (A → B) → f A → f B
     compPreserve : (f : B → C) → (g : A → B) → map (λ x → f (g x)) ≡ λ x → map f (map g x)
@@ -117,7 +117,7 @@ instance
 -- https://en.wikipedia.org/wiki/Bijection,_injection_and_surjection
 
 -- https://en.wikipedia.org/wiki/Injective_function
-injective : {A : Type l} {B : Type l'} (f : A → B) → Type (ℓ-max l l')
+injective : {A : Type l} {B : Type l'} (f : A → B) → Type (l ⊔ l')
 injective {A = A} f = {x y : A} → f x ≡ f y → x ≡ y
 
 -- https://en.wikipedia.org/wiki/Surjective_function
@@ -206,145 +206,142 @@ instance
     open import Cubical.Data.Sigma.Properties
     open import Cubical.Foundations.Isomorphism
 
+record Commutative {A : Type l}(op : A → A → A) : Type (lsuc l) where
+  field
+    commutative : (a b : A) → op a b ≡ op b a
+open Commutative {{...}}
+
+record Associative {A : Type l}(op : A → A → A) : Type (lsuc l) where
+  field
+      associative : {a b c : A} → op a (op b c) ≡ op (op a b) c
+open Associative {{...}}
+
 -- https://en.wikipedia.org/wiki/Monoid
-record monoid {l}{A : Type l}(op : A → A → A) (e : A) : Type (lsuc l) where
+record monoid {A : Type l}(op : A → A → A) (e : A) : Type (lsuc l) where
   field
       isset : isSet A
       lIdentity : (a : A) → op e a ≡ a
       rIdentity : (a : A) → op a e ≡ a
-      assoc : {a b c : A} → op a (op b c) ≡ op (op a b) c
-open monoid {{...}}
-
--- https://en.wikipedia.org/wiki/Group_(mathematics)
-record group {l}{A : Type l}(op : A → A → A) (e : A) : Type (lsuc l) where
-  field
-      overlap {{gmonoid}} : monoid op e
-      inv : A → A
-      lInverse : (a : A) → op (inv a) a ≡ e
-      rInverse : (a : A) → op a (inv a) ≡ e
-open group {{...}}
-
--- Commutative Monoid
-record CMonoid {l}{A : Type l}(op : A → A → A) (e : A) : Type (lsuc l) where
-  field
-      overlap {{cmonoid}} : monoid op e
-      commutative : (a b : A) → op a b ≡ op b a
-open CMonoid {{...}}
-
--- https://en.wikipedia.org/wiki/Abelian_group
-record abelianGroup {l} {A : Type l}(op : A → A → A)(e : A) : Type (lsuc l) where
-  field
-      {{abgroup}} : group op e
-      {{comgroup}} : CMonoid op e
-open abelianGroup {{...}}
-
--- Multiplication is only defined on non-zero values.
--- This definition requires determining whether an element is zero is decidable.
-record FieldHelper {l} (A : Type l) : Type (lsuc l) where
-  field
-    zero : A
-    zDecide : (a : A) → decidable (zero ≡ a)
-    _+_ : A → A → A
-    NZMult : (Σ A λ x → zero ≠ x) → (Σ A \x → zero ≠ x) → (Σ A λ x → zero ≠ x)
-    one : A
-    zeroNotOne : zero ≠ one
-    {{addStr}} : abelianGroup _+_ zero
-    {{NZStr}} : abelianGroup NZMult (one , zeroNotOne)
-open FieldHelper {{...}} hiding (addStr ; NZStr)
-
-neg : {{F : FieldHelper A}} → A → A
-neg = inv
-
-_*_ : {{_ : FieldHelper A}} → A → A → A
-_*_ = multConstruct zDecide NZMult
-  where
-    multConstruct : {z : A}
-                    → ((x : A) → decidable (z ≡ x))
-                    → ((Σ A λ x → z ≠ x) → (Σ A λ x → z ≠ x) → (Σ A λ x → z ≠ x))
-                    → A → A → A
-    multConstruct {A = A} {z = z} isZ NZMult x y = aux (isZ x) (isZ y)
-      where
-      aux : decidable (z ≡ x) → decidable (z ≡ y) → A
-      aux (inl _) _ = z
-      aux _ (inl _) = z
-      aux (inr p) (inr q) = fst (NZMult (x , p) (y , q))
-
--- https://en.wikipedia.org/wiki/Field_(mathematics)
-
--- Multiplication is defined on all elements.
-record Field {l} (A : Type l) : Type (lsuc l) where
-  field
-    {{fieldHelper}} : FieldHelper A
-    {{multStr}} : CMonoid _*_ one
-    distributivity : (a b c : A) → a * (b + c) ≡ (a * b) + (a * c)
-open Field {{...}}
-
-atMostOne : ∀ {l al}{A : Type al} (P : A → Type l) → Type (ℓ-max l al)
-atMostOne {A = A} P = ((x y : A) → P x → P y → x ≡ y)
-
-Σ! : ∀ {l al}{A : Type al} (P : A → Type l) → Type (ℓ-max l al)
-Σ! {A = A} P = Σ A P /\ atMostOne P
+      overlap {{mAssoc}} : Associative op
+open monoid {{...}} hiding (mAssoc)
 
 idUnique : {op : A → A → A} {e : A} {{_ : monoid op e}} → (id : A) → ((a : A) → op id a ≡ a) → id ≡ e
 idUnique {op = op} {e} id p = let H = p id in let H2 = p e in
     id      ≡⟨ eqTrans (sym (rIdentity id)) H2 ⟩
     e ∎
 
-ap2 : ∀ {x y : A}{a : B}(f : A → B → C)(p : x ≡ y) → (f x a) ≡ (f y a)
-ap2 {a = a} f p = (λ i → f (p i) a)
+-- https://en.wikipedia.org/wiki/Group_(mathematics)
+record group {A : Type l}(op : A → A → A) (e : A) : Type (lsuc l) where
+  field
+      overlap {{gmonoid}} : monoid op e
+      inv : A → A
+      lInverse : (a : A) → op (inv a) a ≡ e
+      rInverse : (a : A) → op a (inv a) ≡ e
+open group {{...}} hiding (gmonoid)
 
-module grp {op : A → A → A} {e : A} where
-    opInjective : {{G : group op e}} → (x : A) → injective (op x)
+module grp {op : A → A → A} {e : A}{{G : group op e}} where
+
+    opInjective : (x : A) → injective (op x)
     opInjective a {x} {y} p =
         x                   ≡⟨ sym (lIdentity x)⟩
-        op     e x          ≡⟨ ap2 op (sym (lInverse a))⟩
-        op(op(inv a) a) x   ≡⟨ sym (assoc) ⟩
+        op     e x          ≡⟨ cong₂ op (sym (lInverse a)) refl ⟩
+        op(op(inv a) a) x   ≡⟨ sym associative ⟩
         op (inv a) (op a x) ≡⟨ cong (op (inv a)) p ⟩
-        op (inv a) (op a y) ≡⟨ assoc ⟩
-        op (op (inv a) a) y ≡⟨ ap2 op (lInverse a)⟩
+        op (inv a) (op a y) ≡⟨ associative ⟩
+        op (op (inv a) a) y ≡⟨ cong₂ op (lInverse a) refl ⟩
         op e y              ≡⟨ lIdentity y ⟩
         y ∎
 
-    inverseInjective : {{G : group op e}} → injective inv
+    inverseInjective : injective inv
     inverseInjective {x = x} {y = y} p =
         x                   ≡⟨ sym (rIdentity x)⟩
         op x e              ≡⟨ cong (op x) (sym (lInverse y))⟩
-        op x (op (inv y) y) ≡⟨ cong (op x) (ap2 op  (sym p))⟩
-        op x (op (inv x) y) ≡⟨ assoc ⟩
-        op (op x (inv x)) y ≡⟨ ap2 op (rInverse x)⟩
+        op x (op (inv y) y) ≡⟨ cong (op x) (cong₂ op  (sym p) refl)⟩
+        op x (op (inv x) y) ≡⟨ associative ⟩
+        op (op x (inv x)) y ≡⟨ cong₂ op (rInverse x) refl ⟩
         op e y              ≡⟨ lIdentity y ⟩
         y ∎
 
-    doubleInv : {{G : group op e}} → (x : A) → inv (inv x) ≡ x
+    doubleInv : (x : A) → inv (inv x) ≡ x
     doubleInv x = 
         inv (inv x)                    ≡⟨ sym (rIdentity (inv (inv x)))⟩
         op (inv (inv x)) e             ≡⟨ cong (op (inv (inv x))) (sym (lInverse x))⟩
-        op (inv (inv x)) (op(inv x) x) ≡⟨ assoc ⟩
-        op (op(inv (inv x)) (inv x)) x ≡⟨ ap2 op (lInverse (inv x))⟩
+        op (inv (inv x)) (op(inv x) x) ≡⟨ associative ⟩
+        op (op(inv (inv x)) (inv x)) x ≡⟨ cong₂ op (lInverse (inv x)) refl ⟩
         op e x                         ≡⟨ lIdentity x ⟩
         x ∎
 
-    opCancel : {{G : group op e}} → {x y : A} → op x (inv y) ≡ e → x ≡ y
+    opCancel : {x y : A} → op x (inv y) ≡ e → x ≡ y
     opCancel {x = x} {y = y} p =
         x                    ≡⟨ sym (rIdentity x)⟩
         op x e               ≡⟨ cong (op x) (sym (lInverse y))⟩
-        op x (op (inv y) y)  ≡⟨ assoc ⟩
-        op (op x (inv y)) y  ≡⟨ ap2 op p ⟩
+        op x (op (inv y) y)  ≡⟨ associative ⟩
+        op (op x (inv y)) y  ≡⟨ cong₂ op p refl ⟩
         op e y               ≡⟨ lIdentity y ⟩
         y ∎
 
-    inverseDistributes : {{_ : group op e}} → (a b : A) → op (inv b) (inv a) ≡ inv (op a b)
+    inverseDistributes : (a b : A) → op (inv b) (inv a) ≡ inv (op a b)
     inverseDistributes a b = opCancel $
         op(op(inv b)(inv a))(inv(inv(op a b))) ≡⟨ cong (op (op(inv b) (inv a))) (doubleInv (op a b))⟩
-        op (op(inv b) (inv a)) (op a b)        ≡⟨ sym (assoc)⟩
-        op (inv b) (op(inv a) (op a b))        ≡⟨ cong (op (inv b)) assoc ⟩
-        op (inv b) (op(op(inv a) a) b)         ≡⟨ cong (op (inv b)) (ap2 op (lInverse a))⟩
+        op (op(inv b) (inv a)) (op a b)        ≡⟨ sym associative ⟩
+        op (inv b) (op(inv a) (op a b))        ≡⟨ cong (op (inv b)) associative ⟩
+        op (inv b) (op(op(inv a) a) b)         ≡⟨ cong (op (inv b)) (cong₂ op (lInverse a) refl)⟩
         op (inv b) (op e b)                    ≡⟨ cong (op (inv b)) (lIdentity b)⟩
         op (inv b) b                           ≡⟨ lInverse b ⟩
         e ∎
 
-    invE : {{_ : group op e}} → (inv e) ≡ e
+    invE : inv e ≡ e
     invE = opInjective e (eqTrans (rInverse e) (sym (lIdentity e)))
+
+-- Commutative Monoid
+record cMonoid {A : Type l}(op : A → A → A) (e : A) : Type (lsuc l) where
+  field
+      overlap {{cmonoid}} : monoid op e
+      overlap {{CMCom}} : Commutative op
+
+-- https://en.wikipedia.org/wiki/Abelian_group
+record abelianGroup {A : Type l}(op : A → A → A)(e : A) : Type (lsuc l) where
+  field
+      overlap {{abgroup}} : group op e
+      overlap {{comgroup}} : cMonoid op e
+
+-- https://en.wikipedia.org/wiki/Semiring
+record SemiRing (A : Type l) : Type (lsuc l) where
+  field
+    zero : A
+    one : A
+    _+_ : A → A → A
+    _*_ : A → A → A
+    overlap {{addStr}} : cMonoid _+_ zero
+    overlap {{MStr}} : monoid _*_ one
+open SemiRing {{...}} hiding (addStr ; MStr)
+
+-- https://en.wikipedia.org/wiki/Ring_(mathematics)
+record Ring (A : Type l) : Type (lsuc l) where
+  field
+    {{rsring}} : SemiRing A
+    overlap {{addStr}} : abelianGroup _+_ zero
+open Ring {{...}} hiding (addStr)
+
+neg : {{R : Ring A}} → A → A
+neg = inv
+
+-- https://en.wikipedia.org/wiki/Commutative_ring
+record CRing (A : Type l) : Type (lsuc l) where
+  field
+    {{crring}} : Ring A
+    overlap {{CMStr}} : cMonoid _*_ one
+
+nonZero : {A : Type l} {{R : Ring A}} → Type l
+nonZero {A = A} = (Σ A λ a → a ≠ zero)
+
+-- https://en.wikipedia.org/wiki/Field_(mathematics)
+record Field (A : Type l) : Type (lsuc l) where
+  field
+    {{fring}} : CRing A
+    reciprocal : nonZero → nonZero
+    recInv : (a : nonZero) → pr1 a * pr1(reciprocal a) ≡ one
+open Field {{...}} hiding (fring)
 
 -- https://en.wikipedia.org/wiki/Vector_space
 record VectorSpace (scalar : Type l) : Type (lsuc l) where
@@ -392,18 +389,19 @@ module _{l : Level}{scalar : Type l}{{VS : VectorSpace scalar}} where
     -- ∀ v ∈ V, Span(V) ≠ Span(V - {v})
     record LinearlyIndependent (V : vector → Type l) : Type (lsuc l)
       where field
-          {{vsProp}} : Property V
+          overlap {{vsProp}} : Property V
           linInd : {v : vector} → V v → Span V ≠ Span (λ(x : vector) → V x /\ (x ≠ v))
-    open LinearlyIndependent {{...}}
+    open LinearlyIndependent {{...}} hiding (vsProp)
 
     -- https://en.wikipedia.org/wiki/Basis_(linear_algebra)
 
     -- We define a basis of a vector space `VS` as a maximal element of the set of linearly
-    -- independent subsets of `VS` partially ordered by inclusion order.
+    -- independent subsets of `VS` where the partial order is set inclusion.
     record Basis (V : vector → Type l) : Type (lsuc l)
       where field
-      {{bLI}} : LinearlyIndependent V
+      overlap {{bLI}} : LinearlyIndependent V
       maxLinInd : {Y : vector → Type l} → (_ : LinearlyIndependent Y) → ¬((V , isproperty) < (Y , isproperty) )
+    open Basis {{...}} hiding (bLI)
 
     -- https://en.wikipedia.org/wiki/Linear_subspace
     record SubSpace (V : vector → Type l) : Type (lsuc l)
