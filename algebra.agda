@@ -5,6 +5,8 @@
 open import Cubical.Core.Everything
 open import Cubical.Foundations.Prelude
 open import Cubical.Foundations.Isomorphism
+open import Cubical.Foundations.HLevels
+open import Cubical.Data.Sigma.Properties
 
 open import Agda.Primitive
 
@@ -25,7 +27,7 @@ private
 ¬ a = a → False
 
 -- Equivalent to `$` in Haskell
-_$_ : (A → B) -> A → B
+_$_ : (A → B) → A → B
 _$_ f a = f a
 infixr 0 _$_
 
@@ -41,7 +43,7 @@ id a = a
 eqTrans : {x y z : A} → x ≡ y → y ≡ z → x ≡ z
 eqTrans {x = x} p q i = hcomp (λ j → λ { (i = i0) → x
                                        ; (i = i1) → q j })
-                              (p i)
+                                (p i)
 
 -- Pipe Operator
 -- Equivalent to `|>` in F#
@@ -98,10 +100,10 @@ _<*>_ : {m : Type l → Type l} → {{Monad m}} → m (A → B) → m A → m B
 _<*>_ {m = m} p mA = μ (map (λ f → map f mA) p)
 
 -- bind
-_>>=_ : {m : Type l → Type l} → {{Monad m}} → m A → (A → m B) → (m B)
+_>>=_ : {m : Type l → Type l} → {{Monad m}} → m A → (A → m B) → m B
 _>>=_ {m = m} mA p = μ (map p mA)
 
-_>>_ : {m : Type l → Type l} → {{Monad m}} → m A → m B → (m B)
+_>>_ : {m : Type l → Type l} → {{Monad m}} → m A → m B → m B
 _>>_ {m = m} mA p = p
 
 instance
@@ -196,11 +198,10 @@ instance
                    ; leRelation = λ{(f , f') (g , g') a b → funExt (λ z → let H = f' z in funExt (λ w → g' z (a z w) (b z w)))}
                    ; leTrans = λ X Y Z p q a b → q a (p a b)
                    ; leRefl = λ x a z → z
-                   -- TODO
                    ; antiSym = λ{ (w , w') (x , x') f g → let H : w ≡ x
                                                               H = funExt (λ y →
-                                                                  let G = x' y in isPropEq (f y) (g y) (w' y) (x' y)) in
-                                                              {!!}} }
+                                                                  isPropEq (f y) (g y) (w' y) (x' y)) in
+                                                              ΣPathPProp ((λ _ → isPropΠ λ _ → isPropIsProp)) H } }
 
 -- https://en.wikipedia.org/wiki/Monoid
 record monoid {l}{A : Type l}(op : A → A → A) (e : A) : Type (lsuc l) where
@@ -274,7 +275,6 @@ record Field {l} (A : Type l) : Type (lsuc l) where
     {{multStr}} : CMonoid _*_ one
     distributivity : (a b c : A) → a * (b + c) ≡ (a * b) + (a * c)
 open Field {{...}}
-
 
 atMostOne : ∀ {l al}{A : Type al} (P : A → Type l) → Type (ℓ-max l al)
 atMostOne {A = A} P = ((x y : A) → P x → P y → x ≡ y)
@@ -394,7 +394,7 @@ open LinearlyIndependent {{...}}
 -- https://en.wikipedia.org/wiki/Basis_(linear_algebra)
 
 -- We define a basis of a vector space `VS` as a maximal element of the set of linearly
--- independent subsets of `VS` partially ordered by set inclusion.
+-- independent subsets of `VS` partially ordered by inclusion order.
 record Basis {scalar : Type l} {{VS : VectorSpace scalar}} (V : vector → Type l) : Type (lsuc l)
   where field
   {{bLI}} : LinearlyIndependent V
