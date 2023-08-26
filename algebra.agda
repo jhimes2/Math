@@ -213,7 +213,7 @@ open Commutative {{...}}
 
 record Associative {A : Type l}(op : A → A → A) : Type (lsuc l) where
   field
-      associative : {a b c : A} → op a (op b c) ≡ op (op a b) c
+      associative : (a b c : A) → op a (op b c) ≡ op (op a b) c
 open Associative {{...}}
 
 -- https://en.wikipedia.org/wiki/Monoid
@@ -245,9 +245,9 @@ module grp {op : A → A → A} {e : A}{{G : group op e}} where
     opInjective a {x} {y} p =
         x                   ≡⟨ sym (lIdentity x)⟩
         op     e x          ≡⟨ cong₂ op (sym (lInverse a)) refl ⟩
-        op(op(inv a) a) x   ≡⟨ sym associative ⟩
+        op(op(inv a) a) x   ≡⟨ sym (associative (inv a) a x) ⟩
         op (inv a) (op a x) ≡⟨ cong (op (inv a)) p ⟩
-        op (inv a) (op a y) ≡⟨ associative ⟩
+        op (inv a) (op a y) ≡⟨ associative (inv a) a y ⟩
         op (op (inv a) a) y ≡⟨ cong₂ op (lInverse a) refl ⟩
         op e y              ≡⟨ lIdentity y ⟩
         y ∎
@@ -257,7 +257,7 @@ module grp {op : A → A → A} {e : A}{{G : group op e}} where
         x                   ≡⟨ sym (rIdentity x)⟩
         op x e              ≡⟨ cong (op x) (sym (lInverse y))⟩
         op x (op (inv y) y) ≡⟨ cong (op x) (cong₂ op  (sym p) refl)⟩
-        op x (op (inv x) y) ≡⟨ associative ⟩
+        op x (op (inv x) y) ≡⟨ associative x (inv x) y ⟩
         op (op x (inv x)) y ≡⟨ cong₂ op (rInverse x) refl ⟩
         op e y              ≡⟨ lIdentity y ⟩
         y ∎
@@ -266,7 +266,7 @@ module grp {op : A → A → A} {e : A}{{G : group op e}} where
     doubleInv x = 
         inv (inv x)                    ≡⟨ sym (rIdentity (inv (inv x)))⟩
         op (inv (inv x)) e             ≡⟨ cong (op (inv (inv x))) (sym (lInverse x))⟩
-        op (inv (inv x)) (op(inv x) x) ≡⟨ associative ⟩
+        op (inv (inv x)) (op(inv x) x) ≡⟨ associative (inv (inv x)) (inv x) x ⟩
         op (op(inv (inv x)) (inv x)) x ≡⟨ cong₂ op (lInverse (inv x)) refl ⟩
         op e x                         ≡⟨ lIdentity x ⟩
         x ∎
@@ -275,7 +275,7 @@ module grp {op : A → A → A} {e : A}{{G : group op e}} where
     opCancel {x = x} {y = y} p =
         x                    ≡⟨ sym (rIdentity x)⟩
         op x e               ≡⟨ cong (op x) (sym (lInverse y))⟩
-        op x (op (inv y) y)  ≡⟨ associative ⟩
+        op x (op (inv y) y)  ≡⟨ associative x (inv y) y ⟩
         op (op x (inv y)) y  ≡⟨ cong₂ op p refl ⟩
         op e y               ≡⟨ lIdentity y ⟩
         y ∎
@@ -283,8 +283,8 @@ module grp {op : A → A → A} {e : A}{{G : group op e}} where
     inverseDistributes : (a b : A) → op (inv b) (inv a) ≡ inv (op a b)
     inverseDistributes a b = opCancel $
         op(op(inv b)(inv a))(inv(inv(op a b))) ≡⟨ cong (op (op(inv b) (inv a))) (doubleInv (op a b))⟩
-        op (op(inv b) (inv a)) (op a b)        ≡⟨ sym associative ⟩
-        op (inv b) (op(inv a) (op a b))        ≡⟨ cong (op (inv b)) associative ⟩
+        op (op(inv b) (inv a)) (op a b)        ≡⟨ sym (associative (inv b) (inv a) (op a b)) ⟩
+        op (inv b) (op(inv a) (op a b))        ≡⟨ cong (op (inv b)) (associative (inv a) a b) ⟩
         op (inv b) (op(op(inv a) a) b)         ≡⟨ cong (op (inv b)) (cong₂ op (lInverse a) refl)⟩
         op (inv b) (op e b)                    ≡⟨ cong (op (inv b)) (lIdentity b)⟩
         op (inv b) b                           ≡⟨ lInverse b ⟩
