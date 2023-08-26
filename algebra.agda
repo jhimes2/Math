@@ -24,9 +24,10 @@ private
 ¬ : Type l → Type l
 ¬ a = a → False
 
--- https://en.wikipedia.org/wiki/Modus_ponens
-modusPonens : A → (A → B) → B
-modusPonens a f = f a
+-- Equivalent to `$` in Haskell
+_$_ : (A → B) -> A → B
+_$_ f a = f a
+infixr 0 _$_
 
 -- https://en.wikipedia.org/wiki/Modus_tollens
 -- https://en.wikipedia.org/wiki/Contraposition
@@ -330,14 +331,14 @@ module grp {op : A → A → A} {e : A} where
         y ∎
 
     inverseDistributes : {{_ : group op e}} → (a b : A) → op (inv b) (inv a) ≡ inv (op a b)
-    inverseDistributes a b = opCancel (
+    inverseDistributes a b = opCancel $
         op(op(inv b)(inv a))(inv(inv(op a b))) ≡⟨ cong (op (op(inv b) (inv a))) (doubleInv (op a b)) ⟩
         op (op(inv b) (inv a)) (op a b)        ≡⟨ sym (assoc) ⟩
         op (inv b) (op(inv a) (op a b))        ≡⟨ cong (op (inv b)) assoc ⟩
         op (inv b) (op(op(inv a) a) b)         ≡⟨ cong (op (inv b)) (ap2 op (lInverse a)) ⟩
         op (inv b) (op e b)                    ≡⟨ cong (op (inv b)) (lIdentity b) ⟩
         op (inv b) b                           ≡⟨ lInverse b ⟩
-        e ∎)
+        e ∎
 
     invE : {{_ : group op e}} → (inv e) ≡ e
     invE = opInjective e (eqTrans (rInverse e) (sym (lIdentity e)))
@@ -361,20 +362,20 @@ open VectorSpace {{...}}
 
 scaleZ : {scalar : Type l} {{VS : VectorSpace scalar}} (v : vector) → scale zero v ≡ vZero
 scaleZ v =
-    scale zero v              ≡⟨ sym (λ i → scale (lInverse one i) v) ⟩
-    scale ((neg one) + one) v ≡⟨ vectorDistribution v (neg one) one ⟩
+    scale zero v                      ≡⟨ sym (λ i → scale (lInverse one i) v) ⟩
+    scale ((neg one) + one) v         ≡⟨ vectorDistribution v (neg one) one ⟩
     scale (neg one) v [+] scale one v ≡⟨ (λ i → scale (neg one) v [+] scaleId v i) ⟩
-    scale (neg one) v [+] v ≡⟨ (λ i → scaleNegOneInv v i [+] v) ⟩
-    inv v [+] v ≡⟨ lInverse v ⟩
+    scale (neg one) v [+] v           ≡⟨ (λ i → scaleNegOneInv v i [+] v) ⟩
+    inv v [+] v                       ≡⟨ lInverse v ⟩
     vZero ∎
 
 scaleInv : {scalar : Type l} {{VS : VectorSpace scalar}} (v : vector) → (c : scalar) → scale (neg c) v ≡ (inv (scale c v))
-scaleInv v c = grp.opCancel (
+scaleInv v c = grp.opCancel $
         (scale (neg c) v) [+] (inv (inv (scale c v))) ≡⟨ (λ i → (scale (neg c) v) [+] ((grp.doubleInv (scale c v)) i)) ⟩
-        (scale (neg c) v) [+] (scale c v) ≡⟨ sym (vectorDistribution v ((neg c)) c) ⟩
-        (scale ((neg c) + c) v) ≡⟨ (λ i → scale ((lInverse c) i) v) ⟩
-        (scale zero v) ≡⟨ scaleZ v ⟩
-        vZero ∎)
+        (scale (neg c) v) [+] (scale c v)             ≡⟨ sym (vectorDistribution v ((neg c)) c) ⟩
+        (scale ((neg c) + c) v)                       ≡⟨ (λ i → scale ((lInverse c) i) v) ⟩
+        (scale zero v)                                ≡⟨ scaleZ v ⟩
+        vZero ∎
 
 -- https://en.wikipedia.org/wiki/Linear_span
 data Span {scalar : Type l} {{VS : VectorSpace scalar}} (X : vector → Type l) : vector → Type l where
