@@ -30,7 +30,7 @@ modusPonens a f = f a
 
 -- https://en.wikipedia.org/wiki/Modus_tollens
 -- https://en.wikipedia.org/wiki/Contraposition
-contrapositive : (A -> B) -> ¬ B -> ¬ A
+contrapositive : (A → B) → ¬ B → ¬ A
 contrapositive f nB a = nB (f a)
 
 id : A → A
@@ -157,8 +157,6 @@ pr1 (a , _) = a
 _≠_ : {A : Type l} → A → A → Type l
 _≠_ a b = ¬ (a ≡ b)
 
-open import Cubical.Data.Sigma hiding (∃)
-
 -- https://en.wikipedia.org/wiki/Partially_ordered_set
 record Poset (A : Type l)(l' : Level) : Type (lsuc (l ⊔ l'))
   where field
@@ -212,6 +210,7 @@ record monoid {l}{A : Type l}(op : A → A → A) (e : A) : Type (lsuc l) where
       assoc : {a b c : A} → op a (op b c) ≡ op (op a b) c
 open monoid {{...}}
 
+-- https://en.wikipedia.org/wiki/Group_(mathematics)
 record group {l}{A : Type l}(op : A → A → A) (e : A) : Type (lsuc l) where
   field
       overlap {{gmonoid}} : monoid op e
@@ -219,14 +218,6 @@ record group {l}{A : Type l}(op : A → A → A) (e : A) : Type (lsuc l) where
       lInverse : (a : A) → op (inv a) a ≡ e
       rInverse : (a : A) → op a (inv a) ≡ e
 open group {{...}}
-
--- https://en.wikipedia.org/wiki/Group_(mathematics)
-record Group {l}(A : Type l) : Type (lsuc l) where
-  field
-      op : A → A → A
-      e : A
-      {{groupStr}} : group op e
-open Group {{...}}
 
 -- Commutative Monoid
 record CMonoid {l}{A : Type l}(op : A → A → A) (e : A) : Type (lsuc l) where
@@ -256,16 +247,22 @@ record FieldHelper {l} (A : Type l) : Type (lsuc l) where
     {{NZStr}} : abelianGroup NZMult (one , zeroNotOne)
 open FieldHelper {{...}} hiding (addStr ; NZStr)
 
-multConstruct : {l : Level} {A : Type l} {z : A} → ((x : A) → decidable (z ≡ x)) → ((Σ A λ x → z ≠ x) → (Σ A λ x → z ≠ x) → (Σ A λ x → z ≠ x)) → A → A → A
-multConstruct {l = l} {A = A} {z = z} isZ NZMult x y = aux (isZ x) (isZ y)
-  where
-  aux : decidable (z ≡ x) → decidable (z ≡ y) → A
-  aux (inl _) _ = z
-  aux _ (inl _) = z
-  aux (inr p) (inr q) = fst (NZMult (x , p) (y , q))
+neg : {{F : FieldHelper A}} → A → A
+neg = inv
 
 _*_ : {{_ : FieldHelper A}} → A → A → A
 _*_ = multConstruct zDecide NZMult
+  where
+    multConstruct : {z : A}
+                    → ((x : A) → decidable (z ≡ x))
+                    → ((Σ A λ x → z ≠ x) → (Σ A λ x → z ≠ x) → (Σ A λ x → z ≠ x))
+                    → A → A → A
+    multConstruct {A = A} {z = z} isZ NZMult x y = aux (isZ x) (isZ y)
+      where
+      aux : decidable (z ≡ x) → decidable (z ≡ y) → A
+      aux (inl _) _ = z
+      aux _ (inl _) = z
+      aux (inr p) (inr q) = fst (NZMult (x , p) (y , q))
 
 -- https://en.wikipedia.org/wiki/Field_(mathematics)
 
@@ -277,72 +274,73 @@ record Field {l} (A : Type l) : Type (lsuc l) where
     distributivity : (a b c : A) → a * (b + c) ≡ (a * b) + (a * c)
 open Field {{...}}
 
+
 atMostOne : ∀ {l al}{A : Type al} (P : A → Type l) → Type (ℓ-max l al)
 atMostOne {A = A} P = ((x y : A) → P x → P y → x ≡ y)
 
 Σ! : ∀ {l al}{A : Type al} (P : A → Type l) → Type (ℓ-max l al)
-Σ! {A = A} P = Σ A P × atMostOne P
+Σ! {A = A} P = Σ A P /\ atMostOne P
 
-id_unique : {op : A → A → A} {e : A} {{_ : monoid op e}} → atMostOne λ id → ((a : A) → op id a ≡ a) × ((a : A) → op a id ≡ a)
-id_unique {op = op} x y (xIdL , xIdR) (yIdL , yIdR) =
-    x      ≡⟨ sym (yIdR x) ⟩
-    op x y ≡⟨ xIdL y ⟩
-         y ∎
+idUnique : {op : A → A → A} {e : A} {{_ : monoid op e}} → (id : A) → ((a : A) → op id a ≡ a) → id ≡ e
+idUnique {op = op} {e} id p = let H = p id in let H2 = p e in
+    id      ≡⟨ eqTrans (sym (rIdentity id)) H2 ⟩
+    e ∎
 
 ap2 : ∀ {x y : A}{a : B}(f : A → B → C)(p : x ≡ y) → (f x a) ≡ (f y a)
 ap2 {a = a} f p = (λ i → f (p i) a)
 
-groupInjective : {{_ : Group A}} → (x : A) → injective (op x)
-groupInjective a {x} {y} p =
-    x                   ≡⟨ sym (lIdentity x) ⟩
-    op     e x          ≡⟨ ap2 op (sym (lInverse a)) ⟩
-    op(op(inv a) a) x   ≡⟨ sym (assoc) ⟩
-    op (inv a) (op a x) ≡⟨ cong (op (inv a)) p ⟩
-    op (inv a) (op a y) ≡⟨ assoc ⟩
-    op (op (inv a) a) y ≡⟨ ap2 op (lInverse a) ⟩
-    op e y              ≡⟨ lIdentity y ⟩
-    y ∎
+module grp {op : A → A → A} {e : A} where
+    opInjective : {{G : group op e}} → (x : A) → injective (op x)
+    opInjective a {x} {y} p =
+        x                   ≡⟨ sym (lIdentity x) ⟩
+        op     e x          ≡⟨ ap2 op (sym (lInverse a)) ⟩
+        op(op(inv a) a) x   ≡⟨ sym (assoc) ⟩
+        op (inv a) (op a x) ≡⟨ cong (op (inv a)) p ⟩
+        op (inv a) (op a y) ≡⟨ assoc ⟩
+        op (op (inv a) a) y ≡⟨ ap2 op (lInverse a) ⟩
+        op e y              ≡⟨ lIdentity y ⟩
+        y ∎
 
-inverseInjective : {{_ : Group A}} → injective inv
-inverseInjective {x = x} {y = y} p =
-    x                   ≡⟨ sym (rIdentity x) ⟩
-    op x e              ≡⟨ cong (op x) (sym (lInverse y)) ⟩
-    op x (op (inv y) y) ≡⟨ cong (op x) (ap2 op  (sym p)) ⟩
-    op x (op (inv x) y) ≡⟨ assoc ⟩
-    op (op x (inv x)) y ≡⟨ ap2 op (rInverse x) ⟩
-    op e y              ≡⟨ lIdentity y ⟩
-    y ∎
+    inverseInjective : {{G : group op e}} → injective inv
+    inverseInjective {x = x} {y = y} p =
+        x                   ≡⟨ sym (rIdentity x) ⟩
+        op x e              ≡⟨ cong (op x) (sym (lInverse y)) ⟩
+        op x (op (inv y) y) ≡⟨ cong (op x) (ap2 op  (sym p)) ⟩
+        op x (op (inv x) y) ≡⟨ assoc ⟩
+        op (op x (inv x)) y ≡⟨ ap2 op (rInverse x) ⟩
+        op e y              ≡⟨ lIdentity y ⟩
+        y ∎
 
-doubleInv : {{_ : Group A}} → (x : A) → inv (inv x) ≡ x
-doubleInv x = 
-    inv (inv x)                    ≡⟨ sym (rIdentity (inv (inv x))) ⟩
-    op (inv (inv x)) e             ≡⟨ cong (op (inv (inv x))) (sym (lInverse x)) ⟩
-    op (inv (inv x)) (op(inv x) x) ≡⟨ assoc ⟩
-    op (op(inv (inv x)) (inv x)) x ≡⟨ ap2 op (lInverse (inv x)) ⟩
-    op e x                         ≡⟨ lIdentity x ⟩
-    x ∎
+    doubleInv : {{G : group op e}} → (x : A) → inv (inv x) ≡ x
+    doubleInv x = 
+        inv (inv x)                    ≡⟨ sym (rIdentity (inv (inv x))) ⟩
+        op (inv (inv x)) e             ≡⟨ cong (op (inv (inv x))) (sym (lInverse x)) ⟩
+        op (inv (inv x)) (op(inv x) x) ≡⟨ assoc ⟩
+        op (op(inv (inv x)) (inv x)) x ≡⟨ ap2 op (lInverse (inv x)) ⟩
+        op e x                         ≡⟨ lIdentity x ⟩
+        x ∎
 
-grpCancel : {{_ : Group A}} → {x y : A} → op x (inv y) ≡ e → x ≡ y
-grpCancel {x = x} {y = y} p =
-    x                    ≡⟨ sym (rIdentity x) ⟩
-    op x e               ≡⟨ cong (op x) (sym (lInverse y)) ⟩
-    op x (op (inv y) y)  ≡⟨ assoc ⟩
-    op (op x (inv y)) y  ≡⟨ ap2 op p ⟩
-    op e y               ≡⟨ lIdentity y ⟩
-    y ∎
+    opCancel : {{G : group op e}} → {x y : A} → op x (inv y) ≡ e → x ≡ y
+    opCancel {x = x} {y = y} p =
+        x                    ≡⟨ sym (rIdentity x) ⟩
+        op x e               ≡⟨ cong (op x) (sym (lInverse y)) ⟩
+        op x (op (inv y) y)  ≡⟨ assoc ⟩
+        op (op x (inv y)) y  ≡⟨ ap2 op p ⟩
+        op e y               ≡⟨ lIdentity y ⟩
+        y ∎
 
-inverseDistributes : {{_ : Group A}} → (a b : A) → op (inv b) (inv a) ≡ inv (op a b)
-inverseDistributes a b = grpCancel (
-    op(op(inv b)(inv a))(inv(inv(op a b))) ≡⟨ cong (op (op(inv b) (inv a))) (doubleInv (op a b)) ⟩
-    op (op(inv b) (inv a)) (op a b)        ≡⟨ sym (assoc) ⟩
-    op (inv b) (op(inv a) (op a b))        ≡⟨ cong (op (inv b)) assoc ⟩
-    op (inv b) (op(op(inv a) a) b)         ≡⟨ cong (op (inv b)) (ap2 op (lInverse a)) ⟩
-    op (inv b) (op e b)                    ≡⟨ cong (op (inv b)) (lIdentity b) ⟩
-    op (inv b) b                           ≡⟨ lInverse b ⟩
-    e ∎)
+    inverseDistributes : {{_ : group op e}} → (a b : A) → op (inv b) (inv a) ≡ inv (op a b)
+    inverseDistributes a b = opCancel (
+        op(op(inv b)(inv a))(inv(inv(op a b))) ≡⟨ cong (op (op(inv b) (inv a))) (doubleInv (op a b)) ⟩
+        op (op(inv b) (inv a)) (op a b)        ≡⟨ sym (assoc) ⟩
+        op (inv b) (op(inv a) (op a b))        ≡⟨ cong (op (inv b)) assoc ⟩
+        op (inv b) (op(op(inv a) a) b)         ≡⟨ cong (op (inv b)) (ap2 op (lInverse a)) ⟩
+        op (inv b) (op e b)                    ≡⟨ cong (op (inv b)) (lIdentity b) ⟩
+        op (inv b) b                           ≡⟨ lInverse b ⟩
+        e ∎)
 
-grpInvE : {{_ : Group A}} → (inv e) ≡ e
-grpInvE = groupInjective e (eqTrans (rInverse e) (sym (lIdentity e)))
+    invE : {{_ : group op e}} → (inv e) ≡ e
+    invE = opInjective e (eqTrans (rInverse e) (sym (lIdentity e)))
 
 -- https://en.wikipedia.org/wiki/Vector_space
 record VectorSpace (scalar : Type l) : Type (lsuc l) where
@@ -353,11 +351,30 @@ record VectorSpace (scalar : Type l) : Type (lsuc l) where
     addvStr : abelianGroup _[+]_ vZero
     scalarField : Field scalar
     scale : scalar → vector → vector
-    scaleZ : (v : vector) → scale zero v ≡ vZero
     scaleId : (v : vector) → scale one v ≡ v
     scalarDistribution : (a : scalar) → (u v : vector) → scale a (u [+] v) ≡ (scale a u) [+] (scale a v)
     vectorDistribution : (v : vector) → (a b : scalar) → scale (a + b) v ≡ (scale a v) [+] (scale b v)
+    scalarAssoc : (v : vector) → (a b : scalar) → scale a (scale b v) ≡ scale (a * b) v
+    -- I think this axiom isn't necessary; I'm still working on deriving it.
+    scaleNegOneInv : (v : vector) → scale (neg one) v ≡ inv v
 open VectorSpace {{...}}
+
+scaleZ : {scalar : Type l} {{VS : VectorSpace scalar}} (v : vector) → scale zero v ≡ vZero
+scaleZ v =
+    scale zero v              ≡⟨ sym (λ i → scale (lInverse one i) v) ⟩
+    scale ((neg one) + one) v ≡⟨ vectorDistribution v (neg one) one ⟩
+    scale (neg one) v [+] scale one v ≡⟨ (λ i → scale (neg one) v [+] scaleId v i) ⟩
+    scale (neg one) v [+] v ≡⟨ (λ i → scaleNegOneInv v i [+] v) ⟩
+    inv v [+] v ≡⟨ lInverse v ⟩
+    vZero ∎
+
+scaleInv : {scalar : Type l} {{VS : VectorSpace scalar}} (v : vector) → (c : scalar) → scale (neg c) v ≡ (inv (scale c v))
+scaleInv v c = grp.opCancel (
+        (scale (neg c) v) [+] (inv (inv (scale c v))) ≡⟨ (λ i → (scale (neg c) v) [+] ((grp.doubleInv (scale c v)) i)) ⟩
+        (scale (neg c) v) [+] (scale c v) ≡⟨ sym (vectorDistribution v ((neg c)) c) ⟩
+        (scale ((neg c) + c) v) ≡⟨ (λ i → scale ((lInverse c) i) v) ⟩
+        (scale zero v) ≡⟨ scaleZ v ⟩
+        vZero ∎)
 
 -- https://en.wikipedia.org/wiki/Linear_span
 data Span {scalar : Type l} {{VS : VectorSpace scalar}} (X : vector → Type l) : vector → Type l where
@@ -401,7 +418,7 @@ SpanNonEmptyIsSubSpace {V = V} (v , v') = let H : Span V v
 record LinearTransformation {scalar : Type l}
                            {{V : VectorSpace scalar}}
                            {{U : VectorSpace scalar}}
-                           (T : VectorSpace.vector V → VectorSpace.vector U) : Type (l ⊔ l')
+                           (T : V.(vector) → U.(vector)) : Type (l ⊔ l')
   where field
   addT : (u v : vector) → T u [+] T v ≡ T (u [+] v)
   multT : (u : vector) → (c : scalar) → T (scale c u) ≡ scale c (T u)
