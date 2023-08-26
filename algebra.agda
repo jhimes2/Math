@@ -360,55 +360,61 @@ record VectorSpace (scalar : Type l) : Type (lsuc l) where
     scaleNegOneInv : (v : vector) → scale (neg one) v ≡ inv v
 open VectorSpace {{...}}
 
-scaleZ : {scalar : Type l} {{VS : VectorSpace scalar}} (v : vector) → scale zero v ≡ vZero
-scaleZ v =
-    scale zero v                      ≡⟨ sym (λ i → scale (lInverse one i) v) ⟩
-    scale ((neg one) + one) v         ≡⟨ vectorDistribution v (neg one) one ⟩
-    scale (neg one) v [+] scale one v ≡⟨ (λ i → scale (neg one) v [+] scaleId v i) ⟩
-    scale (neg one) v [+] v           ≡⟨ (λ i → scaleNegOneInv v i [+] v) ⟩
-    inv v [+] v                       ≡⟨ lInverse v ⟩
-    vZero ∎
+module _{l : Level}{scalar : Type l}{{VS : VectorSpace scalar}} where
 
-scaleInv : {scalar : Type l} {{VS : VectorSpace scalar}} (v : vector) → (c : scalar) → scale (neg c) v ≡ (inv (scale c v))
-scaleInv v c = grp.opCancel $
+    scaleZ : (v : vector) → scale zero v ≡ vZero
+    scaleZ v =
+        scale zero v                      ≡⟨ sym (λ i → scale (lInverse one i) v) ⟩
+        scale ((neg one) + one) v         ≡⟨ vectorDistribution v (neg one) one ⟩
+        scale (neg one) v [+] scale one v ≡⟨ (λ i → scale (neg one) v [+] scaleId v i) ⟩
+        scale (neg one) v [+] v           ≡⟨ (λ i → scaleNegOneInv v i [+] v) ⟩
+        inv v [+] v                       ≡⟨ lInverse v ⟩
+        vZero ∎
+
+    scaleInv : (v : vector) → (c : scalar) → scale (neg c) v ≡ (inv (scale c v))
+    scaleInv v c = grp.opCancel $
         (scale (neg c) v) [+] (inv (inv (scale c v))) ≡⟨ (λ i → (scale (neg c) v) [+] ((grp.doubleInv (scale c v)) i)) ⟩
         (scale (neg c) v) [+] (scale c v)             ≡⟨ sym (vectorDistribution v ((neg c)) c) ⟩
         (scale ((neg c) + c) v)                       ≡⟨ (λ i → scale ((lInverse c) i) v) ⟩
         (scale zero v)                                ≡⟨ scaleZ v ⟩
         vZero ∎
 
--- https://en.wikipedia.org/wiki/Linear_span
-data Span {scalar : Type l} {{VS : VectorSpace scalar}} (X : vector → Type l) : vector → Type l where
-  intro : {v : vector} → X v → Span X v
-  spanAdd : {v : vector} → Span X v → {u : vector} → Span X u → Span X (v [+] u)
-  spanScale : {v : vector} → Span X v → (c : scalar) → Span X (scale c v)
+    -- https://en.wikipedia.org/wiki/Linear_span
+    data Span (X : vector → Type l) : vector → Type l where
+      intro : {v : vector} → X v → Span X v
+      spanAdd : {v : vector} → Span X v → {u : vector} → Span X u → Span X (v [+] u)
+      spanScale : {v : vector} → Span X v → (c : scalar) → Span X (scale c v)
 
--- https://en.wikipedia.org/wiki/Linear_independence
--- ∀ v ∈ V, Span(V) ≠ Span(V - {v})
-record LinearlyIndependent {scalar : Type l} {{VS : VectorSpace scalar}} (V : vector → Type l) : Type (lsuc l)
-  where field
-      {{vsProp}} : Property V
-      linInd : {v : vector} → V v → Span V ≠ Span (λ(x : vector) → V x /\ (x ≠ v))
-open LinearlyIndependent {{...}}
+    -- https://en.wikipedia.org/wiki/Linear_independence
+    -- ∀ v ∈ V, Span(V) ≠ Span(V - {v})
+    record LinearlyIndependent (V : vector → Type l) : Type (lsuc l)
+      where field
+          {{vsProp}} : Property V
+          linInd : {v : vector} → V v → Span V ≠ Span (λ(x : vector) → V x /\ (x ≠ v))
+    open LinearlyIndependent {{...}}
 
--- https://en.wikipedia.org/wiki/Basis_(linear_algebra)
+    -- https://en.wikipedia.org/wiki/Basis_(linear_algebra)
 
--- We define a basis of a vector space `VS` as a maximal element of the set of linearly
--- independent subsets of `VS` partially ordered by inclusion order.
-record Basis {scalar : Type l} {{VS : VectorSpace scalar}} (V : vector → Type l) : Type (lsuc l)
-  where field
-  {{bLI}} : LinearlyIndependent V
-  maxLinInd : {Y : vector → Type l} → (_ : LinearlyIndependent Y) → ¬((V , isproperty) < (Y , isproperty) )
+    -- We define a basis of a vector space `VS` as a maximal element of the set of linearly
+    -- independent subsets of `VS` partially ordered by inclusion order.
+    record Basis (V : vector → Type l) : Type (lsuc l)
+      where field
+      {{bLI}} : LinearlyIndependent V
+      maxLinInd : {Y : vector → Type l} → (_ : LinearlyIndependent Y) → ¬((V , isproperty) < (Y , isproperty) )
 
--- https://en.wikipedia.org/wiki/Linear_subspace
-record SubSpace {scalar : Type l} {{VS : VectorSpace scalar}} (V : vector → Type l) : Type (lsuc l)
-  where field
-      ssZero : V vZero 
-      ssAdd : {v u : vector} → V v → V u → V (v [+] u)
-      ssScale : {v : vector} → V v → (c : scalar) → V (scale c v)
+    -- https://en.wikipedia.org/wiki/Linear_subspace
+    record SubSpace (V : vector → Type l) : Type (lsuc l)
+      where field
+          ssZero : V vZero 
+          ssAdd : {v u : vector} → V v → V u → V (v [+] u)
+          ssScale : {v : vector} → V v → (c : scalar) → V (scale c v)
 
 -- The span of a non-empty set of vectors is a subspace.
-SpanNonEmptyIsSubSpace : {scalar : Type l} {{VS : VectorSpace scalar}} → {V : vector → Type l} → Σ vector V → SubSpace (Span V)
+SpanNonEmptyIsSubSpace : {scalar : Type l}
+                        {{VS : VectorSpace scalar}}
+                      → {V : vector → Type l}
+                      → Σ vector V
+                      → SubSpace (Span V)
 SpanNonEmptyIsSubSpace {V = V} (v , v') = let H : Span V v
                                               H = intro v' in
       record { ssZero =  scaleZ v ~> λ{r → transport (λ i → Span V (r i)) (spanScale H zero)}
