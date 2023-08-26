@@ -4,10 +4,6 @@
 
 open import Cubical.Core.Everything
 open import Cubical.Foundations.Prelude
-open import Cubical.Foundations.Isomorphism
-open import Cubical.Foundations.HLevels
-open import Cubical.Data.Sigma.Properties
-
 open import Agda.Primitive
 
 -- False is defined as a type with no terms
@@ -187,21 +183,28 @@ _<_ a b = (a ≠ b) /\ (a ≤ b)
 maximal : {A : Type l} → {{P : Poset A l'}} → A → Type (l ⊔ l')
 maximal {A = A} a = (b : A) → ¬(a < b)
 
-isPropEq : (A → B) → (B → A) → isProp A → isProp B → A ≡ B
-isPropEq f g p q = isoToPath (iso f g (λ b → q (f (g b)) b) (λ a → p (g (f a)) a))
-
 instance
   -- https://en.wikipedia.org/wiki/Inclusion_order
   InclusionOrder : {A : Type l} → Poset (PropSet l' A) (l ⊔ l')
-  InclusionOrder {A = A} = record
-                   { _≤_ = λ X Y → (a : A) → (pr1 X) a → (pr1 Y) a
-                   ; leRelation = λ{(f , f') (g , g') a b → funExt (λ z → let H = f' z in funExt (λ w → g' z (a z w) (b z w)))}
-                   ; leTrans = λ X Y Z p q a b → q a (p a b)
-                   ; leRefl = λ x a z → z
-                   ; antiSym = λ{ (w , w') (x , x') f g → let H : w ≡ x
-                                                              H = funExt (λ y →
-                                                                  isPropEq (f y) (g y) (w' y) (x' y)) in
-                                                              ΣPathPProp ((λ _ → isPropΠ λ _ → isPropIsProp)) H } }
+  InclusionOrder {A = A} =
+   record
+       { _≤_ = λ X Y → (a : A) → (pr1 X) a → (pr1 Y) a
+       ; leRelation = λ{(f , f') (g , g') a b → funExt (λ z → let H = f' z in
+                                                              funExt (λ w → g' z (a z w) (b z w)))}
+       ; leTrans = λ X Y Z p q a b → q a (p a b)
+       ; leRefl = λ x a z → z
+       ; antiSym = λ{ (w , w') (x , x') f g
+                         → let H : w ≡ x
+                               H = funExt (λ y →
+                                   isoToPath (iso (f y)
+                                                  (g y)
+                                                  (λ b → x' y (f y (g y b)) b)
+                                                   λ a → w' y (g y (f y a)) a)) in
+                           ΣPathPProp ((λ _ → isPropΠ λ _ → isPropIsProp)) H } }
+   where
+    open import Cubical.Foundations.HLevels
+    open import Cubical.Data.Sigma.Properties
+    open import Cubical.Foundations.Isomorphism
 
 -- https://en.wikipedia.org/wiki/Monoid
 record monoid {l}{A : Type l}(op : A → A → A) (e : A) : Type (lsuc l) where
@@ -293,38 +296,38 @@ ap2 {a = a} f p = (λ i → f (p i) a)
 module grp {op : A → A → A} {e : A} where
     opInjective : {{G : group op e}} → (x : A) → injective (op x)
     opInjective a {x} {y} p =
-        x                   ≡⟨ sym (lIdentity x) ⟩
-        op     e x          ≡⟨ ap2 op (sym (lInverse a)) ⟩
+        x                   ≡⟨ sym (lIdentity x)⟩
+        op     e x          ≡⟨ ap2 op (sym (lInverse a))⟩
         op(op(inv a) a) x   ≡⟨ sym (assoc) ⟩
         op (inv a) (op a x) ≡⟨ cong (op (inv a)) p ⟩
         op (inv a) (op a y) ≡⟨ assoc ⟩
-        op (op (inv a) a) y ≡⟨ ap2 op (lInverse a) ⟩
+        op (op (inv a) a) y ≡⟨ ap2 op (lInverse a)⟩
         op e y              ≡⟨ lIdentity y ⟩
         y ∎
 
     inverseInjective : {{G : group op e}} → injective inv
     inverseInjective {x = x} {y = y} p =
-        x                   ≡⟨ sym (rIdentity x) ⟩
-        op x e              ≡⟨ cong (op x) (sym (lInverse y)) ⟩
-        op x (op (inv y) y) ≡⟨ cong (op x) (ap2 op  (sym p)) ⟩
+        x                   ≡⟨ sym (rIdentity x)⟩
+        op x e              ≡⟨ cong (op x) (sym (lInverse y))⟩
+        op x (op (inv y) y) ≡⟨ cong (op x) (ap2 op  (sym p))⟩
         op x (op (inv x) y) ≡⟨ assoc ⟩
-        op (op x (inv x)) y ≡⟨ ap2 op (rInverse x) ⟩
+        op (op x (inv x)) y ≡⟨ ap2 op (rInverse x)⟩
         op e y              ≡⟨ lIdentity y ⟩
         y ∎
 
     doubleInv : {{G : group op e}} → (x : A) → inv (inv x) ≡ x
     doubleInv x = 
-        inv (inv x)                    ≡⟨ sym (rIdentity (inv (inv x))) ⟩
-        op (inv (inv x)) e             ≡⟨ cong (op (inv (inv x))) (sym (lInverse x)) ⟩
+        inv (inv x)                    ≡⟨ sym (rIdentity (inv (inv x)))⟩
+        op (inv (inv x)) e             ≡⟨ cong (op (inv (inv x))) (sym (lInverse x))⟩
         op (inv (inv x)) (op(inv x) x) ≡⟨ assoc ⟩
-        op (op(inv (inv x)) (inv x)) x ≡⟨ ap2 op (lInverse (inv x)) ⟩
+        op (op(inv (inv x)) (inv x)) x ≡⟨ ap2 op (lInverse (inv x))⟩
         op e x                         ≡⟨ lIdentity x ⟩
         x ∎
 
     opCancel : {{G : group op e}} → {x y : A} → op x (inv y) ≡ e → x ≡ y
     opCancel {x = x} {y = y} p =
-        x                    ≡⟨ sym (rIdentity x) ⟩
-        op x e               ≡⟨ cong (op x) (sym (lInverse y)) ⟩
+        x                    ≡⟨ sym (rIdentity x)⟩
+        op x e               ≡⟨ cong (op x) (sym (lInverse y))⟩
         op x (op (inv y) y)  ≡⟨ assoc ⟩
         op (op x (inv y)) y  ≡⟨ ap2 op p ⟩
         op e y               ≡⟨ lIdentity y ⟩
@@ -332,11 +335,11 @@ module grp {op : A → A → A} {e : A} where
 
     inverseDistributes : {{_ : group op e}} → (a b : A) → op (inv b) (inv a) ≡ inv (op a b)
     inverseDistributes a b = opCancel $
-        op(op(inv b)(inv a))(inv(inv(op a b))) ≡⟨ cong (op (op(inv b) (inv a))) (doubleInv (op a b)) ⟩
-        op (op(inv b) (inv a)) (op a b)        ≡⟨ sym (assoc) ⟩
+        op(op(inv b)(inv a))(inv(inv(op a b))) ≡⟨ cong (op (op(inv b) (inv a))) (doubleInv (op a b))⟩
+        op (op(inv b) (inv a)) (op a b)        ≡⟨ sym (assoc)⟩
         op (inv b) (op(inv a) (op a b))        ≡⟨ cong (op (inv b)) assoc ⟩
-        op (inv b) (op(op(inv a) a) b)         ≡⟨ cong (op (inv b)) (ap2 op (lInverse a)) ⟩
-        op (inv b) (op e b)                    ≡⟨ cong (op (inv b)) (lIdentity b) ⟩
+        op (inv b) (op(op(inv a) a) b)         ≡⟨ cong (op (inv b)) (ap2 op (lInverse a))⟩
+        op (inv b) (op e b)                    ≡⟨ cong (op (inv b)) (lIdentity b)⟩
         op (inv b) b                           ≡⟨ lInverse b ⟩
         e ∎
 
@@ -364,19 +367,19 @@ module _{l : Level}{scalar : Type l}{{VS : VectorSpace scalar}} where
 
     scaleZ : (v : vector) → scale zero v ≡ vZero
     scaleZ v =
-        scale zero v                      ≡⟨ sym (λ i → scale (lInverse one i) v) ⟩
+        scale zero v                      ≡⟨ sym (λ i → scale (lInverse one i) v)⟩
         scale ((neg one) + one) v         ≡⟨ vectorDistribution v (neg one) one ⟩
-        scale (neg one) v [+] scale one v ≡⟨ (λ i → scale (neg one) v [+] scaleId v i) ⟩
-        scale (neg one) v [+] v           ≡⟨ (λ i → scaleNegOneInv v i [+] v) ⟩
+        scale (neg one) v [+] scale one v ≡⟨(λ i → scale (neg one) v [+] scaleId v i)⟩
+        scale (neg one) v [+] v           ≡⟨(λ i → scaleNegOneInv v i [+] v)⟩
         inv v [+] v                       ≡⟨ lInverse v ⟩
         vZero ∎
 
     scaleInv : (v : vector) → (c : scalar) → scale (neg c) v ≡ (inv (scale c v))
     scaleInv v c = grp.opCancel $
-        (scale (neg c) v) [+] (inv (inv (scale c v))) ≡⟨ (λ i → (scale (neg c) v) [+] ((grp.doubleInv (scale c v)) i)) ⟩
-        (scale (neg c) v) [+] (scale c v)             ≡⟨ sym (vectorDistribution v ((neg c)) c) ⟩
-        (scale ((neg c) + c) v)                       ≡⟨ (λ i → scale ((lInverse c) i) v) ⟩
-        (scale zero v)                                ≡⟨ scaleZ v ⟩
+        scale (neg c) v [+] inv (inv (scale c v)) ≡⟨(λ i → (scale (neg c) v) [+] (grp.doubleInv (scale c v) i))⟩
+        scale (neg c) v [+] (scale c v)           ≡⟨ sym (vectorDistribution v ((neg c)) c)⟩
+        scale ((neg c) + c) v                     ≡⟨(λ i → scale ((lInverse c) i) v)⟩
+        scale zero v                              ≡⟨ scaleZ v ⟩
         vZero ∎
 
     -- https://en.wikipedia.org/wiki/Linear_span
