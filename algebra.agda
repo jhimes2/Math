@@ -22,10 +22,20 @@ private
 ¬ : Type l → Type l
 ¬ a = a → False
 
+-- Function application operator
 -- Equivalent to `$` in Haskell
 _$_ : (A → B) → A → B
 _$_ f a = f a
 infixr 0 _$_
+
+-- Pipe Operator
+-- Equivalent to `|>` in F#
+_~>_ : A → (A → B) → B
+a ~> f = f a
+infixr 0 _~>_
+
+_∘_ :  (B → C) → (A → B) → (A → C)
+f ∘ g = λ a → f (g a)
 
 -- https://en.wikipedia.org/wiki/Modus_tollens
 -- https://en.wikipedia.org/wiki/Contraposition
@@ -41,11 +51,6 @@ eqTrans {x = x} p q i = hcomp (λ j → λ { (i = i0) → x
                                        ; (i = i1) → q j })
                                 (p i)
 
--- Pipe Operator
--- Equivalent to `|>` in F#
-_~>_ : A → (A → B) → B
-a ~> f = f a
-infixr 0 _~>_
 
 -- Or
 data _\/_ (A : Type l)(B : Type l') : Type (l ⊔ l') where
@@ -78,8 +83,8 @@ merelyLEM A f = f (inr (λ x → f (inl x)))
 record Functor (f : Type al → Type bl) : Type (lsuc al ⊔ lsuc bl)  where
   field
     map : (A → B) → f A → f B
-    compPreserve : (f : B → C) → (g : A → B) → map (λ x → f (g x)) ≡ λ x → map f (map g x)
-    idPreserve : (map {A = A} id ≡ id)
+    compPreserve : (f : B → C) → (g : A → B) → map (f ∘ g) ≡ map f ∘ map g
+    idPreserve : map {A = A} id ≡ id
 open Functor {{...}}
 
 -- https://en.wikipedia.org/wiki/Monad_(functional_programming)
@@ -386,11 +391,12 @@ module _{l : Level}{scalar : Type l}{{VS : VectorSpace scalar}} where
       spanScale : {v : vector} → Span X v → (c : scalar) → Span X (scale c v)
 
     -- https://en.wikipedia.org/wiki/Linear_independence
-    -- ∀ v ∈ V, Span(V) ≠ Span(V - {v})
     record LinearlyIndependent (V : vector → Type l) : Type (lsuc l)
       where field
-          overlap {{vsProp}} : Property V
-          linInd : {v : vector} → V v → Span V ≠ Span (λ(x : vector) → V x /\ (x ≠ v))
+          {{vsProp}} : Property V
+          -- ∀ v ∈ V, Span(V) ≠ Span(V - {v})
+          linInd : {v : vector} → V v → Span V ≠ Span (λ(x : vector) → V x /\ ¬ (V v))
+          noZero : ¬ (V vZero)
     open LinearlyIndependent {{...}} hiding (vsProp)
 
     -- https://en.wikipedia.org/wiki/Basis_(linear_algebra)
@@ -400,7 +406,7 @@ module _{l : Level}{scalar : Type l}{{VS : VectorSpace scalar}} where
     record Basis (V : vector → Type l) : Type (lsuc l)
       where field
       overlap {{bLI}} : LinearlyIndependent V
-      maxLinInd : {Y : vector → Type l} → (_ : LinearlyIndependent Y) → ¬((V , isproperty) < (Y , isproperty) )
+      maxLinInd : {Y : vector → Type l} → (_ : LinearlyIndependent Y) → ¬((V , isproperty) < (Y , isproperty))
     open Basis {{...}} hiding (bLI)
 
     -- https://en.wikipedia.org/wiki/Linear_subspace
@@ -411,8 +417,8 @@ module _{l : Level}{scalar : Type l}{{VS : VectorSpace scalar}} where
           ssScale : {v : vector} → V v → (c : scalar) → V (scale c v)
 
 -- The span of a non-empty set of vectors is a subspace.
-SpanNonEmptyIsSubSpace : {scalar : Type l}
-                        {{VS : VectorSpace scalar}}
+SpanNonEmptyIsSubSpace : {A : Type l}
+                        {{VS : VectorSpace A}}
                       → {V : vector → Type l}
                       → Σ vector V
                       → SubSpace (Span V)
@@ -423,13 +429,24 @@ SpanNonEmptyIsSubSpace {V = V} (v , v') = let H : Span V v
              ; ssScale = λ {u} x c → spanScale x c }
 
 -- https://en.wikipedia.org/wiki/Linear_map
-record LinearTransformation {scalar : Type l}
-                           {{V : VectorSpace scalar}}
-                           {{U : VectorSpace scalar}}
-                           (T : V.(vector) → U.(vector)) : Type (l ⊔ l')
+record LinearTransformation {A : Type l}
+                           {{V U : VectorSpace A}}
+                           (T : V.(vector) → U.(vector)) : Type l
   where field
-  addT : (u v : vector) → T u [+] T v ≡ T (u [+] v)
-  multT : (u : vector) → (c : scalar) → T (scale c u) ≡ scale c (T u)
+  addT : (u v : vector) →  T (u [+] v) ≡ T u [+] T v
+  multT : (u : vector) → (c : A) → T (scale c u) ≡ scale c (T u)
+open LinearTransformation {{...}}  
+
+-- If 'T' and 'S' are linear transformations, then 'S ∘ T' is a linear transformation
+linTransComp : {{U V : VectorSpace A}}
+                (T : U.(vector) → V.(vector))
+             → {{TLT : LinearTransformation T}}
+             → {{W : VectorSpace A}}
+             →  (S : V.(vector) → W.(vector))
+             → {{SLT : LinearTransformation S}}
+             → LinearTransformation (S ∘ T)
+linTransComp T S = record { addT = λ u v → eqTrans (cong S (addT u v)) (addT (T u) (T v))
+                         ; multT = λ u c → eqTrans (cong S (multT u c)) (multT (T u) c) }
 
 -- https://en.wikipedia.org/wiki/Axiom_of_choice
 Choice : {P : A → Type l} {R : (a : A) → (P a) → Type cl} → ((x : A) → Σ[ y ∈ P x ] R x y) → Σ[ f ∈ ((a : A) → P a) ] ((x : A) → R x (f x))
