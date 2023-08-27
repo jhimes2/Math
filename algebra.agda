@@ -96,20 +96,17 @@ record Monad (m : Type l → Type l) : Type (lsuc l) where
       η  : A → m A      -- return
 open Monad {{...}}
 
--- apply
-_<*>_ : {m : Type l → Type l} → {{Monad m}} → m (A → B) → m A → m B
-_<*>_ {m = m} p mA = μ (map (λ f → map f mA) p)
-
 -- bind
 _>>=_ : {m : Type l → Type l} → {{Monad m}} → m A → (A → m B) → m B
 _>>=_ {m = m} mA p = μ (map p mA)
 
-_>>_ : {m : Type l → Type l} → {{Monad m}} → m A → m B → m B
-_>>_ {m = m} mA p = p
+-- apply
+_<*>_ : {m : Type l → Type l} → {{Monad m}} → m (A → B) → m A → m B
+_<*>_ {m = m} mf mA = mf >>= λ f → map f mA
 
 instance
   -- Double Negation is a Functor and Monad
-  -- Interstingly, Double negation is similar to Haskell's `IO` monad, since `IO` hides any non-deterministic behavior.
+  -- Interestingly, Double negation is similar to Haskell's `IO` monad, since `IO` hides any non-deterministic behavior.
   dnFunctor : {l : Level} → Functor (secret {l = l})
   dnFunctor = record { map = λ x y z → y (λ a → z (x a)) ; compPreserve = λ f g → refl ; idPreserve = refl }
   dnMonad : {l : Level} → Monad (secret {l = l})
@@ -143,10 +140,7 @@ rightInverse {A = A} {B} f = Σ (B → A) λ h → (x : B) → f (h x) ≡ x
 
 -- If a function has a left inverse, then it is injective
 lInvToInjective : {f : A → B} → leftInverse f → injective f
-lInvToInjective {f = f} (g , g') {x} {y} p =
-  let H = g' x in
-  let G = g' y in
-      eqTrans (sym H) (eqTrans (cong g p) G)
+lInvToInjective (g , g') {x} {y} p = eqTrans (sym (g' x)) (eqTrans (cong g p) (g' y))
   
 -- If a function has a right inverse, then it is surjective
 rInvToSurjective : {f : A → B} → rightInverse f → surjective f
@@ -303,42 +297,50 @@ record cMonoid {A : Type l}(op : A → A → A) (e : A) : Type (lsuc l) where
   field
       overlap {{cmonoid}} : monoid op e
       overlap {{CMCom}} : Commutative op
+open cMonoid {{...}}
 
 -- https://en.wikipedia.org/wiki/Abelian_group
 record abelianGroup {A : Type l}(op : A → A → A)(e : A) : Type (lsuc l) where
   field
-      overlap {{abgroup}} : group op e
+      overlap {{grp}} : group op e
       overlap {{comgroup}} : cMonoid op e
+open abelianGroup {{...}}
 
--- https://en.wikipedia.org/wiki/Semiring
-record SemiRing (A : Type l) : Type (lsuc l) where
+-- https://en.wikipedia.org/wiki/Ring_(mathematics)
+record Ring (A : Type l) : Type (lsuc l) where
   field
     zero : A
     one : A
     _+_ : A → A → A
     _*_ : A → A → A
-    overlap {{addStr}} : cMonoid _+_ zero
-    overlap {{MStr}} : monoid _*_ one
-open SemiRing {{...}} hiding (addStr ; MStr)
-
--- https://en.wikipedia.org/wiki/Ring_(mathematics)
-record Ring (A : Type l) : Type (lsuc l) where
-  field
-    {{rsring}} : SemiRing A
+    lDistribute : (a b c : A) → a * (b + c) ≡ (a * b) + (a * c)
+    rDistribute : (a b c : A) → (b + c) * a ≡ (b * a) + (c * a)
     overlap {{addStr}} : abelianGroup _+_ zero
-open Ring {{...}} hiding (addStr)
+    overlap {{multStr}} : monoid _*_ one
+open Ring {{...}} hiding (addStr ; multStr)
+
+nonZero : {A : Type l} {{R : Ring A}} → Type l
+nonZero {A = A} = (Σ A λ a → a ≠ zero)
 
 neg : {{R : Ring A}} → A → A
 neg = inv
 
+multZ : {{R : Ring A}} → (x : A) → x * zero ≡ zero
+multZ x =
+  x * zero ≡⟨ sym (rIdentity (x * zero)) ⟩
+  (x * zero) + zero                          ≡⟨(λ i → (x * zero) + rInverse (x * zero) (~ i))⟩
+  (x * zero) + ((x * zero) + neg (x * zero)) ≡⟨ associative (x * zero) ((x * zero)) (neg (x * zero))⟩
+  ((x * zero) + (x * zero)) + neg (x * zero) ≡⟨(λ i → lDistribute x zero zero (~ i) + neg (x * zero))⟩
+  (x * (zero + zero)) + neg (x * zero)       ≡⟨(λ i → (x * (lIdentity zero i)) + neg (x * zero))⟩
+  (x * zero) + neg (x * zero)                ≡⟨ rInverse (x * zero) ⟩
+  zero ∎
+
 -- https://en.wikipedia.org/wiki/Commutative_ring
 record CRing (A : Type l) : Type (lsuc l) where
   field
-    {{crring}} : Ring A
+    overlap {{crring}} : Ring A
     overlap {{CMStr}} : cMonoid _*_ one
-
-nonZero : {A : Type l} {{R : Ring A}} → Type l
-nonZero {A = A} = (Σ A λ a → a ≠ zero)
+open CRing {{...}}
 
 -- https://en.wikipedia.org/wiki/Field_(mathematics)
 record Field (A : Type l) : Type (lsuc l) where
@@ -349,15 +351,14 @@ record Field (A : Type l) : Type (lsuc l) where
 open Field {{...}} hiding (fring)
 
 -- https://en.wikipedia.org/wiki/Vector_space
-record VectorSpace (scalar : Type l) : Type (lsuc l) where
+record VectorSpace {scalar : Type l} {{F : Field scalar}} : Type (lsuc l) where
   field
-    vector : Type l
+    {vector} : Type l
     _[+]_ : vector → vector → vector
     vZero : vector
     addvStr : abelianGroup _[+]_ vZero
-    scalarField : Field scalar
     scale : scalar → vector → vector
-    scaleId : (v : vector) → scale one v ≡ v
+    scaleId : (v : vector) → scale (one) v ≡ v
     scalarDistribution : (a : scalar) → (u v : vector) → scale a (u [+] v) ≡ (scale a u) [+] (scale a v)
     vectorDistribution : (v : vector) → (a b : scalar) → scale (a + b) v ≡ (scale a v) [+] (scale b v)
     scalarAssoc : (v : vector) → (a b : scalar) → scale a (scale b v) ≡ scale (a * b) v
@@ -365,88 +366,138 @@ record VectorSpace (scalar : Type l) : Type (lsuc l) where
     scaleNegOneInv : (v : vector) → scale (neg one) v ≡ inv v
 open VectorSpace {{...}}
 
-module _{l : Level}{scalar : Type l}{{VS : VectorSpace scalar}} where
+module _{l : Level}{scalar : Type l}{{F : Field scalar}}{{V : VectorSpace}} where
+  negV : vector → vector
+  negV = inv
 
-    scaleZ : (v : vector) → scale zero v ≡ vZero
-    scaleZ v =
-        scale zero v                      ≡⟨ sym (λ i → scale (lInverse one i) v)⟩
-        scale ((neg one) + one) v         ≡⟨ vectorDistribution v (neg one) one ⟩
-        scale (neg one) v [+] scale one v ≡⟨(λ i → scale (neg one) v [+] scaleId v i)⟩
-        scale (neg one) v [+] v           ≡⟨(λ i → scaleNegOneInv v i [+] v)⟩
-        inv v [+] v                       ≡⟨ lInverse v ⟩
-        vZero ∎
+  vGrp : group _[+]_ vZero
+  vGrp = abelianGroup.grp addvStr
 
-    scaleInv : (v : vector) → (c : scalar) → scale (neg c) v ≡ (inv (scale c v))
-    scaleInv v c = grp.opCancel $
-        scale (neg c) v [+] inv (inv (scale c v)) ≡⟨(λ i → (scale (neg c) v) [+] (grp.doubleInv (scale c v) i))⟩
-        scale (neg c) v [+] (scale c v)           ≡⟨ sym (vectorDistribution v ((neg c)) c)⟩
-        scale ((neg c) + c) v                     ≡⟨(λ i → scale ((lInverse c) i) v)⟩
-        scale zero v                              ≡⟨ scaleZ v ⟩
-        vZero ∎
+  -- Vector Scaled by Zero is Zero Vector
+  scaleZ : (v : vector) → scale zero v ≡ vZero
+  scaleZ v =
+      scale zero v                      ≡⟨ sym (λ i → scale (lInverse one i) v)⟩
+      scale ((neg one) + one) v         ≡⟨ vectorDistribution v (neg one) one ⟩
+      scale (neg one) v [+] scale one v ≡⟨(λ i → scale (neg one) v [+] scaleId v i)⟩
+      scale (neg one) v [+] v           ≡⟨(λ i → scaleNegOneInv v i [+] v)⟩
+      inv v [+] v                       ≡⟨ lInverse v ⟩
+      vZero ∎
 
-    -- https://en.wikipedia.org/wiki/Linear_span
-    data Span (X : vector → Type l) : vector → Type l where
-      intro : {v : vector} → X v → Span X v
-      spanAdd : {v : vector} → Span X v → {u : vector} → Span X u → Span X (v [+] u)
-      spanScale : {v : vector} → Span X v → (c : scalar) → Span X (scale c v)
+  -- Zero Vector Scaled is Zero Vector
+  scaleVZ : (c : scalar) → scale c vZero ≡ vZero
+  scaleVZ c =
+      scale c vZero              ≡⟨(λ i → scale c (scaleZ vZero (~ i)))⟩
+      scale c (scale zero vZero) ≡⟨ scalarAssoc vZero c zero ⟩
+      scale (c * zero) vZero     ≡⟨ (λ i → scale (multZ c i) vZero) ⟩
+      scale zero vZero           ≡⟨ scaleZ vZero ⟩
+      vZero ∎
 
-    -- https://en.wikipedia.org/wiki/Linear_independence
-    record LinearlyIndependent (V : vector → Type l) : Type (lsuc l)
-      where field
-          {{vsProp}} : Property V
-          -- ∀ v ∈ V, Span(V) ≠ Span(V - {v})
-          linInd : {v : vector} → V v → Span V ≠ Span (λ(x : vector) → V x /\ ¬ (V v))
-          noZero : ¬ (V vZero)
-    open LinearlyIndependent {{...}} hiding (vsProp)
+  scaleInv : (v : vector) → (c : scalar) → scale (neg c) v ≡ (negV (scale c v))
+  scaleInv v c = grp.opCancel $
+    scale (neg c) v [+] negV(negV(scale c v)) ≡⟨(λ i → scale (neg c) v [+] grp.doubleInv {{vGrp}} (scale c v) i)⟩
+    scale (neg c) v [+] (scale c v)           ≡⟨ sym (vectorDistribution v (neg c) c)⟩
+    scale ((neg c) + c) v                     ≡⟨(λ i → scale ((lInverse c) i) v)⟩
+    scale zero v                              ≡⟨ scaleZ v ⟩
+    vZero ∎
 
-    -- https://en.wikipedia.org/wiki/Basis_(linear_algebra)
+  -- https://en.wikipedia.org/wiki/Linear_span
+  data Span (X : vector → Type l) : vector → Type l where
+    intro : {v : vector} → X v → Span X v
+    spanAdd : {v : vector} → Span X v → {u : vector} → Span X u → Span X (v [+] u)
+    spanScale : {v : vector} → Span X v → (c : scalar) → Span X (scale c v)
 
-    -- We define a basis of a vector space `VS` as a maximal element of the set of linearly
-    -- independent subsets of `VS` where the partial order is set inclusion.
-    record Basis (V : vector → Type l) : Type (lsuc l)
-      where field
-      overlap {{bLI}} : LinearlyIndependent V
-      maxLinInd : {Y : vector → Type l} → (_ : LinearlyIndependent Y) → ¬((V , isproperty) < (Y , isproperty))
-    open Basis {{...}} hiding (bLI)
+  -- https://en.wikipedia.org/wiki/Linear_independence
+  record LinearlyIndependent (X : vector → Type l) : Type (lsuc l)
+    where field
+        {{vsProp}} : Property X
+        -- ∀ v ∈ V, Span(V) ≠ Span(X - {v})
+        linInd : {v : vector} → X v → Span X ≠ Span (λ(x : vector) → X x /\ ¬ (X v))
+        noZero : ¬ (X vZero)
+  open LinearlyIndependent {{...}} hiding (vsProp)
 
-    -- https://en.wikipedia.org/wiki/Linear_subspace
-    record SubSpace (V : vector → Type l) : Type (lsuc l)
-      where field
-          ssZero : V vZero 
-          ssAdd : {v u : vector} → V v → V u → V (v [+] u)
-          ssScale : {v : vector} → V v → (c : scalar) → V (scale c v)
+  -- https://en.wikipedia.org/wiki/Basis_(linear_algebra)
 
--- The span of a non-empty set of vectors is a subspace.
-SpanNonEmptyIsSubSpace : {A : Type l}
-                        {{VS : VectorSpace A}}
-                      → {V : vector → Type l}
-                      → Σ vector V
-                      → SubSpace (Span V)
-SpanNonEmptyIsSubSpace {V = V} (v , v') = let H : Span V v
-                                              H = intro v' in
-      record { ssZero =  scaleZ v ~> λ{r → transport (λ i → Span V (r i)) (spanScale H zero)}
+  -- We define a basis of a vector space `VS` as a maximal element of the set of linearly
+  -- independent subsets of `VS` where the partial order is set inclusion.
+  record Basis (X : vector → Type l) : Type (lsuc l)
+    where field
+    overlap {{bLI}} : LinearlyIndependent X
+    maxLinInd : {Y : vector → Type l} → (_ : LinearlyIndependent Y) → ¬((X , isproperty) < (Y , isproperty))
+  open Basis {{...}} hiding (bLI)
+
+  -- https://en.wikipedia.org/wiki/Linear_subspace
+  record Subspace (X : vector → Type l) : Type (lsuc l)
+    where field
+        ssZero : X vZero 
+        ssAdd : {v u : vector} → X v → X u → X (v [+] u)
+        ssScale : {v : vector} → X v → (c : scalar) → X (scale c v)
+
+  -- The span of a non-empty set of vectors is a subspace.
+  SpanNonEmptyIsSubspace :{X : vector → Type l}
+                        → Σ vector X
+                        → Subspace (Span X)
+  SpanNonEmptyIsSubspace {X = X} (v , v') = let H : Span X v
+                                                H = intro v' in
+      record { ssZero = transport (λ i → Span X (scaleZ v i)) (spanScale H zero)
              ; ssAdd = λ x y → spanAdd x y
              ; ssScale = λ {u} x c → spanScale x c }
 
+<_> : {A : Type l}{{F : Field A}}(V : VectorSpace {{F}}) → Type l
+< V > = VectorSpace.vector V
+
 -- https://en.wikipedia.org/wiki/Linear_map
-record LinearTransformation {A : Type l}
-                           {{V U : VectorSpace A}}
-                           (T : V.(vector) → U.(vector)) : Type l
+record LinearTransformation{A : Type l}
+                          {{F : Field A}}
+                          {{V U : VectorSpace{{F}}}}
+                           (T : < U > → < V >) : Type l
   where field
   addT : (u v : vector) →  T (u [+] v) ≡ T u [+] T v
   multT : (u : vector) → (c : A) → T (scale c u) ≡ scale c (T u)
 open LinearTransformation {{...}}  
 
--- If 'T' and 'S' are linear transformations, then 'S ∘ T' is a linear transformation
-linTransComp : {{U V : VectorSpace A}}
-                (T : U.(vector) → V.(vector))
-             → {{TLT : LinearTransformation T}}
-             → {{W : VectorSpace A}}
-             →  (S : V.(vector) → W.(vector))
-             → {{SLT : LinearTransformation S}}
-             → LinearTransformation (S ∘ T)
-linTransComp T S = record { addT = λ u v → eqTrans (cong S (addT u v)) (addT (T u) (T v))
+-- For all Linear Transformations 'T':
+module _ {l : Level}{scalar : Type l}{{F : Field scalar}}{{V U : VectorSpace{{F}}}}
+         (T : < U > → < V >){{TLT : LinearTransformation T}} where
+
+  linTransZ : T vZero ≡ vZero
+  linTransZ = let H = scaleZ (T vZero) in
+          T vZero  ≡⟨ sym (λ i → T (scaleZ vZero i))  ⟩
+          T (scale zero vZero)  ≡⟨ LinearTransformation.multT TLT vZero zero ⟩
+          scale zero (T vZero)  ≡⟨ scaleZ (T vZero) ⟩
+          vZero ∎
+
+
+
+  -- If 'T' and 'S' are linear transformations and are composable, then 'S ∘ T' is a linear transformation
+  linTransComp : {{W : VectorSpace {{F}}}}
+               →  (S : < V > → < W >)
+               → {{SLT : LinearTransformation S}}
+               → LinearTransformation (S ∘ T)
+  linTransComp S = record { addT = λ u v → eqTrans (cong S (addT u v)) (addT (T u) (T v))
                          ; multT = λ u c → eqTrans (cong S (multT u c)) (multT (T u) c) }
+
+
+week7 : {{F : Field A}} → {{V : VectorSpace {{F}}}} →
+         (T : < V > → < V >)
+      → {{TLT : LinearTransformation T}}
+      → (c : A) → Subspace (λ x → T x ≡ scale c x)
+week7 T c = record
+            { ssZero = T vZero ≡⟨ linTransZ T ⟩
+                       vZero   ≡⟨ sym (scaleVZ c)⟩
+                       scale c vZero ∎
+            ; ssAdd = λ {v} {u} p q →
+                           T (v [+] u)             ≡⟨ addT v u ⟩
+                           T v [+] T u             ≡⟨(λ i → p i [+] q i)⟩
+                           scale c v [+] scale c u ≡⟨ sym (scalarDistribution c v u)⟩
+                           scale c (v [+] u) ∎
+            ; ssScale = λ {v} p d → let multCom = CMStr .CMCom .commutative in
+                           T (scale d v)       ≡⟨ multT v d ⟩
+                           scale d (T v)       ≡⟨(λ i → scale d (p i))⟩
+                           scale d (scale c v) ≡⟨ scalarAssoc v d c ⟩
+                           scale (d * c) v     ≡⟨(λ i → scale (multCom d c i) v)⟩
+                           scale (c * d) v     ≡⟨ sym (scalarAssoc v c d)⟩
+                           scale c (scale d v) ∎
+            }
 
 -- https://en.wikipedia.org/wiki/Axiom_of_choice
 Choice : {P : A → Type l} {R : (a : A) → (P a) → Type cl} → ((x : A) → Σ[ y ∈ P x ] R x y) → Σ[ f ∈ ((a : A) → P a) ] ((x : A) → R x (f x))
