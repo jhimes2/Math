@@ -2,7 +2,6 @@
 {-# OPTIONS --without-K #-}
 {-# OPTIONS --safe #-}
 
-open import Cubical.Core.Everything
 open import Cubical.Foundations.Prelude
 open import Agda.Primitive
 
@@ -18,6 +17,7 @@ private
     A : Type al
     B : Type bl
     C : Type cl
+
 
 ¬ : Type l → Type l
 ¬ a = a → False
@@ -47,10 +47,9 @@ id a = a
 
 -- Transitive property of equality
 eqTrans : {x y z : A} → x ≡ y → y ≡ z → x ≡ z
-eqTrans {x = x} p q i = hcomp (λ j → λ { (i = i0) → x
-                                       ; (i = i1) → q j })
-                                (p i)
-
+eqTrans p q i = hcomp (λ j → λ { (i = i0) → p i
+                               ; (i = i1) → q j })
+                      (p i)
 
 -- Or
 data _\/_ (A : Type l)(B : Type l') : Type (l ⊔ l') where
@@ -222,7 +221,7 @@ record monoid {A : Type l}(op : A → A → A) (e : A) : Type (lsuc l) where
       lIdentity : (a : A) → op e a ≡ a
       rIdentity : (a : A) → op a e ≡ a
       overlap {{mAssoc}} : Associative op
-open monoid {{...}} hiding (mAssoc)
+open monoid {{...}}
 
 idUnique : {op : A → A → A} {e : A} {{_ : monoid op e}} → (id : A) → ((a : A) → op id a ≡ a) → id ≡ e
 idUnique {op = op} {e} id p = let H = p id in let H2 = p e in
@@ -315,9 +314,9 @@ record Ring (A : Type l) : Type (lsuc l) where
     _*_ : A → A → A
     lDistribute : (a b c : A) → a * (b + c) ≡ (a * b) + (a * c)
     rDistribute : (a b c : A) → (b + c) * a ≡ (b * a) + (c * a)
-    overlap {{addStr}} : abelianGroup _+_ zero
-    overlap {{multStr}} : monoid _*_ one
-open Ring {{...}} hiding (addStr ; multStr)
+    {{addStr}} : abelianGroup _+_ zero
+    {{multStr}} : monoid _*_ one
+open Ring {{...}}
 
 nonZero : {A : Type l} {{R : Ring A}} → Type l
 nonZero {A = A} = (Σ A λ a → a ≠ zero)
@@ -325,15 +324,59 @@ nonZero {A = A} = (Σ A λ a → a ≠ zero)
 neg : {{R : Ring A}} → A → A
 neg = inv
 
-multZ : {{R : Ring A}} → (x : A) → x * zero ≡ zero
-multZ x =
+rMultZ : {{R : Ring A}} → (x : A) → x * zero ≡ zero
+rMultZ x =
   x * zero ≡⟨ sym (rIdentity (x * zero)) ⟩
-  (x * zero) + zero                          ≡⟨(λ i → (x * zero) + rInverse (x * zero) (~ i))⟩
-  (x * zero) + ((x * zero) + neg (x * zero)) ≡⟨ associative (x * zero) ((x * zero)) (neg (x * zero))⟩
-  ((x * zero) + (x * zero)) + neg (x * zero) ≡⟨(λ i → lDistribute x zero zero (~ i) + neg (x * zero))⟩
-  (x * (zero + zero)) + neg (x * zero)       ≡⟨(λ i → (x * (lIdentity zero i)) + neg (x * zero))⟩
-  (x * zero) + neg (x * zero)                ≡⟨ rInverse (x * zero) ⟩
+  (x * zero) + zero                         ≡⟨(λ i → (x * zero) + rInverse (x * zero) (~ i))⟩
+  (x * zero) + ((x * zero) + neg(x * zero)) ≡⟨ associative (x * zero) (x * zero) (neg(x * zero))⟩
+  ((x * zero) + (x * zero)) + neg(x * zero) ≡⟨(λ i → lDistribute x zero zero (~ i) + neg(x * zero))⟩
+  (x * (zero + zero)) + neg(x * zero)       ≡⟨(λ i → (x * (lIdentity zero i)) + neg(x * zero))⟩
+  (x * zero) + neg(x * zero)                ≡⟨ rInverse (x * zero) ⟩
   zero ∎
+
+lMultZ : {{R : Ring A}} → (x : A) → zero * x ≡ zero
+lMultZ x =
+  zero * x  ≡⟨ sym (rIdentity (zero * x)) ⟩
+  (zero * x) + zero                         ≡⟨(λ i → (zero * x) + rInverse (zero * x) (~ i))⟩
+  (zero * x) + ((zero * x) + neg(zero * x)) ≡⟨ associative (zero * x) (zero * x) (neg(zero * x))⟩
+  ((zero * x) + (zero * x)) + neg(zero * x) ≡⟨(λ i → rDistribute x zero zero (~ i) + neg(zero * x))⟩
+  ((zero + zero) * x) + neg(zero * x)       ≡⟨(λ i → ((lIdentity zero i) * x) + neg(zero * x))⟩
+  (zero * x) + neg(zero * x)                ≡⟨ rInverse (zero * x)⟩
+  zero ∎
+
+lMultNegOne : {{R : Ring A}} → (x : A) → neg one * x ≡ neg x
+lMultNegOne x = grp.opCancel $
+  (neg one * x) + (neg(neg x)) ≡⟨ (λ i → (neg one * x) + (grp.doubleInv x i))⟩
+  (neg one * x) + x            ≡⟨ (λ i → (neg one * x) + (lIdentity x (~ i)))⟩
+  (neg one * x) + (one * x)    ≡⟨ sym (rDistribute x (neg one) one)⟩
+  (neg one + one) * x          ≡⟨ (λ i → (lInverse one i) * x)⟩
+  zero * x                     ≡⟨ lMultZ x ⟩
+  zero ∎
+
+rMultNegOne : {{R : Ring A}} → (x : A) → x * neg one ≡ neg x
+rMultNegOne x = grp.opCancel $
+  (x * neg one) + (neg(neg x)) ≡⟨ (λ i → (x * neg one) + (grp.doubleInv x i))⟩
+  (x * neg one) + x            ≡⟨ (λ i → (x * neg one) + (rIdentity x (~ i)))⟩
+  (x * neg one) + (x * one)    ≡⟨ sym (lDistribute x (neg one) one) ⟩
+  x * (neg one + one)          ≡⟨ (λ i → x * (lInverse one i)) ⟩
+  x * zero                     ≡⟨ rMultZ x ⟩
+  zero ∎
+
+negSwap : {{R : Ring A}} → (x y : A) → neg x * y ≡ x * neg y
+negSwap x y = let H = multStr .mAssoc .associative in
+  neg x * y            ≡⟨ (λ i → (rMultNegOne x (~ i)) * y)⟩
+  (x * (neg one)) * y  ≡⟨ sym (H x (neg one) y) ⟩
+  x * ((neg one) * y)  ≡⟨ (λ i → x * (lMultNegOne y i))⟩
+  x * neg y ∎
+
+multNeg : {{R : Ring A}} → (x y : A) → (neg x) * y ≡ neg(x * y)
+multNeg x y = let H = multStr .mAssoc .associative in
+  (neg x) * y       ≡⟨ sym (lIdentity (neg x * y))⟩
+  one * (neg x * y) ≡⟨ H one (neg x) y ⟩
+  (one * neg x) * y ≡⟨ (λ i → negSwap one x (~ i) * y)⟩
+  (neg one * x) * y ≡⟨ sym (H (neg one) x y)⟩
+  neg one * (x * y) ≡⟨ lMultNegOne (x * y)⟩
+  neg(x * y) ∎
 
 -- https://en.wikipedia.org/wiki/Commutative_ring
 record CRing (A : Type l) : Type (lsuc l) where
@@ -366,7 +409,9 @@ record VectorSpace {scalar : Type l} {{F : Field scalar}} : Type (lsuc l) where
     scaleNegOneInv : (v : vector) → scale (neg one) v ≡ inv v
 open VectorSpace {{...}}
 
+
 module _{l : Level}{scalar : Type l}{{F : Field scalar}}{{V : VectorSpace}} where
+
   negV : vector → vector
   negV = inv
 
@@ -388,7 +433,7 @@ module _{l : Level}{scalar : Type l}{{F : Field scalar}}{{V : VectorSpace}} wher
   scaleVZ c =
       scale c vZero              ≡⟨(λ i → scale c (scaleZ vZero (~ i)))⟩
       scale c (scale zero vZero) ≡⟨ scalarAssoc vZero c zero ⟩
-      scale (c * zero) vZero     ≡⟨ (λ i → scale (multZ c i) vZero) ⟩
+      scale (c * zero) vZero     ≡⟨ (λ i → scale (rMultZ c i) vZero) ⟩
       scale zero vZero           ≡⟨ scaleZ vZero ⟩
       vZero ∎
 
@@ -417,12 +462,10 @@ module _{l : Level}{scalar : Type l}{{F : Field scalar}}{{V : VectorSpace}} wher
 
   -- https://en.wikipedia.org/wiki/Basis_(linear_algebra)
 
-  -- We define a basis of a vector space `VS` as a maximal element of the set of linearly
-  -- independent subsets of `VS` where the partial order is set inclusion.
   record Basis (X : vector → Type l) : Type (lsuc l)
     where field
     overlap {{bLI}} : LinearlyIndependent X
-    maxLinInd : {Y : vector → Type l} → (_ : LinearlyIndependent Y) → ¬((X , isproperty) < (Y , isproperty))
+    maxLinInd : (x : vector) → Span X x
   open Basis {{...}} hiding (bLI)
 
   -- https://en.wikipedia.org/wiki/Linear_subspace
@@ -431,6 +474,12 @@ module _{l : Level}{scalar : Type l}{{F : Field scalar}}{{V : VectorSpace}} wher
         ssZero : X vZero 
         ssAdd : {v u : vector} → X v → X u → X (v [+] u)
         ssScale : {v : vector} → X v → (c : scalar) → X (scale c v)
+
+  record Basis_for_ (X : vector → Type l) (H : Σ (vector → Type l) Subspace ) : Type (lsuc l)
+    where field
+    overlap {{bfLI}} : LinearlyIndependent X
+    spanEq : Span X ≡ pr1 H
+  open Basis_for_ {{...}} hiding (bfLI)
 
   -- The span of a non-empty set of vectors is a subspace.
   SpanNonEmptyIsSubspace :{X : vector → Type l}
@@ -455,7 +504,6 @@ record LinearTransformation{A : Type l}
   multT : (u : vector) → (c : A) → T (scale c u) ≡ scale c (T u)
 open LinearTransformation {{...}}  
 
--- For all Linear Transformations 'T':
 module _ {l : Level}{scalar : Type l}{{F : Field scalar}}{{V U : VectorSpace{{F}}}}
          (T : < U > → < V >){{TLT : LinearTransformation T}} where
 
@@ -466,8 +514,6 @@ module _ {l : Level}{scalar : Type l}{{F : Field scalar}}{{V U : VectorSpace{{F}
           scale zero (T vZero)  ≡⟨ scaleZ (T vZero) ⟩
           vZero ∎
 
-
-
   -- If 'T' and 'S' are linear transformations and are composable, then 'S ∘ T' is a linear transformation
   linTransComp : {{W : VectorSpace {{F}}}}
                →  (S : < V > → < W >)
@@ -476,6 +522,12 @@ module _ {l : Level}{scalar : Type l}{{F : Field scalar}}{{V U : VectorSpace{{F}
   linTransComp S = record { addT = λ u v → eqTrans (cong S (addT u v)) (addT (T u) (T v))
                          ; multT = λ u c → eqTrans (cong S (multT u c)) (multT (T u) c) }
 
+  nullSpace : < U > → Type l
+  nullSpace x = T x ≡ vZero
+
+  -- Actually a generalization of a column space, defined as the image of a linear transformation.
+  columnSpace : < V > → Type l
+  columnSpace x = ∃ λ y → T y ≡ x
 
 week7 : {{F : Field A}} → {{V : VectorSpace {{F}}}} →
          (T : < V > → < V >)
@@ -499,9 +551,22 @@ week7 T c = record
                            scale c (scale d v) ∎
             }
 
--- https://en.wikipedia.org/wiki/Axiom_of_choice
-Choice : {P : A → Type l} {R : (a : A) → (P a) → Type cl} → ((x : A) → Σ[ y ∈ P x ] R x y) → Σ[ f ∈ ((a : A) → P a) ] ((x : A) → R x (f x))
-Choice X = (λ x → fst (X x)) , λ x → snd (X x)
+
+
+FieldToVectorSpace : (F : Field A) → VectorSpace {{F}}
+FieldToVectorSpace F = let H = Field.fring F in
+                       let G = H .crring .multStr in
+                          record
+                                { _[+]_ = _+_
+                                ; vZero = zero
+                                ; addvStr = addStr
+                                ; scale = _*_
+                                ; scaleId = G .lIdentity
+                                ; scalarDistribution = lDistribute
+                                ; vectorDistribution = rDistribute
+                                ; scalarAssoc = λ a b c → G .mAssoc .associative b c a
+                                ; scaleNegOneInv = λ v → lMultNegOne v
+                                }
 
 -- https://en.wikipedia.org/wiki/Zorn's_lemma
 module Zorn(zorn : {A : Type l}
