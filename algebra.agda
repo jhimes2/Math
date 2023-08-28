@@ -551,8 +551,6 @@ week7 T c = record
                            scale c (scale d v) ∎
             }
 
-
-
 FieldToVectorSpace : (F : Field A) → VectorSpace {{F}}
 FieldToVectorSpace F = let H = Field.fring F in
                        let G = H .crring .multStr in
@@ -567,6 +565,15 @@ FieldToVectorSpace F = let H = Field.fring F in
                                 ; scalarAssoc = λ a b c → G .mAssoc .associative b c a
                                 ; scaleNegOneInv = λ v → lMultNegOne v
                                 }
+
+linearForm : {A : Type l}{{F : Field A}}(VS : VectorSpace {{F}}) → Type l
+linearForm {{F}} VS = Σ (< U > → < V >) LinearTransformation
+  where
+   instance
+     V : VectorSpace
+     V = FieldToVectorSpace F
+     U : VectorSpace
+     U = VS
 
 -- https://en.wikipedia.org/wiki/Zorn's_lemma
 module Zorn(zorn : {A : Type l}
