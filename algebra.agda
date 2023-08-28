@@ -1,6 +1,4 @@
-{-# OPTIONS --cubical #-}
-{-# OPTIONS --without-K #-}
-{-# OPTIONS --safe #-}
+{-# OPTIONS --cubical --without-K --safe #-}
 
 open import Cubical.Foundations.Prelude
 open import Agda.Primitive
@@ -17,7 +15,6 @@ private
     A : Type al
     B : Type bl
     C : Type cl
-
 
 ¬ : Type l → Type l
 ¬ a = a → False
@@ -198,7 +195,7 @@ instance
                                                   (g y)
                                                   (λ b → x' y (f y (g y b)) b)
                                                    λ a → w' y (g y (f y a)) a)) in
-                           ΣPathPProp ((λ _ → isPropΠ λ _ → isPropIsProp)) H } }
+                           ΣPathPProp (λ _ → isPropΠ λ _ → isPropIsProp) H } }
    where
     open import Cubical.Foundations.HLevels
     open import Cubical.Data.Sigma.Properties
@@ -396,7 +393,7 @@ open Field {{...}} hiding (fring)
 -- https://en.wikipedia.org/wiki/Vector_space
 record VectorSpace {scalar : Type l} {{F : Field scalar}} : Type (lsuc l) where
   field
-    {vector} : Type l
+    vector : Type l
     _[+]_ : vector → vector → vector
     vZero : vector
     addvStr : abelianGroup _[+]_ vZero
@@ -408,7 +405,6 @@ record VectorSpace {scalar : Type l} {{F : Field scalar}} : Type (lsuc l) where
     -- I think this axiom isn't necessary; I'm still working on deriving it.
     scaleNegOneInv : (v : vector) → scale (neg one) v ≡ inv v
 open VectorSpace {{...}}
-
 
 module _{l : Level}{scalar : Type l}{{F : Field scalar}}{{V : VectorSpace}} where
 
@@ -550,30 +546,62 @@ week7 T c = record
                            scale (c * d) v     ≡⟨ sym (scalarAssoc v c d)⟩
                            scale c (scale d v) ∎
             }
-
-FieldToVectorSpace : (F : Field A) → VectorSpace {{F}}
-FieldToVectorSpace F = let H = Field.fring F in
-                       let G = H .crring .multStr in
-                          record
-                                { _[+]_ = _+_
-                                ; vZero = zero
-                                ; addvStr = addStr
-                                ; scale = _*_
-                                ; scaleId = G .lIdentity
-                                ; scalarDistribution = lDistribute
-                                ; vectorDistribution = rDistribute
-                                ; scalarAssoc = λ a b c → G .mAssoc .associative b c a
-                                ; scaleNegOneInv = λ v → lMultNegOne v
-                                }
+instance
+    FieldToVectorSpace : {{F : Field A}} → VectorSpace {{F}}
+    FieldToVectorSpace {A = A} {{F}} = let H = Field.fring F in
+                           let G = H .crring .multStr in
+                              record
+                                    { vector = A
+                                    ; _[+]_ = _+_
+                                    ; vZero = zero
+                                    ; addvStr = addStr
+                                    ; scale = _*_
+                                    ; scaleId = G .lIdentity
+                                    ; scalarDistribution = lDistribute
+                                    ; vectorDistribution = rDistribute
+                                    ; scalarAssoc = λ a b c → G .mAssoc .associative b c a
+                                    ; scaleNegOneInv = λ v → lMultNegOne v
+                                    }
 
 linearForm : {A : Type l}{{F : Field A}}(VS : VectorSpace {{F}}) → Type l
-linearForm {{F}} VS = Σ (< U > → < V >) LinearTransformation
+linearForm {{F}} VS = Σ (< U > → < FieldToVectorSpace {{F}} >) LinearTransformation
   where
    instance
-     V : VectorSpace
-     V = FieldToVectorSpace F
      U : VectorSpace
      U = VS
+
+dualSum : {{F : Field A}}(VS : VectorSpace {{F}}) → linearForm VS → linearForm VS → linearForm VS
+dualSum {{F}} VS = λ{ (T , record { addT = addTT ; multT = multTT })
+                             (S , record { addT = addTS ; multT = multTS })
+                             → (λ x → T x [+] S x)
+                              , (record
+                                  { addT = λ a b → 
+                                      T (a [+] b) [+] S (a [+] b)     ≡⟨ (λ i → addTT a b i [+] addTS a b i) ⟩
+                                      (T a [+] T b) [+] (S a [+] S b) ≡⟨ sym (associative (T a) (T b) (S a [+] S b))⟩
+                                      T a [+] (T b [+] (S a [+] S b)) ≡⟨(λ i → T a [+] associative (T b) (S a) (S b) i)⟩
+                                      T a [+] ((T b [+] S a) [+] S b) ≡⟨(λ i → T a [+] (commutative (T b) (S a) i [+] S b))⟩
+                                      T a [+] ((S a [+] T b) [+] S b) ≡⟨(λ i → T a [+] associative (S a) (T b) (S b) (~ i))⟩
+                                      T a [+] (S a [+] (T b [+] S b)) ≡⟨ associative (T a) (S a) (T b [+] S b) ⟩
+                                      (T a [+] S a) [+] (T b [+] S b) ∎
+                                  ; multT = λ a c →
+                                      T (scale c a) [+] S (scale c a) ≡⟨ (λ i → multTT a c i [+] multTS a c i) ⟩
+                                      scale c (T a) [+] scale c (S a) ≡⟨ sym (scalarDistribution c (T a) (S a)) ⟩
+                                      scale c (T a [+] S a) ∎
+                                           }) }
+  where
+   instance
+    V : VectorSpace {{F}}
+    V = VS
+
+dualZero : {{F : Field A}}(VS : VectorSpace {{F}}) → linearForm VS
+dualZero {{F}} VS = (λ _ → zero) , record { addT = λ u v →
+                                       zero ≡⟨ sym (lIdentity zero) ⟩
+                                       zero + zero ∎
+                                      ; multT = λ v c → sym (rMultZ c) }
+ where
+  instance
+   V : VectorSpace {{F}}
+   V = VS
 
 -- https://en.wikipedia.org/wiki/Zorn's_lemma
 module Zorn(zorn : {A : Type l}
