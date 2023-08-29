@@ -54,13 +54,17 @@ data _\/_ (A : Type l)(B : Type l') : Type (l ⊔ l') where
   inr : B → A \/ B
 
 -- And
-data _/\_ (A : Type l)(B : Type l') : Type (l ⊔ l') where
-  _,_ : A → B → A /\ B
+_/\_ : (A : Type l)(B : Type l') → Type (l ⊔ l')
+_/\_ A B = Σ A λ _ -> B
 
 -- https://en.wikipedia.org/wiki/De_Morgan's_laws
 demorgan : ¬ A \/ ¬ B → ¬(A /\ B)
 demorgan (inl x) (a , _) = x a
 demorgan (inr x) (_ , b) = x b
+
+demorgan2 : ¬ A /\ ¬ B → ¬(A \/ B)
+demorgan2 (a , b) (inl x) = a x
+demorgan2 (a , b) (inr x) = b x
 
 -- Double negation holds a secret because we cannot prove (¬¬A → A) in constructive mathematics.
 secret : Type l → Type l
@@ -76,36 +80,36 @@ merelyLEM A f = f (inr (λ x → f (inl x)))
 
 -- https://en.wikipedia.org/wiki/Functor_(functional_programming)
 -- https://en.wikipedia.org/wiki/Functor
-record Functor (f : Type al → Type bl) : Type (lsuc al ⊔ lsuc bl)  where
+record functor (f : Type al → Type bl) : Type (lsuc al ⊔ lsuc bl)  where
   field
     map : (A → B) → f A → f B
     compPreserve : (f : B → C) → (g : A → B) → map (f ∘ g) ≡ map f ∘ map g
     idPreserve : map {A = A} id ≡ id
-open Functor {{...}}
+open functor {{...}}
 
 -- https://en.wikipedia.org/wiki/Monad_(functional_programming)
 -- https://en.wikipedia.org/wiki/Monad_(category_theory)
-record Monad (m : Type l → Type l) : Type (lsuc l) where
+record monad (m : Type l → Type l) : Type (lsuc l) where
   field
-      {{mApp}} : Functor m
+      {{mApp}} : functor m
       μ : m (m A) → m A -- join
       η  : A → m A      -- return
-open Monad {{...}}
+open monad {{...}}
 
 -- bind
-_>>=_ : {m : Type l → Type l} → {{Monad m}} → m A → (A → m B) → m B
+_>>=_ : {m : Type l → Type l} → {{monad m}} → m A → (A → m B) → m B
 _>>=_ {m = m} mA p = μ (map p mA)
 
 -- apply
-_<*>_ : {m : Type l → Type l} → {{Monad m}} → m (A → B) → m A → m B
+_<*>_ : {m : Type l → Type l} → {{monad m}} → m (A → B) → m A → m B
 _<*>_ {m = m} mf mA = mf >>= λ f → map f mA
 
 instance
   -- Double Negation is a Functor and Monad
   -- Interestingly, Double negation is similar to Haskell's `IO` monad, since `IO` hides any non-deterministic behavior.
-  dnFunctor : {l : Level} → Functor (secret {l = l})
+  dnFunctor : {l : Level} → functor (secret {l = l})
   dnFunctor = record { map = λ x y z → y (λ a → z (x a)) ; compPreserve = λ f g → refl ; idPreserve = refl }
-  dnMonad : {l : Level} → Monad (secret {l = l})
+  dnMonad : {l : Level} → monad (secret {l = l})
   dnMonad = record { μ = λ x y → x (λ z → z y) ; η = λ x y → y x }
 
 -- `∃` means to merely exist, whereas `Σ` means exists and known.
@@ -145,8 +149,13 @@ rInvToSurjective (rInv , r') = λ b → η ((rInv b) , (r' b))
 equiv : (A : Type l)(B : Type l') → Type (l ⊔ l')
 equiv A B = Σ (A → B) λ f → injective f /\ surjective f
 
+-- Left side of a dependent pair.
 pr1 : {P : A → Type l} → Σ A P → A
 pr1 (a , _) = a
+
+-- Right side of a dependent pair.
+pr2 : {P : A → Set l} → (x : Σ A P) → P (pr1 x)
+pr2 (_ , b) = b
 
 _≠_ : {A : Type l} → A → A → Type l
 _≠_ a b = ¬ (a ≡ b)
@@ -219,6 +228,10 @@ record monoid {A : Type l}(op : A → A → A) (e : A) : Type (lsuc l) where
       rIdentity : (a : A) → op a e ≡ a
       overlap {{mAssoc}} : Associative op
 open monoid {{...}}
+
+record Idempotent {A : Type l}(f : A → A) : Type (lsuc l) where
+  field
+    idempotent : f ∘ f ≡ f
 
 idUnique : {op : A → A → A} {e : A} {{_ : monoid op e}} → (id : A) → ((a : A) → op id a ≡ a) → id ≡ e
 idUnique {op = op} {e} id p = let H = p id in let H2 = p e in
@@ -500,7 +513,7 @@ record LinearTransformation{A : Type l}
   multT : (u : vector) → (c : A) → T (scale c u) ≡ scale c (T u)
 open LinearTransformation {{...}}  
 
-module _ {l : Level}{scalar : Type l}{{F : Field scalar}}{{V U : VectorSpace{{F}}}}
+module _ {scalar : Type l}{{F : Field scalar}}{{V U : VectorSpace{{F}}}}
          (T : < U > → < V >){{TLT : LinearTransformation T}} where
 
   linTransZ : T vZero ≡ vZero
@@ -525,6 +538,19 @@ module _ {l : Level}{scalar : Type l}{{F : Field scalar}}{{V U : VectorSpace{{F}
   columnSpace : < V > → Type l
   columnSpace x = ∃ λ y → T y ≡ x
 
+  -- The column space is a subspace
+  columnSpaceSubspace : Subspace columnSpace
+  columnSpaceSubspace =
+   record {
+      ssZero = η (vZero , linTransZ)
+    ; ssAdd = λ {a} {b} u v → u >>= λ{(u , u')
+                            → v >>= λ{(v , v')
+                            → η (u [+] v , eqTrans (λ i → addT u v i)
+                                                   (λ i → u' i [+] v' i))}}
+    ; ssScale = λ {a} v c → v >>= λ(v , v')
+                          → η ((scale c v) , (eqTrans (λ i → multT v c i) (λ i → scale c (v' i))))
+   }
+
 week7 : {{F : Field A}} → {{V : VectorSpace {{F}}}} →
          (T : < V > → < V >)
       → {{TLT : LinearTransformation T}}
@@ -546,6 +572,7 @@ week7 T c = record
                            scale (c * d) v     ≡⟨ sym (scalarAssoc v c d)⟩
                            scale c (scale d v) ∎
             }
+
 instance
     FieldToVectorSpace : {{F : Field A}} → VectorSpace {{F}}
     FieldToVectorSpace {A = A} {{F}} = let H = Field.fring F in
@@ -602,6 +629,7 @@ dualZero {{F}} VS = (λ _ → zero) , record { addT = λ u v →
   instance
    V : VectorSpace {{F}}
    V = VS
+
 
 -- https://en.wikipedia.org/wiki/Zorn's_lemma
 module Zorn(zorn : {A : Type l}
