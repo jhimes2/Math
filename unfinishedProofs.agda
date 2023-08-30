@@ -1,6 +1,5 @@
-{-# OPTIONS --cubical --without-K --safe #-}
+{-# OPTIONS --without-K --safe #-}
 
-open import Cubical.Foundations.Prelude
 open import Agda.Primitive
 open import algebra
 
@@ -13,16 +12,13 @@ private
 
 instance
   LFAssociative : {{F : Field A}}{{VS : VectorSpace {{F}}}} → Associative (dualSum VS)
-  LFAssociative = record { associative = λ a b c → ΣPathPProp (λ x y z → {!!}) (funExt (λ z → {!!})) }
-   where
-    open import Cubical.Foundations.HLevels
-    open import Cubical.Data.Sigma.Properties
+  LFAssociative = {!!}
   LFCom : {{F : Field A}}{{VS : VectorSpace {{F}}}} → Commutative (dualSum VS)
   LFCom = {!!}
   LFMonoid : {{F : Field A}}{{VS : VectorSpace {{F}}}} → monoid (dualSum VS) (dualZero VS)
   LFMonoid = record { isset = {!!} ; lIdentity = {!!} ; rIdentity = {!!} }
   LFGroup : {{F : Field A}}{{VS : VectorSpace {{F}}}} → group (dualSum VS) (dualZero VS)
-  LFGroup = record { inv = {!!} ; lInverse = {!!} ; rInverse = {!!} }
+  LFGroup = record { inverse = {!!} }
   LFCMonoid : {{F : Field A}}{{VS : VectorSpace {{F}}}} → cMonoid (dualSum VS) (dualZero VS)
   LFCMonoid = {!!}
   LFAGroup : {{F : Field A}}{{VS : VectorSpace {{F}}}} → abelianGroup (dualSum VS) (dualZero VS)
@@ -46,11 +42,3 @@ dualSpace {{F}} VS =
   instance
    V : VectorSpace {{F}}
    V = VS
-
-instance
-  spanIdempotent :{A : Set l}{{F : Field A}}{{VS : VectorSpace {{F}}}} → Idempotent (Span {{V = VS}})
-  spanIdempotent {{VS = VS}} = record { idempotent = funExt (λ X → funExt λ a
-        → isoToPath (iso {!!}
-               (λ x → intro x) {!!} {!!})) }
-   where
-     open import Cubical.Foundations.Isomorphism
