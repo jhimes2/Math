@@ -8,8 +8,17 @@ Type l = Set l
 -- False is defined as a type with no terms
 data False : Set where
 
+-- True is defined as a type with one term
 data True : Set where
   void : True
+
+data Bool : Set where
+  yes : Bool
+  no : Bool
+
+data nat : Set where
+  Z : nat
+  S : nat → nat
 
 private
   variable
@@ -315,8 +324,8 @@ record abelianGroup {A : Type l}(op : A → A → A)(e : A) : Type (lsuc l) wher
       overlap {{comgroup}} : cMonoid op e
 open abelianGroup {{...}}
 
--- https://en.wikipedia.org/wiki/Ring_(mathematics)
-record Ring (A : Type l) : Type (lsuc l) where
+-- https://en.wikipedia.org/wiki/Semiring
+record SemiRing (A : Type l) : Type (lsuc l) where
   field
     zero : A
     one : A
@@ -324,12 +333,19 @@ record Ring (A : Type l) : Type (lsuc l) where
     _*_ : A → A → A
     lDistribute : (a b c : A) → a * (b + c) ≡ (a * b) + (a * c)
     rDistribute : (a b c : A) → (b + c) * a ≡ (b * a) + (c * a)
-    {{addStr}} : abelianGroup _+_ zero
+    {{addStr}} : cMonoid _+_ zero
     {{multStr}} : monoid _*_ one
-open Ring {{...}}
+open SemiRing {{...}}
 
-nonZero : {A : Type l} {{R : Ring A}} → Type l
+nonZero : {A : Type l} {{R : SemiRing A}} → Type l
 nonZero {A = A} = (Σ λ (a : A) → a ≠ zero)
+
+-- https://en.wikipedia.org/wiki/Ring_(mathematics)
+record Ring (A : Type l) : Type (lsuc l) where
+  field
+    {{sring}} : SemiRing A
+    {{raddStr}} : abelianGroup _+_ zero
+open Ring {{...}}
 
 neg : {{R : Ring A}} → A → A
 neg = grp.inv
@@ -530,13 +546,13 @@ module _ {scalar : Type l}{{F : Field scalar}}{{V U : VectorSpace{{F}}}}
           scale zero (T vZero)  ≡⟨ scaleZ (T vZero) ⟩
           vZero ∎
 
-  -- If 'T' and 'S' are linear transformations and are composable, then 'S ∘ T' is a linear transformation
+  -- If 'T' and 'R' are linear transformations and are composable, then 'R ∘ T' is a linear transformation
   linTransComp : {{W : VectorSpace {{F}}}}
-               →  (S : < V > → < W >)
-               → {{SLT : LinearTransformation S}}
-               → LinearTransformation (S ∘ T)
-  linTransComp S = record { addT = λ u v → eqTrans (cong S (addT u v)) (addT (T u) (T v))
-                         ; multT = λ u c → eqTrans (cong S (multT u c)) (multT (T u) c) }
+               →  (R : < V > → < W >)
+               → {{SLT : LinearTransformation R}}
+               → LinearTransformation (R ∘ T)
+  linTransComp R = record { addT = λ u v → eqTrans (cong R (addT u v)) (addT (T u) (T v))
+                         ; multT = λ u c → eqTrans (cong R (multT u c)) (multT (T u) c) }
 
   nullSpace : < U > → Type l
   nullSpace x = T x ≡ vZero
@@ -583,12 +599,12 @@ week7 T c = record
 instance
     FieldToVectorSpace : {{F : Field A}} → VectorSpace {{F}}
     FieldToVectorSpace {A = A} {{F}} = let H = Field.fring F in
-                           let G = H .crring .multStr in
+                           let G = H .crring .sring .multStr in
                               record
                                     { vector = A
                                     ; _[+]_ = _+_
                                     ; vZero = zero
-                                    ; addvStr = addStr
+                                    ; addvStr = raddStr
                                     ; scale = _*_
                                     ; scaleId = G .lIdentity
                                     ; scalarDistribution = lDistribute
@@ -607,21 +623,21 @@ linearForm {{F}} VS = Σ λ(T : < U > → < FieldToVectorSpace {{F}} >) → Line
 dualSum : {{F : Field A}}(VS : VectorSpace {{F}}) → linearForm VS → linearForm VS → linearForm VS
 dualSum {{F}} VS =
  λ{(T , record { addT = addTT ; multT = multTT })
-   (S , record { addT = addTS ; multT = multTS })
-     → (λ x → T x [+] S x)
+   (R , record { addT = addTR ; multT = multTR })
+     → (λ x → T x [+] R x)
        , record
           { addT = λ a b → 
-              T (a [+] b) [+] S (a [+] b)     ≡⟨ cong2 _[+]_ (addTT a b) (addTS a b) ⟩
-              (T a [+] T b) [+] (S a [+] S b) ≡⟨ sym (associative (T a) (T b) (S a [+] S b))⟩
-              T a [+] (T b [+] (S a [+] S b)) ≡⟨ cong (T a [+]_) (associative (T b) (S a) (S b)) ⟩
-              T a [+] ((T b [+] S a) [+] S b) ≡⟨ cong2 _[+]_ refl (cong2 _[+]_ (commutative (T b) (S a)) refl) ⟩
-              T a [+] ((S a [+] T b) [+] S b) ≡⟨ cong2 _[+]_ refl (sym (associative (S a) (T b) (S b))) ⟩
-              T a [+] (S a [+] (T b [+] S b)) ≡⟨ associative (T a) (S a) (T b [+] S b) ⟩
-              ((T a [+] S a) [+] (T b [+] S b)) ∎
+              T (a [+] b) [+] R (a [+] b)     ≡⟨ cong2 _[+]_ (addTT a b) (addTR a b) ⟩
+              (T a [+] T b) [+] (R a [+] R b) ≡⟨ sym (associative (T a) (T b) (R a [+] R b))⟩
+              T a [+] (T b [+] (R a [+] R b)) ≡⟨ cong (T a [+]_) (associative (T b) (R a) (R b)) ⟩
+              T a [+] ((T b [+] R a) [+] R b) ≡⟨ cong2 _[+]_ refl (cong2 _[+]_ (commutative (T b) (R a)) refl) ⟩
+              T a [+] ((R a [+] T b) [+] R b) ≡⟨ cong2 _[+]_ refl (sym (associative (R a) (T b) (R b))) ⟩
+              T a [+] (R a [+] (T b [+] R b)) ≡⟨ associative (T a) (R a) (T b [+] R b) ⟩
+              ((T a [+] R a) [+] (T b [+] R b)) ∎
           ; multT = λ a c →
-              T (scale c a) [+] S (scale c a) ≡⟨ cong2 _[+]_ (multTT a c) (multTS a c) ⟩
-              scale c (T a) [+] scale c (S a) ≡⟨ sym (scalarDistribution c (T a) (S a)) ⟩
-              scale c (T a [+] S a) ∎
+              T (scale c a) [+] R (scale c a) ≡⟨ cong2 _[+]_ (multTT a c) (multTR a c) ⟩
+              scale c (T a) [+] scale c (R a) ≡⟨ sym (scalarDistribution c (T a) (R a)) ⟩
+              scale c (T a [+] R a) ∎
                    } }
   where
    instance
@@ -637,21 +653,3 @@ dualZero {{F}} VS = (λ _ → zero) , record { addT = λ u v →
   instance
    V : VectorSpace {{F}}
    V = VS
---
---spanElim2 : {A : Type l} {{F : Field A}}{{VS : VectorSpace {{F}}}} → (X : vector → Type l) → (a : vector)
---  → (b : ((Span {{V = VS}}) ∘ (Span {{V = VS}})) X a)
---  → intro (spanElim X a b) ≡ b
---spanElim2 X a (intro b) = refl
---spanElim2 X x (spanAdd {v} b {u} c) = let H = spanElim X v b in
---                                      let G = spanElim X u c in {!spanAdd!}
---spanElim2 X x (spanScale b c) = {!!}
---   where
---     open import Cubical.Foundations.Isomorphism
---
---instance
---  spanIdempotent :{A : Set l}{{F : Field A}}{{VS : VectorSpace {{F}}}} → Idempotent (Span {{V = VS}})
---  spanIdempotent {{VS = VS}} = record { idempotent = funExt (λ X → funExt λ a
---        → isoToPath (iso (spanElim X a)
---               (λ x → intro x) (λ b → refl) λ{b → {!!}})) }
---   where
---     open import Cubical.Foundations.Isomorphism
