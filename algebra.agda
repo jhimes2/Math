@@ -1,182 +1,7 @@
 {-# OPTIONS  --without-K --safe #-}
 
 open import Agda.Primitive
-
-Type : (l : Level) → Set (lsuc l)
-Type l = Set l
-
-variable
-    l l' al bl cl : Level
-    A : Type al
-    B : Type bl
-    C : Type cl
-
--- Equality
-data _≡_ {l : Level} {A : Set l} (a : A) : A → Set l where
-  refl : a ≡ a
-infixl 4 _≡_
-
--- Symmetry property of equality
-sym : {a b : A} → a ≡ b → b ≡ a
-sym refl = refl
-
--- Transitive property of equality
-eqTrans : {x y z : A} → x ≡ y → y ≡ z → x ≡ z
-eqTrans refl refl = refl
-
--- congruence
-cong : (f : A → B) → {a b : A} → a ≡ b → f a ≡ f b
-cong f refl = refl
-
--- False is defined as a type with no terms
-data False : Set where
-
-¬ : Type l → Type l
-¬ a = a → False
-
--- Double negation holds a secret since we cannot prove (¬¬A → A) for all types in
--- constructive mathematics. To stress this, 'secret A' will be an alias for '¬¬A'.
-secret : Type l → Type l
-secret A = ¬(¬ A)
-
--- Function application operator
--- Equivalent to `$` in Haskell
-_$_ : (A → B) → A → B
-_$_ f a = f a
-infixr 0 _$_
-
--- Pipe Operator
--- Equivalent to `|>` in F#
-_~>_ : A → (A → B) → B
-a ~> f = f a
-infixr 0 _~>_
-
--- Function Composition
-_∘_ :  (B → C) → (A → B) → (A → C)
-f ∘ g = λ a → f (g a)
-
--- https://en.wikipedia.org/wiki/Modus_tollens
--- https://en.wikipedia.org/wiki/Contraposition
-contrapositive : (A → B) → ¬ B → ¬ A
-contrapositive f nB a = nB (f a)
-
-id : A → A
-id a = a
-
-cong2 : (f : A → B → C) → {a b : A} → {c d : B} → a ≡ b → c ≡ d → f a c ≡ f b d
-cong2 f refl refl = refl
-
-transport : (f : A → Type l) → {a b : A} → a ≡ b → f a → f b
-transport f refl p = p
-
--- Coproduct type
-data _∨_ (A : Type l)(B : Type l') : Type (l ⊔ l') where
-  inl : A → A ∨ B
-  inr : B → A ∨ B
-infixr 3 _∨_
-
--- https://en.wikipedia.org/wiki/Decidability_(logic)
--- 'decidable A' is an alias for 'A ∨ ¬A'
-decidable : Type l → Type l
-decidable A = A ∨ ¬ A
-
--- All types are secretly decidable.
-secretLEM : (A : Type l) → secret(decidable A)
-secretLEM A f = f (inr (λ x → f (inl x)))
--- For example, we could construct a type 'program' to represent every Turing-complete program and a halting propery 'halts':
---
--- (x : program) → secret(decidable(halts(x)))          provable
--- (x : program) → decidable(halts(x))                  not provable
---
--- Philosophically, we know all programs either halts or halts, but that doesn't mean we know the specific case.
-
--- Exists and solved.
-data Σ {A : Type l} (P : A → Type l') : Type(l ⊔ l') where
-  _,_ : (a : A) → P a → Σ P
-infix 6 _,_
-
--- The statement:
---    (x : ℤ) → Σ λ(y : ℤ) → x + y ≡ 0
--- Reads, "For every integer 'x', there exists an integer 'y' such that x+y=0."
-
--- Merely exists.
-∃ : {A : Type l} → (A → Type l') → Type(l ⊔ l')
-∃ {A = A} f = secret(Σ f)
-
--- 'Σ' types are about solving, while '∃' is about merely existing. For example,
--- consider the roots of a non-constant complex polynomial. There is a difference between
--- proving that roots merely exists and solving for a root. We can solve for roots
--- of any complex polynomials up to degree four, but not degree five (Abel-Ruffini theorem).
--- Nevertheless, we can still prove the mere existance of roots in quintic equations.
---
---   (a b c d : ℂ) → Σ λ(x : ℂ) → x⁴ + ax³ + bx² + cx + d ≡ 0       -- provable
---   (a b c d : ℂ) → ∃ λ(x : ℂ) → x⁴ + ax³ + bx² + cx + d ≡ 0       -- provable
---
--- (a b c d e : ℂ) → Σ λ(x : ℂ) → x⁵ + ax⁴ + bx³ + cx² + dx + e ≡ 0 -- not provable
--- (a b c d e : ℂ) → ∃ λ(x : ℂ) → x⁵ + ax⁴ + bx³ + cx² + dx + e ≡ 0 -- provable
---
--- In case you're wondering, there exists a constructive proof of the fundamental 
--- theorem of algebra: https://github.com/coq-community/corn/tree/master/fta
-
--- Product type (Tuple)
-_∧_ : (A : Type l)(B : Type l') → Type (l ⊔ l')
-_∧_ A B = Σ λ (_ : A) → B
-infixr 2 _∧_
-
--- https://en.wikipedia.org/wiki/De_Morgan's_laws
-demorgan : ¬ A ∨ ¬ B → ¬(A ∧ B)
-demorgan (inl x) (a , _) = x a
-demorgan (inr x) (_ , b) = x b
-
-demorgan2 : ¬ A ∧ ¬ B → ¬(A ∨ B)
-demorgan2 (a , b) (inl x) = a x
-demorgan2 (a , b) (inr x) = b x
-
-demorgan3 : (¬(A ∨ B) → ¬ A ∧ ¬ B)
-demorgan3 z = (λ x → z (inl x)) , (λ x → z (inr x))
-
--- https://en.wikipedia.org/wiki/Functor_(functional_programming)
--- https://en.wikipedia.org/wiki/Functor
-record functor (F : Type al → Type bl) : Type (lsuc al ⊔ lsuc bl)  where
-  field
-    map : (A → B) → F A → F B
-    compPreserve : (f : B → C) → (g : A → B) → (x : F A) → map (f ∘ g) x ≡ (map f ∘ map g) x
-    idPreserve : (x : F A) → map {A = A} id x ≡ id x
-open functor {{...}}
-
--- https://en.wikipedia.org/wiki/Monad_(functional_programming)
--- https://en.wikipedia.org/wiki/Monad_(category_theory)
-record monad (m : Type l → Type l) : Type (lsuc l) where
-  field
-      {{mApp}} : functor m
-      μ : m (m A) → m A -- join
-      η  : A → m A      -- return
-open monad {{...}}
-
--- bind
-_>>=_ : {m : Type l → Type l} → {{monad m}} → m A → (A → m B) → m B
-_>>=_ {m = m} mA p = μ (map p mA)
-
--- apply
-_<*>_ : {m : Type l → Type l} → {{monad m}} → m (A → B) → m A → m B
-_<*>_ {m = m} mf mA = mf >>= λ f → map f mA
-
-instance
-  -- Double Negation is a Functor and Monad
-  dnFunctor : {l : Level} → functor (secret {l = l})
-  dnFunctor = record { map = λ x y z → y (λ a → z (x a)) ; compPreserve = λ f g → λ x → refl ; idPreserve = λ x → refl }
-  dnMonad : {l : Level} → monad (secret {l = l})
-  dnMonad = record { μ = λ x y → x (λ z → z y) ; η = λ x y → y x }
-
--- There are some unprovable statements in De Morgran's laws. However, we can
--- prove that they're secretly true.
-
-demorgan4 : secret(¬(A ∧ B) → ¬ A ∨ ¬ B)
-demorgan4 {l} {A = A} {B = B} = secretLEM (A ∨ B) >>= λ{ (inl (inl a)) → λ p
-  → p (λ q → inr (λ b → q (a , b))) ; (inl (inr b)) → λ p → p (λ q → inl (λ a → q (a , b)))
-  ; (inr x) → λ p → p (λ q → inl (λ a → x (inl a)))}
-
--- Double negation instantiated as a monad is useful for proving a secret.
+open import Prelude public
 
 -- https://en.wikipedia.org/wiki/Bijection,_injection_and_surjection
 
@@ -232,17 +57,17 @@ isSet A = (a b : A) → isProp(a ≡ b)
 record Property {A : Type l} (f : A → Type l') : Type(l ⊔ l')
   where field
       isproperty : (a : A) → isProp (f a)
-open Property {{...}}
+open Property {{...}} public
 
 record Commutative {A : Type l}(op : A → A → A) : Type(lsuc l) where
   field
     commutative : (a b : A) → op a b ≡ op b a
-open Commutative {{...}}
+open Commutative {{...}} public
 
 record Associative {A : Type l}(op : A → A → A) : Type(lsuc l) where
   field
       associative : (a b c : A) → op a (op b c) ≡ op (op a b) c
-open Associative {{...}}
+open Associative {{...}} public
 
 -- https://en.wikipedia.org/wiki/Monoid
 record monoid {A : Type l}(op : A → A → A) (e : A) : Type(lsuc l) where
@@ -250,7 +75,7 @@ record monoid {A : Type l}(op : A → A → A) (e : A) : Type(lsuc l) where
       lIdentity : (a : A) → op e a ≡ a
       rIdentity : (a : A) → op a e ≡ a
       overlap {{mAssoc}} : Associative op
-open monoid {{...}}
+open monoid {{...}} public
 
 record Idempotent {A : Type l}(f : A → A) : Type(lsuc l) where
   field
@@ -274,7 +99,7 @@ record group {A : Type l}(op : A → A → A) (e : A) : Type(lsuc l) where
   field
       overlap {{gmonoid}} : monoid op e
       inverse : (a : A) → Σ λ(b : A) → op b a ≡ e ∧ op a b ≡ e
-open group {{...}} hiding (gmonoid)
+open group {{...}} hiding (gmonoid) public
 
 module grp {op : A → A → A} {e : A}{{G : group op e}} where
 
@@ -344,14 +169,14 @@ record cMonoid {A : Type l}(op : A → A → A) (e : A) : Type (lsuc l) where
   field
       overlap {{cmonoid}} : monoid op e
       overlap {{CMCom}} : Commutative op
-open cMonoid {{...}}
+open cMonoid {{...}} public
 
 -- https://en.wikipedia.org/wiki/Abelian_group
 record abelianGroup {A : Type l}(op : A → A → A)(e : A) : Type (lsuc l) where
   field
       overlap {{grp}} : group op e
       overlap {{comgroup}} : cMonoid op e
-open abelianGroup {{...}}
+open abelianGroup {{...}} public
 
 -- https://en.wikipedia.org/wiki/Semiring
 record SemiRing (A : Type l) : Type (lsuc l) where
@@ -364,7 +189,7 @@ record SemiRing (A : Type l) : Type (lsuc l) where
     rDistribute : (a b c : A) → (b + c) * a ≡ (b * a) + (c * a)
     {{addStr}} : cMonoid _+_ zero
     {{multStr}} : monoid _*_ one
-open SemiRing {{...}}
+open SemiRing {{...}} public
 
 nonZero : {A : Type l} {{R : SemiRing A}} → Type l
 nonZero {A = A} = (Σ λ (a : A) → a ≠ zero)
@@ -374,7 +199,7 @@ record Ring (A : Type l) : Type (lsuc l) where
   field
     {{sring}} : SemiRing A
     {{raddStr}} : abelianGroup _+_ zero
-open Ring {{...}}
+open Ring {{...}} public
 
 neg : {{R : Ring A}} → A → A
 neg = grp.inv
@@ -438,7 +263,7 @@ record CRing (A : Type l) : Type (lsuc l) where
   field
     overlap {{crring}} : Ring A
     overlap {{CMStr}} : cMonoid _*_ one
-open CRing {{...}}
+open CRing {{...}} public
 
 -- https://en.wikipedia.org/wiki/Field_(mathematics)
 record Field (A : Type l) : Type (lsuc l) where
@@ -446,7 +271,7 @@ record Field (A : Type l) : Type (lsuc l) where
     {{fring}} : CRing A
     reciprocal : nonZero → nonZero
     recInv : (a : nonZero) → pr1 a * pr1(reciprocal a) ≡ one
-open Field {{...}} hiding (fring)
+open Field {{...}} hiding (fring) public
 
 -- https://en.wikipedia.org/wiki/Vector_space
 record VectorSpace {scalar : Type l} {{F : Field scalar}} : Type (lsuc l) where
@@ -519,7 +344,7 @@ module _{l : Level}{scalar : Type l}{{F : Field scalar}}{{V : VectorSpace}} wher
         -- ∀ v ∈ V, Span(V) ≠ Span(X - {v})
         linInd : {v : vector} → X v → Span X ≠ Span (λ(x : vector) → X x ∧ ¬ (X v))
         noZero : ¬ (X vZero)
-  open LinearlyIndependent {{...}} hiding (vsProp)
+  open LinearlyIndependent {{...}} hiding (vsProp) public
 
   -- https://en.wikipedia.org/wiki/Basis_(linear_algebra)
 
@@ -527,7 +352,7 @@ module _{l : Level}{scalar : Type l}{{F : Field scalar}}{{V : VectorSpace}} wher
     where field
     overlap {{bLI}} : LinearlyIndependent X
     maxLinInd : (x : vector) → Span X x
-  open Basis {{...}} hiding (bLI)
+  open Basis {{...}} hiding (bLI) public
 
   -- https://en.wikipedia.org/wiki/Linear_subspace
   record Subspace (X : vector → Type l) : Type (lsuc l)
@@ -540,7 +365,7 @@ module _{l : Level}{scalar : Type l}{{F : Field scalar}}{{V : VectorSpace}} wher
     where field
     overlap {{bfLI}} : LinearlyIndependent X
     spanEq : Span X ≡ pr1 H
-  open Basis_for_ {{...}} hiding (bfLI)
+  open Basis_for_ {{...}} hiding (bfLI) public
 
   -- The span of a non-empty set of vectors is a subspace.
   SpanNonEmptyIsSubspace :{X : vector → Type l}
@@ -562,7 +387,7 @@ record LinearTransformation{A : Type l}
   where field
   addT : (u v : vector) →  T (u [+] v) ≡ T u [+] T v
   multT : (u : vector) → (c : A) → T (scale c u) ≡ scale c (T u)
-open LinearTransformation {{...}}  
+open LinearTransformation {{...}} public 
 
 module _ {scalar : Type l}{{F : Field scalar}}{{V U : VectorSpace{{F}}}}
          (T : < U > → < V >){{TLT : LinearTransformation T}} where
@@ -683,202 +508,3 @@ dualZero {{F}} VS = (λ _ → zero) , record { addT = λ u v →
    V : VectorSpace {{F}}
    V = VS
 
--- Implementations --
-
--- True is defined as a type with one term
-data True : Set where
-  void : True
-
-data Bool : Set where
-  yes : Bool
-  no : Bool
-
-not : Bool → Bool
-not yes = no
-not no = yes
-
-xor : Bool → Bool → Bool
-xor yes b = not b
-xor no b = b
-
-and : Bool → Bool → Bool
-and yes b = b
-and no _ = no
-
--- Peano natural numbers
-data nat : Set where
-  Z : nat
-  S : nat → nat
--- 'Z' is 0
--- 'S Z' is 1
--- 'S (S Z)' is 2
--- 'S (S (S Z))' is 3
--- ...
--- 'S n' is n + 1
-
-variable
-  n m : nat
-
-add : nat → nat → nat
-add Z b = b
-add (S a) b = S (add a b)
-
-mult : nat → nat → nat
-mult Z b = Z
-mult (S a) b = add b (mult a b)
-
-Sout : (n m : nat) → add n (S m) ≡ S (add n m)
-Sout Z m = refl
-Sout (S n) m = cong S (Sout n m)
-
-addZ : (n : nat) → add n Z ≡ n
-addZ Z = refl
-addZ (S n) = cong S (addZ n)
-
-instance
-  natAddCom : Commutative add
-  natAddCom = record { commutative = addCom }
-   where
-    addCom : (a b : nat) → add a b ≡ add b a
-    addCom a Z = addZ a
-    addCom a (S b) = eqTrans (Sout a b) (cong S (addCom a b))
-  natAddAssoc : Associative add
-  natAddAssoc = record { associative = addAssoc }
-    where
-    addAssoc : (a b c : nat) → add a (add b c) ≡ add (add a b) c
-    addAssoc Z b c = refl
-    addAssoc (S a) b c = cong S (addAssoc a b c)
-  natAddMonoid : monoid add Z
-  natAddMonoid = record { lIdentity = λ a → refl ; rIdentity = addZ }
-  natAddCM : cMonoid add Z
-  natAddCM = record {}
-
-addOut : (n m : nat) → mult n (S m) ≡ add n (mult n m)
-addOut Z m = refl
-addOut (S n) m = cong S $ add m (mult n (S m)) ≡⟨ cong (add m) (addOut n m) ⟩
-                         add m (add n (mult n m)) ≡⟨ associative m n (mult n m) ⟩
-                         add (add m n) (mult n m) ≡⟨ cong2 add (commutative m n) refl ⟩
-                         add (add n m) (mult n m) ≡⟨ sym (associative n m (mult n m)) ⟩
-                       add n (add m (mult n m)) ∎
-
-multZ : (n : nat) → mult n Z ≡ Z
-multZ Z = refl
-multZ (S n) = multZ n
-
-natMultDist : (a b c : nat) → add (mult a c) (mult b c) ≡ mult (add a b) c
-natMultDist Z b c = refl
-natMultDist (S a) b c = add (add c (mult a c)) (mult b c) ≡⟨ sym (associative c (mult a c) (mult b c)) ⟩
-                        add c (add (mult a c) (mult b c)) ≡⟨ cong (add c) (natMultDist a b c) ⟩
-                        add c (mult (add a b) c) ∎
-
-instance
-  natMultCom : Commutative mult
-  natMultCom = record { commutative = multCom }
-   where
-    multCom : (a b : nat) → mult a b ≡ mult b a
-    multCom a Z = multZ a
-    multCom a (S b) = eqTrans (addOut a b) (cong (add a) (multCom a b))
-  natMultAssoc : Associative mult
-  natMultAssoc = record { associative = multAssoc }
-    where
-    multAssoc : (a b c : nat) → mult a (mult b c) ≡ mult (mult a b) c
-    multAssoc Z b c = refl
-    multAssoc (S a) b c = eqTrans (cong (add (mult b c)) (multAssoc a b c)) (natMultDist b (mult a b) c)
-  natMultMonoid : monoid mult (S Z)
-  natMultMonoid = record { lIdentity = addZ ; rIdentity = λ a → eqTrans (commutative a (S Z)) (addZ a) }
-  natMultCM : cMonoid mult (S Z)
-  natMultCM = record {}
-  natSemiRing : SemiRing nat 
-  natSemiRing =
-   record
-      { zero = Z
-      ; one = (S Z)
-      ; _+_ = add
-      ; _*_ = mult
-      ; lDistribute = λ a b c → mult a (add b c)          ≡⟨ commutative a (add b c) ⟩
-                                mult (add b c) a          ≡⟨ sym (natMultDist b c a) ⟩
-                                add (mult b a) (mult c a) ≡⟨ cong2 add (commutative b a) (commutative c a)⟩
-                                add (mult a b) (mult a c) ∎
-      ; rDistribute = λ a b c → sym (natMultDist b c a)
-      }
-
--- vector definition
--- `[ Bool ^ n ]` is a vector of booleans with length `n`
-data [_^_] (A : Set l) : nat → Set l where
-  [] : [ A ^ Z ]
-  _::_ : {n : nat} → A → [ A ^ n ] → [ A ^ S n ]
-infixr 5 _::_
-
-Matrix : Set l → nat → nat → Set l
-Matrix A n m = [ [ A ^ n ] ^ m ]
-
-zip : (A → B → C) → {n : nat} → [ A ^ n ] → [ B ^ n ] → [ C ^ n ]
-zip f {n = Z} _ _ = []
-zip f {n = S n} (a :: as) (b :: bs) = (f a b) :: zip f as bs
-
-instance
-  fvect : functor {al = l} λ A → [ A ^ n ]
-  fvect = record { map = rec ; compPreserve = compPreserveAux ; idPreserve = idPreserveAux }
-   where
-    rec : (A → B) → [ A ^ n ] → [ B ^ n ]
-    rec f [] = []
-    rec f (x :: v) = f x :: rec f v
-    compPreserveAux : (f : B → C) (g : A → B) (x : [ A ^ n ]) → rec (f ∘ g) x ≡ (rec f ∘ rec g) x
-    compPreserveAux f g [] = refl
-    compPreserveAux f g (x :: x') = cong (f (g x) ::_) (compPreserveAux f g x')
-    idPreserveAux : (x : [ A ^ n ]) → rec id x ≡ id x
-    idPreserveAux [] = refl
-    idPreserveAux (x :: x') = cong (x ::_) (idPreserveAux x')
-
-zeroV : {{SemiRing A}} → (n : nat) → [ A ^ n ]
-zeroV Z = []
-zeroV (S n) = zero :: (zeroV n)
-
-vOne : {{SemiRing A}} → (n : nat) → [ A ^ n ]
-vOne Z = []
-vOne (S n) = one :: (vOne n)
-
-addv : {{SemiRing A}} → {n : nat} → [ A ^ n ] → [ A ^ n ] → [ A ^ n ]
-addv = zip _+_
-
-negv : {{Ring A}} → {n : nat} → [ A ^ n ] → [ A ^ n ]
-negv = map neg
-
-multv : {{SemiRing A}} → {n : nat} → [ A ^ n ] → [ A ^ n ] → [ A ^ n ]
-multv = zip _*_
-
-scaleV : {{SemiRing A}} → {n : nat} → A → [ A ^ n ] → [ A ^ n ]
-scaleV a = map (_* a)
-
-diag : {{SemiRing A}} → {n m : nat} → [ A ^ m ] → Matrix A n m  → Matrix A n m
-diag = zip scaleV
-
-foldr : (A → B → B) → B → {n : nat} → [ A ^ n ] → B
-foldr f b [] = b
-foldr f b (a :: v) = f a (foldr f b v)
-
-foldv : (A → A → A) → {n : nat} → [ A ^ S n ] → A
-foldv f (a :: []) = a
-foldv f (a :: b :: v) = f a (foldv f (b :: v))
-
-addvId : {n : nat} → {{R : Ring A}} → (v : [ A ^ n ]) → addv v (zeroV n) ≡ v
-addvId {n = Z} [] = refl
-addvId {n = S n} (x :: v) = cong2 _::_ (rIdentity x) (addvId v)
-
-car : {n : nat} → [ A ^ S n ] → A
-car (x :: _) = x
-
-cdr : {n : nat} → [ A ^ S n ] → [ A ^ n ]
-cdr (_ :: v) = v
-
--- Matrix Transformation
-MT : {n m : nat} → {{R : SemiRing A}} → Matrix A n m → [ A ^ m ] → [ A ^ n ]
-MT {n = n} M v = foldr addv (zeroV n) (diag v M)
-
--- Matrix Multiplication
-mMult : {{R : SemiRing A}} → {a b c : nat} → Matrix A a b → Matrix A b c → Matrix A a c
-mMult M = map (MT M)
-
-transpose : {n m : nat} -> Matrix A n m -> Matrix A m n
-transpose {n = Z} M = []
-transpose {n = S n} M = map car M :: transpose (map cdr M)
