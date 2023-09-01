@@ -16,7 +16,7 @@ instance
   LFCom : {{F : Field A}}{{VS : VectorSpace {{F}}}} → Commutative (dualSum VS)
   LFCom = {!!}
   LFMonoid : {{F : Field A}}{{VS : VectorSpace {{F}}}} → monoid (dualSum VS) (dualZero VS)
-  LFMonoid = record { isset = {!!} ; lIdentity = {!!} ; rIdentity = {!!} }
+  LFMonoid = record { lIdentity = {!!} ; rIdentity = {!!} }
   LFGroup : {{F : Field A}}{{VS : VectorSpace {{F}}}} → group (dualSum VS) (dualZero VS)
   LFGroup = record { inverse = {!!} }
   LFCMonoid : {{F : Field A}}{{VS : VectorSpace {{F}}}} → cMonoid (dualSum VS) (dualZero VS)

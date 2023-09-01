@@ -59,22 +59,12 @@ record Property {A : Type l} (f : A → Type l') : Type(l ⊔ l')
       isproperty : (a : A) → isProp (f a)
 open Property {{...}} public
 
-record Commutative {A : Type l}(op : A → A → A) : Type(lsuc l) where
-  field
-    commutative : (a b : A) → op a b ≡ op b a
-open Commutative {{...}} public
-
-record Associative {A : Type l}(op : A → A → A) : Type(lsuc l) where
-  field
-      associative : (a b c : A) → op a (op b c) ≡ op (op a b) c
-open Associative {{...}} public
-
 -- https://en.wikipedia.org/wiki/Monoid
 record monoid {A : Type l}(op : A → A → A) (e : A) : Type(lsuc l) where
   field
       lIdentity : (a : A) → op e a ≡ a
       rIdentity : (a : A) → op a e ≡ a
-      overlap {{mAssoc}} : Associative op
+      associative : (a b c : A) → op a (op b c) ≡ op (op a b) c
 open monoid {{...}} public
 
 record Idempotent {A : Type l}(f : A → A) : Type(lsuc l) where
@@ -164,17 +154,22 @@ module grp {op : A → A → A} {e : A}{{G : group op e}} where
     invE : inv e ≡ e
     invE = opInjective e (eqTrans (rInverse e) (sym (lIdentity e)))
 
+record Commutative {A : Type l}(op : A → A → A) : Type(lsuc l) where
+  field
+    commutative : (a b : A) → op a b ≡ op b a
+open Commutative {{...}} public
+
 -- Commutative Monoid
 record cMonoid {A : Type l}(op : A → A → A) (e : A) : Type (lsuc l) where
   field
       overlap {{cmonoid}} : monoid op e
-      overlap {{CMCom}} : Commutative op
+      overlap {{cmCom}} : Commutative op
 open cMonoid {{...}} public
 
 -- https://en.wikipedia.org/wiki/Abelian_group
 record abelianGroup {A : Type l}(op : A → A → A)(e : A) : Type (lsuc l) where
   field
-      overlap {{grp}} : group op e
+      {{grp}} : group op e
       overlap {{comgroup}} : cMonoid op e
 open abelianGroup {{...}} public
 
@@ -187,7 +182,7 @@ record SemiRing (A : Type l) : Type (lsuc l) where
     _*_ : A → A → A
     lDistribute : (a b c : A) → a * (b + c) ≡ (a * b) + (a * c)
     rDistribute : (a b c : A) → (b + c) * a ≡ (b * a) + (c * a)
-    {{addStr}} : cMonoid _+_ zero
+    overlap {{addStr}} : cMonoid _+_ zero
     {{multStr}} : monoid _*_ one
 open SemiRing {{...}} public
 
@@ -243,26 +238,26 @@ rMultNegOne x = grp.opCancel $
   zero ∎
 
 negSwap : {{R : Ring A}} → (x y : A) → neg x * y ≡ x * neg y
-negSwap x y = let H = multStr .mAssoc .associative in
+negSwap x y =
   neg x * y            ≡⟨ sym (cong2 _*_ (rMultNegOne x) refl) ⟩
-  (x * (neg one)) * y  ≡⟨ sym (H x (neg one) y) ⟩
+  (x * (neg one)) * y  ≡⟨ sym (associative x (neg one) y) ⟩
   x * ((neg one) * y)  ≡⟨ cong (x *_) (lMultNegOne y)⟩
   (x * neg y) ∎
 
 multNeg : {{R : Ring A}} → (x y : A) → (neg x) * y ≡ neg(x * y)
-multNeg x y = let H = multStr .mAssoc .associative in
+multNeg x y =
   (neg x) * y       ≡⟨ sym (lIdentity (neg x * y))⟩
-  one * (neg x * y) ≡⟨ H one (neg x) y ⟩
+  one * (neg x * y) ≡⟨ associative one (neg x) y ⟩
   (one * neg x) * y ≡⟨ cong2 _*_ (sym (negSwap one x)) refl ⟩
-  (neg one * x) * y ≡⟨ sym (H (neg one) x y)⟩
+  (neg one * x) * y ≡⟨ sym (associative (neg one) x y)⟩
   neg one * (x * y) ≡⟨ lMultNegOne (x * y)⟩
   neg(x * y) ∎
 
 -- https://en.wikipedia.org/wiki/Commutative_ring
 record CRing (A : Type l) : Type (lsuc l) where
   field
-    overlap {{crring}} : Ring A
-    overlap {{CMStr}} : cMonoid _*_ one
+    {{crring}} : Ring A
+    {{ringCom}} : Commutative _*_
 open CRing {{...}} public
 
 -- https://en.wikipedia.org/wiki/Field_(mathematics)
@@ -287,7 +282,7 @@ record VectorSpace {scalar : Type l} {{F : Field scalar}} : Type (lsuc l) where
     scalarAssoc : (v : vector) → (a b : scalar) → scale a (scale b v) ≡ scale (a * b) v
     -- I think this axiom isn't necessary; I'm still working on deriving it.
     scaleNegOneInv : (v : vector) → scale (neg one) v ≡ grp.inv v
-open VectorSpace {{...}}
+open VectorSpace {{...}} public
 
 module _{l : Level}{scalar : Type l}{{F : Field scalar}}{{V : VectorSpace}} where
 
@@ -441,7 +436,7 @@ week7 T c = record
                            T v [+] T u             ≡⟨ cong2 _[+]_ p q ⟩
                            scale c v [+] scale c u ≡⟨ sym (scalarDistribution c v u)⟩
                            scale c (v [+] u) ∎
-            ; ssScale = λ {v} p d → let multCom = CMStr .CMCom .commutative in
+            ; ssScale = λ {v} p d → let multCom = commutative in
                            T (scale d v)       ≡⟨ multT v d ⟩
                            scale d (T v)       ≡⟨ cong (scale d) p ⟩
                            scale d (scale c v) ≡⟨ scalarAssoc v d c ⟩
@@ -452,18 +447,17 @@ week7 T c = record
 
 instance
     FieldToVectorSpace : {{F : Field A}} → VectorSpace {{F}}
-    FieldToVectorSpace {A = A} {{F}} = let H = Field.fring F in
-                           let G = H .crring .sring .multStr in
+    FieldToVectorSpace {A = A} {{F}} =
                               record
                                     { vector = A
                                     ; _[+]_ = _+_
                                     ; vZero = zero
                                     ; addvStr = raddStr
                                     ; scale = _*_
-                                    ; scaleId = G .lIdentity
+                                    ; scaleId = lIdentity
                                     ; scalarDistribution = lDistribute
                                     ; vectorDistribution = rDistribute
-                                    ; scalarAssoc = λ a b c → G .mAssoc .associative b c a
+                                    ; scalarAssoc = λ a b c → associative b c a
                                     ; scaleNegOneInv = λ v → lMultNegOne v
                                     }
 

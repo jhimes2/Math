@@ -51,20 +51,18 @@ addZ Z = refl
 addZ (S n) = cong S (addZ n)
 
 instance
-  natAddCom : Commutative add
-  natAddCom = record { commutative = addCom }
+  addCom : Commutative add
+  addCom = record { commutative = addComAux }
    where
-    addCom : (a b : nat) → add a b ≡ add b a
-    addCom a Z = addZ a
-    addCom a (S b) = eqTrans (Sout a b) (cong S (addCom a b))
-  natAddAssoc : Associative add
-  natAddAssoc = record { associative = addAssoc }
-    where
+    addComAux : (a b : nat) → add a b ≡ add b a
+    addComAux a Z = addZ a
+    addComAux a (S b) = eqTrans (Sout a b) (cong S (addComAux a b))
+  natAddMonoid : monoid add Z
+  natAddMonoid = record { lIdentity = λ a → refl ; rIdentity = addZ ; associative = addAssoc }
+   where
     addAssoc : (a b c : nat) → add a (add b c) ≡ add (add a b) c
     addAssoc Z b c = refl
     addAssoc (S a) b c = cong S (addAssoc a b c)
-  natAddMonoid : monoid add Z
-  natAddMonoid = record { lIdentity = λ a → refl ; rIdentity = addZ }
   natAddCM : cMonoid add Z
   natAddCM = record {}
 
@@ -86,36 +84,7 @@ natMultDist (S a) b c = add (add c (mult a c)) (mult b c) ≡⟨ sym (associativ
                         add c (add (mult a c) (mult b c)) ≡⟨ cong (add c) (natMultDist a b c) ⟩
                         add c (mult (add a b) c) ∎
 
-instance
-  natMultCom : Commutative mult
-  natMultCom = record { commutative = multCom }
-   where
-    multCom : (a b : nat) → mult a b ≡ mult b a
-    multCom a Z = multZ a
-    multCom a (S b) = eqTrans (addOut a b) (cong (add a) (multCom a b))
-  natMultAssoc : Associative mult
-  natMultAssoc = record { associative = multAssoc }
-    where
-    multAssoc : (a b c : nat) → mult a (mult b c) ≡ mult (mult a b) c
-    multAssoc Z b c = refl
-    multAssoc (S a) b c = eqTrans (cong (add (mult b c)) (multAssoc a b c)) (natMultDist b (mult a b) c)
-  natMultMonoid : monoid mult (S Z)
-  natMultMonoid = record { lIdentity = addZ ; rIdentity = λ a → eqTrans (commutative a (S Z)) (addZ a) }
-  natMultCM : cMonoid mult (S Z)
-  natMultCM = record {}
-  natSemiRing : SemiRing nat 
-  natSemiRing =
-   record
-      { zero = Z
-      ; one = (S Z)
-      ; _+_ = add
-      ; _*_ = mult
-      ; lDistribute = λ a b c → mult a (add b c)          ≡⟨ commutative a (add b c) ⟩
-                                mult (add b c) a          ≡⟨ sym (natMultDist b c a) ⟩
-                                add (mult b a) (mult c a) ≡⟨ cong2 add (commutative b a) (commutative c a)⟩
-                                add (mult a b) (mult a c) ∎
-      ; rDistribute = λ a b c → sym (natMultDist b c a)
-      }
+
 
 -- vector definition
 -- `[ Bool ^ n ]` is a vector of booleans with length `n`
@@ -149,12 +118,12 @@ zeroV : {{SemiRing A}} → (n : nat) → [ A ^ n ]
 zeroV Z = []
 zeroV (S n) = zero :: (zeroV n)
 
+addv : {{SemiRing A}} → {n : nat} → [ A ^ n ] → [ A ^ n ] → [ A ^ n ]
+addv = zip _+_
+
 vOne : {{SemiRing A}} → (n : nat) → [ A ^ n ]
 vOne Z = []
 vOne (S n) = one :: (vOne n)
-
-addv : {{SemiRing A}} → {n : nat} → [ A ^ n ] → [ A ^ n ] → [ A ^ n ]
-addv = zip _+_
 
 negv : {{Ring A}} → {n : nat} → [ A ^ n ] → [ A ^ n ]
 negv = map neg
@@ -176,10 +145,6 @@ foldv : (A → A → A) → {n : nat} → [ A ^ S n ] → A
 foldv f (a :: []) = a
 foldv f (a :: b :: v) = f a (foldv f (b :: v))
 
-addvId : {n : nat} → {{R : Ring A}} → (v : [ A ^ n ]) → addv v (zeroV n) ≡ v
-addvId {n = Z} [] = refl
-addvId {n = S n} (x :: v) = cong2 _::_ (rIdentity x) (addvId v)
-
 car : {n : nat} → [ A ^ S n ] → A
 car (x :: _) = x
 
@@ -197,3 +162,100 @@ mMult M = map (MT M)
 transpose : {n m : nat} -> Matrix A n m -> Matrix A m n
 transpose {n = Z} M = []
 transpose {n = S n} M = map car M :: transpose (map cdr M)
+
+scalar-distributivity : ∀ {n : nat} {{SR : SemiRing A}} (x y : A) (v : [ A ^ n ]) -> scaleV (x + y) v ≡ addv (scaleV x v) (scaleV y v)
+scalar-distributivity {n = Z} x y [] = refl
+scalar-distributivity {n = S n} {{SR}} x y (z :: v) = cong2 _::_ (lDistribute z x y) (scalar-distributivity x y v)
+
+scalar-distributivity2 : ∀ {n} {{SR : SemiRing A}} (s : A) (x y : [ A ^ n ]) -> scaleV s (addv x y) ≡ addv (scaleV s x) (scaleV s y)
+scalar-distributivity2 {n = Z} s [] [] = refl
+scalar-distributivity2 {n = S n} {{SR}} s (x :: u) (y :: v) =
+          cong2 _::_ (rDistribute s x y) (scalar-distributivity2 s u v)
+
+instance
+ comv : {{SR : SemiRing A}} → Commutative (addv {n = n})
+ comv = record { commutative = addvCom }
+  where
+    addvCom : {n : nat} -> {{R : SemiRing A}} -> (u v : [ A ^ n ]) -> addv u v ≡ addv v u
+    addvCom {n = Z} [] [] = refl
+    addvCom {n = S n} (x :: u) (y :: v) = cong2 _::_ (commutative x y) (addvCom u v)
+ monoidv : {{SR : SemiRing A}} → {n : nat} → monoid addv (zeroV n) 
+ monoidv {{SR}} {n = n} = record { lIdentity = λ v → eqTrans (commutative (zeroV n) v) (addvId v) ; rIdentity = addvId ; associative = addvAssoc }
+   where
+     addvAssoc : {n : nat} -> {{R : SemiRing A}} -> (u v w : [ A ^ n ]) -> (addv u (addv v w)) ≡ addv (addv u v) w
+     addvAssoc {n = Z} [] [] [] = refl
+     addvAssoc {n = S n} (x :: u) (y :: v) (z :: w) = cong2 _::_ (associative x y z) (addvAssoc u v w)
+     addvId : {n : nat} → {{R : SemiRing A}} → (v : [ A ^ n ]) → addv v (zeroV n) ≡ v
+     addvId {n = Z} [] = refl
+     addvId {n = S n} (x :: v) = cong2 _::_ (rIdentity x) (addvId v)
+ cmonoidv : {{SR : SemiRing A}} {n : nat} → cMonoid addv (zeroV n) 
+ cmonoidv = record { }
+ cmv : {n : nat} → {{SR : SemiRing A}} → cMonoid addv (zeroV n) 
+ cmv = record { }
+ grpV : {n : nat} {{R : Ring A}} → group addv (zeroV n)
+ grpV {{R}} = record { inverse = λ v → map neg v , (grpAux v , eqTrans (commutative v (map neg v)) (grpAux v)) }
+   where
+    grpAux : {A : Type l} {{R : Ring A}} → (v : [ A ^ n ]) → addv (map neg v) v ≡ zeroV n
+    grpAux [] = refl
+    grpAux (x :: v) = cong2 _::_ (grp.lInverse x) (grpAux v)
+ abelianV : {n : nat} → {{R : Ring A}} → abelianGroup addv (zeroV n)
+ abelianV {n = n} = record {}
+ vectVS : {n : nat} → {{F : Field A}} → VectorSpace  {{F}}
+ vectVS {A = A} {n = u} {{F = F}} = record
+            { vector = [ A ^ u ]
+            ; _[+]_ = addv
+            ; addvStr = abelianV
+            ; vZero = zeroV u
+            ; scale = scaleV
+            ; scaleId = scaleIdAux
+            ; scalarDistribution = scalar-distributivity2
+            ; vectorDistribution = λ v a b → scalar-distributivity a b v
+            ; scalarAssoc = scaleAssocAux
+            ; scaleNegOneInv = scaleNegOneInvAux
+            }
+  where
+    scaleNegOneInvAux : {A : Type l} {{R : CRing A}} → (v : [ A ^ n ]) → scaleV (neg one) v ≡ grp.inv v
+    scaleNegOneInvAux [] = refl
+    scaleNegOneInvAux (x :: v) = cong2 _::_ (rMultNegOne x) (scaleNegOneInvAux v)
+    scaleAssocAux : {A : Type l} {{R : CRing A}} → (v : [ A ^ n ]) → (a b : A) → scaleV a (scaleV b v) ≡ scaleV (a * b) v
+    scaleAssocAux [] a b = refl
+    scaleAssocAux {{R}} (x :: v) a b = cong2 _::_ (
+                  ((x * b) * a)               ≡⟨ sym (associative x b a) ⟩
+                  (x * (b * a))               ≡⟨ cong (x *_) (commutative b a) ⟩
+                 (x * (a * b)) ∎
+
+                        ) (scaleAssocAux v a b)
+    scaleIdAux : {A : Type l} {{R : Ring A}} → (v : [ A ^ n ]) → scaleV one v ≡ v
+    scaleIdAux [] = refl
+    scaleIdAux (x :: v) = cong2 _::_ (rIdentity x) (scaleIdAux v)
+
+   
+
+instance
+  multCom : Commutative mult
+  multCom = record { commutative = multComAux }
+   where
+    multComAux : (a b : nat) → mult a b ≡ mult b a
+    multComAux a Z = multZ a
+    multComAux a (S b) = eqTrans (addOut a b) (cong (add a) (multComAux a b))
+  natMultMonoid : monoid mult (S Z)
+  natMultMonoid = record { lIdentity = addZ ; rIdentity = λ a → eqTrans (commutative a (S Z)) (addZ a) ; associative = multAssoc }
+   where
+    multAssoc : (a b c : nat) → mult a (mult b c) ≡ mult (mult a b) c
+    multAssoc Z b c = refl
+    multAssoc (S a) b c = eqTrans (cong (add (mult b c)) (multAssoc a b c)) (natMultDist b (mult a b) c)
+  natMultCM : cMonoid mult (S Z)
+  natMultCM = record {}
+  natSemiRing : SemiRing nat 
+  natSemiRing =
+   record
+      { zero = Z
+      ; one = (S Z)
+      ; _+_ = add
+      ; _*_ = mult
+      ; lDistribute = λ a b c → mult a (add b c)          ≡⟨ commutative a (add b c) ⟩
+                                mult (add b c) a          ≡⟨ sym (natMultDist b c a) ⟩
+                                add (mult b a) (mult c a) ≡⟨ cong2 add (commutative b a) (commutative c a)⟩
+                                add (mult a b) (mult a c) ∎
+      ; rDistribute = λ a b c → sym (natMultDist b c a)
+      }
