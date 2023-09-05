@@ -44,9 +44,6 @@ pr1 (a , _) = a
 pr2 : {P : A → Set l} → (x : Σ P) → P (pr1 x)
 pr2 (_ , b) = b
 
-_≠_ : {A : Type l} → A → A → Type l
-_≠_ a b = ¬ (a ≡ b)
-
 isProp : Set l → Set l
 isProp A = (a b : A) → a ≡ b
 

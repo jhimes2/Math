@@ -1,46 +1,7 @@
 open import algebra
 
--- True is defined as a type with one term
-data True : Set where
-  void : True
-
-data Bool : Set where
-  yes : Bool
-  no : Bool
-
-not : Bool → Bool
-not yes = no
-not no = yes
-
-xor : Bool → Bool → Bool
-xor yes b = not b
-xor no b = b
-
-and : Bool → Bool → Bool
-and yes b = b
-and no _ = no
-
--- Peano natural numbers
-data nat : Set where
-  Z : nat
-  S : nat → nat
--- 'Z' is 0
--- 'S Z' is 1
--- 'S (S Z)' is 2
--- 'S (S (S Z))' is 3
--- ...
--- 'S n' is n + 1
-
 variable
   n m : nat
-
-add : nat → nat → nat
-add Z b = b
-add (S a) b = S (add a b)
-
-mult : nat → nat → nat
-mult Z b = Z
-mult (S a) b = add b (mult a b)
 
 Sout : (n m : nat) → add n (S m) ≡ S (add n m)
 Sout Z m = refl
@@ -50,39 +11,6 @@ addZ : (n : nat) → add n Z ≡ n
 addZ Z = refl
 addZ (S n) = cong S (addZ n)
 
-instance
-  addCom : Commutative add
-  addCom = record { commutative = addComAux }
-   where
-    addComAux : (a b : nat) → add a b ≡ add b a
-    addComAux a Z = addZ a
-    addComAux a (S b) = eqTrans (Sout a b) (cong S (addComAux a b))
-  natAddMonoid : monoid add Z
-  natAddMonoid = record { lIdentity = λ a → refl ; rIdentity = addZ ; associative = addAssoc }
-   where
-    addAssoc : (a b c : nat) → add a (add b c) ≡ add (add a b) c
-    addAssoc Z b c = refl
-    addAssoc (S a) b c = cong S (addAssoc a b c)
-  natAddCM : cMonoid add Z
-  natAddCM = record {}
-
-addOut : (n m : nat) → mult n (S m) ≡ add n (mult n m)
-addOut Z m = refl
-addOut (S n) m = cong S $ add m (mult n (S m)) ≡⟨ cong (add m) (addOut n m) ⟩
-                         add m (add n (mult n m)) ≡⟨ associative m n (mult n m) ⟩
-                         add (add m n) (mult n m) ≡⟨ cong2 add (commutative m n) refl ⟩
-                         add (add n m) (mult n m) ≡⟨ sym (associative n m (mult n m)) ⟩
-                       add n (add m (mult n m)) ∎
-
-multZ : (n : nat) → mult n Z ≡ Z
-multZ Z = refl
-multZ (S n) = multZ n
-
-natMultDist : (a b c : nat) → add (mult a c) (mult b c) ≡ mult (add a b) c
-natMultDist Z b c = refl
-natMultDist (S a) b c = add (add c (mult a c)) (mult b c) ≡⟨ sym (associative c (mult a c) (mult b c)) ⟩
-                        add c (add (mult a c) (mult b c)) ≡⟨ cong (add c) (natMultDist a b c) ⟩
-                        add c (mult (add a b) c) ∎
 
 
 
@@ -101,7 +29,7 @@ zip f {n = Z} _ _ = []
 zip f {n = S n} (a :: as) (b :: bs) = (f a b) :: zip f as bs
 
 instance
-  fvect : functor {al = l} λ A → [ A ^ n ]
+  fvect : Functor {al = l} λ A → [ A ^ n ]
   fvect = record { map = rec ; compPreserve = compPreserveAux ; idPreserve = idPreserveAux }
    where
     rec : (A → B) → [ A ^ n ] → [ B ^ n ]
@@ -172,6 +100,7 @@ scalar-distributivity2 {n = Z} s [] [] = refl
 scalar-distributivity2 {n = S n} {{SR}} s (x :: u) (y :: v) =
           cong2 _::_ (rDistribute s x y) (scalar-distributivity2 s u v)
 
+-- Vectors whose elements are elements to a field make a vector space.
 instance
  comv : {{SR : SemiRing A}} → Commutative (addv {n = n})
  comv = record { commutative = addvCom }
@@ -230,7 +159,42 @@ instance
     scaleIdAux (x :: v) = cong2 _::_ (rIdentity x) (scaleIdAux v)
 
    
+-- Addition on natural numbers is a commutative monoid
+instance
+  addCom : Commutative add
+  addCom = record { commutative = addComAux }
+   where
+    addComAux : (a b : nat) → add a b ≡ add b a
+    addComAux a Z = addZ a
+    addComAux a (S b) = eqTrans (Sout a b) (cong S (addComAux a b))
+  natAddMonoid : monoid add Z
+  natAddMonoid = record { lIdentity = λ a → refl ; rIdentity = addZ ; associative = addAssoc }
+   where
+    addAssoc : (a b c : nat) → add a (add b c) ≡ add (add a b) c
+    addAssoc Z b c = refl
+    addAssoc (S a) b c = cong S (addAssoc a b c)
+  natAddCM : cMonoid add Z
+  natAddCM = record {}
 
+addOut : (n m : nat) → mult n (S m) ≡ add n (mult n m)
+addOut Z m = refl
+addOut (S n) m = cong S $ add m (mult n (S m)) ≡⟨ cong (add m) (addOut n m) ⟩
+                         add m (add n (mult n m)) ≡⟨ associative m n (mult n m) ⟩
+                         add (add m n) (mult n m) ≡⟨ cong2 add (commutative m n) refl ⟩
+                         add (add n m) (mult n m) ≡⟨ sym (associative n m (mult n m)) ⟩
+                       add n (add m (mult n m)) ∎
+
+multZ : (n : nat) → mult n Z ≡ Z
+multZ Z = refl
+multZ (S n) = multZ n
+
+natMultDist : (a b c : nat) → add (mult a c) (mult b c) ≡ mult (add a b) c
+natMultDist Z b c = refl
+natMultDist (S a) b c = add (add c (mult a c)) (mult b c) ≡⟨ sym (associative c (mult a c) (mult b c)) ⟩
+                        add c (add (mult a c) (mult b c)) ≡⟨ cong (add c) (natMultDist a b c) ⟩
+                        add c (mult (add a b) c) ∎
+
+-- Multiplication on natural numbers is a commutative monoid
 instance
   multCom : Commutative mult
   multCom = record { commutative = multComAux }
@@ -246,6 +210,9 @@ instance
     multAssoc (S a) b c = eqTrans (cong (add (mult b c)) (multAssoc a b c)) (natMultDist b (mult a b) c)
   natMultCM : cMonoid mult (S Z)
   natMultCM = record {}
+
+-- Multiplication and addition on natural numbers together make a semiring.
+instance
   natSemiRing : SemiRing nat 
   natSemiRing =
    record
