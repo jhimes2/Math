@@ -131,7 +131,6 @@ instance
             ; addvStr = abelianV
             ; vZero = zeroV u
             ; scale = scaleV
-            ; scaleId = scaleIdAux
             ; scalarDistribution = scalar-distributivity2
             ; vectorDistribution = λ v a b → scalar-distributivity a b v
             ; scalarAssoc = scaleAssocAux
@@ -226,7 +225,7 @@ test p q = p λ x y → y (q x)
 -- Matrix transformation is a linear transformation.
 instance
   LTMT : {{F : Field A}} → {M : Matrix A n m} → LinearTransformation (MT M)
-  LTMT {M = M} = record { addT = TAdd M ; multT = multTAux M }
+  LTMT {{F}} {M = M} = record { addT = TAdd M ; multT = multTAux {{F}} M }
     where
       multTAux : {{F : Field A}} -> (M : Matrix A n m)
                                            -> (v : [ A ^ m ])

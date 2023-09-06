@@ -110,8 +110,8 @@ module grp {op : A → A → A} {e : A}{{G : group op e}} where
         op e y              ≡⟨ lIdentity y ⟩
         y ∎
 
-    inverseInjective : injective inv
-    inverseInjective {x = x} {y = y} p =
+    invInjective : injective inv
+    invInjective {x = x} {y = y} p =
         x                   ≡⟨ sym (rIdentity x)⟩
         op x e              ≡⟨ cong (op x) (sym (lInverse y))⟩
         op x (op (inv y) y) ≡⟨ cong (op x) (cong2 op  (sym p) refl)⟩
@@ -267,9 +267,8 @@ record CRing (A : Type l) : Type (lsuc l) where
     {{ringCom}} : Commutative _*_
 open CRing {{...}} public
 
-instance
-  crMult : {{CR : CRing A}} → cMonoid _*_ one
-  crMult = record {}
+negRet : (implicit A) → (A → ¬ B) → ¬ B
+negRet dnA f b = dnA (λ x → f x b)
 
 -- https://en.wikipedia.org/wiki/Field_(mathematics)
 record Field (A : Type l) : Type (lsuc l) where
@@ -277,8 +276,23 @@ record Field (A : Type l) : Type (lsuc l) where
     {{fring}} : CRing A
     oneNotZero : one ≠ zero
     reciprocal : nonZero → nonZero
-    recInv : (a : nonZero) → pr1 a * pr1(reciprocal a) ≡ one
+    recInv : (a : nonZero) → pr1(reciprocal a) * pr1 a ≡ one
 open Field {{...}} hiding (fring) public
+
+nonZeroMult : {{F : Field A}} (a b : nonZero) → (pr1 a * pr1 b) ≠ zero
+nonZeroMult (a , a') (b , b') = λ(f : (a * b) ≡ zero) →
+  let H : (pr1 (reciprocal (a , a'))) * (a * b) ≡ (pr1 (reciprocal (a , a'))) * zero
+      H = cong (_*_ (pr1 (reciprocal (a , a')))) f in
+  let G : (pr1 (reciprocal (a , a'))) * zero ≡ zero
+      G = rMultZ ((pr1 (reciprocal (a , a')))) in
+  let F = b ≡⟨ sym(lIdentity b) ⟩
+          one * b ≡⟨ cong2 _*_ (sym (recInv ((a , a')))) refl ⟩
+          ((pr1 (reciprocal (a , a'))) * a) * b ≡⟨ sym (associative (pr1 (reciprocal (a , a'))) a b) ⟩
+          ((pr1 (reciprocal (a , a'))) * (a * b)) ∎ in
+
+  let contradiction : b ≡ zero
+      contradiction = eqTrans F (eqTrans H G)
+      in b' contradiction
 
 -- https://en.wikipedia.org/wiki/Vector_space
 record VectorSpace {scalar : Type l} {{F : Field scalar}} : Type (lsuc l) where
@@ -288,11 +302,9 @@ record VectorSpace {scalar : Type l} {{F : Field scalar}} : Type (lsuc l) where
     vZero : vector
     addvStr : abelianGroup _[+]_ vZero
     scale : scalar → vector → vector
-    scaleId : (v : vector) → scale (one) v ≡ v
     scalarDistribution : (a : scalar) → (u v : vector) → scale a (u [+] v) ≡ (scale a u) [+] (scale a v)
     vectorDistribution : (v : vector) → (a b : scalar) → scale (a + b) v ≡ (scale a v) [+] (scale b v)
     scalarAssoc : (v : vector) → (a b : scalar) → scale a (scale b v) ≡ scale (a * b) v
-    -- I think this axiom isn't necessary; I'm still working on deriving it.
     scaleNegOneInv : (v : vector) → scale (neg one) v ≡ grp.inv v
 open VectorSpace {{...}} public
 
@@ -303,6 +315,14 @@ module _{l : Level}{scalar : Type l}{{F : Field scalar}}{{V : VectorSpace}} wher
 
   vGrp : group _[+]_ vZero
   vGrp = abelianGroup.grp addvStr
+
+  scaleId : (v : vector) → scale one v ≡ v
+  scaleId v = grp.invInjective $
+      grp.inv (scale one v)  ≡⟨ sym (scaleNegOneInv (scale one v)) ⟩
+      scale (neg one) (scale one v)  ≡⟨ scalarAssoc v (neg one) one ⟩
+      (scale (neg one * one) v)  ≡⟨ cong2 scale (rIdentity (neg one)) refl ⟩
+      (scale (neg one) v)  ≡⟨ scaleNegOneInv v ⟩
+      grp.inv v ∎
 
   -- Vector Scaled by Zero is Zero Vector
   scaleZ : (v : vector) → scale zero v ≡ vZero
@@ -457,60 +477,3 @@ week7 T c = record
                            scale c (scale d v) ∎
             }
 
---instance
---    FieldToVectorSpace : {{F : Field A}} → VectorSpace {{F}}
---    FieldToVectorSpace {A = A} {{F}} =
---                              record
---                                    { vector = A
---                                    ; _[+]_ = _+_
---                                    ; vZero = zero
---                                    ; addvStr = raddStr
---                                    ; scale = _*_
---                                    ; scaleId = lIdentity
---                                    ; scalarDistribution = lDistribute
---                                    ; vectorDistribution = rDistribute
---                                    ; scalarAssoc = λ a b c → associative b c a
---                                    ; scaleNegOneInv = λ v → lMultNegOne v
---                                    }
---
---linearForm : {A : Type l}{{F : Field A}}(VS : VectorSpace {{F}}) → Type l
---linearForm {{F}} VS = Σ λ(T : < U > → < FieldToVectorSpace {{F}} >) → LinearTransformation T
---  where
---   instance
---     U : VectorSpace
---     U = VS
---
---dualSum : {{F : Field A}}(VS : VectorSpace {{F}}) → linearForm VS → linearForm VS → linearForm VS
---dualSum {{F}} VS =
--- λ{(T , record { addT = addTT ; multT = multTT })
---   (R , record { addT = addTR ; multT = multTR })
---     → (λ x → T x [+] R x)
---       , record
---          { addT = λ a b → 
---              T (a [+] b) [+] R (a [+] b)     ≡⟨ cong2 _[+]_ (addTT a b) (addTR a b) ⟩
---              (T a [+] T b) [+] (R a [+] R b) ≡⟨ sym (associative (T a) (T b) (R a [+] R b))⟩
---              T a [+] (T b [+] (R a [+] R b)) ≡⟨ cong (T a [+]_) (associative (T b) (R a) (R b)) ⟩
---              T a [+] ((T b [+] R a) [+] R b) ≡⟨ cong2 _[+]_ refl (cong2 _[+]_ (commutative (T b) (R a)) refl) ⟩
---              T a [+] ((R a [+] T b) [+] R b) ≡⟨ cong2 _[+]_ refl (sym (associative (R a) (T b) (R b))) ⟩
---              T a [+] (R a [+] (T b [+] R b)) ≡⟨ associative (T a) (R a) (T b [+] R b) ⟩
---              ((T a [+] R a) [+] (T b [+] R b)) ∎
---          ; multT = λ a c →
---              T (scale c a) [+] R (scale c a) ≡⟨ cong2 _[+]_ (multTT a c) (multTR a c) ⟩
---              scale c (T a) [+] scale c (R a) ≡⟨ sym (scalarDistribution c (T a) (R a)) ⟩
---              scale c (T a [+] R a) ∎
---                   } }
---  where
---   instance
---    V : VectorSpace {{F}}
---    V = VS
---
---dualZero : {{F : Field A}}(VS : VectorSpace {{F}}) → linearForm VS
---dualZero {{F}} VS = (λ _ → zero) , record { addT = λ u v →
---                                       zero ≡⟨ sym (lIdentity zero) ⟩
---                                       (zero + zero) ∎
---                                      ; multT = λ v c → sym (rMultZ c) }
--- where
---  instance
---   V : VectorSpace {{F}}
---   V = VS
---
