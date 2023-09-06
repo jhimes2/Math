@@ -13,12 +13,12 @@ addZ (S n) = cong S (addZ n)
 
 -- vector definition
 -- `[ Bool ^ n ]` is a vector of booleans with length `n`
-data [_^_] (A : Set l) : nat → Set l where
+data [_^_] (A : Type l) : nat → Type l where
   [] : [ A ^ Z ]
   _::_ : {n : nat} → A → [ A ^ n ] → [ A ^ S n ]
 infixr 5 _::_
 
-Matrix : Set l → nat → nat → Set l
+Matrix : Type l → nat → nat → Type l
 Matrix A n m = [ [ A ^ n ] ^ m ]
 
 zip : (A → B → C) → {n : nat} → [ A ^ n ] → [ B ^ n ] → [ C ^ n ]
@@ -84,15 +84,15 @@ MT {n = n} M v = foldr addv (zeroV n) (diag v M)
 mMult : {{R : SemiRing A}} → {a b c : nat} → Matrix A a b → Matrix A b c → Matrix A a c
 mMult M = map (MT M)
 
-transpose : {n m : nat} -> Matrix A n m -> Matrix A m n
+transpose : {n m : nat} → Matrix A n m → Matrix A m n
 transpose {n = Z} M = []
 transpose {n = S n} M = map car M :: transpose (map cdr M)
 
-scalar-distributivity : ∀ {n : nat} {{SR : SemiRing A}} (x y : A) (v : [ A ^ n ]) -> scaleV (x + y) v ≡ addv (scaleV x v) (scaleV y v)
+scalar-distributivity : ∀ {n : nat} {{SR : SemiRing A}} (x y : A) (v : [ A ^ n ]) → scaleV (x + y) v ≡ addv (scaleV x v) (scaleV y v)
 scalar-distributivity {n = Z} x y [] = refl
 scalar-distributivity {n = S n} {{SR}} x y (z :: v) = cong2 _::_ (lDistribute z x y) (scalar-distributivity x y v)
 
-scalar-distributivity2 : ∀ {n} {{SR : SemiRing A}} (s : A) (x y : [ A ^ n ]) -> scaleV s (addv x y) ≡ addv (scaleV s x) (scaleV s y)
+scalar-distributivity2 : ∀ {n} {{SR : SemiRing A}} (s : A) (x y : [ A ^ n ]) → scaleV s (addv x y) ≡ addv (scaleV s x) (scaleV s y)
 scalar-distributivity2 {n = Z} s [] [] = refl
 scalar-distributivity2 {n = S n} {{SR}} s (x :: u) (y :: v) =
           cong2 _::_ (rDistribute s x y) (scalar-distributivity2 s u v)
@@ -102,13 +102,13 @@ instance
  comv : {{SR : SemiRing A}} → Commutative (addv {n = n})
  comv = record { commutative = addvCom }
   where
-    addvCom : {n : nat} -> {{R : SemiRing A}} -> (u v : [ A ^ n ]) -> addv u v ≡ addv v u
+    addvCom : {n : nat} → {{R : SemiRing A}} → (u v : [ A ^ n ]) → addv u v ≡ addv v u
     addvCom {n = Z} [] [] = refl
     addvCom {n = S n} (x :: u) (y :: v) = cong2 _::_ (commutative x y) (addvCom u v)
  monoidv : {{SR : SemiRing A}} → {n : nat} → monoid addv (zeroV n) 
  monoidv {{SR}} {n = n} = record { lIdentity = λ v → eqTrans (commutative (zeroV n) v) (addvId v) ; rIdentity = addvId ; associative = addvAssoc }
    where
-     addvAssoc : {n : nat} -> {{R : SemiRing A}} -> (u v w : [ A ^ n ]) -> (addv u (addv v w)) ≡ addv (addv u v) w
+     addvAssoc : {n : nat} → {{R : SemiRing A}} → (u v w : [ A ^ n ]) → (addv u (addv v w)) ≡ addv (addv u v) w
      addvAssoc {n = Z} [] [] [] = refl
      addvAssoc {n = S n} (x :: u) (y :: v) (z :: w) = cong2 _::_ (associative x y z) (addvAssoc u v w)
      addvId : {n : nat} → {{R : SemiRing A}} → (v : [ A ^ n ]) → addv v (zeroV n) ≡ v
@@ -192,7 +192,9 @@ instance
     multComAux a Z = multZ a
     multComAux a (S b) = eqTrans (addOut a b) (cong (add a) (multComAux a b))
   natMultMonoid : monoid mult (S Z)
-  natMultMonoid = record { lIdentity = addZ ; rIdentity = λ a → eqTrans (commutative a (S Z)) (addZ a) ; associative = multAssoc }
+  natMultMonoid = record { lIdentity = addZ
+                         ; rIdentity = λ a → eqTrans (commutative a (S Z)) (addZ a)
+                         ; associative = multAssoc }
    where
     multAssoc : (a b c : nat) → mult a (mult b c) ≡ mult (mult a b) c
     multAssoc Z b c = refl
@@ -224,10 +226,10 @@ instance
   LTMT : {{R : Ring A}} → {M : Matrix A n m} → LinearTransformation (MT M)
   LTMT {{R}} {M = M} = record { addT = TAdd M ; multT = multTAux {{R}} M }
     where
-      multTAux : {{R : Ring A}} -> (M : Matrix A n m)
-                                           -> (v : [ A ^ m ])
-                                           -> (c : A)
-                                           -> (MT M (scaleV c v)) ≡ scaleV c (MT M v)
+      multTAux : {{R : Ring A}} → (M : Matrix A n m)
+                                           → (v : [ A ^ m ])
+                                           → (c : A)
+                                           → (MT M (scaleV c v)) ≡ scaleV c (MT M v)
       multTAux {m = Z} [] [] c = sym (scaleVZ c)
       multTAux {m = (S m)} (u :: M) (x :: v) c =
         MT (u :: M) (scale c (x :: v)) ≡⟨ refl ⟩
@@ -235,11 +237,11 @@ instance
         (scale (x * c) u) [+] (MT M (scale c v)) ≡⟨ cong2 _[+]_ (sym (scalarAssoc u c x)) refl ⟩
         scale c (scale x u) [+] (MT M (scale c v)) ≡⟨ cong2 _[+]_ refl (multTAux M v c)⟩
         scale c (scale x u) [+] (scale c (MT M v)) ≡⟨ sym (scalarDistribution c (scale x u) (MT M v))⟩
-        scale c ((scale x u) [+] MT M v) ≡⟨ refl ⟩
+        scale c (scale x u [+] MT M v) ≡⟨ refl ⟩
         scale c (MT (u :: M) (x :: v)) ∎
-      TAdd : {n m : nat} -> {{R : Ring A}} -> (M : Matrix A n m)
-                                          -> (u v : [ A ^ m ])
-                                          -> MT M (addv u v) ≡ addv (MT M u) (MT M v)
+      TAdd : {n m : nat} → {{R : Ring A}} → (M : Matrix A n m)
+                                          → (u v : [ A ^ m ])
+                                          → MT M (addv u v) ≡ addv (MT M u) (MT M v)
       TAdd {n = Z} {m = Z} [] [] [] = refl
       TAdd {n = S n} {m = Z} [] [] [] = cong2 _::_ (sym (lIdentity zero)) (TAdd [] [] [])
       TAdd {m = S m} (w :: M) (x :: u) (y :: v) =
@@ -249,25 +251,44 @@ instance
         addv (addv (scaleV x w) (MT M u)) (addv (scaleV y w) (MT M v)) ≡⟨ refl ⟩
         addv (MT (w :: M) (x :: u)) (MT (w :: M) (y :: v)) ∎
 
+mapCarTranspose : {A : Set l} {a b : nat} -> (M : Matrix A a b) -> (v : [ A ^ a ]) -> map car (transpose (v :: M)) ≡ v
+mapCarTranspose {a = Z} M [] = refl
+mapCarTranspose {a = S a} M (x :: v) = cong (x ::_) (mapCarTranspose (map cdr M) v)
+
+mapCdrTranspose : {A : Set l} {a b : nat} -> (v : [ A ^ a ]) -> (M : Matrix A a b) -> map cdr (transpose (v :: M)) ≡ transpose M
+mapCdrTranspose {a = Z} v M = refl
+mapCdrTranspose {a = S a} (x :: v) M = cong (map car M ::_) (mapCdrTranspose v (map cdr M))
+
+transposeInvolution : {{R : Ring A}} -> {a b : nat} -> (M : Matrix A a b) -> transpose (transpose M) ≡ M
+transposeInvolution {a = Z} {Z} [] = refl
+transposeInvolution {a = Z} {S b} ([] :: M) = cong2 _::_ refl (transposeInvolution M)
+transposeInvolution {a = S a} {Z} [] = refl
+transposeInvolution {a = S a} {S b} ((x :: v) :: M) = cong2 _::_ (cong (x ::_) (mapCarTranspose (map cdr M) v)) $
+            transpose (map car M :: map cdr (transpose (v :: map cdr M)))  ≡⟨ cong transpose (cong (map car M ::_) (mapCdrTranspose v (map cdr M))) ⟩
+              transpose (map car M :: transpose (map cdr M)) ≡⟨ transposeInvolution M ⟩
+            M ∎
+
 mMultAssoc : {{R : Ring A}}
-         -> {a b : nat} -> (M : Matrix A a b)
-           -> {c : nat} -> (N : Matrix A b c)
-           -> {d : nat} -> (O : Matrix A c d)
-           -> mMult M (mMult N O) ≡ mMult (mMult M N) O
+         → {a b : nat} → (M : Matrix A a b)
+           → {c : nat} → (N : Matrix A b c)
+           → {d : nat} → (O : Matrix A c d)
+           → mMult M (mMult N O) ≡ mMult (mMult M N) O
 mMultAssoc {b = b} M {c} N {d = Z} [] = refl
 mMultAssoc {A = A} {a = a} {b = b} M {c} N {d = S d} (w :: O) = cong2 _::_ (aux a b c M N w) (mMultAssoc M N O)
   where
-  aux : (a b c : nat) -> (M : Matrix A a b) -> (N : Matrix A b c) -> (w : [ A ^ c ]) -> MT M (MT N w) ≡ MT (mMult M N) w
+  aux : (a b c : nat) → (M : Matrix A a b) → (N : Matrix A b c) → (w : [ A ^ c ]) → MT M (MT N w) ≡ MT (mMult M N) w
   aux a Z Z M [] [] = refl
-  aux a (S b) Z (v :: M) [] [] = MT (v :: M) (zeroV (S b)) ≡⟨ refl ⟩
-                          MT (v :: M) (zero :: (zeroV b)) ≡⟨ refl ⟩
-                          addv (scaleV zero v) (MT M (zeroV b)) ≡⟨ cong2 addv (scaleZ v) refl ⟩
-                          addv (zeroV a) (MT M (zeroV b)) ≡⟨ sym (eqTrans (sym(rIdentity (MT M (zeroV b)))) (commutative (MT M (zeroV b)) (zeroV a)))⟩
-                          (MT M (zeroV b)) ≡⟨ aux a b Z M [] [] ⟩
-                          zeroV a ∎
-  aux a b (S c) M (v :: N) (z :: w) = MT M (MT (v :: N) (z :: w)) ≡⟨ refl ⟩
-                                      MT M (addv (scaleV z v) (MT N w)) ≡⟨ addT (scaleV z v) (MT N w)⟩
-                                      addv (MT M (scaleV z v)) (MT M (MT N w)) ≡⟨ cong2 addv (multT v z) (aux a b c M N w)⟩
-                           addv (scaleV z (MT M v)) (MT (mMult M N) w) ≡⟨ refl ⟩
-                           MT (MT M v :: (mMult M N)) (z :: w) ≡⟨ refl ⟩
-                           MT (mMult M (v :: N)) (z :: w) ∎
+  aux a (S b) Z (v :: M) [] [] =
+      MT (v :: M) (zeroV (S b)) ≡⟨ refl ⟩
+      MT (v :: M) (zero :: (zeroV b)) ≡⟨ refl ⟩
+      addv (scaleV zero v) (MT M (zeroV b)) ≡⟨ cong2 addv (scaleZ v) refl ⟩
+      addv (zeroV a) (MT M (zeroV b)) ≡⟨ sym (eqTrans (sym(rIdentity(MT M (zeroV b)))) (commutative(MT M (zeroV b)) (zeroV a)))⟩
+      MT M (zeroV b) ≡⟨ aux a b Z M [] [] ⟩
+      zeroV a ∎
+  aux a b (S c) M (v :: N) (z :: w) =
+       MT M (MT (v :: N) (z :: w)) ≡⟨ refl ⟩
+       MT M (addv (scaleV z v) (MT N w)) ≡⟨ addT (scaleV z v) (MT N w)⟩
+       addv (MT M (scaleV z v)) (MT M (MT N w)) ≡⟨ cong2 addv (multT v z) (aux a b c M N w)⟩
+       addv (scaleV z (MT M v)) (MT (mMult M N) w) ≡⟨ refl ⟩
+       MT (MT M v :: (mMult M N)) (z :: w) ≡⟨ refl ⟩
+       MT (mMult M (v :: N)) (z :: w) ∎
