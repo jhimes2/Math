@@ -11,9 +11,6 @@ addZ : (n : nat) → add n Z ≡ n
 addZ Z = refl
 addZ (S n) = cong S (addZ n)
 
-
-
-
 -- vector definition
 -- `[ Bool ^ n ]` is a vector of booleans with length `n`
 data [_^_] (A : Set l) : nat → Set l where
@@ -119,8 +116,6 @@ instance
      addvId {n = S n} (x :: v) = cong2 _::_ (rIdentity x) (addvId v)
  cmonoidv : {{SR : SemiRing A}} {n : nat} → cMonoid addv (zeroV n) 
  cmonoidv = record { }
- cmv : {n : nat} → {{SR : SemiRing A}} → cMonoid addv (zeroV n) 
- cmv = record { }
  grpV : {n : nat} {{R : Ring A}} → group addv (zeroV n)
  grpV {{R}} = record { inverse = λ v → map neg v , (grpAux v , eqTrans (commutative v (map neg v)) (grpAux v)) }
    where
@@ -152,13 +147,11 @@ instance
                   ((x * b) * a)               ≡⟨ sym (associative x b a) ⟩
                   (x * (b * a))               ≡⟨ cong (x *_) (commutative b a) ⟩
                  (x * (a * b)) ∎
-
                         ) (scaleAssocAux v a b)
     scaleIdAux : {A : Type l} {{R : Ring A}} → (v : [ A ^ n ]) → scaleV one v ≡ v
     scaleIdAux [] = refl
     scaleIdAux (x :: v) = cong2 _::_ (rIdentity x) (scaleIdAux v)
 
-   
 -- Addition on natural numbers is a commutative monoid
 instance
   addCom : Commutative add
@@ -178,10 +171,10 @@ instance
 
 addOut : (n m : nat) → mult n (S m) ≡ add n (mult n m)
 addOut Z m = refl
-addOut (S n) m = cong S $ add m (mult n (S m)) ≡⟨ cong (add m) (addOut n m) ⟩
-                         add m (add n (mult n m)) ≡⟨ associative m n (mult n m) ⟩
+addOut (S n) m = cong S $ add m (mult n (S m))    ≡⟨ cong (add m) (addOut n m)⟩
+                         add m (add n (mult n m)) ≡⟨ associative m n (mult n m)⟩
                          add (add m n) (mult n m) ≡⟨ cong2 add (commutative m n) refl ⟩
-                         add (add n m) (mult n m) ≡⟨ sym (associative n m (mult n m)) ⟩
+                         add (add n m) (mult n m) ≡⟨ sym (associative n m (mult n m))⟩
                        add n (add m (mult n m)) ∎
 
 multZ : (n : nat) → mult n Z ≡ Z
@@ -190,8 +183,8 @@ multZ (S n) = multZ n
 
 natMultDist : (a b c : nat) → add (mult a c) (mult b c) ≡ mult (add a b) c
 natMultDist Z b c = refl
-natMultDist (S a) b c = add (add c (mult a c)) (mult b c) ≡⟨ sym (associative c (mult a c) (mult b c)) ⟩
-                        add c (add (mult a c) (mult b c)) ≡⟨ cong (add c) (natMultDist a b c) ⟩
+natMultDist (S a) b c = add (add c (mult a c)) (mult b c) ≡⟨ sym (associative c (mult a c) (mult b c))⟩
+                        add c (add (mult a c) (mult b c)) ≡⟨ cong (add c) (natMultDist a b c)⟩
                         add c (mult (add a b) c) ∎
 
 -- Multiplication on natural numbers is a commutative monoid
@@ -220,9 +213,44 @@ instance
       ; one = (S Z)
       ; _+_ = add
       ; _*_ = mult
-      ; lDistribute = λ a b c → mult a (add b c)          ≡⟨ commutative a (add b c) ⟩
-                                mult (add b c) a          ≡⟨ sym (natMultDist b c a) ⟩
+      ; lDistribute = λ a b c → mult a (add b c)          ≡⟨ commutative a (add b c)⟩
+                                mult (add b c) a          ≡⟨ sym (natMultDist b c a)⟩
                                 add (mult b a) (mult c a) ≡⟨ cong2 add (commutative b a) (commutative c a)⟩
                                 add (mult a b) (mult a c) ∎
       ; rDistribute = λ a b c → sym (natMultDist b c a)
       }
+
+test : {P : A → Type l} → ¬((x : A) → implicit(P x)) → ¬ ((x : A) → P x)
+test p q = p λ x y → y (q x)
+
+-- Matrix transformation is a linear transformation.
+instance
+  LTMT : {{F : Field A}} → {M : Matrix A n m} → LinearTransformation (MT M)
+  LTMT {M = M} = record { addT = TAdd M ; multT = multTAux M }
+    where
+      multTAux : {{F : Field A}} -> (M : Matrix A n m)
+                                           -> (v : [ A ^ m ])
+                                           -> (c : A)
+                                           -> (MT M (scale c v)) ≡ scale c (MT M v)
+      multTAux {m = Z} [] [] c = sym (scaleVZ c)
+      multTAux {m = (S m)} (u :: M) (x :: v) c =
+        MT (u :: M) (scale c (x :: v)) ≡⟨ refl ⟩
+        MT (u :: M) (x * c :: scale c v) ≡⟨ refl ⟩
+        (scale (x * c) u) [+] (MT M (scale c v)) ≡⟨ cong2 _[+]_ (cong2 scale (commutative x c) refl) refl ⟩
+        (scale (c * x) u) [+] (MT M (scale c v)) ≡⟨ cong2 _[+]_ (sym (scalarAssoc u c x)) refl ⟩
+        scale c (scale x u) [+] (MT M (scale c v)) ≡⟨ cong2 _[+]_ refl (multTAux M v c)⟩
+        scale c (scale x u) [+] (scale c (MT M v)) ≡⟨ sym (scalarDistribution c (scale x u) (MT M v)) ⟩
+        scale c ((scale x u) [+] MT M v) ≡⟨ refl ⟩
+        scale c (MT (u :: M) (x :: v)) ∎
+      TAdd : {n m : nat} -> {{R : Ring A}} -> (M : Matrix A n m)
+                                          -> (u v : [ A ^ m ])
+                                          -> MT M (addv u v) ≡ addv (MT M u) (MT M v)
+      TAdd {n = Z} {m = Z} [] [] [] = refl
+      TAdd {n = S n} {m = Z} [] [] [] = cong2 _::_ (sym (lIdentity zero)) (TAdd [] [] [])
+      TAdd {m = S m} (w :: M) (x :: u) (y :: v) =
+        MT (w :: M) (addv (x :: u) (y :: v))   ≡⟨ refl ⟩
+        addv (scaleV (x + y) w) (MT M (addv u v)) ≡⟨ cong2 addv (scalar-distributivity x y w) (TAdd M u v) ⟩
+        addv (addv (scaleV x w) (scaleV y w)) (addv (MT M u) (MT M v)) ≡⟨ assocCom4 (scaleV x w) (scaleV y w) (MT M u) (MT M v) ⟩
+        addv (addv (scaleV x w) (MT M u)) (addv (scaleV y w) (MT M v)) ≡⟨ refl ⟩
+        addv (MT (w :: M) (x :: u)) (MT (w :: M) (y :: v)) ∎
+

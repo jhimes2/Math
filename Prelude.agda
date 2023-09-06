@@ -191,15 +191,20 @@ even (S(S n)) = even n
 evSS : (n : nat) → even n → even (S (S n))
 evSS n nEv = nEv
 
--- With how we defined 'even', Agda automatically reduces 'even (S (S n))'
+-- By our definition of 'even', Agda automatically reduces 'even (S (S n))'
 -- to 'even n', which means that proving 'evSS' is the same is proving:
 evSS2 : (n : nat) → even n → even n
 evSS2 n nEv = nEv
 
+ackermann : nat → nat → nat
+ackermann Z n = S n
+ackermann (S m) Z = ackermann m (S Z)
+ackermann (S m) (S n) = ackermann m (ackermann (S m) n)
+
+
 -- https://en.wikipedia.org/wiki/Modus_ponens
 modusPonens : A → (A → B) → B
 modusPonens a f = f a
-
 -- [A → (A → B) → B]
 -- λ(a : A) → [(A → B) → B]        | intro a
 -- λ(a : A) → λ(f : A → B) → [B]   | intro f
@@ -210,7 +215,6 @@ modusPonens a f = f a
 -- https://en.wikipedia.org/wiki/Modus_tollens
 modusTollens : (A → B) → ¬ B → ¬ A
 modusTollens f g a = g (f a)
-
 -- [(A → B) → ¬ B → ¬ A]
 -- [(A → B) → (B → False) → A → False]                    | by definition of ¬
 -- λ(f : A → B) → [(B → False) → A → False]               | intro f
@@ -230,14 +234,15 @@ a ≠ b = ¬(a ≡ b)
 
 redundantRefl : {a : A} → a ≡ a
 redundantRefl = refl
+-- [a ≡ a]
+-- refl    | apply refl
 
--- Whenever we pattern match a term of type 'a ≡ b', every
--- instance of 'b' in our goal is replaced with 'a'.
+-- Pattern matching a term of type 'a ≡ b' replaces every instance of 'b' with
+-- 'a' in our goal.
 
--- Proof that equality type is symmetric
+-- Proof that equality is symmetric
 sym : {a b : A} → a ≡ b → b ≡ a
 sym refl = refl
-
 -- [a ≡ b → b ≡ a]
 -- λ(p : a ≡ b) → [b ≡ a] | intro p
 -- λ{refl → [a ≡ a]}      | pattern match p
@@ -246,7 +251,6 @@ sym refl = refl
 -- Proof that equality is transitive
 eqTrans : {x y z : A} → x ≡ y → y ≡ z → x ≡ z
 eqTrans refl = id
-
 -- [x ≡ y → y ≡ z → x ≡ z]
 -- λ(p : x ≡ y) → [y ≡ z → x ≡ z] | intro p
 -- λ{refl → [x ≡ z → x ≡ z]}      | pattern match p
@@ -469,9 +473,6 @@ DNOut {A = A} {B = B} f = implicitLEM (A ∧ (B ∨ ¬ B))
 
 demorgan5 : {P : A → Type l} → ¬(Σ λ(x : A) → P x) → (x : A) → ¬ (P x)
 demorgan5 p x q = p (x , q)
-
-demorgan6 : {A : Type l} {P : A → Type l} →  ¬(Σ λ(x : A) → ¬ (P x)) → ((x : A) → implicit(P x))
-demorgan6 {A = A} {P = P} p x = implicitLEM (P x) >>= λ{ (inl a) → η a ; (inr a) → λ z → p (x , z)}
 
 cong2 : (f : A → B → C) → {a b : A} → {c d : B} → a ≡ b → c ≡ d → f a c ≡ f b d
 cong2 f refl refl = refl

@@ -163,6 +163,16 @@ record cMonoid {A : Type l}(op : A → A → A) (e : A) : Type (lsuc l) where
       overlap {{cmCom}} : Commutative op
 open cMonoid {{...}} public
 
+assocCom4 : {op : A → A → A} {e : A} {{_ : cMonoid op e}}
+          → (a b c d : A) → op (op a b) (op c d) ≡ op (op a c) (op b d)
+assocCom4 {op = op} a b c d =
+  op (op a b) (op c d) ≡⟨ associative (op a b) c d ⟩
+  op (op (op a b) c) d ≡⟨ cong2 op (sym(associative a b c)) refl ⟩
+  op (op a (op b c)) d ≡⟨ cong2 op (cong (op a) (commutative b c)) refl ⟩
+  op (op a (op c b)) d ≡⟨ cong2 op (associative a c b) refl ⟩
+  op (op (op a c) b) d ≡⟨ sym (associative (op a c) b d) ⟩
+  op (op a c) (op b d) ∎
+
 -- https://en.wikipedia.org/wiki/Abelian_group
 record abelianGroup {A : Type l}(op : A → A → A)(e : A) : Type (lsuc l) where
   field
@@ -442,60 +452,60 @@ week7 T c = record
                            scale c (scale d v) ∎
             }
 
-instance
-    FieldToVectorSpace : {{F : Field A}} → VectorSpace {{F}}
-    FieldToVectorSpace {A = A} {{F}} =
-                              record
-                                    { vector = A
-                                    ; _[+]_ = _+_
-                                    ; vZero = zero
-                                    ; addvStr = raddStr
-                                    ; scale = _*_
-                                    ; scaleId = lIdentity
-                                    ; scalarDistribution = lDistribute
-                                    ; vectorDistribution = rDistribute
-                                    ; scalarAssoc = λ a b c → associative b c a
-                                    ; scaleNegOneInv = λ v → lMultNegOne v
-                                    }
-
-linearForm : {A : Type l}{{F : Field A}}(VS : VectorSpace {{F}}) → Type l
-linearForm {{F}} VS = Σ λ(T : < U > → < FieldToVectorSpace {{F}} >) → LinearTransformation T
-  where
-   instance
-     U : VectorSpace
-     U = VS
-
-dualSum : {{F : Field A}}(VS : VectorSpace {{F}}) → linearForm VS → linearForm VS → linearForm VS
-dualSum {{F}} VS =
- λ{(T , record { addT = addTT ; multT = multTT })
-   (R , record { addT = addTR ; multT = multTR })
-     → (λ x → T x [+] R x)
-       , record
-          { addT = λ a b → 
-              T (a [+] b) [+] R (a [+] b)     ≡⟨ cong2 _[+]_ (addTT a b) (addTR a b) ⟩
-              (T a [+] T b) [+] (R a [+] R b) ≡⟨ sym (associative (T a) (T b) (R a [+] R b))⟩
-              T a [+] (T b [+] (R a [+] R b)) ≡⟨ cong (T a [+]_) (associative (T b) (R a) (R b)) ⟩
-              T a [+] ((T b [+] R a) [+] R b) ≡⟨ cong2 _[+]_ refl (cong2 _[+]_ (commutative (T b) (R a)) refl) ⟩
-              T a [+] ((R a [+] T b) [+] R b) ≡⟨ cong2 _[+]_ refl (sym (associative (R a) (T b) (R b))) ⟩
-              T a [+] (R a [+] (T b [+] R b)) ≡⟨ associative (T a) (R a) (T b [+] R b) ⟩
-              ((T a [+] R a) [+] (T b [+] R b)) ∎
-          ; multT = λ a c →
-              T (scale c a) [+] R (scale c a) ≡⟨ cong2 _[+]_ (multTT a c) (multTR a c) ⟩
-              scale c (T a) [+] scale c (R a) ≡⟨ sym (scalarDistribution c (T a) (R a)) ⟩
-              scale c (T a [+] R a) ∎
-                   } }
-  where
-   instance
-    V : VectorSpace {{F}}
-    V = VS
-
-dualZero : {{F : Field A}}(VS : VectorSpace {{F}}) → linearForm VS
-dualZero {{F}} VS = (λ _ → zero) , record { addT = λ u v →
-                                       zero ≡⟨ sym (lIdentity zero) ⟩
-                                       (zero + zero) ∎
-                                      ; multT = λ v c → sym (rMultZ c) }
- where
-  instance
-   V : VectorSpace {{F}}
-   V = VS
-
+--instance
+--    FieldToVectorSpace : {{F : Field A}} → VectorSpace {{F}}
+--    FieldToVectorSpace {A = A} {{F}} =
+--                              record
+--                                    { vector = A
+--                                    ; _[+]_ = _+_
+--                                    ; vZero = zero
+--                                    ; addvStr = raddStr
+--                                    ; scale = _*_
+--                                    ; scaleId = lIdentity
+--                                    ; scalarDistribution = lDistribute
+--                                    ; vectorDistribution = rDistribute
+--                                    ; scalarAssoc = λ a b c → associative b c a
+--                                    ; scaleNegOneInv = λ v → lMultNegOne v
+--                                    }
+--
+--linearForm : {A : Type l}{{F : Field A}}(VS : VectorSpace {{F}}) → Type l
+--linearForm {{F}} VS = Σ λ(T : < U > → < FieldToVectorSpace {{F}} >) → LinearTransformation T
+--  where
+--   instance
+--     U : VectorSpace
+--     U = VS
+--
+--dualSum : {{F : Field A}}(VS : VectorSpace {{F}}) → linearForm VS → linearForm VS → linearForm VS
+--dualSum {{F}} VS =
+-- λ{(T , record { addT = addTT ; multT = multTT })
+--   (R , record { addT = addTR ; multT = multTR })
+--     → (λ x → T x [+] R x)
+--       , record
+--          { addT = λ a b → 
+--              T (a [+] b) [+] R (a [+] b)     ≡⟨ cong2 _[+]_ (addTT a b) (addTR a b) ⟩
+--              (T a [+] T b) [+] (R a [+] R b) ≡⟨ sym (associative (T a) (T b) (R a [+] R b))⟩
+--              T a [+] (T b [+] (R a [+] R b)) ≡⟨ cong (T a [+]_) (associative (T b) (R a) (R b)) ⟩
+--              T a [+] ((T b [+] R a) [+] R b) ≡⟨ cong2 _[+]_ refl (cong2 _[+]_ (commutative (T b) (R a)) refl) ⟩
+--              T a [+] ((R a [+] T b) [+] R b) ≡⟨ cong2 _[+]_ refl (sym (associative (R a) (T b) (R b))) ⟩
+--              T a [+] (R a [+] (T b [+] R b)) ≡⟨ associative (T a) (R a) (T b [+] R b) ⟩
+--              ((T a [+] R a) [+] (T b [+] R b)) ∎
+--          ; multT = λ a c →
+--              T (scale c a) [+] R (scale c a) ≡⟨ cong2 _[+]_ (multTT a c) (multTR a c) ⟩
+--              scale c (T a) [+] scale c (R a) ≡⟨ sym (scalarDistribution c (T a) (R a)) ⟩
+--              scale c (T a [+] R a) ∎
+--                   } }
+--  where
+--   instance
+--    V : VectorSpace {{F}}
+--    V = VS
+--
+--dualZero : {{F : Field A}}(VS : VectorSpace {{F}}) → linearForm VS
+--dualZero {{F}} VS = (λ _ → zero) , record { addT = λ u v →
+--                                       zero ≡⟨ sym (lIdentity zero) ⟩
+--                                       (zero + zero) ∎
+--                                      ; multT = λ v c → sym (rMultZ c) }
+-- where
+--  instance
+--   V : VectorSpace {{F}}
+--   V = VS
+--
