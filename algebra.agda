@@ -267,6 +267,10 @@ record CRing (A : Type l) : Type (lsuc l) where
     {{ringCom}} : Commutative _*_
 open CRing {{...}} public
 
+instance
+  crMult : {{CR : CRing A}} → cMonoid _*_ one
+  crMult = record {}
+
 -- https://en.wikipedia.org/wiki/Field_(mathematics)
 record Field (A : Type l) : Type (lsuc l) where
   field
@@ -274,7 +278,6 @@ record Field (A : Type l) : Type (lsuc l) where
     oneNotZero : one ≠ zero
     reciprocal : nonZero → nonZero
     recInv : (a : nonZero) → pr1 a * pr1(reciprocal a) ≡ one
-
 open Field {{...}} hiding (fring) public
 
 -- https://en.wikipedia.org/wiki/Vector_space
