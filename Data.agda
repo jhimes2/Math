@@ -97,7 +97,7 @@ scalar-distributivity2 {n = Z} s [] [] = refl
 scalar-distributivity2 {n = S n} {{SR}} s (x :: u) (y :: v) =
           cong2 _::_ (rDistribute s x y) (scalar-distributivity2 s u v)
 
--- Vectors whose elements are elements to a field make a vector space.
+-- Vectors whose elements are from a ring make a module
 instance
  comv : {{SR : SemiRing A}} → Commutative (addv {n = n})
  comv = record { commutative = addvCom }
@@ -124,8 +124,8 @@ instance
     grpAux (x :: v) = cong2 _::_ (grp.lInverse x) (grpAux v)
  abelianV : {n : nat} → {{R : Ring A}} → abelianGroup addv (zeroV n)
  abelianV {n = n} = record {}
- vectVS : {n : nat} → {{F : Field A}} → VectorSpace  {{F}}
- vectVS {A = A} {n = u} {{F = F}} = record
+ vectVS : {n : nat} → {{R : Ring A}} → Module
+ vectVS {A = A} {n = u} {{R = R}} = record
             { vector = [ A ^ u ]
             ; _[+]_ = addv
             ; addvStr = abelianV
@@ -137,15 +137,12 @@ instance
             ; scaleNegOneInv = scaleNegOneInvAux
             }
   where
-    scaleNegOneInvAux : {A : Type l} {{R : CRing A}} → (v : [ A ^ n ]) → scaleV (neg one) v ≡ grp.inv v
+    scaleNegOneInvAux : {A : Type l} {{R : Ring A}} → (v : [ A ^ n ]) → scaleV (neg one) v ≡ grp.inv v
     scaleNegOneInvAux [] = refl
     scaleNegOneInvAux (x :: v) = cong2 _::_ (rMultNegOne x) (scaleNegOneInvAux v)
-    scaleAssocAux : {A : Type l} {{R : CRing A}} → (v : [ A ^ n ]) → (a b : A) → scaleV a (scaleV b v) ≡ scaleV (a * b) v
+    scaleAssocAux : {A : Type l} {{R : Ring A}} → (v : [ A ^ n ]) → (a b : A) → scaleV a (scaleV b v) ≡ scaleV (b * a) v
     scaleAssocAux [] a b = refl
-    scaleAssocAux {{R}} (x :: v) a b = cong2 _::_ (
-                  ((x * b) * a)               ≡⟨ sym (associative x b a) ⟩
-                  (x * (b * a))               ≡⟨ cong (x *_) (commutative b a) ⟩
-                 (x * (a * b)) ∎
+    scaleAssocAux {{R}} (x :: v) a b = cong2 _::_ (sym (associative x b a)
                         ) (scaleAssocAux v a b)
     scaleIdAux : {A : Type l} {{R : Ring A}} → (v : [ A ^ n ]) → scaleV one v ≡ v
     scaleIdAux [] = refl
@@ -224,21 +221,20 @@ test p q = p λ x y → y (q x)
 
 -- Matrix transformation is a linear transformation.
 instance
-  LTMT : {{F : Field A}} → {M : Matrix A n m} → LinearTransformation (MT M)
-  LTMT {{F}} {M = M} = record { addT = TAdd M ; multT = multTAux {{F}} M }
+  LTMT : {{R : Ring A}} → {M : Matrix A n m} → LinearTransformation (MT M)
+  LTMT {{R}} {M = M} = record { addT = TAdd M ; multT = multTAux {{R}} M }
     where
-      multTAux : {{F : Field A}} -> (M : Matrix A n m)
+      multTAux : {{R : Ring A}} -> (M : Matrix A n m)
                                            -> (v : [ A ^ m ])
                                            -> (c : A)
-                                           -> (MT M (scale c v)) ≡ scale c (MT M v)
+                                           -> (MT M (scaleV c v)) ≡ scaleV c (MT M v)
       multTAux {m = Z} [] [] c = sym (scaleVZ c)
       multTAux {m = (S m)} (u :: M) (x :: v) c =
         MT (u :: M) (scale c (x :: v)) ≡⟨ refl ⟩
         MT (u :: M) (x * c :: scale c v) ≡⟨ refl ⟩
-        (scale (x * c) u) [+] (MT M (scale c v)) ≡⟨ cong2 _[+]_ (cong2 scale (commutative x c) refl) refl ⟩
-        (scale (c * x) u) [+] (MT M (scale c v)) ≡⟨ cong2 _[+]_ (sym (scalarAssoc u c x)) refl ⟩
+        (scale (x * c) u) [+] (MT M (scale c v)) ≡⟨ cong2 _[+]_ (sym (scalarAssoc u c x)) refl ⟩
         scale c (scale x u) [+] (MT M (scale c v)) ≡⟨ cong2 _[+]_ refl (multTAux M v c)⟩
-        scale c (scale x u) [+] (scale c (MT M v)) ≡⟨ sym (scalarDistribution c (scale x u) (MT M v)) ⟩
+        scale c (scale x u) [+] (scale c (MT M v)) ≡⟨ sym (scalarDistribution c (scale x u) (MT M v))⟩
         scale c ((scale x u) [+] MT M v) ≡⟨ refl ⟩
         scale c (MT (u :: M) (x :: v)) ∎
       TAdd : {n m : nat} -> {{R : Ring A}} -> (M : Matrix A n m)
@@ -248,8 +244,30 @@ instance
       TAdd {n = S n} {m = Z} [] [] [] = cong2 _::_ (sym (lIdentity zero)) (TAdd [] [] [])
       TAdd {m = S m} (w :: M) (x :: u) (y :: v) =
         MT (w :: M) (addv (x :: u) (y :: v))   ≡⟨ refl ⟩
-        addv (scaleV (x + y) w) (MT M (addv u v)) ≡⟨ cong2 addv (scalar-distributivity x y w) (TAdd M u v) ⟩
-        addv (addv (scaleV x w) (scaleV y w)) (addv (MT M u) (MT M v)) ≡⟨ assocCom4 (scaleV x w) (scaleV y w) (MT M u) (MT M v) ⟩
+        addv (scaleV (x + y) w) (MT M (addv u v)) ≡⟨ cong2 addv (scalar-distributivity x y w) (TAdd M u v)⟩
+        addv (addv (scaleV x w) (scaleV y w)) (addv (MT M u) (MT M v)) ≡⟨ assocCom4 (scaleV x w) (scaleV y w) (MT M u) (MT M v)⟩
         addv (addv (scaleV x w) (MT M u)) (addv (scaleV y w) (MT M v)) ≡⟨ refl ⟩
         addv (MT (w :: M) (x :: u)) (MT (w :: M) (y :: v)) ∎
 
+mMultAssoc : {{R : Ring A}}
+         -> {a b : nat} -> (M : Matrix A a b)
+           -> {c : nat} -> (N : Matrix A b c)
+           -> {d : nat} -> (O : Matrix A c d)
+           -> mMult M (mMult N O) ≡ mMult (mMult M N) O
+mMultAssoc {b = b} M {c} N {d = Z} [] = refl
+mMultAssoc {A = A} {a = a} {b = b} M {c} N {d = S d} (w :: O) = cong2 _::_ (aux a b c M N w) (mMultAssoc M N O)
+  where
+  aux : (a b c : nat) -> (M : Matrix A a b) -> (N : Matrix A b c) -> (w : [ A ^ c ]) -> MT M (MT N w) ≡ MT (mMult M N) w
+  aux a Z Z M [] [] = refl
+  aux a (S b) Z (v :: M) [] [] = MT (v :: M) (zeroV (S b)) ≡⟨ refl ⟩
+                          MT (v :: M) (zero :: (zeroV b)) ≡⟨ refl ⟩
+                          addv (scaleV zero v) (MT M (zeroV b)) ≡⟨ cong2 addv (scaleZ v) refl ⟩
+                          addv (zeroV a) (MT M (zeroV b)) ≡⟨ sym (eqTrans (sym(rIdentity (MT M (zeroV b)))) (commutative (MT M (zeroV b)) (zeroV a)))⟩
+                          (MT M (zeroV b)) ≡⟨ aux a b Z M [] [] ⟩
+                          zeroV a ∎
+  aux a b (S c) M (v :: N) (z :: w) = MT M (MT (v :: N) (z :: w)) ≡⟨ refl ⟩
+                                      MT M (addv (scaleV z v) (MT N w)) ≡⟨ addT (scaleV z v) (MT N w)⟩
+                                      addv (MT M (scaleV z v)) (MT M (MT N w)) ≡⟨ cong2 addv (multT v z) (aux a b c M N w)⟩
+                           addv (scaleV z (MT M v)) (MT (mMult M N) w) ≡⟨ refl ⟩
+                           MT (MT M v :: (mMult M N)) (z :: w) ≡⟨ refl ⟩
+                           MT (mMult M (v :: N)) (z :: w) ∎

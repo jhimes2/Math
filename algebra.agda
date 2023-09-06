@@ -103,7 +103,7 @@ module grp {op : A → A → A} {e : A}{{G : group op e}} where
     opInjective a {x} {y} p =
         x                   ≡⟨ sym (lIdentity x)⟩
         op     e x          ≡⟨ cong2 op (sym (lInverse a)) refl ⟩
-        op(op(inv a) a) x   ≡⟨ sym (associative (inv a) a x) ⟩
+        op(op(inv a) a) x   ≡⟨ sym (associative (inv a) a x)⟩
         op (inv a) (op a x) ≡⟨ cong (op (inv a)) p ⟩
         op (inv a) (op a y) ≡⟨ associative (inv a) a y ⟩
         op (op (inv a) a) y ≡⟨ cong2 op (lInverse a) refl ⟩
@@ -141,8 +141,8 @@ module grp {op : A → A → A} {e : A}{{G : group op e}} where
     inverseDistributes : (a b : A) → op (inv b) (inv a) ≡ inv (op a b)
     inverseDistributes a b = opCancel $
         op(op(inv b)(inv a))(inv(inv(op a b))) ≡⟨ cong (op (op(inv b) (inv a))) (doubleInv (op a b))⟩
-        op (op(inv b) (inv a)) (op a b)        ≡⟨ sym (associative (inv b) (inv a) (op a b)) ⟩
-        op (inv b) (op(inv a) (op a b))        ≡⟨ cong (op (inv b)) (associative (inv a) a b) ⟩
+        op (op(inv b) (inv a)) (op a b)        ≡⟨ sym (associative (inv b) (inv a) (op a b))⟩
+        op (inv b) (op(inv a) (op a b))        ≡⟨ cong (op (inv b)) (associative (inv a) a b)⟩
         op (inv b) (op(op(inv a) a) b)         ≡⟨ cong (op (inv b)) (cong2 op (lInverse a) refl)⟩
         op (inv b) (op e b)                    ≡⟨ cong (op (inv b)) (lIdentity b)⟩
         op (inv b) b                           ≡⟨ lInverse b ⟩
@@ -279,23 +279,26 @@ record Field (A : Type l) : Type (lsuc l) where
     recInv : (a : nonZero) → pr1(reciprocal a) * pr1 a ≡ one
 open Field {{...}} hiding (fring) public
 
+-- Multiplying two nonzero values gives a nonzero value
 nonZeroMult : {{F : Field A}} (a b : nonZero) → (pr1 a * pr1 b) ≠ zero
 nonZeroMult (a , a') (b , b') = λ(f : (a * b) ≡ zero) →
   let H : (pr1 (reciprocal (a , a'))) * (a * b) ≡ (pr1 (reciprocal (a , a'))) * zero
       H = cong (_*_ (pr1 (reciprocal (a , a')))) f in
   let G : (pr1 (reciprocal (a , a'))) * zero ≡ zero
       G = rMultZ ((pr1 (reciprocal (a , a')))) in
-  let F = b ≡⟨ sym(lIdentity b) ⟩
+  let F = b       ≡⟨ sym(lIdentity b)⟩
           one * b ≡⟨ cong2 _*_ (sym (recInv ((a , a')))) refl ⟩
-          ((pr1 (reciprocal (a , a'))) * a) * b ≡⟨ sym (associative (pr1 (reciprocal (a , a'))) a b) ⟩
+          ((pr1 (reciprocal (a , a'))) * a) * b ≡⟨ sym (associative (pr1 (reciprocal (a , a'))) a b)⟩
           ((pr1 (reciprocal (a , a'))) * (a * b)) ∎ in
-
   let contradiction : b ≡ zero
       contradiction = eqTrans F (eqTrans H G)
       in b' contradiction
 
--- https://en.wikipedia.org/wiki/Vector_space
-record VectorSpace {scalar : Type l} {{F : Field scalar}} : Type (lsuc l) where
+nonZMult : {{F : Field A}} → nonZero → nonZero → nonZero
+nonZMult (a , a') (b , b') = (a * b) , nonZeroMult (a , a') ((b , b'))
+
+-- https://en.wikipedia.org/wiki/Module_(mathematics)
+record Module {scalar : Type l} {{R : Ring scalar}} : Type (lsuc l) where
   field
     vector : Type l
     _[+]_ : vector → vector → vector
@@ -304,11 +307,11 @@ record VectorSpace {scalar : Type l} {{F : Field scalar}} : Type (lsuc l) where
     scale : scalar → vector → vector
     scalarDistribution : (a : scalar) → (u v : vector) → scale a (u [+] v) ≡ (scale a u) [+] (scale a v)
     vectorDistribution : (v : vector) → (a b : scalar) → scale (a + b) v ≡ (scale a v) [+] (scale b v)
-    scalarAssoc : (v : vector) → (a b : scalar) → scale a (scale b v) ≡ scale (a * b) v
+    scalarAssoc : (v : vector) → (a b : scalar) → scale a (scale b v) ≡ scale (b * a) v
     scaleNegOneInv : (v : vector) → scale (neg one) v ≡ grp.inv v
-open VectorSpace {{...}} public
+open Module {{...}} public
 
-module _{l : Level}{scalar : Type l}{{F : Field scalar}}{{V : VectorSpace}} where
+module _{l : Level}{scalar : Type l}{{R : Ring scalar}}{{V : Module}} where
 
   negV : vector → vector
   negV = grp.inv
@@ -318,10 +321,10 @@ module _{l : Level}{scalar : Type l}{{F : Field scalar}}{{V : VectorSpace}} wher
 
   scaleId : (v : vector) → scale one v ≡ v
   scaleId v = grp.invInjective $
-      grp.inv (scale one v)  ≡⟨ sym (scaleNegOneInv (scale one v)) ⟩
-      scale (neg one) (scale one v)  ≡⟨ scalarAssoc v (neg one) one ⟩
-      (scale (neg one * one) v)  ≡⟨ cong2 scale (rIdentity (neg one)) refl ⟩
-      (scale (neg one) v)  ≡⟨ scaleNegOneInv v ⟩
+      grp.inv (scale one v)         ≡⟨ sym (scaleNegOneInv (scale one v))⟩
+      scale (neg one) (scale one v) ≡⟨ scalarAssoc v (neg one) one ⟩
+      (scale (one * neg one) v)     ≡⟨ cong2 scale (lIdentity (neg one)) refl ⟩
+      (scale (neg one) v)           ≡⟨ scaleNegOneInv v ⟩
       grp.inv v ∎
 
   -- Vector Scaled by Zero is Zero Vector
@@ -329,7 +332,7 @@ module _{l : Level}{scalar : Type l}{{F : Field scalar}}{{V : VectorSpace}} wher
   scaleZ v =
       scale zero v                      ≡⟨ sym (cong2 scale (grp.lInverse one) refl)⟩
       scale ((neg one) + one) v         ≡⟨ vectorDistribution v (neg one) one ⟩
-      scale (neg one) v [+] scale one v ≡⟨ cong ( scale (neg one) v [+]_) (scaleId v)⟩
+      scale (neg one) v [+] scale one v ≡⟨ cong (scale (neg one) v [+]_) (scaleId v)⟩
       scale (neg one) v [+] v           ≡⟨ cong2 _[+]_ (scaleNegOneInv v) refl ⟩
       grp.inv v [+] v                   ≡⟨ grp.lInverse v ⟩
       vZero ∎
@@ -339,7 +342,7 @@ module _{l : Level}{scalar : Type l}{{F : Field scalar}}{{V : VectorSpace}} wher
   scaleVZ c =
       scale c vZero              ≡⟨ cong (scale c) (sym (scaleZ vZero))⟩
       scale c (scale zero vZero) ≡⟨ scalarAssoc vZero c zero ⟩
-      scale (c * zero) vZero     ≡⟨ cong2 scale (rMultZ c) refl ⟩
+      scale (zero * c) vZero     ≡⟨ cong2 scale (lMultZ c) refl ⟩
       scale zero vZero           ≡⟨ scaleZ vZero ⟩
       vZero ∎
 
@@ -403,31 +406,33 @@ module _{l : Level}{scalar : Type l}{{F : Field scalar}}{{V : VectorSpace}} wher
              ; ssAdd = λ x y → spanAdd x y
              ; ssScale = λ {u} x c → spanScale x c }
 
-<_> : {A : Type l}{{F : Field A}}(V : VectorSpace {{F}}) → Type l
-< V > = VectorSpace.vector V
+<_> : {A : Type l}{{F : Ring A}}(V : Module) → Type l
+< V > = Module.vector V
 
 -- https://en.wikipedia.org/wiki/Linear_map
+-- Actually a generalization of a linear transformation.
+-- Defined between modules
 record LinearTransformation{A : Type l}
-                          {{F : Field A}}
-                          {{V U : VectorSpace{{F}}}}
+                          {{R : Ring A}}
+                          {{V U : Module}}
                            (T : < U > → < V >) : Type l
   where field
   addT : (u v : vector) →  T (u [+] v) ≡ T u [+] T v
   multT : (u : vector) → (c : A) → T (scale c u) ≡ scale c (T u)
 open LinearTransformation {{...}} public 
 
-module _ {scalar : Type l}{{F : Field scalar}}{{V U : VectorSpace{{F}}}}
+module _ {scalar : Type l}{{R : Ring scalar}}{{V U : Module}}
          (T : < U > → < V >){{TLT : LinearTransformation T}} where
 
   linTransZ : T vZero ≡ vZero
   linTransZ = let H = scaleZ (T vZero) in
-          T vZero  ≡⟨ sym (cong T (scaleZ vZero))  ⟩
+          T vZero  ≡⟨ sym (cong T (scaleZ vZero))⟩
           T (scale zero vZero)  ≡⟨ LinearTransformation.multT TLT vZero zero ⟩
-          scale zero (T vZero)  ≡⟨ scaleZ (T vZero) ⟩
+          scale zero (T vZero)  ≡⟨ scaleZ (T vZero)⟩
           vZero ∎
 
   -- If 'T' and 'R' are linear transformations and are composable, then 'R ∘ T' is a linear transformation
-  linTransComp : {{W : VectorSpace {{F}}}}
+  linTransComp : {{W : Module}}
                →  (R : < V > → < W >)
                → {{SLT : LinearTransformation R}}
                → LinearTransformation (R ∘ T)
@@ -455,7 +460,7 @@ module _ {scalar : Type l}{{F : Field scalar}}{{V U : VectorSpace{{F}}}}
                           → η ((scale c v) , (eqTrans (multT v c) (cong (scale c) (v'))))}
    }
 
-week7 : {{F : Field A}} → {{V : VectorSpace {{F}}}} →
+week7 : {{CR : CRing A}} → {{V : Module}} →
          (T : < V > → < V >)
       → {{TLT : LinearTransformation T}}
       → (c : A) → Subspace (λ x → T x ≡ scale c x)
@@ -468,12 +473,11 @@ week7 T c = record
                            T v [+] T u             ≡⟨ cong2 _[+]_ p q ⟩
                            scale c v [+] scale c u ≡⟨ sym (scalarDistribution c v u)⟩
                            scale c (v [+] u) ∎
-            ; ssScale = λ {v} p d → let multCom = commutative in
+            ; ssScale = λ {v} p d →
                            T (scale d v)       ≡⟨ multT v d ⟩
                            scale d (T v)       ≡⟨ cong (scale d) p ⟩
                            scale d (scale c v) ≡⟨ scalarAssoc v d c ⟩
-                           scale (d * c) v     ≡⟨ cong2 scale (multCom d c) refl ⟩
-                           scale (c * d) v     ≡⟨ sym (scalarAssoc v c d)⟩
+                           scale (c * d) v     ≡⟨ cong2 scale (commutative c d) refl ⟩
+                           scale (d * c) v     ≡⟨ sym (scalarAssoc v c d)⟩
                            scale c (scale d v) ∎
             }
-
