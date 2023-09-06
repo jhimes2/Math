@@ -271,8 +271,10 @@ open CRing {{...}} public
 record Field (A : Type l) : Type (lsuc l) where
   field
     {{fring}} : CRing A
+    oneNotZero : one ≠ zero
     reciprocal : nonZero → nonZero
     recInv : (a : nonZero) → pr1 a * pr1(reciprocal a) ≡ one
+
 open Field {{...}} hiding (fring) public
 
 -- https://en.wikipedia.org/wiki/Vector_space
