@@ -312,9 +312,9 @@ matrixZIsProp {m = Z} [] [] = refl
 matrixZIsProp {m = S m} ([] :: M) ([] :: N) = right _::_ (matrixZIsProp M N)
 
 -- Identity Matrix
-I : {A : Type l} → {{R : Ring A}} (n : nat) → Matrix A n n
-I {A = A} Z = []
-I {A = A} (S n) = (one :: zeroV n) :: map (zero ::_) (I n)
+I : {A : Type l} → {{R : Ring A}} {n : nat} → Matrix A n n
+I {A = A} {n = Z} = []
+I {A = A} {n = S n} = (one :: zeroV n) :: map (zero ::_) I
 
 mapCarMapAppend : {A : Type l} {{R : Ring A}} → (M : Matrix A n m) → (map car (map (λ v → (zero :: v)) M)) ≡ zeroV m
 mapCarMapAppend {m = Z} [] = refl
@@ -328,25 +328,25 @@ transposeZ : {A : Type l} → {{R : Ring A}} → (M : Matrix A n m) → map (zer
 transposeZ {n = Z} M = refl
 transposeZ {n = S n} M = right _::_ (transposeZ (map cdr M))
 
-idTranspose : {A : Type l} → {{R : Ring A}} (n : nat) → (I n) ≡ transpose (I n)
+idTranspose : {A : Type l} → {{R : Ring A}} (n : nat) → I ≡ transpose I
 idTranspose Z = refl
 idTranspose (S n) = 
-     (one :: zeroV n) :: map (zero ::_) (I n) ≡⟨ cong2 _::_ (right _::_ (sym (mapCarMapAppend (I n)))) (right map (idTranspose n))⟩
-     (one :: (map car (map (zero ::_) (I n)))) :: (map (zero ::_) (transpose (I n))) ≡⟨ right _::_ (transposeZ (I n)) ⟩
-     (one :: (map car (map (zero ::_) (I n)))) :: (transpose (vZero :: I n)) ≡⟨ right _::_ (cong transpose (right _::_ (mapCdrMapAppend (I n))))⟩
-     (one :: (map car (map (zero ::_) (I n)))) :: transpose (zeroV n :: map cdr (map (zero ::_) (I n))) ≡⟨By-Definition⟩
-     transpose ((one :: zeroV n) :: map (λ v → (zero :: v)) (I n)) ∎ 
+     (one :: zeroV n) :: map (zero ::_) I ≡⟨ cong2 _::_ (right _::_ (sym (mapCarMapAppend I))) (right map (idTranspose n))⟩
+     (one :: (map car (map (zero ::_) I))) :: (map (zero ::_) (transpose I)) ≡⟨ right _::_ (transposeZ I) ⟩
+     (one :: (map car (map (zero ::_) I))) :: (transpose (vZero :: I)) ≡⟨ right _::_ (cong transpose (right _::_ (mapCdrMapAppend I)))⟩
+     (one :: (map car (map (zero ::_) I))) :: transpose (zeroV n :: map cdr (map (zero ::_) I)) ≡⟨By-Definition⟩
+     transpose ((one :: zeroV n) :: map (λ v → (zero :: v)) I) ∎ 
 
 IRInv : {A : Type l} → {{R : Ring A}} {n : nat} →
-          ((M : Matrix A m n) → mMult M (I n) ≡ M)
+          ((M : Matrix A m n) → mMult M I ≡ M)
 IRInv {A = A} {n = Z} = (λ{[] → refl})
 IRInv {A = A} {n = S n} = (λ{(u :: M) →
-       (mMult (u :: M) ((one :: zeroV n) :: map (λ v → (zero :: v)) (I n)) ≡⟨By-Definition⟩
-       (MT (u :: M) (one :: vZero) :: (mMult (u :: M) (map (λ v → (zero :: v)) (I n)))) ≡⟨By-Definition⟩
-       (scale one u) [+] (MT M vZero) :: (mMult (u :: M) (map (λ v → (zero :: v)) (I n))) ≡⟨ left _::_ (cong2 _[+]_ (scaleId u) (linTransZ (MT M)))⟩
-       (u [+] vZero :: (mMult (u :: M) (map (λ v → (zero :: v)) (I n)))) ≡⟨ left _::_ (rIdentity u) ⟩
-       (u :: (mMult (u :: M) (map (λ v → (zero :: v)) (I n)))) ≡⟨ right _::_ (aux u M (I n)) ⟩
-       (u :: mMult M (I n)) ≡⟨ right _::_ (IRInv M) ⟩
+       (mMult (u :: M) ((one :: zeroV n) :: map (λ v → (zero :: v)) I) ≡⟨By-Definition⟩
+       (MT (u :: M) (one :: vZero) :: (mMult (u :: M) (map (λ v → (zero :: v)) I))) ≡⟨By-Definition⟩
+       (scale one u) [+] (MT M vZero) :: (mMult (u :: M) (map (λ v → (zero :: v)) I)) ≡⟨ left _::_ (cong2 _[+]_ (scaleId u) (linTransZ (MT M)))⟩
+       (u [+] vZero :: (mMult (u :: M) (map (λ v → (zero :: v)) I))) ≡⟨ left _::_ (rIdentity u) ⟩
+       (u :: (mMult (u :: M) (map (λ v → (zero :: v)) I))) ≡⟨ right _::_ (aux u M I) ⟩
+       (u :: mMult M I) ≡⟨ right _::_ (IRInv M) ⟩
        (u :: M) ∎)
         })
  where
@@ -362,15 +362,15 @@ IRInv {A = A} {n = S n} = (λ{(u :: M) →
         MT M v :: mMult M N ≡⟨By-Definition⟩
         mMult M (v :: N) ∎
 
-IMatrixTrans : {A : Type l} {{R : Ring A}} → (v : [ A ^ n ]) → MT (I n) v ≡ v
+IMatrixTrans : {A : Type l} {{R : Ring A}} → (v : [ A ^ n ]) → MT I v ≡ v
 IMatrixTrans [] = refl
 IMatrixTrans {n = (S n)} (x :: v) = 
-       MT (I (S n)) (x :: v) ≡⟨By-Definition⟩
-       scale x (one :: vZero) [+] MT (map (zero ::_) (I n)) v ≡⟨By-Definition⟩
-       ((one * x) :: scale x vZero) [+] MT (map (zero ::_) (I n)) v ≡⟨ left _[+]_ (left _::_ (lIdentity x)) ⟩
-       (x :: scale x vZero) [+] MT (map (zero ::_) (I n)) v ≡⟨ left _[+]_ (right _::_ (scaleVZ x)) ⟩
-       (x :: vZero) [+] MT (map (zero ::_) (I n)) v ≡⟨ right _[+]_ (aux v (I n)) ⟩
-       (x :: vZero) [+] (zero :: MT (I n) v) ≡⟨ right _[+]_ (right _::_ (IMatrixTrans v)) ⟩
+       MT I (x :: v) ≡⟨By-Definition⟩
+       scale x (one :: vZero) [+] MT (map (zero ::_) I) v ≡⟨By-Definition⟩
+       ((one * x) :: scale x vZero) [+] MT (map (zero ::_) I) v ≡⟨ left _[+]_ (left _::_ (lIdentity x)) ⟩
+       (x :: scale x vZero) [+] MT (map (zero ::_) I) v ≡⟨ left _[+]_ (right _::_ (scaleVZ x)) ⟩
+       (x :: vZero) [+] MT (map (zero ::_) I) v ≡⟨ right _[+]_ (aux v I) ⟩
+       (x :: vZero) [+] (zero :: MT I v) ≡⟨ right _[+]_ (right _::_ (IMatrixTrans v)) ⟩
        (x :: vZero) [+] (zero :: v) ≡⟨By-Definition⟩
        (x + zero :: vZero [+] v) ≡⟨ cong2 _::_ (rIdentity x) (lIdentity v) ⟩
        (x :: v) ∎
@@ -389,12 +389,12 @@ IMatrixTrans {n = (S n)} (x :: v) =
         (zero :: MT (v :: M) (x :: u)) ∎
 
 ILInv : {A : Type l} → {{R : Ring A}} {n : nat} →
-          ((M : Matrix A n m) → mMult (I n) M ≡ M)
+          ((M : Matrix A n m) → mMult I M ≡ M)
 ILInv {m = Z} [] = refl
 ILInv {m = S m} (v :: M) = cong2 _::_ (IMatrixTrans v) (ILInv M)
 
 instance
-  mMultMonoid : {{R : Ring A}} → monoid (mMult {a = n} {b = n} {c = n}) (I n)
-  mMultMonoid = record { lIdentity = ILInv
+  sqrMMultMonoid : {{R : Ring A}} → monoid (mMult {a = n} {b = n} {c = n}) I
+  sqrMMultMonoid = record { lIdentity = ILInv
                        ; rIdentity = IRInv
                        ; associative = λ a b c → mMultAssoc a b c }
