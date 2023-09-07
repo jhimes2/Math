@@ -398,3 +398,6 @@ instance
   sqrMMultMonoid = record { lIdentity = ILInv
                        ; rIdentity = IRInv
                        ; associative = λ a b c → mMultAssoc a b c }
+
+rowSpace : {A : Type l} → {{R : Ring A}} → Matrix A n m → [ A ^ m ] → Type l
+rowSpace M = columnSpace (MT (transpose M))
