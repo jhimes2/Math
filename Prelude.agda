@@ -477,5 +477,13 @@ demorgan5 p x q = p (x , q)
 cong2 : (f : A → B → C) → {a b : A} → {c d : B} → a ≡ b → c ≡ d → f a c ≡ f b d
 cong2 f refl refl = refl
 
+-- left argument
+left : (f : A → B → C) → {x y : A} → (x ≡ y) → {z : B} -> f x z ≡ f y z
+left _ refl = refl
+
+-- right argument
+right : (f : A → B → C) → {x y : B} → (x ≡ y) → {z : A} -> f z x ≡ f z y
+right _ refl = refl
+
 transport : (f : A → Type l) → {a b : A} → a ≡ b → f a → f b
-transport f refl p = p
+transport f refl = id

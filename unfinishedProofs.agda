@@ -1,11 +1,11 @@
 {-# OPTIONS --without-K --safe #-}
 
 open import Agda.Primitive
-open import algebra
+open import Data
 
 instance
-    FieldToVectorSpace : {{F : Field A}} → VectorSpace {{F}}
-    FieldToVectorSpace {A = A} {{F}} =
+    FieldToModule : {{F : Field A}} → Module
+    FieldToModule {A = A}  =
                               record
                                     { vector = A
                                     ; _[+]_ = _+_
@@ -14,18 +14,18 @@ instance
                                     ; scale = _*_
                                     ; scalarDistribution = lDistribute
                                     ; vectorDistribution = rDistribute
-                                    ; scalarAssoc = λ a b c → associative b c a
+                                    ; scalarAssoc = λ a b c → {!!}
                                     ; scaleNegOneInv = λ v → lMultNegOne v
                                     }
 
-linearForm : {A : Type l}{{F : Field A}}(VS : VectorSpace {{F}}) → Type l
-linearForm {{F}} VS = Σ λ(T : < U > → < FieldToVectorSpace {{F}} >) → LinearTransformation T
+linearForm : {A : Type l}{{F : Field A}}(VS : Module) → Type l
+linearForm {{F}} VS = Σ λ(T : < U > → < FieldToModule {{F}} >) → LinearTransformation {{U = U}} T
   where
    instance
-     U : VectorSpace
+     U : Module
      U = VS
 
-dualSum : {{F : Field A}}(VS : VectorSpace {{F}}) → linearForm VS → linearForm VS → linearForm VS
+dualSum : {{F : Field A}}(VS : Module) → linearForm VS → linearForm VS → linearForm VS
 dualSum {{F}} VS =
  λ{(T , record { addT = addTT ; multT = multTT })
    (R , record { addT = addTR ; multT = multTR })
@@ -46,39 +46,39 @@ dualSum {{F}} VS =
                    } }
   where
    instance
-    V : VectorSpace {{F}}
+    V : Module 
     V = VS
 
-dualZero : {{F : Field A}}(VS : VectorSpace {{F}}) → linearForm VS
-dualZero {{F}} VS = (λ _ → zero) , record { addT = λ u v →
+dualZero : {{F : Field A}}(VS : Module ) → linearForm VS
+dualZero  VS = (λ _ → zero) , record { addT = λ u v →
                                        zero ≡⟨ sym (lIdentity zero) ⟩
                                        (zero + zero) ∎
                                       ; multT = λ v c → sym (rMultZ c) }
  where
   instance
-   V : VectorSpace {{F}}
+   V : Module
    V = VS
 
 
 instance
-  LFCom : {{F : Field A}}{{VS : VectorSpace {{F}}}} → Commutative (dualSum VS)
+  LFCom : {{F : Field A}}{{VS : Module }} → Commutative (dualSum VS)
   LFCom = {!!}
-  LFMonoid : {{F : Field A}}{{VS : VectorSpace {{F}}}} → monoid (dualSum VS) (dualZero VS)
+  LFMonoid : {{F : Field A}}{{VS : Module }} → monoid (dualSum VS) (dualZero VS)
   LFMonoid = record { lIdentity = {!!} ; rIdentity = {!!} ; associative = {!!} }
-  LFGroup : {{F : Field A}}{{VS : VectorSpace {{F}}}} → group (dualSum VS) (dualZero VS)
+  LFGroup : {{F : Field A}}{{VS : Module }} → group (dualSum VS) (dualZero VS)
   LFGroup = record { inverse = {!!} }
-  LFCMonoid : {{F : Field A}}{{VS : VectorSpace {{F}}}} → cMonoid (dualSum VS) (dualZero VS)
+  LFCMonoid : {{F : Field A}}{{VS : Module }} → cMonoid (dualSum VS) (dualZero VS)
   LFCMonoid = {!!}
-  LFAGroup : {{F : Field A}}{{VS : VectorSpace {{F}}}} → abelianGroup (dualSum VS) (dualZero VS)
+  LFAGroup : {{F : Field A}}{{VS : Module }} → abelianGroup (dualSum VS) (dualZero VS)
   LFAGroup = record {}
                            -- ΣPathPProp ((λ _ → isPropΠ λ _ → isPropIsProp)) H } }
-dualSpace : {{F : Field A}}(VS : VectorSpace {{F}}) → VectorSpace {{F}}
-dualSpace {{F}} VS =
+dualSpace : {{F : Field A}}(VS : Module ) → Module 
+dualSpace  VS =
  record
      { vector = linearForm VS
      ; _[+]_ = dualSum VS
      ; vZero = dualZero VS
-     ; addvStr = record {}
+     ; addvStr = {!!}
      ; scale = {!!}
      ; scalarDistribution = {!!}
      ; vectorDistribution = {!!}
@@ -87,7 +87,7 @@ dualSpace {{F}} VS =
      }
  where
   instance
-   V : VectorSpace {{F}}
+   V : Module 
    V = VS
  
 demorgan6 : {P : A → Type l} → ¬((x : A) → implicit (P x)) → ∃ λ(x : A) → ¬ (P x)

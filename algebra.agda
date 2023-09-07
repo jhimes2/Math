@@ -73,12 +73,17 @@ _≡⟨_⟩_ : (x : A) → {y z : A} → x ≡ y → y ≡ z → x ≡ z
 _ ≡⟨ x≡y ⟩ y≡z = eqTrans x≡y y≡z
 infixr 3 _≡⟨_⟩_
 
+_≡⟨By-Definition⟩_ : (x : A) → {y : A} → x ≡ y → x ≡ y
+_≡⟨By-Definition⟩_ _ = id
+infixr 3 _≡⟨By-Definition⟩_
+
 _∎ : (x : A) → x ≡ x
 _ ∎ = refl
 
-idUnique : {op : A → A → A} {e : A} {{_ : monoid op e}} → (id : A) → ((a : A) → op id a ≡ a) → id ≡ e
-idUnique {op = op} {e} id p = let H = p id in let H2 = p e in
-    id      ≡⟨ eqTrans(sym(rIdentity id)) H2 ⟩
+idUnique : {op : A → A → A} {e : A} {{_ : monoid op e}} → (a : A) → ((x : A) → op a x ≡ x) → a ≡ e
+idUnique {op = op} {e} a p =
+    a      ≡⟨ sym (rIdentity a) ⟩
+    op a e ≡⟨ p e ⟩
     e ∎
 
 -- https://en.wikipedia.org/wiki/Group_(mathematics)
@@ -102,49 +107,49 @@ module grp {op : A → A → A} {e : A}{{G : group op e}} where
     opInjective : (x : A) → injective (op x)
     opInjective a {x} {y} p =
         x                   ≡⟨ sym (lIdentity x)⟩
-        op     e x          ≡⟨ cong2 op (sym (lInverse a)) refl ⟩
+        op e x              ≡⟨ left op (sym (lInverse a)) ⟩
         op(op(inv a) a) x   ≡⟨ sym (associative (inv a) a x)⟩
         op (inv a) (op a x) ≡⟨ cong (op (inv a)) p ⟩
         op (inv a) (op a y) ≡⟨ associative (inv a) a y ⟩
-        op (op (inv a) a) y ≡⟨ cong2 op (lInverse a) refl ⟩
+        op (op (inv a) a) y ≡⟨ left op (lInverse a) ⟩
         op e y              ≡⟨ lIdentity y ⟩
         y ∎
 
     invInjective : injective inv
     invInjective {x = x} {y = y} p =
         x                   ≡⟨ sym (rIdentity x)⟩
-        op x e              ≡⟨ cong (op x) (sym (lInverse y))⟩
-        op x (op (inv y) y) ≡⟨ cong (op x) (cong2 op  (sym p) refl)⟩
+        op x e              ≡⟨ right op (sym (lInverse y))⟩
+        op x (op (inv y) y) ≡⟨ right op (left op (sym p))⟩
         op x (op (inv x) y) ≡⟨ associative x (inv x) y ⟩
-        op (op x (inv x)) y ≡⟨ cong2 op (rInverse x) refl ⟩
+        op (op x (inv x)) y ≡⟨ left op (rInverse x) ⟩
         op e y              ≡⟨ lIdentity y ⟩
         y ∎
 
     doubleInv : (x : A) → inv (inv x) ≡ x
     doubleInv x = 
         inv (inv x)                    ≡⟨ sym (rIdentity (inv (inv x)))⟩
-        op (inv (inv x)) e             ≡⟨ cong (op (inv (inv x))) (sym (lInverse x))⟩
+        op (inv (inv x)) e             ≡⟨ right op (sym (lInverse x))⟩
         op (inv (inv x)) (op(inv x) x) ≡⟨ associative (inv (inv x)) (inv x) x ⟩
-        op (op(inv (inv x)) (inv x)) x ≡⟨ cong2 op (lInverse (inv x)) refl ⟩
+        op (op(inv (inv x)) (inv x)) x ≡⟨ left op (lInverse (inv x))⟩
         op e x                         ≡⟨ lIdentity x ⟩
         x ∎
 
     opCancel : {x y : A} → op x (inv y) ≡ e → x ≡ y
     opCancel {x = x} {y = y} p =
         x                    ≡⟨ sym (rIdentity x)⟩
-        op x e               ≡⟨ cong (op x) (sym (lInverse y))⟩
+        op x e               ≡⟨ right op (sym (lInverse y))⟩
         op x (op (inv y) y)  ≡⟨ associative x (inv y) y ⟩
-        op (op x (inv y)) y  ≡⟨ cong2 op p refl ⟩
+        op (op x (inv y)) y  ≡⟨ left op p ⟩
         op e y               ≡⟨ lIdentity y ⟩
         y ∎
 
     inverseDistributes : (a b : A) → op (inv b) (inv a) ≡ inv (op a b)
     inverseDistributes a b = opCancel $
-        op(op(inv b)(inv a))(inv(inv(op a b))) ≡⟨ cong (op (op(inv b) (inv a))) (doubleInv (op a b))⟩
+        op(op(inv b)(inv a))(inv(inv(op a b))) ≡⟨ right op (doubleInv (op a b))⟩
         op (op(inv b) (inv a)) (op a b)        ≡⟨ sym (associative (inv b) (inv a) (op a b))⟩
-        op (inv b) (op(inv a) (op a b))        ≡⟨ cong (op (inv b)) (associative (inv a) a b)⟩
-        op (inv b) (op(op(inv a) a) b)         ≡⟨ cong (op (inv b)) (cong2 op (lInverse a) refl)⟩
-        op (inv b) (op e b)                    ≡⟨ cong (op (inv b)) (lIdentity b)⟩
+        op (inv b) (op(inv a) (op a b))        ≡⟨ right op (associative (inv a) a b)⟩
+        op (inv b) (op(op(inv a) a) b)         ≡⟨ right op (left op (lInverse a))⟩
+        op (inv b) (op e b)                    ≡⟨ right op (lIdentity b)⟩
         op (inv b) b                           ≡⟨ lInverse b ⟩
         e ∎
 
@@ -205,6 +210,9 @@ open Ring {{...}} public
 
 neg : {{R : Ring A}} → A → A
 neg = grp.inv
+
+_-_ : {{R : Ring A}} → A → A → A
+a - b = a + (neg b)
 
 rMultZ : {{R : Ring A}} → (x : A) → x * zero ≡ zero
 rMultZ x =
@@ -315,6 +323,9 @@ module _{l : Level}{scalar : Type l}{{R : Ring scalar}}{{V : Module}} where
 
   negV : vector → vector
   negV = grp.inv
+
+  _[-]_ : vector → vector → vector
+  a [-] b = a [+] (negV b)
 
   vGrp : group _[+]_ vZero
   vGrp = abelianGroup.grp addvStr
