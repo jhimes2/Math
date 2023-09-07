@@ -109,7 +109,7 @@ module grp {op : A → A → A} {e : A}{{G : group op e}} where
         x                   ≡⟨ sym (lIdentity x)⟩
         op e x              ≡⟨ left op (sym (lInverse a)) ⟩
         op(op(inv a) a) x   ≡⟨ sym (associative (inv a) a x)⟩
-        op (inv a) (op a x) ≡⟨ cong (op (inv a)) p ⟩
+        op (inv a) (op a x) ≡⟨ right op p ⟩
         op (inv a) (op a y) ≡⟨ associative (inv a) a y ⟩
         op (op (inv a) a) y ≡⟨ left op (lInverse a) ⟩
         op e y              ≡⟨ lIdentity y ⟩
@@ -172,9 +172,9 @@ assocCom4 : {op : A → A → A} {e : A} {{_ : cMonoid op e}}
           → (a b c d : A) → op (op a b) (op c d) ≡ op (op a c) (op b d)
 assocCom4 {op = op} a b c d =
   op (op a b) (op c d) ≡⟨ associative (op a b) c d ⟩
-  op (op (op a b) c) d ≡⟨ cong2 op (sym(associative a b c)) refl ⟩
-  op (op a (op b c)) d ≡⟨ cong2 op (cong (op a) (commutative b c)) refl ⟩
-  op (op a (op c b)) d ≡⟨ cong2 op (associative a c b) refl ⟩
+  op (op (op a b) c) d ≡⟨ left op (sym(associative a b c))⟩
+  op (op a (op b c)) d ≡⟨ left op (right op (commutative b c))⟩
+  op (op a (op c b)) d ≡⟨ left op (associative a c b)⟩
   op (op (op a c) b) d ≡⟨ sym (associative (op a c) b d) ⟩
   op (op a c) (op b d) ∎
 
@@ -217,53 +217,53 @@ a - b = a + (neg b)
 rMultZ : {{R : Ring A}} → (x : A) → x * zero ≡ zero
 rMultZ x =
   x * zero                                  ≡⟨ sym (rIdentity (x * zero))⟩
-  (x * zero) + zero                         ≡⟨ cong2 _+_ refl (sym (grp.rInverse (x * zero)))⟩
+  (x * zero) + zero                         ≡⟨ right _+_ (sym (grp.rInverse (x * zero)))⟩
   (x * zero) + ((x * zero) + neg(x * zero)) ≡⟨ associative (x * zero) (x * zero) (neg(x * zero))⟩
-  ((x * zero) + (x * zero)) + neg(x * zero) ≡⟨ cong2 _+_ (sym (lDistribute x zero zero)) refl ⟩
-  (x * (zero + zero)) + neg(x * zero)       ≡⟨ cong2 _+_ (cong (x *_) (lIdentity zero)) refl ⟩
+  ((x * zero) + (x * zero)) + neg(x * zero) ≡⟨ left _+_ (sym (lDistribute x zero zero))⟩
+  (x * (zero + zero)) + neg(x * zero)       ≡⟨ left _+_ (right _*_ (lIdentity zero))⟩
   (x * zero) + neg(x * zero)                ≡⟨ grp.rInverse (x * zero) ⟩
   zero ∎
 
 lMultZ : {{R : Ring A}} → (x : A) → zero * x ≡ zero
 lMultZ x =
   zero * x                                  ≡⟨ sym (rIdentity (zero * x))⟩
-  (zero * x) + zero                         ≡⟨ cong2 _+_ refl (sym (grp.rInverse (zero * x)))⟩
+  (zero * x) + zero                         ≡⟨ right _+_ (sym (grp.rInverse (zero * x)))⟩
   (zero * x) + ((zero * x) + neg(zero * x)) ≡⟨ associative (zero * x) (zero * x) (neg(zero * x))⟩
-  ((zero * x) + (zero * x)) + neg(zero * x) ≡⟨ cong2 _+_ (sym (rDistribute x zero zero)) refl ⟩
-  ((zero + zero) * x) + neg(zero * x)       ≡⟨ cong2 _+_ (cong2 _*_ (lIdentity zero) refl) refl ⟩
+  ((zero * x) + (zero * x)) + neg(zero * x) ≡⟨ left _+_ (sym (rDistribute x zero zero))⟩
+  ((zero + zero) * x) + neg(zero * x)       ≡⟨ left _+_ (left _*_ (lIdentity zero))⟩
   (zero * x) + neg(zero * x)                ≡⟨ grp.rInverse (zero * x)⟩
   zero ∎
 
 lMultNegOne : {{R : Ring A}} → (x : A) → neg one * x ≡ neg x
 lMultNegOne x = grp.opCancel $
-  (neg one * x) + (neg(neg x)) ≡⟨ cong ((neg one * x) +_) (grp.doubleInv x)⟩
-  (neg one * x) + x            ≡⟨ cong ((neg one * x) +_) (sym (lIdentity x))⟩
+  (neg one * x) + (neg(neg x)) ≡⟨ right _+_ (grp.doubleInv x)⟩
+  (neg one * x) + x            ≡⟨ right _+_ (sym (lIdentity x))⟩
   (neg one * x) + (one * x)    ≡⟨ sym (rDistribute x (neg one) one)⟩
-  (neg one + one) * x          ≡⟨ cong2 _*_ (grp.lInverse one) refl ⟩
+  (neg one + one) * x          ≡⟨ left _*_ (grp.lInverse one)⟩
   zero * x                     ≡⟨ lMultZ x ⟩
   zero ∎
 
 rMultNegOne : {{R : Ring A}} → (x : A) → x * neg one ≡ neg x
 rMultNegOne x = grp.opCancel $
-  (x * neg one) + (neg(neg x)) ≡⟨ cong ((x * neg one) +_) (grp.doubleInv x)⟩
-  (x * neg one) + x            ≡⟨ cong ((x * neg one) +_) (sym (rIdentity x))⟩
+  (x * neg one) + (neg(neg x)) ≡⟨ right _+_ (grp.doubleInv x)⟩
+  (x * neg one) + x            ≡⟨ right _+_ (sym (rIdentity x))⟩
   (x * neg one) + (x * one)    ≡⟨ sym (lDistribute x (neg one) one)⟩
-  x * (neg one + one)          ≡⟨ cong (x *_) (grp.lInverse one) ⟩
+  x * (neg one + one)          ≡⟨ right _*_ (grp.lInverse one)⟩
   x * zero                     ≡⟨ rMultZ x ⟩
   zero ∎
 
 negSwap : {{R : Ring A}} → (x y : A) → neg x * y ≡ x * neg y
 negSwap x y =
-  neg x * y            ≡⟨ sym (cong2 _*_ (rMultNegOne x) refl) ⟩
+  neg x * y            ≡⟨ sym (left _*_ (rMultNegOne x)) ⟩
   (x * (neg one)) * y  ≡⟨ sym (associative x (neg one) y) ⟩
-  x * ((neg one) * y)  ≡⟨ cong (x *_) (lMultNegOne y)⟩
+  x * ((neg one) * y)  ≡⟨ right _*_ (lMultNegOne y)⟩
   (x * neg y) ∎
 
 multNeg : {{R : Ring A}} → (x y : A) → (neg x) * y ≡ neg(x * y)
 multNeg x y =
   (neg x) * y       ≡⟨ sym (lIdentity (neg x * y))⟩
   one * (neg x * y) ≡⟨ associative one (neg x) y ⟩
-  (one * neg x) * y ≡⟨ cong2 _*_ (sym (negSwap one x)) refl ⟩
+  (one * neg x) * y ≡⟨ left _*_ (sym (negSwap one x))⟩
   (neg one * x) * y ≡⟨ sym (associative (neg one) x y)⟩
   neg one * (x * y) ≡⟨ lMultNegOne (x * y)⟩
   neg(x * y) ∎
@@ -291,11 +291,11 @@ open Field {{...}} hiding (fring) public
 nonZeroMult : {{F : Field A}} (a b : nonZero) → (pr1 a * pr1 b) ≠ zero
 nonZeroMult (a , a') (b , b') = λ(f : (a * b) ≡ zero) →
   let H : (pr1 (reciprocal (a , a'))) * (a * b) ≡ (pr1 (reciprocal (a , a'))) * zero
-      H = cong (_*_ (pr1 (reciprocal (a , a')))) f in
+      H = right _*_ f in
   let G : (pr1 (reciprocal (a , a'))) * zero ≡ zero
       G = rMultZ ((pr1 (reciprocal (a , a')))) in
   let F = b       ≡⟨ sym(lIdentity b)⟩
-          one * b ≡⟨ cong2 _*_ (sym (recInv ((a , a')))) refl ⟩
+          one * b ≡⟨ left _*_ (sym (recInv ((a , a'))))⟩
           ((pr1 (reciprocal (a , a'))) * a) * b ≡⟨ sym (associative (pr1 (reciprocal (a , a'))) a b)⟩
           ((pr1 (reciprocal (a , a'))) * (a * b)) ∎ in
   let contradiction : b ≡ zero
@@ -334,34 +334,34 @@ module _{l : Level}{scalar : Type l}{{R : Ring scalar}}{{V : Module}} where
   scaleId v = grp.invInjective $
       grp.inv (scale one v)         ≡⟨ sym (scaleNegOneInv (scale one v))⟩
       scale (neg one) (scale one v) ≡⟨ scalarAssoc v (neg one) one ⟩
-      (scale (one * neg one) v)     ≡⟨ cong2 scale (lIdentity (neg one)) refl ⟩
+      (scale (one * neg one) v)     ≡⟨ left scale (lIdentity (neg one))⟩
       (scale (neg one) v)           ≡⟨ scaleNegOneInv v ⟩
       grp.inv v ∎
 
   -- Vector Scaled by Zero is Zero Vector
   scaleZ : (v : vector) → scale zero v ≡ vZero
   scaleZ v =
-      scale zero v                      ≡⟨ sym (cong2 scale (grp.lInverse one) refl)⟩
+      scale zero v                      ≡⟨ sym (left scale (grp.lInverse one))⟩
       scale ((neg one) + one) v         ≡⟨ vectorDistribution v (neg one) one ⟩
-      scale (neg one) v [+] scale one v ≡⟨ cong (scale (neg one) v [+]_) (scaleId v)⟩
-      scale (neg one) v [+] v           ≡⟨ cong2 _[+]_ (scaleNegOneInv v) refl ⟩
+      scale (neg one) v [+] scale one v ≡⟨ right _[+]_ (scaleId v)⟩
+      scale (neg one) v [+] v           ≡⟨ left _[+]_ (scaleNegOneInv v)⟩
       grp.inv v [+] v                   ≡⟨ grp.lInverse v ⟩
       vZero ∎
 
   -- Zero Vector Scaled is Zero Vector
   scaleVZ : (c : scalar) → scale c vZero ≡ vZero
   scaleVZ c =
-      scale c vZero              ≡⟨ cong (scale c) (sym (scaleZ vZero))⟩
+      scale c vZero              ≡⟨ right scale (sym (scaleZ vZero))⟩
       scale c (scale zero vZero) ≡⟨ scalarAssoc vZero c zero ⟩
-      scale (zero * c) vZero     ≡⟨ cong2 scale (lMultZ c) refl ⟩
+      scale (zero * c) vZero     ≡⟨ left scale (lMultZ c)⟩
       scale zero vZero           ≡⟨ scaleZ vZero ⟩
       vZero ∎
 
   scaleInv : (v : vector) → (c : scalar) → scale (neg c) v ≡ (negV (scale c v))
   scaleInv v c = grp.opCancel $
-    scale (neg c) v [+] negV(negV(scale c v)) ≡⟨ cong2 _[+]_ refl (grp.doubleInv {{vGrp}} (scale c v)) ⟩
+    scale (neg c) v [+] negV(negV(scale c v)) ≡⟨ right _[+]_ (grp.doubleInv {{vGrp}} (scale c v))⟩
     scale (neg c) v [+] (scale c v)           ≡⟨ sym (vectorDistribution v (neg c) c)⟩
-    scale ((neg c) + c) v                     ≡⟨ cong2 scale (grp.lInverse c) refl ⟩ -- lInverse
+    scale ((neg c) + c) v                     ≡⟨ left scale (grp.lInverse c)⟩
     scale zero v                              ≡⟨ scaleZ v ⟩
     vZero ∎
 
@@ -468,7 +468,7 @@ module _ {scalar : Type l}{{R : Ring scalar}}{{V U : Module}}
                             → η (u [+] v , eqTrans (addT u v)
                                                    (cong2 _[+]_ u' v'))}}
     ; ssScale = λ {a} v c → v >>= λ{(v , v')
-                          → η ((scale c v) , (eqTrans (multT v c) (cong (scale c) (v'))))}
+                          → η ((scale c v) , (eqTrans (multT v c) (right scale (v'))))}
    }
 
 week7 : {{CR : CRing A}} → {{V : Module}} →
@@ -486,9 +486,9 @@ week7 T c = record
                            scale c (v [+] u) ∎
             ; ssScale = λ {v} p d →
                            T (scale d v)       ≡⟨ multT v d ⟩
-                           scale d (T v)       ≡⟨ cong (scale d) p ⟩
+                           scale d (T v)       ≡⟨ right scale p ⟩
                            scale d (scale c v) ≡⟨ scalarAssoc v d c ⟩
-                           scale (c * d) v     ≡⟨ cong2 scale (commutative c d) refl ⟩
+                           scale (c * d) v     ≡⟨ left scale (commutative c d)⟩
                            scale (d * c) v     ≡⟨ sym (scalarAssoc v c d)⟩
                            scale c (scale d v) ∎
             }
