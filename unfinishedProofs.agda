@@ -1,7 +1,7 @@
 {-# OPTIONS --without-K --safe #-}
 
 open import Agda.Primitive
-open import Data
+open import Matrix
 
 instance
     FieldToModule : {{F : Field A}} → Module
