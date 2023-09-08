@@ -57,8 +57,9 @@ record Property {A : Type l} (f : A → Type l') : Type(l ⊔ l')
 open Property {{...}} public
 
 -- https://en.wikipedia.org/wiki/Monoid
-record monoid {A : Type l}(op : A → A → A) (e : A) : Type(lsuc l) where
+record monoid {A : Type l}(op : A → A → A) : Type(lsuc l) where
   field
+      e : A
       lIdentity : (a : A) → op e a ≡ a
       rIdentity : (a : A) → op a e ≡ a
       associative : (a b c : A) → op a (op b c) ≡ op (op a b) c
@@ -80,20 +81,20 @@ infixr 3 _≡⟨By-Definition⟩_
 _∎ : (x : A) → x ≡ x
 _ ∎ = refl
 
-idUnique : {op : A → A → A} {e : A} {{_ : monoid op e}} → (a : A) → ((x : A) → op a x ≡ x) → a ≡ e
-idUnique {op = op} {e} a p =
+idUnique : {op : A → A → A} {{_ : monoid op}} → (a : A) → ((x : A) → op a x ≡ x) → a ≡ e
+idUnique {op = op} a p =
     a      ≡⟨ sym (rIdentity a) ⟩
     op a e ≡⟨ p e ⟩
     e ∎
 
 -- https://en.wikipedia.org/wiki/Group_(mathematics)
-record group {A : Type l}(op : A → A → A) (e : A) : Type(lsuc l) where
+record group {A : Type l}(op : A → A → A) : Type(lsuc l) where
   field
-      overlap {{gmonoid}} : monoid op e
+      {{gmonoid}} : monoid op
       inverse : (a : A) → Σ λ(b : A) → op b a ≡ e ∧ op a b ≡ e
-open group {{...}} hiding (gmonoid) public
+open group {{...}} public
 
-module grp {op : A → A → A} {e : A}{{G : group op e}} where
+module grp {op : A → A → A} {{G : group op}} where
 
     inv : A → A
     inv a = pr1(inverse a)
@@ -176,13 +177,13 @@ record Commutative {A : Type l}(op : A → A → A) : Type(lsuc l) where
 open Commutative {{...}} public
 
 -- Commutative Monoid
-record cMonoid {A : Type l}(op : A → A → A) (e : A) : Type (lsuc l) where
+record cMonoid {A : Type l}(op : A → A → A) : Type (lsuc l) where
   field
-      overlap {{cmonoid}} : monoid op e
-      overlap {{cmCom}} : Commutative op
+      {{cmonoid}} : monoid op
+      {{cmCom}} : Commutative op
 open cMonoid {{...}} public
 
-assocCom4 : {op : A → A → A} {e : A} {{_ : cMonoid op e}}
+assocCom4 : {op : A → A → A} {{_ : cMonoid op}}
           → (a b c d : A) → op (op a b) (op c d) ≡ op (op a c) (op b d)
 assocCom4 {op = op} a b c d =
   op (op a b) (op c d) ≡⟨ associative (op a b) c d ⟩
@@ -193,34 +194,45 @@ assocCom4 {op = op} a b c d =
   op (op a c) (op b d) ∎
 
 -- https://en.wikipedia.org/wiki/Abelian_group
-record abelianGroup {A : Type l}(op : A → A → A)(e : A) : Type (lsuc l) where
+record abelianGroup {A : Type l}(op : A → A → A): Type (lsuc l) where
   field
-      {{grp}} : group op e
-      overlap {{comgroup}} : cMonoid op e
+      {{grp}} : group op
+      {{comgroup}} : cMonoid op
 open abelianGroup {{...}} public
 
 -- https://en.wikipedia.org/wiki/Semiring
 record SemiRing (A : Type l) : Type (lsuc l) where
   field
-    zero : A
-    one : A
     _+_ : A → A → A
     _*_ : A → A → A
     lDistribute : (a b c : A) → a * (b + c) ≡ (a * b) + (a * c)
     rDistribute : (a b c : A) → (b + c) * a ≡ (b * a) + (c * a)
-    overlap {{addStr}} : cMonoid _+_ zero
-    {{multStr}} : monoid _*_ one
+    {{addStr}} : cMonoid _+_
+    {{multStr}} : monoid _*_
 open SemiRing {{...}} public
 
-nonZero : {A : Type l} {{R : SemiRing A}} → Type l
-nonZero {A = A} = (Σ λ (a : A) → a ≠ zero)
+zero : {{SR : SemiRing A}} → A
+zero = addStr .cmonoid .e
+
+one : {{SR : SemiRing A}} → A
+one = multStr .e
 
 -- https://en.wikipedia.org/wiki/Ring_(mathematics)
 record Ring (A : Type l) : Type (lsuc l) where
   field
     {{sring}} : SemiRing A
-    {{raddStr}} : abelianGroup _+_ zero
+    raddStr : (a : A) → Σ λ(b : A) → a + b ≡ zero
 open Ring {{...}} public
+
+instance
+  multIsGroup : {{R : Ring A}} → group _+_
+  multIsGroup = record { inverse = λ a → (pr1(raddStr a))
+     , ((eqTrans (commutative (pr1 (raddStr a)) a) (pr2(raddStr a))) , (pr2(raddStr a))) }
+  multIsAbelian : {{R : Ring A}} → abelianGroup _+_
+  multIsAbelian = record {}
+
+nonZero : {A : Type l} {{R : Ring A}} → Type l
+nonZero {A = A} = (Σ λ (a : A) → a ≠ zero)
 
 neg : {{R : Ring A}} → A → A
 neg = grp.inv

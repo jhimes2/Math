@@ -1,4 +1,4 @@
-{-# OPTIONS  --without-K --safe #-}
+{-# OPTIONS  --without-K --safe --overlapping-instances #-}
 
 open import Abstract public
 
@@ -7,8 +7,7 @@ record Module {scalar : Type l} {{R : Ring scalar}} : Type (lsuc l) where
   field
     vector : Type l
     _[+]_ : vector → vector → vector
-    vZero : vector
-    addvStr : abelianGroup _[+]_ vZero
+    addvStr : abelianGroup _[+]_
     scale : scalar → vector → vector
     scalarDistribution : (a : scalar) → (u v : vector) → scale a (u [+] v) ≡ (scale a u) [+] (scale a v)
     vectorDistribution : (v : vector) → (a b : scalar) → scale (a + b) v ≡ (scale a v) [+] (scale b v)
@@ -18,13 +17,16 @@ open Module {{...}} public
 
 module _{l : Level}{scalar : Type l}{{R : Ring scalar}}{{V : Module}} where
 
+  vZero : vector
+  vZero = addvStr .grp .gmonoid .e
+
   negV : vector → vector
   negV = grp.inv
 
   _[-]_ : vector → vector → vector
   a [-] b = a [+] (negV b)
 
-  vGrp : group _[+]_ vZero
+  vGrp : group _[+]_
   vGrp = abelianGroup.grp addvStr
 
   scaleId : (v : vector) → scale one v ≡ v

@@ -1,4 +1,4 @@
-{-# OPTIONS --without-K --safe #-}
+{-# OPTIONS --without-K --safe --overlapping-instances #-}
 
 open import Agda.Primitive
 open import Matrix
@@ -9,8 +9,7 @@ instance
                               record
                                     { vector = A
                                     ; _[+]_ = _+_
-                                    ; vZero = zero
-                                    ; addvStr = raddStr
+                                    ; addvStr = multIsAbelian
                                     ; scale = _*_
                                     ; scalarDistribution = lDistribute
                                     ; vectorDistribution = rDistribute
@@ -63,13 +62,13 @@ dualZero  VS = (λ _ → zero) , record { addT = λ u v →
 instance
   LFCom : {{F : Field A}}{{VS : Module }} → Commutative (dualSum VS)
   LFCom = {!!}
-  LFMonoid : {{F : Field A}}{{VS : Module }} → monoid (dualSum VS) (dualZero VS)
-  LFMonoid = record { lIdentity = {!!} ; rIdentity = {!!} ; associative = {!!} }
-  LFGroup : {{F : Field A}}{{VS : Module }} → group (dualSum VS) (dualZero VS)
+  LFMonoid : {{F : Field A}}{{VS : Module }} → monoid (dualSum VS)
+  LFMonoid {{VS = VS}} = record { e = dualZero VS ; lIdentity = {!!} ; rIdentity = {!!} ; associative = {!!} }
+  LFGroup : {{F : Field A}}{{VS : Module }} → group (dualSum VS)
   LFGroup = record { inverse = {!!} }
-  LFCMonoid : {{F : Field A}}{{VS : Module }} → cMonoid (dualSum VS) (dualZero VS)
+  LFCMonoid : {{F : Field A}}{{VS : Module }} → cMonoid (dualSum VS)
   LFCMonoid = {!!}
-  LFAGroup : {{F : Field A}}{{VS : Module }} → abelianGroup (dualSum VS) (dualZero VS)
+  LFAGroup : {{F : Field A}}{{VS : Module }} → abelianGroup (dualSum VS)
   LFAGroup = record {}
                            -- ΣPathPProp ((λ _ → isPropΠ λ _ → isPropIsProp)) H } }
 dualSpace : {{F : Field A}}(VS : Module ) → Module 
@@ -77,7 +76,6 @@ dualSpace  VS =
  record
      { vector = linearForm VS
      ; _[+]_ = dualSum VS
-     ; vZero = dualZero VS
      ; addvStr = {!!}
      ; scale = {!!}
      ; scalarDistribution = {!!}

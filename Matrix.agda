@@ -1,4 +1,4 @@
-{-# OPTIONS --without-K --safe #-}
+{-# OPTIONS --without-K --safe --overlapping-instances #-}
 
 open import Linear public
 
@@ -99,8 +99,8 @@ instance
     addvCom : {n : nat} → {{R : SemiRing A}} → (u v : [ A ^ n ]) → addv u v ≡ addv v u
     addvCom {n = Z} [] [] = refl
     addvCom {n = S n} (x :: u) (y :: v) = cong2 _::_ (commutative x y) (addvCom u v)
- monoidv : {{SR : SemiRing A}} → {n : nat} → monoid addv (zeroV n) 
- monoidv {{SR}} {n = n} = record { lIdentity = λ v → eqTrans (commutative (zeroV n) v) (addvId v) ; rIdentity = addvId ; associative = addvAssoc }
+ monoidv : {{SR : SemiRing A}} → {n : nat} → monoid addv
+ monoidv {{SR}} {n = n} = record { e = zeroV n ; lIdentity = λ v → eqTrans (commutative (zeroV n) v) (addvId v) ; rIdentity = addvId ; associative = addvAssoc }
    where
      addvAssoc : {n : nat} → {{R : SemiRing A}} → (u v w : [ A ^ n ]) → (addv u (addv v w)) ≡ addv (addv u v) w
      addvAssoc {n = Z} [] [] [] = refl
@@ -108,22 +108,21 @@ instance
      addvId : {n : nat} → {{R : SemiRing A}} → (v : [ A ^ n ]) → addv v (zeroV n) ≡ v
      addvId {n = Z} [] = refl
      addvId {n = S n} (x :: v) = cong2 _::_ (rIdentity x) (addvId v)
- cmonoidv : {{SR : SemiRing A}} {n : nat} → cMonoid addv (zeroV n) 
+ cmonoidv : {{SR : SemiRing A}} {n : nat} → cMonoid (addv {n = n})
  cmonoidv = record { }
- grpV : {n : nat} {{R : Ring A}} → group addv (zeroV n)
+ grpV : {n : nat} {{R : Ring A}} → group (addv {n = n})
  grpV {{R}} = record { inverse = λ v → map neg v , (grpAux v , eqTrans (commutative v (map neg v)) (grpAux v)) }
    where
     grpAux : {A : Type l} {{R : Ring A}} → (v : [ A ^ n ]) → addv (map neg v) v ≡ zeroV n
     grpAux [] = refl
     grpAux (x :: v) = cong2 _::_ (grp.lInverse x) (grpAux v)
- abelianV : {n : nat} → {{R : Ring A}} → abelianGroup addv (zeroV n)
+ abelianV : {n : nat} → {{R : Ring A}} → abelianGroup (addv {n = n})
  abelianV {n = n} = record {}
  vectVS : {n : nat} → {{R : Ring A}} → Module
  vectVS {A = A} {n = u} {{R = R}} = record
             { vector = [ A ^ u ]
             ; _[+]_ = addv
             ; addvStr = abelianV
-            ; vZero = zeroV u
             ; scale = scaleV
             ; scalarDistribution = scalar-distributivity2
             ; vectorDistribution = λ v a b → scalar-distributivity a b v
@@ -313,8 +312,10 @@ ILInv {m = Z} [] = refl
 ILInv {m = S m} (v :: M) = cong2 _::_ (IMatrixTrans v) (ILInv M)
 
 instance
-  sqrMMultMonoid : {{R : Ring A}} → monoid (mMult {a = n} {b = n} {c = n}) I
-  sqrMMultMonoid = record { lIdentity = ILInv
+  sqrMMultMonoid : {{R : Ring A}} → monoid (mMult {a = n} {b = n} {c = n})
+  sqrMMultMonoid = record {
+                         e = I
+                       ; lIdentity = ILInv
                        ; rIdentity = IRInv
                        ; associative = λ a b c → mMultAssoc a b c }
 

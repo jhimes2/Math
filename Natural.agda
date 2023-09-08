@@ -18,13 +18,13 @@ instance
     addComAux : (a b : nat) → add a b ≡ add b a
     addComAux a Z = addZ a
     addComAux a (S b) = eqTrans (Sout a b) (cong S (addComAux a b))
-  natAddMonoid : monoid add Z
-  natAddMonoid = record { lIdentity = λ a → refl ; rIdentity = addZ ; associative = addAssoc }
+  natAddMonoid : monoid add
+  natAddMonoid = record { e = Z ; lIdentity = λ a → refl ; rIdentity = addZ ; associative = addAssoc }
    where
     addAssoc : (a b c : nat) → add a (add b c) ≡ add (add a b) c
     addAssoc Z b c = refl
     addAssoc (S a) b c = cong S (addAssoc a b c)
-  natAddCM : cMonoid add Z
+  natAddCM : cMonoid add
   natAddCM = record {}
 
 addOut : (n m : nat) → mult n (S m) ≡ add n (mult n m)
@@ -53,15 +53,15 @@ instance
     multComAux : (a b : nat) → mult a b ≡ mult b a
     multComAux a Z = multZ a
     multComAux a (S b) = eqTrans (addOut a b) (cong (add a) (multComAux a b))
-  natMultMonoid : monoid mult (S Z)
-  natMultMonoid = record { lIdentity = addZ
+  natMultMonoid : monoid mult
+  natMultMonoid = record { e = (S Z) ; lIdentity = addZ
                          ; rIdentity = λ a → eqTrans (commutative a (S Z)) (addZ a)
                          ; associative = multAssoc }
    where
     multAssoc : (a b c : nat) → mult a (mult b c) ≡ mult (mult a b) c
     multAssoc Z b c = refl
     multAssoc (S a) b c = eqTrans (cong (add (mult b c)) (multAssoc a b c)) (natMultDist b (mult a b) c)
-  natMultCM : cMonoid mult (S Z)
+  natMultCM : cMonoid mult
   natMultCM = record {}
 
 -- Multiplication and addition on natural numbers together form a semiring.
@@ -69,9 +69,8 @@ instance
   natSemiRing : SemiRing nat 
   natSemiRing =
    record
-      { zero = Z
-      ; one = (S Z)
-      ; _+_ = add
+      {
+        _+_ = add
       ; _*_ = mult
       ; lDistribute = λ a b c → mult a (add b c)          ≡⟨ commutative a (add b c)⟩
                                 mult (add b c) a          ≡⟨ sym (natMultDist b c a)⟩
