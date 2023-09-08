@@ -1,4 +1,4 @@
-{-# OPTIONS  --without-K --safe #-}
+{-# OPTIONS  --without-K --safe --overlapping-instances #-}
 
 open import Agda.Primitive public
 open import Prelude public
@@ -41,13 +41,13 @@ pr1 : {P : A → Type l} → Σ P → A
 pr1 (a , _) = a
 
 -- Right side of a dependent pair.
-pr2 : {P : A → Set l} → (x : Σ P) → P (pr1 x)
+pr2 : {P : A → Type l} → (x : Σ P) → P (pr1 x)
 pr2 (_ , b) = b
 
-isProp : Set l → Set l
+isProp : Type l → Type l
 isProp A = (a b : A) → a ≡ b
 
-isSet : Set l → Set l
+isSet : Type l → Type l
 isSet A = (a b : A) → isProp(a ≡ b)
 
 -- https://en.wikipedia.org/wiki/Property_(mathematics)
@@ -56,13 +56,19 @@ record Property {A : Type l} (f : A → Type l') : Type(l ⊔ l')
       isproperty : (a : A) → isProp (f a)
 open Property {{...}} public
 
+
+record Associative {A : Type l}(f : A → A → A) : Type(lsuc l) where
+  field
+      associative : (a b c : A) → f a (f b c) ≡ f (f a b) c
+open Associative {{...}} public
+
 -- https://en.wikipedia.org/wiki/Monoid
 record monoid {A : Type l}(op : A → A → A) : Type(lsuc l) where
   field
       e : A
       lIdentity : (a : A) → op e a ≡ a
       rIdentity : (a : A) → op a e ≡ a
-      associative : (a b c : A) → op a (op b c) ≡ op (op a b) c
+      overlap {{monoidAssoc}} : Associative op
 open monoid {{...}} public
 
 record Idempotent {A : Type l}(f : A → A) : Type(lsuc l) where
@@ -208,49 +214,44 @@ record SemiRing (A : Type l) : Type (lsuc l) where
     lDistribute : (a b c : A) → a * (b + c) ≡ (a * b) + (a * c)
     rDistribute : (a b c : A) → (b + c) * a ≡ (b * a) + (c * a)
     {{addStr}} : cMonoid _+_
-    {{multStr}} : monoid _*_
-open SemiRing {{...}} public
+    overlap {{multAssoc}} : Associative _*_
+open SemiRing {{...}} hiding (multAssoc) public
 
 zero : {{SR : SemiRing A}} → A
 zero = addStr .cmonoid .e
 
-one : {{SR : SemiRing A}} → A
-one = multStr .e
+nonZero : {A : Type l} {{R : SemiRing A}} → Type l
+nonZero {A = A} = (Σ λ (a : A) → a ≠ zero)
 
--- https://en.wikipedia.org/wiki/Ring_(mathematics)
-record Ring (A : Type l) : Type (lsuc l) where
+-- https://en.wikipedia.org/wiki/Rng_(algebra)
+record Rng (A : Type l) : Type (lsuc l) where
   field
     {{sring}} : SemiRing A
     raddStr : (a : A) → Σ λ(b : A) → a + b ≡ zero
-open Ring {{...}} public
+open Rng {{...}} public
 
 instance
-  multIsGroup : {{R : Ring A}} → group _+_
+  multIsGroup : {{R : Rng A}} → group _+_
   multIsGroup = record { inverse = λ a → (pr1(raddStr a))
      , ((eqTrans (commutative (pr1 (raddStr a)) a) (pr2(raddStr a))) , (pr2(raddStr a))) }
-  multIsAbelian : {{R : Ring A}} → abelianGroup _+_
+  multIsAbelian : {{R : Rng A}} → abelianGroup _+_
   multIsAbelian = record {}
 
-nonZero : {A : Type l} {{R : Ring A}} → Type l
-nonZero {A = A} = (Σ λ (a : A) → a ≠ zero)
 
-neg : {{R : Ring A}} → A → A
+neg : {{R : Rng A}} → A → A
 neg = grp.inv
 
-_-_ : {{R : Ring A}} → A → A → A
-a - b = a + (neg b)
-
-rMultZ : {{R : Ring A}} → (x : A) → x * zero ≡ zero
+rMultZ : {{R : Rng A}} → (x : A) → x * zero ≡ zero
 rMultZ x =
   x * zero                                  ≡⟨ sym (rIdentity (x * zero))⟩
   (x * zero) + zero                         ≡⟨ right _+_ (sym (grp.rInverse (x * zero)))⟩
   (x * zero) + ((x * zero) + neg(x * zero)) ≡⟨ associative (x * zero) (x * zero) (neg(x * zero))⟩
   ((x * zero) + (x * zero)) + neg(x * zero) ≡⟨ left _+_ (sym (lDistribute x zero zero))⟩
   (x * (zero + zero)) + neg(x * zero)       ≡⟨ left _+_ (right _*_ (lIdentity zero))⟩
-  (x * zero) + neg(x * zero)                ≡⟨ grp.rInverse (x * zero) ⟩
+  (x * zero) + neg(x * zero)                ≡⟨ grp.rInverse (x * zero)⟩
   zero ∎
 
-lMultZ : {{R : Ring A}} → (x : A) → zero * x ≡ zero
+lMultZ : {{R : Rng A}} → (x : A) → zero * x ≡ zero
 lMultZ x =
   zero * x                                  ≡⟨ sym (rIdentity (zero * x))⟩
   (zero * x) + zero                         ≡⟨ right _+_ (sym (grp.rInverse (zero * x)))⟩
@@ -259,6 +260,37 @@ lMultZ x =
   ((zero + zero) * x) + neg(zero * x)       ≡⟨ left _+_ (left _*_ (lIdentity zero))⟩
   (zero * x) + neg(zero * x)                ≡⟨ grp.rInverse (zero * x)⟩
   zero ∎
+
+negSwap : {{R : Rng A}} → (x y : A) → neg x * y ≡ x * neg y
+negSwap x y = grp.cancel (x * y) $
+              (x * y) + (neg x * y) ≡⟨ sym(rDistribute y x (neg x))⟩
+              (x + neg x) * y       ≡⟨ left _*_ (grp.rInverse x)⟩
+              zero * y              ≡⟨ lMultZ y ⟩
+              zero                  ≡⟨ sym (rMultZ x)⟩
+              x * zero              ≡⟨ right _*_ (sym (grp.rInverse y))⟩
+              x * (y + neg y)       ≡⟨ lDistribute x y (neg y)⟩
+              ((x * y) + (x * neg y)) ∎
+
+multNeg : {{R : Rng A}} → (x y : A) → (neg x) * y ≡ neg(x * y)
+multNeg x y = grp.cancel (x * y) $
+              (x * y) + (neg x * y) ≡⟨ sym(rDistribute y x (neg x))⟩
+              (x + neg x) * y       ≡⟨ left _*_ (grp.rInverse x)⟩
+              zero * y              ≡⟨ lMultZ y ⟩
+              zero                  ≡⟨ sym (grp.rInverse (x * y))⟩
+              ((x * y) + neg(x * y)) ∎
+
+-- https://en.wikipedia.org/wiki/Ring_(mathematics)
+record Ring (A : Type l) : Type (lsuc l) where
+  field
+    {{rngring}} : Rng A
+    {{multStr}} : monoid _*_
+open Ring {{...}} public
+
+one : {{SR : Ring A}} → A
+one = multStr .e
+
+_-_ : {{R : Rng A}} → A → A → A
+a - b = a + (neg b)
 
 lMultNegOne : {{R : Ring A}} → (x : A) → neg one * x ≡ neg x
 lMultNegOne x = grp.uniqueInv $
@@ -278,21 +310,6 @@ rMultNegOne x = grp.uniqueInv $
   x * zero                     ≡⟨ rMultZ x ⟩
   zero ∎
 
-negSwap : {{R : Ring A}} → (x y : A) → neg x * y ≡ x * neg y
-negSwap x y =
-  neg x * y            ≡⟨ sym (left _*_ (rMultNegOne x)) ⟩
-  (x * (neg one)) * y  ≡⟨ sym (associative x (neg one) y) ⟩
-  x * ((neg one) * y)  ≡⟨ right _*_ (lMultNegOne y)⟩
-  (x * neg y) ∎
-
-multNeg : {{R : Ring A}} → (x y : A) → (neg x) * y ≡ neg(x * y)
-multNeg x y =
-  (neg x) * y       ≡⟨ sym (lIdentity (neg x * y))⟩
-  one * (neg x * y) ≡⟨ associative one (neg x) y ⟩
-  (one * neg x) * y ≡⟨ left _*_ (sym (negSwap one x))⟩
-  (neg one * x) * y ≡⟨ sym (associative (neg one) x y)⟩
-  neg one * (x * y) ≡⟨ lMultNegOne (x * y)⟩
-  neg(x * y) ∎
 
 -- https://en.wikipedia.org/wiki/Commutative_ring
 record CRing (A : Type l) : Type (lsuc l) where
