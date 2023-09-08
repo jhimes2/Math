@@ -1,6 +1,6 @@
 {-# OPTIONS --without-K --safe #-}
 
-open import algebra public
+open import Linear public
 
 variable
   n m : nat
