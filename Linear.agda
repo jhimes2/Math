@@ -1,6 +1,6 @@
 {-# OPTIONS  --without-K --safe #-}
 
-open import algebra public
+open import Abstract public
 
 -- https://en.wikipedia.org/wiki/Module_(mathematics)
 record Module {scalar : Type l} {{R : Ring scalar}} : Type (lsuc l) where

@@ -1,4 +1,6 @@
-open import algebra public
+{-# OPTIONS --without-K --safe #-}
+
+open import Abstract public
 
 Sout : (n m : nat) → add n (S m) ≡ S (add n m)
 Sout Z m = refl
