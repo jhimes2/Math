@@ -55,7 +55,7 @@ module _{l : Level}{scalar : Type l}{{R : Ring scalar}}{{V : Module}} where
       vZero ∎
 
   scaleInv : (v : vector) → (c : scalar) → scale (neg c) v ≡ (negV (scale c v))
-  scaleInv v c = grp.opCancel $
+  scaleInv v c = grp.uniqueInv $
     scale (neg c) v [+] negV(negV(scale c v)) ≡⟨ right _[+]_ (grp.doubleInv {{vGrp}} (scale c v))⟩
     scale (neg c) v [+] (scale c v)           ≡⟨ sym (vectorDistribution v (neg c) c)⟩
     scale ((neg c) + c) v                     ≡⟨ left scale (grp.lInverse c)⟩

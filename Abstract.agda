@@ -104,8 +104,8 @@ module grp {op : A → A → A} {e : A}{{G : group op e}} where
     rInverse : (a : A) → op a (inv a) ≡ e
     rInverse a = pr2(inverse a) ~> pr2
 
-    opInjective : (x : A) → injective (op x)
-    opInjective a {x} {y} p =
+    cancel : (x : A) → injective (op x)
+    cancel a {x} {y} p =
         x                   ≡⟨ sym (lIdentity x)⟩
         op e x              ≡⟨ left op (sym (lInverse a)) ⟩
         op(op(inv a) a) x   ≡⟨ sym (associative (inv a) a x)⟩
@@ -121,7 +121,7 @@ module grp {op : A → A → A} {e : A}{{G : group op e}} where
         op x e              ≡⟨ right op (sym (lInverse y))⟩
         op x (op (inv y) y) ≡⟨ right op (left op (sym p))⟩
         op x (op (inv x) y) ≡⟨ associative x (inv x) y ⟩
-        op (op x (inv x)) y ≡⟨ left op (rInverse x) ⟩
+        op (op x (inv x)) y ≡⟨ left op (rInverse x)⟩
         op e y              ≡⟨ lIdentity y ⟩
         y ∎
 
@@ -134,8 +134,8 @@ module grp {op : A → A → A} {e : A}{{G : group op e}} where
         op e x                         ≡⟨ lIdentity x ⟩
         x ∎
 
-    opCancel : {x y : A} → op x (inv y) ≡ e → x ≡ y
-    opCancel {x = x} {y = y} p =
+    uniqueInv : {x y : A} → op x (inv y) ≡ e → x ≡ y
+    uniqueInv {x = x} {y = y} p =
         x                    ≡⟨ sym (rIdentity x)⟩
         op x e               ≡⟨ right op (sym (lInverse y))⟩
         op x (op (inv y) y)  ≡⟨ associative x (inv y) y ⟩
@@ -143,8 +143,8 @@ module grp {op : A → A → A} {e : A}{{G : group op e}} where
         op e y               ≡⟨ lIdentity y ⟩
         y ∎
 
-    inverseDistributes : (a b : A) → op (inv b) (inv a) ≡ inv (op a b)
-    inverseDistributes a b = opCancel $
+    lemma1 : (a b : A) → op (inv b) (inv a) ≡ inv (op a b)
+    lemma1 a b = uniqueInv $
         op(op(inv b)(inv a))(inv(inv(op a b))) ≡⟨ right op (doubleInv (op a b))⟩
         op (op(inv b) (inv a)) (op a b)        ≡⟨ sym (associative (inv b) (inv a) (op a b))⟩
         op (inv b) (op(inv a) (op a b))        ≡⟨ right op (associative (inv a) a b)⟩
@@ -152,9 +152,23 @@ module grp {op : A → A → A} {e : A}{{G : group op e}} where
         op (inv b) (op e b)                    ≡⟨ right op (lIdentity b)⟩
         op (inv b) b                           ≡⟨ lInverse b ⟩
         e ∎
+    
+    lemma2 : {a b c : A} → c ≡ op a b → op (inv a) c ≡ b
+    lemma2 {a = a} {b} {c} p =
+        op (inv a) c        ≡⟨ right op p ⟩
+        op (inv a) (op a b) ≡⟨ associative (inv a) a b ⟩
+        op (op (inv a) a) b ≡⟨ left op (lInverse a)⟩
+        op e b              ≡⟨ lIdentity b ⟩
+        b ∎
+
+    lemma3 : {a : A} → a ≡ op a a → a ≡ e
+    lemma3 {a = a} p =
+        a               ≡⟨ sym (lemma2 p) ⟩
+        (op (inv a ) a) ≡⟨ lInverse a ⟩
+        e ∎
 
     invE : inv e ≡ e
-    invE = opInjective e (eqTrans (rInverse e) (sym (lIdentity e)))
+    invE = cancel e (eqTrans (rInverse e) (sym (lIdentity e)))
 
 record Commutative {A : Type l}(op : A → A → A) : Type(lsuc l) where
   field
@@ -235,7 +249,7 @@ lMultZ x =
   zero ∎
 
 lMultNegOne : {{R : Ring A}} → (x : A) → neg one * x ≡ neg x
-lMultNegOne x = grp.opCancel $
+lMultNegOne x = grp.uniqueInv $
   (neg one * x) + (neg(neg x)) ≡⟨ right _+_ (grp.doubleInv x)⟩
   (neg one * x) + x            ≡⟨ right _+_ (sym (lIdentity x))⟩
   (neg one * x) + (one * x)    ≡⟨ sym (rDistribute x (neg one) one)⟩
@@ -244,7 +258,7 @@ lMultNegOne x = grp.opCancel $
   zero ∎
 
 rMultNegOne : {{R : Ring A}} → (x : A) → x * neg one ≡ neg x
-rMultNegOne x = grp.opCancel $
+rMultNegOne x = grp.uniqueInv $
   (x * neg one) + (neg(neg x)) ≡⟨ right _+_ (grp.doubleInv x)⟩
   (x * neg one) + x            ≡⟨ right _+_ (sym (rIdentity x))⟩
   (x * neg one) + (x * one)    ≡⟨ sym (lDistribute x (neg one) one)⟩
