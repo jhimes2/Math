@@ -40,10 +40,6 @@ zeroV (S n) = zero :: (zeroV n)
 addv : {{SemiRing A}} → {n : nat} → [ A ^ n ] → [ A ^ n ] → [ A ^ n ]
 addv = zip _+_
 
-vOne : {{SemiRing A}} → (n : nat) → [ A ^ n ]
-vOne Z = []
-vOne (S n) = one :: (vOne n)
-
 negv : {{Ring A}} → {n : nat} → [ A ^ n ] → [ A ^ n ]
 negv = map neg
 
@@ -99,12 +95,15 @@ instance
     addvCom : {n : nat} → {{R : SemiRing A}} → (u v : [ A ^ n ]) → addv u v ≡ addv v u
     addvCom {n = Z} [] [] = refl
     addvCom {n = S n} (x :: u) (y :: v) = cong2 _::_ (commutative x y) (addvCom u v)
- monoidv : {{SR : SemiRing A}} → {n : nat} → monoid addv
- monoidv {{SR}} {n = n} = record { e = zeroV n ; lIdentity = λ v → eqTrans (commutative (zeroV n) v) (addvId v) ; rIdentity = addvId ; associative = addvAssoc }
+ assocv : {{SR : SemiRing A}} → Associative (addv {n = n})
+ assocv = record { associative = addvAssoc }
    where
      addvAssoc : {n : nat} → {{R : SemiRing A}} → (u v w : [ A ^ n ]) → (addv u (addv v w)) ≡ addv (addv u v) w
      addvAssoc {n = Z} [] [] [] = refl
      addvAssoc {n = S n} (x :: u) (y :: v) (z :: w) = cong2 _::_ (associative x y z) (addvAssoc u v w)
+ monoidv : {{SR : SemiRing A}} → {n : nat} → monoid addv
+ monoidv {{SR}} {n = n} = record { e = zeroV n ; lIdentity = λ v → eqTrans (commutative (zeroV n) v) (addvId v) ; rIdentity = addvId }
+   where
      addvId : {n : nat} → {{R : SemiRing A}} → (v : [ A ^ n ]) → addv v (zeroV n) ≡ v
      addvId {n = Z} [] = refl
      addvId {n = S n} (x :: v) = cong2 _::_ (rIdentity x) (addvId v)
@@ -127,12 +126,12 @@ instance
             ; scalarDistribution = scalar-distributivity2
             ; vectorDistribution = λ v a b → scalar-distributivity a b v
             ; scalarAssoc = scaleAssocAux
-            ; scaleNegOneInv = scaleNegOneInvAux
+            ; scaleId = scaleIdv
             }
   where
-    scaleNegOneInvAux : {A : Type l} {{R : Ring A}} → (v : [ A ^ n ]) → scaleV (neg one) v ≡ grp.inv v
-    scaleNegOneInvAux [] = refl
-    scaleNegOneInvAux (x :: v) = cong2 _::_ (rMultNegOne x) (scaleNegOneInvAux v)
+    scaleIdv : {A : Type l} {{R : Ring A}} → (v : [ A ^ n ]) → scaleV one v ≡ v
+    scaleIdv [] = refl
+    scaleIdv (x :: v) = cong2 _::_ (rIdentity x) (scaleIdv v)
     scaleAssocAux : {A : Type l} {{R : Ring A}} → (v : [ A ^ n ]) → (a b : A) → scaleV a (scaleV b v) ≡ scaleV (b * a) v
     scaleAssocAux [] a b = refl
     scaleAssocAux {{R}} (x :: v) a b = cong2 _::_ (sym (associative x b a)
@@ -312,12 +311,13 @@ ILInv {m = Z} [] = refl
 ILInv {m = S m} (v :: M) = cong2 _::_ (IMatrixTrans v) (ILInv M)
 
 instance
+  mMultAssocInstance : {{R : Ring A}} → Associative (mMult {a = n} {b = n} {c = n})
+  mMultAssocInstance = record { associative = λ a b c → mMultAssoc a b c }
   sqrMMultMonoid : {{R : Ring A}} → monoid (mMult {a = n} {b = n} {c = n})
   sqrMMultMonoid = record {
                          e = I
                        ; lIdentity = ILInv
-                       ; rIdentity = IRInv
-                       ; associative = λ a b c → mMultAssoc a b c }
+                       ; rIdentity = IRInv }
 
 rowSpace : {A : Type l} → {{R : Ring A}} → Matrix A n m → [ A ^ m ] → Type l
 rowSpace M = columnSpace (MT (transpose M))

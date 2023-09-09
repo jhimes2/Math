@@ -3,6 +3,8 @@
 open import Abstract public
 
 -- https://en.wikipedia.org/wiki/Module_(mathematics)
+-- If 'R' is a field, then the module is a vector space.
+-- Try not to confuse 'Module' with Agda's built-in 'module' keyword.
 record Module {scalar : Type l} {{R : Ring scalar}} : Type (lsuc l) where
   field
     vector : Type l
@@ -12,7 +14,7 @@ record Module {scalar : Type l} {{R : Ring scalar}} : Type (lsuc l) where
     scalarDistribution : (a : scalar) → (u v : vector) → scale a (u [+] v) ≡ (scale a u) [+] (scale a v)
     vectorDistribution : (v : vector) → (a b : scalar) → scale (a + b) v ≡ (scale a v) [+] (scale b v)
     scalarAssoc : (v : vector) → (a b : scalar) → scale a (scale b v) ≡ scale (b * a) v
-    scaleNegOneInv : (v : vector) → scale (neg one) v ≡ grp.inv v
+    scaleId : (v : vector) → scale one v ≡ v
 open Module {{...}} public
 
 module _{l : Level}{scalar : Type l}{{R : Ring scalar}}{{V : Module}} where
@@ -29,40 +31,30 @@ module _{l : Level}{scalar : Type l}{{R : Ring scalar}}{{V : Module}} where
   vGrp : group _[+]_
   vGrp = abelianGroup.grp addvStr
 
-  scaleId : (v : vector) → scale one v ≡ v
-  scaleId v = grp.invInjective $
-      grp.inv (scale one v)         ≡⟨ sym (scaleNegOneInv (scale one v))⟩
-      scale (neg one) (scale one v) ≡⟨ scalarAssoc v (neg one) one ⟩
-      (scale (one * neg one) v)     ≡⟨ left scale (lIdentity (neg one))⟩
-      (scale (neg one) v)           ≡⟨ scaleNegOneInv v ⟩
-      grp.inv v ∎
-
   -- Vector scaled by zero is zero vector
   scaleZ : (v : vector) → scale zero v ≡ vZero
-  scaleZ v =
-      scale zero v                      ≡⟨ sym (left scale (grp.lInverse one))⟩
-      scale ((neg one) + one) v         ≡⟨ vectorDistribution v (neg one) one ⟩
-      scale (neg one) v [+] scale one v ≡⟨ right _[+]_ (scaleId v)⟩
-      scale (neg one) v [+] v           ≡⟨ left _[+]_ (scaleNegOneInv v)⟩
-      grp.inv v [+] v                   ≡⟨ grp.lInverse v ⟩
-      vZero ∎
+  scaleZ v = grp.cancel (scale zero v) $
+      scale zero v [+] scale zero v ≡⟨ sym (vectorDistribution v zero zero)⟩
+      scale (zero + zero) v         ≡⟨ left scale (lIdentity zero)⟩
+      scale zero v                  ≡⟨ sym (rIdentity (scale zero v))⟩
+      (scale zero v [+] vZero) ∎
 
   -- Zero vector scaled is zero vector
   scaleVZ : (c : scalar) → scale c vZero ≡ vZero
-  scaleVZ c =
-      scale c vZero              ≡⟨ right scale (sym (scaleZ vZero))⟩
-      scale c (scale zero vZero) ≡⟨ scalarAssoc vZero c zero ⟩
-      scale (zero * c) vZero     ≡⟨ left scale (lMultZ c)⟩
-      scale zero vZero           ≡⟨ scaleZ vZero ⟩
-      vZero ∎
+  scaleVZ c = grp.cancel (scale c vZero) $
+      scale c vZero [+] scale c vZero ≡⟨ sym (scalarDistribution c vZero vZero) ⟩
+      scale c (vZero [+] vZero)       ≡⟨ right scale (lIdentity vZero) ⟩
+      scale c vZero                   ≡⟨ sym (rIdentity (scale c vZero)) ⟩
+      (scale c vZero [+] vZero) ∎
 
-  scaleInv : (v : vector) → (c : scalar) → scale (neg c) v ≡ (negV (scale c v))
-  scaleInv v c = grp.uniqueInv $
-    scale (neg c) v [+] negV(negV(scale c v)) ≡⟨ right _[+]_ (grp.doubleInv {{vGrp}} (scale c v))⟩
-    scale (neg c) v [+] (scale c v)           ≡⟨ sym (vectorDistribution v (neg c) c)⟩
-    scale ((neg c) + c) v                     ≡⟨ left scale (grp.lInverse c)⟩
-    scale zero v                              ≡⟨ scaleZ v ⟩
-    vZero ∎
+  scaleNegOneInv : (v : vector) → scale (neg one) v ≡ negV v
+  scaleNegOneInv v = grp.cancel (scale one v) $
+      scale one v [+] scale (neg one) v ≡⟨ sym (vectorDistribution v one (neg one))⟩
+      scale (one + neg one) v           ≡⟨ left scale (grp.rInverse one) ⟩
+      scale zero v                      ≡⟨ scaleZ v ⟩
+      vZero                             ≡⟨ sym (grp.rInverse v) ⟩
+      v [+] negV v                      ≡⟨ left _[+]_ (sym (scaleId v)) ⟩
+      (scale one v [+] negV v) ∎
 
   -- https://en.wikipedia.org/wiki/Linear_span
   data Span (X : vector → Type l) : vector → Type l where

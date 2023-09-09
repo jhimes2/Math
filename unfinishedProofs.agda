@@ -4,8 +4,8 @@ open import Agda.Primitive
 open import Matrix
 
 instance
-    FieldToModule : {{F : Field A}} → Module
-    FieldToModule {A = A}  =
+    FieldToVectorSpace : {{F : Field A}} → Module
+    FieldToVectorSpace {A = A}  =
                               record
                                     { vector = A
                                     ; _[+]_ = _+_
@@ -13,12 +13,12 @@ instance
                                     ; scale = _*_
                                     ; scalarDistribution = lDistribute
                                     ; vectorDistribution = rDistribute
-                                    ; scalarAssoc = λ a b c → {!!}
-                                    ; scaleNegOneInv = λ v → lMultNegOne v
+                                    ; scalarAssoc = λ a b c → {!associative!}
+                                    ; scaleId = {!!}
                                     }
 
 linearForm : {A : Type l}{{F : Field A}}(VS : Module) → Type l
-linearForm {{F}} VS = Σ λ(T : < U > → < FieldToModule {{F}} >) → LinearTransformation {{U = U}} T
+linearForm {{F}} VS = Σ λ(T : < U > → < FieldToVectorSpace {{F}} >) → LinearTransformation {{U = U}} T
   where
    instance
      U : Module
@@ -48,7 +48,7 @@ dualSum {{F}} VS =
     V : Module 
     V = VS
 
-dualZero : {{F : Field A}}(VS : Module ) → linearForm VS
+dualZero : {{F : Field A}}(VS : Module) → linearForm VS
 dualZero  VS = (λ _ → zero) , record { addT = λ u v →
                                        zero ≡⟨ sym (lIdentity zero) ⟩
                                        (zero + zero) ∎
@@ -60,18 +60,20 @@ dualZero  VS = (λ _ → zero) , record { addT = λ u v →
 
 
 instance
-  LFCom : {{F : Field A}}{{VS : Module }} → Commutative (dualSum VS)
+  LFCom : {{F : Field A}}{{VS : Module}} → Commutative (dualSum VS)
   LFCom = {!!}
-  LFMonoid : {{F : Field A}}{{VS : Module }} → monoid (dualSum VS)
-  LFMonoid {{VS = VS}} = record { e = dualZero VS ; lIdentity = {!!} ; rIdentity = {!!} ; associative = {!!} }
+  LFAssoc : {{F : Field A}}{{VS : Module}} → Associative (dualSum VS)
+  LFAssoc = {!!}
+  LFMonoid : {{F : Field A}}{{VS : Module}} → monoid (dualSum VS)
+  LFMonoid {{VS = VS}} = record { e = dualZero VS ; lIdentity = {!!} ; rIdentity = {!!} }
   LFGroup : {{F : Field A}}{{VS : Module }} → group (dualSum VS)
   LFGroup = record { inverse = {!!} }
-  LFCMonoid : {{F : Field A}}{{VS : Module }} → cMonoid (dualSum VS)
+  LFCMonoid : {{F : Field A}}{{VS : Module}} → cMonoid (dualSum VS)
   LFCMonoid = {!!}
-  LFAGroup : {{F : Field A}}{{VS : Module }} → abelianGroup (dualSum VS)
+  LFAGroup : {{F : Field A}}{{VS : Module}} → abelianGroup (dualSum VS)
   LFAGroup = record {}
                            -- ΣPathPProp ((λ _ → isPropΠ λ _ → isPropIsProp)) H } }
-dualSpace : {{F : Field A}}(VS : Module ) → Module 
+dualSpace : {{F : Field A}}(VS : Module) → Module 
 dualSpace  VS =
  record
      { vector = linearForm VS
@@ -81,7 +83,7 @@ dualSpace  VS =
      ; scalarDistribution = {!!}
      ; vectorDistribution = {!!}
      ; scalarAssoc = {!!}
-     ; scaleNegOneInv = {!!}
+     ; scaleId = {!!}
      }
  where
   instance
