@@ -93,14 +93,14 @@ module grp {_∙_ : A → A → A} {{G : group _∙_}} where
   lemma1 a b =
     let H : (inv b ∙ inv a) ∙ inv(inv(a ∙ b)) ≡ e
                               → inv b ∙ inv a ≡ inv (a ∙ b)
-        H = uniqueInv in
+        H = uniqueInv in H $
     (inv b ∙ inv a) ∙ inv(inv(a ∙ b)) ≡⟨ right _∙_ (doubleInv (_∙_ a b))⟩
     (inv b ∙ inv a) ∙ (a ∙ b)         ≡⟨ sym (associative (inv b) (inv a) (_∙_ a b))⟩
     inv b ∙ (inv a ∙ (a ∙ b))         ≡⟨ right _∙_ (associative (inv a) a b)⟩
     inv b ∙ ((inv a ∙ a) ∙ b)         ≡⟨ right _∙_ (left _∙_ (lInverse a))⟩
     inv b ∙ (e ∙ b)                   ≡⟨ right _∙_ (lIdentity b)⟩
     inv b ∙ b                         ≡⟨ lInverse b ⟩
-    e ∎ ~> H
+    e ∎
   
   lemma2 : {a b c : A} → c ≡ a ∙ b → inv a ∙ c ≡ b
   lemma2 {a}{b}{c} =
@@ -215,25 +215,25 @@ negSwap : {{R : Rng A}} → (x y : A) → neg x * y ≡ x * neg y
 negSwap x y =
   let H : (x * y)+(neg x * y) ≡ (x * y)+(x * neg y)
                   → neg x * y ≡ x * neg y
-      H = grp.cancel (x * y) in
+      H = grp.cancel (x * y) in H $
   (x * y)+(neg x * y) ≡⟨ sym(rDistribute y x (neg x))⟩
   (x + neg x) * y       ≡⟨ left _*_ (grp.rInverse x)⟩
   zero * y              ≡⟨ lMultZ y ⟩
   zero                  ≡⟨ sym (rMultZ x)⟩
   x * zero              ≡⟨ right _*_ (sym (grp.rInverse y))⟩
   x * (y + neg y)       ≡⟨ lDistribute x y (neg y)⟩
-  (x * y)+(x * neg y) ∎ ~> H
+  (x * y)+(x * neg y) ∎
 
 multNeg : {{R : Rng A}} → (x y : A) → (neg x) * y ≡ neg(x * y)
 multNeg x y =
   let H : (x * y)+(neg x * y) ≡ (x * y) + neg(x * y)
                   → neg x * y ≡ neg(x * y)
-      H = grp.cancel (x * y) in
+      H = grp.cancel (x * y) in H $
   (x * y)+(neg x * y) ≡⟨ sym(rDistribute y x (neg x))⟩
   (x + neg x) * y     ≡⟨ left _*_ (grp.rInverse x)⟩
   zero * y            ≡⟨ lMultZ y ⟩
   zero                ≡⟨ sym (grp.rInverse (x * y))⟩
-  (x * y) + neg(x * y) ∎ ~> H
+  (x * y) + neg(x * y) ∎
 
 -- https://en.wikipedia.org/wiki/Ring_(mathematics)
 record Ring (A : Type l) : Type (lsuc l) where
@@ -252,25 +252,25 @@ lMultNegOne : {{R : Ring A}} → (x : A) → neg one * x ≡ neg x
 lMultNegOne x =
   let H : (neg one * x)+(neg(neg x)) ≡ zero
                        → neg one * x ≡ neg x
-      H = grp.uniqueInv in
+      H = grp.uniqueInv in H $
   (neg one * x)+(neg(neg x)) ≡⟨ right _+_ (grp.doubleInv x)⟩
   (neg one * x) + x          ≡⟨ right _+_ (sym (lIdentity x))⟩
   (neg one * x)+(one * x)    ≡⟨ sym (rDistribute x (neg one) one)⟩
   (neg one + one) * x        ≡⟨ left _*_ (grp.lInverse one)⟩
   zero * x                   ≡⟨ lMultZ x ⟩
-  zero ∎ ~> H
+  zero ∎
 
 rMultNegOne : {{R : Ring A}} → (x : A) → x * neg one ≡ neg x
 rMultNegOne x =
   let H : (x * neg one)+(neg(neg x)) ≡ zero
                        → x * neg one ≡ neg x
-      H = grp.uniqueInv in
+      H = grp.uniqueInv in H $
   (x * neg one)+(neg(neg x)) ≡⟨ right _+_ (grp.doubleInv x)⟩
   (x * neg one) + x          ≡⟨ right _+_ (sym (rIdentity x))⟩
   (x * neg one)+(x * one)    ≡⟨ sym (lDistribute x (neg one) one)⟩
   x * (neg one + one)        ≡⟨ right _*_ (grp.lInverse one)⟩
   x * zero                   ≡⟨ rMultZ x ⟩
-  zero ∎ ~> H
+  zero ∎
 
 -- https://en.wikipedia.org/wiki/Commutative_ring
 record CRing (A : Type l) : Type (lsuc l) where
@@ -341,45 +341,45 @@ module _{scalar : Type l}{{R : Ring scalar}}{{V : Module}} where
   scaleZ v =
     let H : scale zero v [+] scale zero v ≡ (scale zero v [+] vZero)
                            → scale zero v ≡ vZero
-        H = grp.cancel (scale zero v) in
+        H = grp.cancel (scale zero v) in H $
     scale zero v [+] scale zero v ≡⟨ sym (vectorDistribution v zero zero)⟩
     scale (zero + zero) v         ≡⟨ left scale (lIdentity zero)⟩
     scale zero v                  ≡⟨ sym (rIdentity (scale zero v))⟩
-    scale zero v [+] vZero ∎ ~> H
+    scale zero v [+] vZero ∎
 
   -- Zero vector scaled is zero vector
   scaleVZ : (c : scalar) → scale c vZero ≡ vZero
   scaleVZ c =
     let H : scale c vZero [+] scale c vZero ≡ scale c vZero [+] vZero
                             → scale c vZero ≡ vZero
-        H = grp.cancel (scale c vZero) in
+        H = grp.cancel (scale c vZero) in H $
     scale c vZero [+] scale c vZero ≡⟨ sym (scalarDistribution c vZero vZero)⟩
     scale c (vZero [+] vZero)       ≡⟨ right scale (lIdentity vZero)⟩
     scale c vZero                   ≡⟨ sym (rIdentity (scale c vZero))⟩
-    scale c vZero [+] vZero ∎ ~> H
+    scale c vZero [+] vZero ∎
 
   scaleNegOneInv : (v : vector) → scale (neg one) v ≡ negV v
   scaleNegOneInv v =
     let H : scale one v [+] scale (neg one) v ≡ scale one v [+] negV v
                          →  scale (neg one) v ≡ negV v     
-        H = grp.cancel (scale one v) in
+        H = grp.cancel (scale one v) in H $
     scale one v [+] scale (neg one) v ≡⟨ sym (vectorDistribution v one (neg one))⟩
     scale (one + neg one) v           ≡⟨ left scale (grp.rInverse one)⟩
     scale zero v                      ≡⟨ scaleZ v ⟩
     vZero                             ≡⟨ sym (grp.rInverse v)⟩
     v [+] negV v                      ≡⟨ left _[+]_ (sym (scaleId v))⟩
-    scale one v [+] negV v ∎ ~> H
+    scale one v [+] negV v ∎
 
   scaleInv : (v : vector) → (c : scalar) → scale (neg c) v ≡ (negV (scale c v))
   scaleInv v c =
     let H : scale (neg c) v [+] negV(negV(scale c v)) ≡ vZero
                                     → scale (neg c) v ≡ negV (scale c v)
-        H = grp.uniqueInv in
+        H = grp.uniqueInv in H $
     scale (neg c) v [+] negV(negV(scale c v)) ≡⟨ right _[+]_ (grp.doubleInv (scale c v))⟩
     scale (neg c) v [+] (scale c v)           ≡⟨ sym (vectorDistribution v (neg c) c)⟩
     scale ((neg c) + c) v                     ≡⟨ left scale (grp.lInverse c)⟩
     scale zero v                              ≡⟨ scaleZ v ⟩
-    vZero ∎ ~> H
+    vZero ∎
 
 -- Not necessarily a linear span since we're using a module instead of a vector space
   data Span (X : vector → Type l) : vector → Type l where
