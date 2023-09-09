@@ -534,3 +534,4 @@ infixr 3 _≡⟨By-Definition⟩_
 
 _∎ : (x : A) → x ≡ x
 _ ∎ = refl
+infixl 4 _∎

@@ -144,7 +144,7 @@ assocCom4 {_∙_ = _∙_} a b c d =
   (a ∙ (b ∙ c)) ∙ d ≡⟨ left _∙_ (right _∙_ (commutative b c))⟩
   (a ∙ (c ∙ b)) ∙ d ≡⟨ left _∙_ (associative a c b)⟩
   ((a ∙ c) ∙ b) ∙ d ≡⟨ sym (associative (_∙_ a c) b d) ⟩
-  ((a ∙ c) ∙ (b ∙ d)) ∎
+  (a ∙ c) ∙ (b ∙ d) ∎
 
 -- https://en.wikipedia.org/wiki/Abelian_group
 record abelianGroup {A : Type l}(_∙_ : A → A → A): Type (lsuc l) where
@@ -222,7 +222,7 @@ negSwap x y =
   zero                  ≡⟨ sym (rMultZ x)⟩
   x * zero              ≡⟨ right _*_ (sym (grp.rInverse y))⟩
   x * (y + neg y)       ≡⟨ lDistribute x y (neg y)⟩
-  ((x * y)+(x * neg y)) ∎ ~> H
+  (x * y)+(x * neg y) ∎ ~> H
 
 multNeg : {{R : Rng A}} → (x y : A) → (neg x) * y ≡ neg(x * y)
 multNeg x y =
@@ -233,7 +233,7 @@ multNeg x y =
   (x + neg x) * y     ≡⟨ left _*_ (grp.rInverse x)⟩
   zero * y            ≡⟨ lMultZ y ⟩
   zero                ≡⟨ sym (grp.rInverse (x * y))⟩
-  ((x * y) + neg(x * y)) ∎ ~> H
+  (x * y) + neg(x * y) ∎ ~> H
 
 -- https://en.wikipedia.org/wiki/Ring_(mathematics)
 record Ring (A : Type l) : Type (lsuc l) where
@@ -301,7 +301,7 @@ nonZeroMult (a , a') (b , b') = λ(f : (a * b) ≡ zero) →
   let F = b       ≡⟨ sym(lIdentity b)⟩
           one * b ≡⟨ left _*_ (sym (recInv ((a , a'))))⟩
           ((pr1 (reciprocal (a , a'))) * a) * b ≡⟨ sym (associative (pr1 (reciprocal (a , a'))) a b)⟩
-          ((pr1 (reciprocal (a , a'))) * (a * b)) ∎ in
+          (pr1 (reciprocal (a , a'))) * (a * b) ∎ in
   let contradiction : b ≡ zero
       contradiction = eqTrans F (eqTrans H G)
       in b' contradiction
@@ -345,7 +345,7 @@ module _{scalar : Type l}{{R : Ring scalar}}{{V : Module}} where
     scale zero v [+] scale zero v ≡⟨ sym (vectorDistribution v zero zero)⟩
     scale (zero + zero) v         ≡⟨ left scale (lIdentity zero)⟩
     scale zero v                  ≡⟨ sym (rIdentity (scale zero v))⟩
-    (scale zero v [+] vZero) ∎ ~> H
+    scale zero v [+] vZero ∎ ~> H
 
   -- Zero vector scaled is zero vector
   scaleVZ : (c : scalar) → scale c vZero ≡ vZero
@@ -356,7 +356,7 @@ module _{scalar : Type l}{{R : Ring scalar}}{{V : Module}} where
     scale c vZero [+] scale c vZero ≡⟨ sym (scalarDistribution c vZero vZero)⟩
     scale c (vZero [+] vZero)       ≡⟨ right scale (lIdentity vZero)⟩
     scale c vZero                   ≡⟨ sym (rIdentity (scale c vZero))⟩
-    (scale c vZero [+] vZero) ∎ ~> H
+    scale c vZero [+] vZero ∎ ~> H
 
   scaleNegOneInv : (v : vector) → scale (neg one) v ≡ negV v
   scaleNegOneInv v =
@@ -368,7 +368,7 @@ module _{scalar : Type l}{{R : Ring scalar}}{{V : Module}} where
     scale zero v                      ≡⟨ scaleZ v ⟩
     vZero                             ≡⟨ sym (grp.rInverse v)⟩
     v [+] negV v                      ≡⟨ left _[+]_ (sym (scaleId v))⟩
-    (scale one v [+] negV v) ∎ ~> H
+    scale one v [+] negV v ∎ ~> H
 
   scaleInv : (v : vector) → (c : scalar) → scale (neg c) v ≡ (negV (scale c v))
   scaleInv v c =
