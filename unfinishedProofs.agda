@@ -9,7 +9,7 @@ instance
                               record
                                     { vector = A
                                     ; _[+]_ = _+_
-                                    ; addvStr = multIsAbelian
+                                    ; addvStr = addIsAbelian
                                     ; scale = _*_
                                     ; scalarDistribution = lDistribute
                                     ; vectorDistribution = rDistribute

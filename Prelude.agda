@@ -1,6 +1,6 @@
 {-# OPTIONS  --without-K --safe #-}
 
-open import Agda.Primitive
+open import Agda.Primitive public
 
 -- Renaming `Set` to `Type`.
 
@@ -195,12 +195,6 @@ evSS n nEv = nEv
 -- to 'even n', which means that proving 'evSS' is the same is proving:
 evSS2 : (n : nat) → even n → even n
 evSS2 n nEv = nEv
-
-ackermann : nat → nat → nat
-ackermann Z n = S n
-ackermann (S m) Z = ackermann m (S Z)
-ackermann (S m) (S n) = ackermann m (ackermann (S m) n)
-
 
 -- https://en.wikipedia.org/wiki/Modus_ponens
 modusPonens : A → (A → B) → B
@@ -487,3 +481,56 @@ right _ refl = refl
 
 transport : (f : A → Type l) → {a b : A} → a ≡ b → f a → f b
 transport f refl = id
+
+-- https://en.wikipedia.org/wiki/Bijection,_injection_and_surjection
+
+-- https://en.wikipedia.org/wiki/Injective_function
+injective : {A : Type l} {B : Type l'} (f : A → B) → Type(l ⊔ l')
+injective {A = A} f = {x y : A} → f x ≡ f y → x ≡ y
+
+-- https://en.wikipedia.org/wiki/Surjective_function
+surjective : {A : Type l}{B : Type l'} → (A → B) → Type(l ⊔ l')
+surjective {A = A} {B} f = (b : B) → ∃ λ(a : A) → f a ≡ b
+
+-- https://en.wikipedia.org/wiki/Bijection
+bijective : {A : Type l}{B : Type l'} → (A → B) → Type(l ⊔ l')
+bijective f = injective f ∧ surjective f
+
+-- https://en.wikipedia.org/wiki/Inverse_function#Left_and_right_inverses
+
+leftInverse : {A : Type l}{B : Type l'} → (A → B) → Type(l ⊔ l')
+leftInverse {A = A} {B} f = Σ λ (g : B → A) → (x : A) → g (f x) ≡ x
+
+rightInverse : {A : Type l}{B : Type l'} → (A → B) → Type(l ⊔ l')
+rightInverse {A = A} {B} f = Σ λ (h : B → A) → (x : B) → f (h x) ≡ x
+
+-- If a function has a left inverse, then it is injective
+lInvToInjective : {f : A → B} → leftInverse f → injective f
+lInvToInjective (g , g') {x} {y} p = eqTrans (sym (g' x)) (eqTrans (cong g p) (g' y))
+  
+-- If a function has a right inverse, then it is surjective
+rInvToSurjective : {f : A → B} → rightInverse f → surjective f
+rInvToSurjective (rInv , r') = λ b → η ((rInv b) , (r' b))
+
+equiv : (A : Type l)(B : Type l') → Type (l ⊔ l')
+equiv A B = Σ λ (f : A → B) → injective f ∧ surjective f
+
+-- Left side of a dependent pair.
+pr1 : {P : A → Type l} → Σ P → A
+pr1 (a , _) = a
+
+-- Right side of a dependent pair.
+pr2 : {P : A → Type l} → (x : Σ P) → P (pr1 x)
+pr2 (_ , b) = b
+
+-- Syntactic sugar to chain equalites along with its proof.
+_≡⟨_⟩_ : (x : A) → {y z : A} → x ≡ y → y ≡ z → x ≡ z
+_ ≡⟨ x≡y ⟩ y≡z = eqTrans x≡y y≡z
+infixr 3 _≡⟨_⟩_
+
+_≡⟨By-Definition⟩_ : (x : A) → {y : A} → x ≡ y → x ≡ y
+_≡⟨By-Definition⟩_ _ = id
+infixr 3 _≡⟨By-Definition⟩_
+
+_∎ : (x : A) → x ≡ x
+_ ∎ = refl
