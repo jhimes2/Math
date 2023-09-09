@@ -60,23 +60,29 @@ foldv : (A → A → A) → {n : nat} → [ A ^ S n ] → A
 foldv f (a :: []) = a
 foldv f (a :: b :: v) = f a (foldv f (b :: v))
 
-car : {n : nat} → [ A ^ S n ] → A
-car (x :: _) = x
+head : {n : nat} → [ A ^ S n ] → A
+head (x :: _) = x
 
-cdr : {n : nat} → [ A ^ S n ] → [ A ^ n ]
-cdr (_ :: v) = v
+tail : {n : nat} → [ A ^ S n ] → [ A ^ n ]
+tail (_ :: v) = v
 
 -- Matrix Transformation
 MT : {n m : nat} → {{R : SemiRing A}} → Matrix A n m → [ A ^ m ] → [ A ^ n ]
 MT {n = n} M v = foldr addv (zeroV n) (diag v M)
 
+transpose : {n m : nat} → Matrix A n m → Matrix A m n
+transpose {n = Z} M = []
+transpose {n = S n} M = map head M :: transpose (map tail M)
+
+columnSpace : {A : Type l} → {{F : Field A}} → Matrix A n m → [ A ^ n ] → Type l
+columnSpace M x = ∃ λ y → MT M y ≡ x
+
+rowSpace : {A : Type l} → {{F : Field A}} → Matrix A n m → [ A ^ m ] → Type l
+rowSpace M = columnSpace (transpose M)
+
 -- Matrix Multiplication
 mMult : {{R : SemiRing A}} → {a b c : nat} → Matrix A a b → Matrix A b c → Matrix A a c
 mMult M = map (MT M)
-
-transpose : {n m : nat} → Matrix A n m → Matrix A m n
-transpose {n = Z} M = []
-transpose {n = S n} M = map car M :: transpose (map cdr M)
 
 scalar-distributivity : ∀ {n : nat} {{SR : SemiRing A}} (x y : A) (v : [ A ^ n ]) → scaleV (x + y) v ≡ addv (scaleV x v) (scaleV y v)
 scalar-distributivity {n = Z} x y [] = refl
@@ -140,10 +146,10 @@ instance
     scaleIdAux [] = refl
     scaleIdAux (x :: v) = cong2 _::_ (rIdentity x) (scaleIdAux v)
 
--- Matrix transformation is a linear transformation.
 instance
-  LTMT : {{R : Ring A}} → {M : Matrix A n m} → LinearTransformation (MT M)
-  LTMT {{R}} {M = M} = record { addT = TAdd M ; multT = multTAux {{R}} M }
+  -- Matrix transformation is a linear transformation.
+  MHMT : {{R : Ring A}} → {M : Matrix A n m} → moduleHomomorphism (MT M)
+  MHMT {{R}} {M = M} = record { addT = TAdd M ; multT = multTAux {{R}} M }
     where
       multTAux : {{R : Ring A}} → (M : Matrix A n m)
                                            → (v : [ A ^ m ])
@@ -169,24 +175,27 @@ instance
         addv (addv (scaleV x w) (scaleV y w)) (addv (MT M u) (MT M v)) ≡⟨ assocCom4 (scaleV x w) (scaleV y w) (MT M u) (MT M v)⟩
         addv (addv (scaleV x w) (MT M u)) (addv (scaleV y w) (MT M v)) ≡⟨By-Definition⟩
         addv (MT (w :: M) (x :: u)) (MT (w :: M) (y :: v)) ∎
+  LTMT : {{F : Field A}} → {M : Matrix A n m} → LinearMap (MT M)
+  LTMT {{F}} {M = M} = MHMT
 
-mapCarTranspose : {A : Set l} {a b : nat} → (M : Matrix A a b) → (v : [ A ^ a ]) → map car (transpose (v :: M)) ≡ v
-mapCarTranspose {a = Z} M [] = refl
-mapCarTranspose {a = S a} M (x :: v) = cong (x ::_) (mapCarTranspose (map cdr M) v)
+mapHeadTranspose : {A : Set l} {a b : nat} → (M : Matrix A a b) → (v : [ A ^ a ]) → map head (transpose (v :: M)) ≡ v
+mapHeadTranspose {a = Z} M [] = refl
+mapHeadTranspose {a = S a} M (x :: v) = cong (x ::_) (mapHeadTranspose (map tail M) v)
 
-mapCdrTranspose : {A : Set l} {a b : nat} → (v : [ A ^ a ]) → (M : Matrix A a b) → map cdr (transpose (v :: M)) ≡ transpose M
-mapCdrTranspose {a = Z} v M = refl
-mapCdrTranspose {a = S a} (x :: v) M = cong (map car M ::_) (mapCdrTranspose v (map cdr M))
+mapTailTranspose : {A : Set l} {a b : nat} → (v : [ A ^ a ]) → (M : Matrix A a b) → map tail (transpose (v :: M)) ≡ transpose M
+mapTailTranspose {a = Z} v M = refl
+mapTailTranspose {a = S a} (x :: v) M = cong (map head M ::_) (mapTailTranspose v (map tail M))
 
 transposeInvolution : {{R : Ring A}} → {a b : nat} → (M : Matrix A a b) → transpose (transpose M) ≡ M
 transposeInvolution {a = Z} {Z} [] = refl
 transposeInvolution {a = Z} {S b} ([] :: M) = cong2 _::_ refl (transposeInvolution M)
 transposeInvolution {a = S a} {Z} [] = refl
-transposeInvolution {a = S a} {S b} ((x :: v) :: M) = cong2 _::_ (cong (x ::_) (mapCarTranspose (map cdr M) v)) $
-            transpose (map car M :: map cdr (transpose (v :: map cdr M)))  ≡⟨ cong transpose (cong (map car M ::_) (mapCdrTranspose v (map cdr M))) ⟩
-              transpose (map car M :: transpose (map cdr M)) ≡⟨ transposeInvolution M ⟩
+transposeInvolution {a = S a} {S b} ((x :: v) :: M) = cong2 _::_ (cong (x ::_) (mapHeadTranspose (map tail M) v)) $
+            transpose (map head M :: map tail (transpose (v :: map tail M)))  ≡⟨ cong transpose (cong (map head M ::_) (mapTailTranspose v (map tail M))) ⟩
+              transpose (map head M :: transpose (map tail M)) ≡⟨ transposeInvolution M ⟩
             M ∎
 
+-- Matrix multiplication is associative.
 mMultAssoc : {{R : Ring A}}
          → {a b : nat} → (M : Matrix A a b)
            → {c : nat} → (N : Matrix A b c)
@@ -233,25 +242,25 @@ I : {A : Type l} → {{R : Ring A}} {n : nat} → Matrix A n n
 I {A = A} {n = Z} = []
 I {A = A} {n = S n} = (one :: zeroV n) :: map (zero ::_) I
 
-mapCarMapAppend : {A : Type l} {{R : Ring A}} → (M : Matrix A n m) → (map car (map (λ v → (zero :: v)) M)) ≡ zeroV m
-mapCarMapAppend {m = Z} [] = refl
-mapCarMapAppend {m = S n} (u :: M) = right _::_ (mapCarMapAppend M)
+mapHeadMapAppend : {A : Type l} {{R : Ring A}} → (M : Matrix A n m) → (map head (map (λ v → (zero :: v)) M)) ≡ zeroV m
+mapHeadMapAppend {m = Z} [] = refl
+mapHeadMapAppend {m = S n} (u :: M) = right _::_ (mapHeadMapAppend M)
 
-mapCdrMapAppend : {A : Type l} {{R : Ring A}} → (M : Matrix A n m) → M ≡ map cdr (map (zero ::_) M)
-mapCdrMapAppend {m = Z} [] = refl
-mapCdrMapAppend {m = S m} (u :: M) = right _::_ (mapCdrMapAppend M)
+mapTailMapAppend : {A : Type l} {{R : Ring A}} → (M : Matrix A n m) → M ≡ map tail (map (zero ::_) M)
+mapTailMapAppend {m = Z} [] = refl
+mapTailMapAppend {m = S m} (u :: M) = right _::_ (mapTailMapAppend M)
 
 transposeZ : {A : Type l} → {{R : Ring A}} → (M : Matrix A n m) → map (zero ::_) (transpose M) ≡  transpose (vZero :: M)
 transposeZ {n = Z} M = refl
-transposeZ {n = S n} M = right _::_ (transposeZ (map cdr M))
+transposeZ {n = S n} M = right _::_ (transposeZ (map tail M))
 
 idTranspose : {A : Type l} → {{R : Ring A}} (n : nat) → I ≡ transpose I
 idTranspose Z = refl
 idTranspose (S n) = 
-     (one :: zeroV n) :: map (zero ::_) I ≡⟨ cong2 _::_ (right _::_ (sym (mapCarMapAppend I))) (right map (idTranspose n))⟩
-     (one :: (map car (map (zero ::_) I))) :: (map (zero ::_) (transpose I)) ≡⟨ right _::_ (transposeZ I) ⟩
-     (one :: (map car (map (zero ::_) I))) :: (transpose (vZero :: I)) ≡⟨ right _::_ (cong transpose (right _::_ (mapCdrMapAppend I)))⟩
-     (one :: (map car (map (zero ::_) I))) :: transpose (zeroV n :: map cdr (map (zero ::_) I)) ≡⟨By-Definition⟩
+     (one :: zeroV n) :: map (zero ::_) I ≡⟨ cong2 _::_ (right _::_ (sym (mapHeadMapAppend I))) (right map (idTranspose n))⟩
+     (one :: (map head (map (zero ::_) I))) :: (map (zero ::_) (transpose I)) ≡⟨ right _::_ (transposeZ I) ⟩
+     (one :: (map head (map (zero ::_) I))) :: (transpose (vZero :: I)) ≡⟨ right _::_ (cong transpose (right _::_ (mapTailMapAppend I)))⟩
+     (one :: (map head (map (zero ::_) I))) :: transpose (zeroV n :: map tail (map (zero ::_) I)) ≡⟨By-Definition⟩
      transpose ((one :: zeroV n) :: map (λ v → (zero :: v)) I) ∎ 
 
 IRInv : {A : Type l} → {{R : Ring A}} {n : nat} →
@@ -260,7 +269,7 @@ IRInv {A = A} {n = Z} = (λ{[] → refl})
 IRInv {A = A} {n = S n} = λ{(u :: M) →
        mMult (u :: M) ((one :: zeroV n) :: map (λ v → (zero :: v)) I) ≡⟨By-Definition⟩
        (MT (u :: M) (one :: vZero) :: (mMult (u :: M) (map (λ v → (zero :: v)) I))) ≡⟨By-Definition⟩
-       (scale one u) [+] (MT M vZero) :: (mMult (u :: M) (map (λ v → (zero :: v)) I)) ≡⟨ left _::_ (cong2 _[+]_ (scaleId u) (linTransZ (MT M)))⟩
+       (scale one u) [+] (MT M vZero) :: (mMult (u :: M) (map (λ v → (zero :: v)) I)) ≡⟨ left _::_ (cong2 _[+]_ (scaleId u) (modHomomorphismZ (MT M)))⟩
        (u [+] vZero :: (mMult (u :: M) (map (λ v → (zero :: v)) I))) ≡⟨ left _::_ (rIdentity u)⟩
        (u :: (mMult (u :: M) (map (λ v → (zero :: v)) I))) ≡⟨ right _::_ (aux u M I)⟩
        (u :: mMult M I) ≡⟨ right _::_ (IRInv M)⟩
@@ -318,6 +327,3 @@ instance
                          e = I
                        ; lIdentity = ILInv
                        ; rIdentity = IRInv }
-
-rowSpace : {A : Type l} → {{R : Ring A}} → Matrix A n m → [ A ^ m ] → Type l
-rowSpace M = columnSpace (MT (transpose M))

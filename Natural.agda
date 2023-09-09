@@ -18,12 +18,14 @@ instance
     addComAux : (a b : nat) → add a b ≡ add b a
     addComAux a Z = addZ a
     addComAux a (S b) = eqTrans (Sout a b) (cong S (addComAux a b))
-  natAddMonoid : monoid add
-  natAddMonoid = record { e = Z ; lIdentity = λ a → refl ; rIdentity = addZ ; associative = addAssoc }
+  addAssoc : Associative add
+  addAssoc = record { associative = addAssocAux }
    where
-    addAssoc : (a b c : nat) → add a (add b c) ≡ add (add a b) c
-    addAssoc Z b c = refl
-    addAssoc (S a) b c = cong S (addAssoc a b c)
+    addAssocAux : (a b c : nat) → add a (add b c) ≡ add (add a b) c
+    addAssocAux Z b c = refl
+    addAssocAux (S a) b c = cong S (addAssocAux a b c)
+  natAddMonoid : monoid add
+  natAddMonoid = record { e = Z ; lIdentity = λ a → refl ; rIdentity = addZ }
   natAddCM : cMonoid add
   natAddCM = record {}
 
@@ -31,7 +33,7 @@ addOut : (n m : nat) → mult n (S m) ≡ add n (mult n m)
 addOut Z m = refl
 addOut (S n) m = cong S $ add m (mult n (S m))    ≡⟨ cong (add m) (addOut n m)⟩
                          add m (add n (mult n m)) ≡⟨ associative m n (mult n m)⟩
-                         add (add m n) (mult n m) ≡⟨ left add (commutative m n) ⟩
+                         add (add m n) (mult n m) ≡⟨ left add (commutative m n)⟩
                          add (add n m) (mult n m) ≡⟨ sym (associative n m (mult n m))⟩
                        add n (add m (mult n m)) ∎
 
@@ -53,14 +55,15 @@ instance
     multComAux : (a b : nat) → mult a b ≡ mult b a
     multComAux a Z = multZ a
     multComAux a (S b) = eqTrans (addOut a b) (cong (add a) (multComAux a b))
+  multAssoc : Associative mult
+  multAssoc = record { associative = multAssocAux }
+   where
+    multAssocAux : (a b c : nat) → mult a (mult b c) ≡ mult (mult a b) c
+    multAssocAux Z b c = refl
+    multAssocAux (S a) b c = eqTrans (cong (add (mult b c)) (multAssocAux a b c)) (natMultDist b (mult a b) c)
   natMultMonoid : monoid mult
   natMultMonoid = record { e = (S Z) ; lIdentity = addZ
-                         ; rIdentity = λ a → eqTrans (commutative a (S Z)) (addZ a)
-                         ; associative = multAssoc }
-   where
-    multAssoc : (a b c : nat) → mult a (mult b c) ≡ mult (mult a b) c
-    multAssoc Z b c = refl
-    multAssoc (S a) b c = eqTrans (cong (add (mult b c)) (multAssoc a b c)) (natMultDist b (mult a b) c)
+                         ; rIdentity = λ a → eqTrans (commutative a (S Z)) (addZ a) }
   natMultCM : cMonoid mult
   natMultCM = record {}
 

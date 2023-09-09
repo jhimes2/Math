@@ -177,6 +177,14 @@ module grp {op : A → A → A} {{G : group op}} where
     invE : inv e ≡ e
     invE = cancel e (eqTrans (rInverse e) (sym (lIdentity e)))
 
+record grpHomomorphism {A : Type l}
+                       {B : Type l'} 
+                       (_∙_ : A → A → A) {{G : group _∙_}}
+                       (_*_ : B → B → B) {{H : group _*_}} : Type(l ⊔ l') 
+  where field
+    h : A → B
+    homomophism : (u v : A) → h (u ∙ v) ≡ h u * h v
+
 record Commutative {A : Type l}(op : A → A → A) : Type(lsuc l) where
   field
     commutative : (a b : A) → op a b ≡ op b a
@@ -328,7 +336,7 @@ record Field (A : Type l) : Type (lsuc l) where
     oneNotZero : one ≠ zero
     reciprocal : nonZero → nonZero
     recInv : (a : nonZero) → pr1(reciprocal a) * pr1 a ≡ one
-open Field {{...}} hiding (fring) public
+open Field {{...}} public
 
 -- Multiplying two nonzero values gives a nonzero value
 nonZeroMult : {{F : Field A}} (a b : nonZero) → (pr1 a * pr1 b) ≠ zero

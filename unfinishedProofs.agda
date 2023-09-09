@@ -18,7 +18,7 @@ instance
                                     }
 
 linearForm : {A : Type l}{{F : Field A}}(VS : Module) → Type l
-linearForm {{F}} VS = Σ λ(T : < U > → < FieldToVectorSpace {{F}} >) → LinearTransformation {{U = U}} T
+linearForm {{F}} VS = Σ λ(T : < U > → < FieldToVectorSpace {{F}} >) → LinearMap {{U = U}} T
   where
    instance
      U : Module
