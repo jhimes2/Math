@@ -18,7 +18,7 @@ record monoid {A : Type l}(_∙_ : A → A → A) : Type(lsuc l) where
       e : A
       lIdentity : (a : A) → e ∙ a ≡ a
       rIdentity : (a : A) → a ∙ e ≡ a
-      overlap {{monoidAssoc}} : Associative _∙_
+      overlap {{semigAssoc}} : Associative _∙_
 open monoid {{...}} public
 
 -- Identity element of a monoid is unique
@@ -33,7 +33,7 @@ idUnique {A = A} {_∙_ = _∙_} a =
 record group {A : Type l}(_∙_ : A → A → A) : Type(lsuc l) where
   field
       {{gmonoid}} : monoid _∙_
-      inverse : (a : A) → Σ λ(b : A) → b ∙ a ≡ e ∧ a ∙ b ≡ e
+      inverse : (a : A) → Σ λ(b : A) → b ∙ a ≡ e
 open group {{...}} public
 
 module grp {_∙_ : A → A → A} {{G : group _∙_}} where
@@ -42,10 +42,18 @@ module grp {_∙_ : A → A → A} {{G : group _∙_}} where
   inv a = pr1(inverse a)
 
   lInverse : (a : A) → (inv a) ∙ a ≡ e
-  lInverse a = pr2(inverse a) ~> pr1
+  lInverse a = pr2(inverse a)
 
   rInverse : (a : A) → a ∙ (inv a) ≡ e
-  rInverse a = pr2(inverse a) ~> pr2
+  rInverse a =
+      a ∙ inv a                          ≡⟨ sym (lIdentity (a ∙ inv a))⟩
+      e ∙ (a ∙ inv a)                    ≡⟨ left _∙_ (sym (lInverse (inv a)))⟩
+      (inv(inv a) ∙ inv a) ∙ (a ∙ inv a) ≡⟨ sym (associative (inv(inv a)) (inv a) (a ∙ inv a))⟩
+      inv(inv a) ∙ (inv a ∙ (a ∙ inv a)) ≡⟨ right _∙_ (associative (inv a) a (inv a))⟩
+      inv(inv a) ∙ ((inv a ∙ a) ∙ inv a) ≡⟨ right _∙_ (left _∙_ (lInverse a))⟩
+      inv(inv a) ∙ (e ∙ (inv a))         ≡⟨ right _∙_ (lIdentity (inv a))⟩
+      inv(inv a) ∙ (inv a)               ≡⟨ lInverse (inv a)⟩
+      e ∎
 
   cancel : (a : A) → {x y : A} → a ∙ x ≡ a ∙ y → x ≡ y
   cancel a {x}{y} =
@@ -118,8 +126,11 @@ module grp {_∙_ : A → A → A} {{G : group _∙_}} where
       inv a ∙ a ≡⟨ lInverse a ⟩
       e ∎
 
-  invE : inv e ≡ e
-  invE = cancel e (eqTrans (rInverse e) (sym (lIdentity e)))
+  lemma4 : inv e ≡ e
+  lemma4 =
+    inv e     ≡⟨ sym (lIdentity (inv e))⟩
+    e ∙ inv e ≡⟨ rInverse e ⟩
+    e ∎
 
 record grpHomomorphism {A : Type l}
                        {B : Type l'} 
@@ -143,11 +154,11 @@ assocCom4 {_∙_ = _∙_} a b c d =
   ((a ∙ b) ∙ c) ∙ d ≡⟨ left _∙_ (sym(associative a b c))⟩
   (a ∙ (b ∙ c)) ∙ d ≡⟨ left _∙_ (right _∙_ (commutative b c))⟩
   (a ∙ (c ∙ b)) ∙ d ≡⟨ left _∙_ (associative a c b)⟩
-  ((a ∙ c) ∙ b) ∙ d ≡⟨ sym (associative (_∙_ a c) b d) ⟩
+  ((a ∙ c) ∙ b) ∙ d ≡⟨ sym (associative (_∙_ a c) b d)⟩
   (a ∙ c) ∙ (b ∙ d) ∎
 
 -- https://en.wikipedia.org/wiki/Abelian_group
-record abelianGroup {A : Type l}(_∙_ : A → A → A): Type (lsuc l) where
+record abelianGroup {A : Type l}(_∙_ : A → A → A) : Type (lsuc l) where
   field
       {{grp}} : group _∙_
       {{comgroup}} : cMonoid _∙_
@@ -174,16 +185,14 @@ nonZero {A = A} = Σ λ (a : A) → a ≠ zero
 record Rng (A : Type l) : Type (lsuc l) where
   field
     {{sring}} : SemiRing A
-    raddStr : (a : A) → Σ λ(b : A) → a + b ≡ zero
+    raddStr : (a : A) → Σ λ(b : A) → b + a ≡ zero
 open Rng {{...}} public
 
 -- Addition operator in an Rng is an abelian group.
 instance
   addIsGroup : {{R : Rng A}} → group _+_
   addIsGroup = record {
-      inverse = λ a → (pr1(raddStr a))
-             , ((eqTrans (commutative (pr1 (raddStr a)) a) (pr2(raddStr a)))
-             , (pr2(raddStr a))) }
+      inverse = raddStr }
   addIsAbelian : {{R : Rng A}} → abelianGroup _+_
   addIsAbelian = record {}
 
@@ -216,7 +225,7 @@ negSwap x y =
   let H : (x * y)+(neg x * y) ≡ (x * y)+(x * neg y)
                   → neg x * y ≡ x * neg y
       H = grp.cancel (x * y) in H $
-  (x * y)+(neg x * y) ≡⟨ sym(rDistribute y x (neg x))⟩
+  (x * y)+(neg x * y)   ≡⟨ sym(rDistribute y x (neg x))⟩
   (x + neg x) * y       ≡⟨ left _*_ (grp.rInverse x)⟩
   zero * y              ≡⟨ lMultZ y ⟩
   zero                  ≡⟨ sym (rMultZ x)⟩
@@ -297,7 +306,7 @@ nonZeroMult (a , a') (b , b') = λ(f : (a * b) ≡ zero) →
   let H : (pr1 (reciprocal (a , a'))) * (a * b) ≡ (pr1 (reciprocal (a , a'))) * zero
       H = right _*_ f in
   let G : (pr1 (reciprocal (a , a'))) * zero ≡ zero
-      G = rMultZ ((pr1 (reciprocal (a , a')))) in
+      G = rMultZ (pr1 (reciprocal (a , a'))) in
   let F = b       ≡⟨ sym(lIdentity b)⟩
           one * b ≡⟨ left _*_ (sym (recInv ((a , a'))))⟩
           ((pr1 (reciprocal (a , a'))) * a) * b ≡⟨ sym (associative (pr1 (reciprocal (a , a'))) a b)⟩

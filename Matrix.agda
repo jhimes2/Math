@@ -116,7 +116,7 @@ instance
  cmonoidv : {{SR : SemiRing A}} {n : nat} → cMonoid (addv {n = n})
  cmonoidv = record { }
  grpV : {n : nat} {{R : Ring A}} → group (addv {n = n})
- grpV {{R}} = record { inverse = λ v → map neg v , (grpAux v , eqTrans (commutative v (map neg v)) (grpAux v)) }
+ grpV {{R}} = record { inverse = λ v → map neg v , grpAux v }
    where
     grpAux : {A : Type l} {{R : Ring A}} → (v : [ A ^ n ]) → addv (map neg v) v ≡ zeroV n
     grpAux [] = refl
