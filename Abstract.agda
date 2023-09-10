@@ -288,9 +288,6 @@ record CRing (A : Type l) : Type (lsuc l) where
     {{ringCom}} : Commutative _*_
 open CRing {{...}} public
 
-negRet : (implicit A) → (A → ¬ B) → ¬ B
-negRet dnA f b = dnA (λ x → f x b)
-
 -- https://en.wikipedia.org/wiki/Field_(mathematics)
 record Field (A : Type l) : Type (lsuc l) where
   field
