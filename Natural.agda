@@ -26,8 +26,6 @@ instance
     addAssocAux (S a) b c = cong S (addAssocAux a b c)
   natAddMonoid : monoid add
   natAddMonoid = record { e = Z ; lIdentity = λ a → refl ; rIdentity = addZ }
-  natAddCM : cMonoid add
-  natAddCM = record {}
 
 addOut : (n m : nat) → mult n (S m) ≡ add n (mult n m)
 addOut Z m = refl
@@ -64,20 +62,3 @@ instance
   natMultMonoid : monoid mult
   natMultMonoid = record { e = (S Z) ; lIdentity = addZ
                          ; rIdentity = λ a → eqTrans (commutative a (S Z)) (addZ a) }
-  natMultCM : cMonoid mult
-  natMultCM = record {}
-
--- Multiplication and addition on natural numbers together form a semiring.
-instance
-  natSemiRing : SemiRing nat 
-  natSemiRing =
-   record
-      {
-        _+_ = add
-      ; _*_ = mult
-      ; lDistribute = λ a b c → mult a (add b c)          ≡⟨ commutative a (add b c)⟩
-                                mult (add b c) a          ≡⟨ sym (natMultDist b c a)⟩
-                                add (mult b a) (mult c a) ≡⟨ cong2 add (commutative b a) (commutative c a)⟩
-                                add (mult a b) (mult a c) ∎
-      ; rDistribute = λ a b c → sym (natMultDist b c a)
-      }

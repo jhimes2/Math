@@ -9,11 +9,11 @@ instance
                               record
                                     { vector = A
                                     ; _[+]_ = _+_
-                                    ; addvStr = addIsAbelian
+                                    ; addvStr = record {}
                                     ; scale = _*_
                                     ; scalarDistribution = lDistribute
                                     ; vectorDistribution = rDistribute
-                                    ; scalarAssoc = λ a b c → {!associative!}
+                                    ; scalarAssoc = λ a b c → {!!}
                                     ; scaleId = {!!}
                                     }
 
@@ -64,12 +64,8 @@ instance
   LFCom = {!!}
   LFAssoc : {{F : Field A}}{{VS : Module}} → Associative (dualSum VS)
   LFAssoc = {!!}
-  LFMonoid : {{F : Field A}}{{VS : Module}} → monoid (dualSum VS)
-  LFMonoid {{VS = VS}} = record { e = dualZero VS ; lIdentity = {!!} ; rIdentity = {!!} }
   LFGroup : {{F : Field A}}{{VS : Module }} → group (dualSum VS)
-  LFGroup = record { inverse = {!!} }
-  LFCMonoid : {{F : Field A}}{{VS : Module}} → cMonoid (dualSum VS)
-  LFCMonoid = {!!}
+  LFGroup {{VS = VS}} = record { e = dualZero VS ; inverse = {!!} ; lIdentity = {!!} }
   LFAGroup : {{F : Field A}}{{VS : Module}} → abelianGroup (dualSum VS)
   LFAGroup = record {}
                            -- ΣPathPProp ((λ _ → isPropΠ λ _ → isPropIsProp)) H } }

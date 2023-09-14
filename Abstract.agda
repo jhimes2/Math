@@ -19,31 +19,28 @@ record monoid {A : Type l}(_∙_ : A → A → A) : Type(lsuc l) where
       lIdentity : (a : A) → e ∙ a ≡ a
       rIdentity : (a : A) → a ∙ e ≡ a
       overlap {{semigAssoc}} : Associative _∙_
-open monoid {{...}} public
-
--- Identity element of a monoid is unique
-idUnique : {_∙_ : A → A → A} {{_ : monoid _∙_}} → (a : A) → ((x : A) → a ∙ x ≡ x) → a ≡ e
-idUnique {A = A} {_∙_ = _∙_} a =
-  λ(p : (x : A) → a ∙ x ≡ x) →
-    a     ≡⟨ sym (rIdentity a) ⟩
-    a ∙ e ≡⟨ p e ⟩
-    e ∎
 
 -- https://en.wikipedia.org/wiki/Group_(mathematics)
 record group {A : Type l}(_∙_ : A → A → A) : Type(lsuc l) where
   field
-      {{gmonoid}} : monoid _∙_
+      e : A
       inverse : (a : A) → Σ λ(b : A) → b ∙ a ≡ e
-open group {{...}} public
+      lIdentity : (a : A) → e ∙ a ≡ a
+      overlap {{gAssoc}} : Associative _∙_
 
-module grp {_∙_ : A → A → A} {{G : group _∙_}} where
+module _{_∙_ : A → A → A} {{G : group _∙_}} where
 
+  open group {{...}}
+
+  -- Extracting an inverse function from 'inverse'
   inv : A → A
   inv a = pr1(inverse a)
 
+  -- Extracting left-inverse property from inverse
   lInverse : (a : A) → (inv a) ∙ a ≡ e
   lInverse a = pr2(inverse a)
 
+  -- Proof that a group has right inverse property
   rInverse : (a : A) → a ∙ (inv a) ≡ e
   rInverse a =
       a ∙ inv a                          ≡⟨ sym (lIdentity (a ∙ inv a))⟩
@@ -54,6 +51,37 @@ module grp {_∙_ : A → A → A} {{G : group _∙_}} where
       inv(inv a) ∙ (e ∙ (inv a))         ≡⟨ right _∙_ (lIdentity (inv a))⟩
       inv(inv a) ∙ (inv a)               ≡⟨ lInverse (inv a)⟩
       e ∎
+
+instance
+  -- Proof that all groups are monoids
+  grpIsMonoid : {_∙_ : A → A → A}{{_ : group _∙_}} → monoid _∙_
+  grpIsMonoid {_∙_ = _∙_} =
+   record {
+          e = e
+        ; lIdentity = lIdentity
+        -- Proof that a group has right identity property
+        ; rIdentity =
+           λ a →
+           a ∙ e           ≡⟨ right _∙_ (sym (lInverse a)) ⟩
+           a ∙ (inv a ∙ a) ≡⟨ associative a (inv a) a ⟩
+           (a ∙ inv a) ∙ a ≡⟨ left _∙_ (rInverse a) ⟩
+           e ∙ a           ≡⟨ lIdentity a ⟩
+           a ∎
+   }
+   where
+     open group {{...}}
+
+open monoid {{...}} public
+
+-- Identity element of a monoid is unique
+idUnique : {_∙_ : A → A → A} {{_ : monoid _∙_}} → (a : A) → ((x : A) → a ∙ x ≡ x) → a ≡ e
+idUnique {A = A} {_∙_ = _∙_} a =
+  λ(p : (x : A) → a ∙ x ≡ x) →
+    a     ≡⟨ sym (rIdentity a) ⟩
+    a ∙ e ≡⟨ p e ⟩
+    e ∎
+
+module grp {_∙_ : A → A → A} {{G : group _∙_}} where
 
   cancel : (a : A) → {x y : A} → a ∙ x ≡ a ∙ y → x ≡ y
   cancel a {x}{y} =
@@ -140,14 +168,7 @@ record grpHomomorphism {A : Type l}
     h : A → B
     homomophism : (u v : A) → h (u ∙ v) ≡ h u * h v
 
--- Commutative Monoid
-record cMonoid {A : Type l}(_∙_ : A → A → A) : Type (lsuc l) where
-  field
-      {{cmonoid}} : monoid _∙_
-      {{cmCom}} : Commutative _∙_
-open cMonoid {{...}} public
-
-assocCom4 : {_∙_ : A → A → A} {{_ : cMonoid _∙_}}
+assocCom4 : {_∙_ : A → A → A}{{_ : Commutative _∙_}}{{_ : monoid _∙_}}
           → (a b c d : A) → (a ∙ b) ∙ (c ∙ d) ≡ (a ∙ c) ∙ (b ∙ d)
 assocCom4 {_∙_ = _∙_} a b c d =
   (a ∙ b) ∙ (c ∙ d) ≡⟨ associative (_∙_ a b) c d ⟩
@@ -161,63 +182,46 @@ assocCom4 {_∙_ = _∙_} a b c d =
 record abelianGroup {A : Type l}(_∙_ : A → A → A) : Type (lsuc l) where
   field
       {{grp}} : group _∙_
-      {{comgroup}} : cMonoid _∙_
+      {{comgroup}} : Commutative _∙_
 open abelianGroup {{...}} public
 
--- https://en.wikipedia.org/wiki/Semiring
-record SemiRing (A : Type l) : Type (lsuc l) where
+-- https://en.wikipedia.org/wiki/Rng_(algebra)
+record Rng (A : Type l) : Type (lsuc l) where
   field
     _+_ : A → A → A
     _*_ : A → A → A
     lDistribute : (a b c : A) → a * (b + c) ≡ (a * b) + (a * c)
     rDistribute : (a b c : A) → (b + c) * a ≡ (b * a) + (c * a)
-    {{addStr}} : cMonoid _+_
-    overlap {{multAssoc}} : Associative _*_
-open SemiRing {{...}} hiding (multAssoc) public
-
-zero : {{SR : SemiRing A}} → A
-zero = addStr .cmonoid .e
-
-nonZero : {A : Type l} {{R : SemiRing A}} → Type l
-nonZero {A = A} = Σ λ (a : A) → a ≠ zero
-
--- https://en.wikipedia.org/wiki/Rng_(algebra)
-record Rng (A : Type l) : Type (lsuc l) where
-  field
-    {{sring}} : SemiRing A
-    raddStr : (a : A) → Σ λ(b : A) → b + a ≡ zero
+    {{raddStr}} : abelianGroup _+_
 open Rng {{...}} public
 
--- Addition operator in an Rng is an abelian group.
-instance
-  addIsGroup : {{R : Rng A}} → group _+_
-  addIsGroup = record {
-      inverse = raddStr }
-  addIsAbelian : {{R : Rng A}} → abelianGroup _+_
-  addIsAbelian = record {}
+zero : {{SR : Rng A}} → A
+zero = e
 
+nonZero : {A : Type l} {{R : Rng A}} → Type l
+nonZero {A = A} = Σ λ (a : A) → a ≠ zero
 
 neg : {{R : Rng A}} → A → A
-neg = grp.inv
+neg = inv
 
 rMultZ : {{R : Rng A}} → (x : A) → x * zero ≡ zero
 rMultZ x =
   x * zero                                ≡⟨ sym (rIdentity (x * zero))⟩
-  (x * zero) + zero                       ≡⟨ right _+_ (sym (grp.rInverse (x * zero)))⟩
+  (x * zero) + zero                       ≡⟨ right _+_ (sym (rInverse (x * zero)))⟩
   (x * zero)+((x * zero) + neg(x * zero)) ≡⟨ associative (x * zero) (x * zero) (neg(x * zero))⟩
   ((x * zero)+(x * zero)) + neg(x * zero) ≡⟨ left _+_ (sym (lDistribute x zero zero))⟩
   (x * (zero + zero)) + neg(x * zero)     ≡⟨ left _+_ (right _*_ (lIdentity zero))⟩
-  (x * zero) + neg(x * zero)              ≡⟨ grp.rInverse (x * zero)⟩
+  (x * zero) + neg(x * zero)              ≡⟨ rInverse (x * zero)⟩
   zero ∎
 
 lMultZ : {{R : Rng A}} → (x : A) → zero * x ≡ zero
 lMultZ x =
   zero * x                                ≡⟨ sym (rIdentity (zero * x))⟩
-  (zero * x) + zero                       ≡⟨ right _+_ (sym (grp.rInverse (zero * x)))⟩
+  (zero * x) + zero                       ≡⟨ right _+_ (sym (rInverse (zero * x)))⟩
   (zero * x)+((zero * x) + neg(zero * x)) ≡⟨ associative (zero * x) (zero * x) (neg(zero * x))⟩
   ((zero * x)+(zero * x)) + neg(zero * x) ≡⟨ left _+_ (sym (rDistribute x zero zero))⟩
   ((zero + zero) * x) + neg(zero * x)     ≡⟨ left _+_ (left _*_ (lIdentity zero))⟩
-  (zero * x) + neg(zero * x)              ≡⟨ grp.rInverse (zero * x)⟩
+  (zero * x) + neg(zero * x)              ≡⟨ rInverse (zero * x)⟩
   zero ∎
 
 negSwap : {{R : Rng A}} → (x y : A) → neg x * y ≡ x * neg y
@@ -226,10 +230,10 @@ negSwap x y =
                   → neg x * y ≡ x * neg y
       H = grp.cancel (x * y) in H $
   (x * y)+(neg x * y)   ≡⟨ sym(rDistribute y x (neg x))⟩
-  (x + neg x) * y       ≡⟨ left _*_ (grp.rInverse x)⟩
+  (x + neg x) * y       ≡⟨ left _*_ (rInverse x)⟩
   zero * y              ≡⟨ lMultZ y ⟩
   zero                  ≡⟨ sym (rMultZ x)⟩
-  x * zero              ≡⟨ right _*_ (sym (grp.rInverse y))⟩
+  x * zero              ≡⟨ right _*_ (sym (rInverse y))⟩
   x * (y + neg y)       ≡⟨ lDistribute x y (neg y)⟩
   (x * y)+(x * neg y) ∎
 
@@ -239,9 +243,9 @@ multNeg x y =
                   → neg x * y ≡ neg(x * y)
       H = grp.cancel (x * y) in H $
   (x * y)+(neg x * y) ≡⟨ sym(rDistribute y x (neg x))⟩
-  (x + neg x) * y     ≡⟨ left _*_ (grp.rInverse x)⟩
+  (x + neg x) * y     ≡⟨ left _*_ (rInverse x)⟩
   zero * y            ≡⟨ lMultZ y ⟩
-  zero                ≡⟨ sym (grp.rInverse (x * y))⟩
+  zero                ≡⟨ sym (rInverse (x * y))⟩
   (x * y) + neg(x * y) ∎
 
 -- https://en.wikipedia.org/wiki/Ring_(mathematics)
@@ -265,7 +269,7 @@ lMultNegOne x =
   (neg one * x)+(neg(neg x)) ≡⟨ right _+_ (grp.doubleInv x)⟩
   (neg one * x) + x          ≡⟨ right _+_ (sym (lIdentity x))⟩
   (neg one * x)+(one * x)    ≡⟨ sym (rDistribute x (neg one) one)⟩
-  (neg one + one) * x        ≡⟨ left _*_ (grp.lInverse one)⟩
+  (neg one + one) * x        ≡⟨ left _*_ (lInverse one)⟩
   zero * x                   ≡⟨ lMultZ x ⟩
   zero ∎
 
@@ -277,7 +281,7 @@ rMultNegOne x =
   (x * neg one)+(neg(neg x)) ≡⟨ right _+_ (grp.doubleInv x)⟩
   (x * neg one) + x          ≡⟨ right _+_ (sym (rIdentity x))⟩
   (x * neg one)+(x * one)    ≡⟨ sym (lDistribute x (neg one) one)⟩
-  x * (neg one + one)        ≡⟨ right _*_ (grp.lInverse one)⟩
+  x * (neg one + one)        ≡⟨ right _*_ (lInverse one)⟩
   x * zero                   ≡⟨ rMultZ x ⟩
   zero ∎
 
@@ -331,10 +335,10 @@ open Module {{...}} public
 module _{scalar : Type l}{{R : Ring scalar}}{{V : Module}} where
 
   vZero : vector
-  vZero = addvStr .grp .gmonoid .e
+  vZero = e
 
   negV : vector → vector
-  negV = grp.inv
+  negV = inv
 
   _[-]_ : vector → vector → vector
   a [-] b = a [+] (negV b)
@@ -370,9 +374,9 @@ module _{scalar : Type l}{{R : Ring scalar}}{{V : Module}} where
                          →  scale (neg one) v ≡ negV v     
         H = grp.cancel (scale one v) in H $
     scale one v [+] scale (neg one) v ≡⟨ sym (vectorDistribution v one (neg one))⟩
-    scale (one + neg one) v           ≡⟨ left scale (grp.rInverse one)⟩
+    scale (one + neg one) v           ≡⟨ left scale (rInverse one)⟩
     scale zero v                      ≡⟨ scaleZ v ⟩
-    vZero                             ≡⟨ sym (grp.rInverse v)⟩
+    vZero                             ≡⟨ sym (rInverse v)⟩
     v [+] negV v                      ≡⟨ left _[+]_ (sym (scaleId v))⟩
     scale one v [+] negV v ∎
 
@@ -383,7 +387,7 @@ module _{scalar : Type l}{{R : Ring scalar}}{{V : Module}} where
         H = grp.uniqueInv in H $
     scale (neg c) v [+] negV(negV(scale c v)) ≡⟨ right _[+]_ (grp.doubleInv (scale c v))⟩
     scale (neg c) v [+] (scale c v)           ≡⟨ sym (vectorDistribution v (neg c) c)⟩
-    scale ((neg c) + c) v                     ≡⟨ left scale (grp.lInverse c)⟩
+    scale ((neg c) + c) v                     ≡⟨ left scale (lInverse c)⟩
     scale zero v                              ≡⟨ scaleZ v ⟩
     vZero ∎
 
