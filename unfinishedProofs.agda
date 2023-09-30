@@ -5,9 +5,127 @@ open import Linear
 
 instance
   LFCom : {{F : Field A}}{{VS : Module}} → Commutative (dualSum VS)
-  LFCom = record { commutative = λ {(T , record {addT = addTT ; multT = multTT})
+  LFCom {{F = F}} = record { commutative = λ {(T , record {addT = addTT ; multT = multTT})
                                     (R , record {addT = addTR ; multT = multTR})
-                → {!!}
+                →
+        (λ x →
+         (Ring.rngring (CRing.crring (Field.fring F)) Rng.+ T x) (R x))
+      ,
+      record
+      { addT =
+          λ a b →
+            eqTrans
+            (cong2 _+_
+             (addTT a b) (addTR a b))
+            (eqTrans
+             (sym
+              (Associative.associative
+               (group.gAssoc
+                (abelianGroup.grp
+                 (Rng.raddStr (Ring.rngring (CRing.crring (Field.fring F))))))
+               (T a) (T b)
+               ((Ring.rngring (CRing.crring (Field.fring F)) Rng.+ R a) (R b))))
+             (eqTrans
+              (cong (Ring.rngring (CRing.crring (Field.fring F)) Rng.+ T a)
+               (Associative.associative
+                (group.gAssoc
+                 (abelianGroup.grp
+                  (Rng.raddStr (Ring.rngring (CRing.crring (Field.fring F))))))
+                (T b) (R a) (R b)))
+              (eqTrans
+               (right (Rng._+_ (Ring.rngring (CRing.crring (Field.fring F))))
+                (left (Rng._+_ (Ring.rngring (CRing.crring (Field.fring F))))
+                 (Commutative.commutative
+                  (abelianGroup.comgroup
+                   (Rng.raddStr (Ring.rngring (CRing.crring (Field.fring F)))))
+                  (T b) (R a))))
+               (eqTrans
+                (right (Rng._+_ (Ring.rngring (CRing.crring (Field.fring F))))
+                 (sym
+                  (Associative.associative
+                   (group.gAssoc
+                    (abelianGroup.grp
+                     (Rng.raddStr (Ring.rngring (CRing.crring (Field.fring F))))))
+                   (R a) (T b) (R b))))
+                (eqTrans
+                 (Associative.associative
+                  (group.gAssoc
+                   (abelianGroup.grp
+                    (Rng.raddStr (Ring.rngring (CRing.crring (Field.fring F))))))
+                  (T a) (R a)
+                  ((Ring.rngring (CRing.crring (Field.fring F)) Rng.+ T b) (R b)))
+                 refl)))))
+      ; multT =
+          λ a c →
+            eqTrans
+            (cong2 (Rng._+_ (Ring.rngring (CRing.crring (Field.fring F))))
+             (multTT a c) (multTR a c))
+            (eqTrans
+             (sym
+              (Rng.lDistribute (Ring.rngring (CRing.crring (Field.fring F))) c
+               (T a) (R a)))
+             refl)
+      }
+      ≡⟨ {!!} ⟩
+      (λ x →
+         (Ring.rngring (CRing.crring (Field.fring F)) Rng.+ R x) (T x))
+      ,
+      record
+      { addT =
+          λ a b →
+            eqTrans
+            (cong2 (Rng._+_ (Ring.rngring (CRing.crring (Field.fring F))))
+             (addTR a b) (addTT a b))
+            (eqTrans
+             (sym
+              (Associative.associative
+               (group.gAssoc
+                (abelianGroup.grp
+                 (Rng.raddStr (Ring.rngring (CRing.crring (Field.fring F))))))
+               (R a) (R b)
+               ((Ring.rngring (CRing.crring (Field.fring F)) Rng.+ T a) (T b))))
+             (eqTrans
+              (cong (Ring.rngring (CRing.crring (Field.fring F)) Rng.+ R a)
+               (Associative.associative
+                (group.gAssoc
+                 (abelianGroup.grp
+                  (Rng.raddStr (Ring.rngring (CRing.crring (Field.fring F))))))
+                (R b) (T a) (T b)))
+              (eqTrans
+               (right (Rng._+_ (Ring.rngring (CRing.crring (Field.fring F))))
+                (left (Rng._+_ (Ring.rngring (CRing.crring (Field.fring F))))
+                 (Commutative.commutative
+                  (abelianGroup.comgroup
+                   (Rng.raddStr (Ring.rngring (CRing.crring (Field.fring F)))))
+                  (R b) (T a))))
+               (eqTrans
+                (right (Rng._+_ (Ring.rngring (CRing.crring (Field.fring F))))
+                 (sym
+                  (Associative.associative
+                   (group.gAssoc
+                    (abelianGroup.grp
+                     (Rng.raddStr (Ring.rngring (CRing.crring (Field.fring F))))))
+                   (T a) (R b) (T b))))
+                (eqTrans
+                 (Associative.associative
+                  (group.gAssoc
+                   (abelianGroup.grp
+                    (Rng.raddStr (Ring.rngring (CRing.crring (Field.fring F))))))
+                  (R a) (T a)
+                  ((Ring.rngring (CRing.crring (Field.fring F)) Rng.+ R b) (T b)))
+                 refl)))))
+      ; multT =
+          λ a c →
+            eqTrans
+            (cong2 (Rng._+_ (Ring.rngring (CRing.crring (Field.fring F))))
+             (multTR a c) (multTT a c))
+            (eqTrans
+             (sym
+              (Rng.lDistribute (Ring.rngring (CRing.crring (Field.fring F))) c
+               (R a) (T a)))
+             refl)
+      }
+        ∎
             }}
   LFAssoc : {{F : Field A}}{{VS : Module}} → Associative (dualSum VS)
   LFAssoc = record { associative = {!!} }
