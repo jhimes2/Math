@@ -2,10 +2,10 @@ open import Natural
 
 data int : Set where
   ZI : int
-  Pos : nat → int
-  Neg : nat → int
+  Pos : Nat → int
+  Neg : Nat → int
 
-subn : nat → nat → int
+subn : Nat → Nat → int
 subn Z Z = ZI
 subn Z (S b) = Neg b
 subn (S a) Z = Pos a
