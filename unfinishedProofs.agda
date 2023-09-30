@@ -1,13 +1,16 @@
 {-# OPTIONS --without-K --safe --overlapping-instances #-}
 
 open import Agda.Primitive
-open import Matrix
+open import Linear
 
 instance
   LFCom : {{F : Field A}}{{VS : Module}} → Commutative (dualSum VS)
-  LFCom = {!!}
+  LFCom = record { commutative = λ {(T , record {addT = addTT ; multT = multTT})
+                                    (R , record {addT = addTR ; multT = multTR})
+                → {!!}
+            }}
   LFAssoc : {{F : Field A}}{{VS : Module}} → Associative (dualSum VS)
-  LFAssoc = {!!}
+  LFAssoc = record { associative = {!!} }
   LFGroup : {{F : Field A}}{{VS : Module }} → group (dualSum VS)
   LFGroup {{VS = VS}} = record { e = dualZero VS ; inverse = {!!} ; lIdentity = {!!} }
   LFAGroup : {{F : Field A}}{{VS : Module}} → abelianGroup (dualSum VS)
