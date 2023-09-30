@@ -18,7 +18,7 @@ record monoid {A : Type l}(_∙_ : A → A → A) : Type(lsuc l) where
       e : A
       lIdentity : (a : A) → e ∙ a ≡ a
       rIdentity : (a : A) → a ∙ e ≡ a
-      overlap {{semigAssoc}} : Associative _∙_
+      overlap {{mAssoc}} : Associative _∙_
 
 -- https://en.wikipedia.org/wiki/Group_(mathematics)
 record group {A : Type l}(_∙_ : A → A → A) : Type(lsuc l) where
