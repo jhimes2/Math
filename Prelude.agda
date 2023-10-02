@@ -231,16 +231,12 @@ isProp A = (x y : A) → x ≡ y
 isSet : Type l → Type l
 isSet A = (x y : A) → isProp (x ≡ y)
 
-onAllPaths : (Type l → Type l) → Type l → Type l
-onAllPaths T A = (x y : A) → T (x ≡ y)
-
 discrete : Type l → Type l
-discrete = onAllPaths decidable
+discrete A = (x y : A) → decidable (x ≡ y)
 
 ⁻¹-left∙ : {X : Type l} {x y : X} (p : x ≡ y)
          → eqTrans (sym p) p ≡ refl
 ⁻¹-left∙ refl = refl
-
 
 ⁻¹-right∙ : {X : Type l} {x y : X} (p : x ≡ y)
           → eqTrans p (sym p) ≡ refl
@@ -265,5 +261,5 @@ Hedberg {X = X} d = hedberg (hedberg-lemma d)
       a : (y : X) (p : x ≡ y) → p ≡ eqTrans (sym(f x refl)) (f y p)
       a x refl = sym (⁻¹-left∙ (f x refl))
     hedberg-lemma : {X : Type l} → discrete X → (x y : X) → wconstant-endomap (x ≡ y)
-    hedberg-lemma {𝓤} {X} d x y = d x y ~> λ{(inl x) → (λ _ → x) , (λ _ _ → refl)
+    hedberg-lemma {X = X} d x y = d x y ~> λ{(inl x) → (λ _ → x) , (λ _ _ → refl)
                                            ; (inr e) → id , λ x → e x ~> λ{()}}
