@@ -50,20 +50,20 @@ natDiscrete = aux
 natIsSet : isSet Nat
 natIsSet = Hedberg natDiscrete
 
+addCom : (a b : Nat) → add a b ≡ add b a
+addCom a Z = addZ a
+addCom a (S b) = eqTrans (Sout a b) (cong S (addCom a b))
+
+addAssoc : (a b c : Nat) → add a (add b c) ≡ add (add a b) c
+addAssoc Z b c = refl
+addAssoc (S a) b c = cong S (addAssoc a b c)
+
 -- Addition on natural numbers is a commutative monoid
 instance
-  addCom : Commutative add
-  addCom = record { commutative = addComAux }
-   where
-    addComAux : (a b : Nat) → add a b ≡ add b a
-    addComAux a Z = addZ a
-    addComAux a (S b) = eqTrans (Sout a b) (cong S (addComAux a b))
-  addAssoc : Associative add
-  addAssoc = record { associative = addAssocAux }
-   where
-    addAssocAux : (a b c : Nat) → add a (add b c) ≡ add (add a b) c
-    addAssocAux Z b c = refl
-    addAssocAux (S a) b c = cong S (addAssocAux a b c)
+  AddCom : Commutative add
+  AddCom = record { commutative = addCom }
+  AddAssoc : Associative add
+  AddAssoc = record { associative = addAssoc }
   NatAddMonoid : monoid add
   NatAddMonoid = record { e = Z ; IsSet = natIsSet ; lIdentity = λ a → refl ; rIdentity = addZ }
 
@@ -102,3 +102,51 @@ instance
   NatMultMonoid : monoid mult
   NatMultMonoid = record { e = (S Z) ; IsSet = natIsSet ; lIdentity = addZ
                          ; rIdentity = λ a → eqTrans (commutative a (S Z)) (addZ a) }
+_≤_ : Nat → Nat → Set
+Z ≤ _ = True
+S x ≤ S y = x ≤ y
+_ ≤ Z = False
+
+leAdd : (z n c : Nat) → add z n ≤ c → z ≤ c
+leAdd Z n c p = void
+leAdd (S z) n Z p = p
+leAdd (S z) n (S c) p = leAdd z n c p
+
+ZNotS : (n : Nat) → ¬(Z ≡ S n)
+ZNotS = λ n ()
+
+eqLe : (x : Nat) → x ≤ x
+eqLe Z = void
+eqLe (S x) = eqLe x
+
+isLe : (x y : Nat) → (x ≤ y) ∨ (Σ λ(z : Nat) → x ≡ S (add z  y))
+isLe Z Z = inl void
+isLe (S x) Z = inr (x , eqTrans (cong S (sym (addZ x))) (sym refl))
+isLe Z (S y) = inl void
+isLe (S x) (S y) with (isLe x y)
+...              | (inl l) = inl l
+...              | (inr (r , p)) = inr (r , cong S let q = Sout r y in eqTrans p (sym q))
+
+division : (a b : Nat) → Σ λ q → Σ λ r → (a ≡ add r (mult (S b) q)) ∧ (r ≤ b)
+division a b = aux a a (eqLe a)
+  where
+  aux : (x c : Nat) → x ≤ c →  Σ λ q  → Σ λ r → (x ≡ add r (mult (S b) q)) ∧ (r ≤ b)
+  aux x c q with isLe x b
+  aux x _ _       | inl p = Z , (x , (eqTrans (sym (addZ x)) (right add (sym (multZ b))) , p))
+  aux Z Z void    | inr (d , p) = ZNotS (add d b) p ~> λ{()}
+  aux x (S c) q   | inr (d , p) =
+    let r : add d b ≤ c
+        r = p ~> λ{refl → q} in
+   (λ{(t , (u , (v , w))) → (S t) , (u , (
+     (x ≡⟨ p ⟩
+      S (add d b) ≡⟨ cong S (commutative d b) ⟩
+      S (add b d) ≡⟨ cong S (right add v) ⟩
+      S (add b (add u (add t (mult b t)))) ≡⟨ cong S (associative b u (add t (mult b t)))⟩
+      S (add (add b u) (add t (mult b t))) ≡⟨ cong S (left add (commutative b u)) ⟩
+      S (add (add u b) (add t (mult b t))) ≡⟨ cong S (sym (associative u b (add t (mult b t))))⟩
+      S (add u (add b (add t (mult b t)))) ≡⟨ cong S (cong (add u) (associative b t (mult b t)))⟩
+      S (add u (add (add b t) (mult b t))) ≡⟨ cong S (cong (add u) (left add (commutative b t)))⟩
+      S (add u (add (add t b) (mult b t))) ≡⟨ cong S (cong (add u) (sym (associative t b (mult b t))))⟩
+      S (add u (add t (add b (mult b t)))) ≡⟨ cong S (cong (add u) (right add (sym (addOut b t))))⟩
+      S (add u (add t (mult b (S t)))) ≡⟨ sym (Sout u (add t (mult b (S t)))) ⟩
+       add u (S(add t (mult b (S t)))) ∎) , w))}) $ aux d c (leAdd d b c r)
