@@ -1,10 +1,7 @@
-{-# OPTIONS --without-K --safe --overlapping-instances #-}
+{-# OPTIONS --safe --overlapping-instances #-}
 
 open import Linear public
 open import Natural
-
-variable
-  n m : Nat
 
 -- vector definition
 -- `[ Bool ^ n ]` would be a vector of booleans with length `n`
@@ -12,6 +9,13 @@ data [_^_] (A : Type l) : Nat → Type l where
   [] : [ A ^ Z ]
   _::_ : {n : Nat} → A → [ A ^ n ] → [ A ^ S n ]
 infixr 5 _::_
+
+-- Uses axiom-K
+vectSet : {n : Nat} → isSet A → isSet [ A ^ n ]
+vectSet set a b refl refl = refl
+
+variable
+  n m : Nat
 
 Matrix : Type l → Nat → Nat → Type l
 Matrix A n m = [ [ A ^ n ] ^ m ]
@@ -105,7 +109,7 @@ instance
      addvAssoc {n = Z} [] [] [] = refl
      addvAssoc {n = S n} (x :: u) (y :: v) (z :: w) = cong2 _::_ (associative x y z) (addvAssoc u v w)
  grpV : {n : Nat} {{R : Ring A}} → group (addv {n = n})
- grpV {n = n} {{R}} = record { inverse = λ v → map neg v , grpAux v ; lIdentity = λ v → eqTrans (commutative (zeroV n) v) (addvId v) }
+ grpV {n = n} {{R}} = record { inverse = λ v → map neg v , grpAux v ; IsSet = vectSet (monoid.IsSet (Ring.multStr R)) ; lIdentity = λ v → eqTrans (commutative (zeroV n) v) (addvId v) }
    where
     grpAux : {n : Nat} {A : Type l} {{R : Ring A}} → (v : [ A ^ n ]) → addv (map neg v) v ≡ zeroV n
     grpAux [] = refl
@@ -318,8 +322,9 @@ instance
   mMultAssocInstance : {{R : Ring A}} → Associative (mMult {a = n} {b = n} {c = n})
   mMultAssocInstance = record { associative = λ a b c → mMultAssoc a b c }
   sqrMMultMonoid : {{R : Ring A}} → monoid (mMult {a = n} {b = n} {c = n})
-  sqrMMultMonoid = record {
+  sqrMMultMonoid {{R}} = let H = Ring.multStr R in record {
                          e = I
+                       ; IsSet = vectSet (vectSet (monoid.IsSet (Ring.multStr R)))
                        ; lIdentity = ILInv
                        ; rIdentity = IRInv }
 

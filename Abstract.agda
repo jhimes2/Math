@@ -16,6 +16,7 @@ open Commutative {{...}} public
 record monoid {A : Type l}(_∙_ : A → A → A) : Type(lsuc l) where
   field
       e : A
+      IsSet : isSet A
       lIdentity : (a : A) → e ∙ a ≡ a
       rIdentity : (a : A) → a ∙ e ≡ a
       overlap {{mAssoc}} : Associative _∙_
@@ -24,6 +25,7 @@ record monoid {A : Type l}(_∙_ : A → A → A) : Type(lsuc l) where
 record group {A : Type l}(_∙_ : A → A → A) : Type(lsuc l) where
   field
       e : A
+      IsSet : isSet A
       inverse : (a : A) → Σ λ(b : A) → b ∙ a ≡ e
       lIdentity : (a : A) → e ∙ a ≡ a
       overlap {{gAssoc}} : Associative _∙_
@@ -59,6 +61,7 @@ instance
    record {
           e = e
         ; lIdentity = lIdentity
+        ; IsSet = IsSet
         -- Proof that a group has right identity property
         ; rIdentity =
            λ a →

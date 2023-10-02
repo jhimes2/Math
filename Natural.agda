@@ -22,6 +22,34 @@ addZ : (n : Nat) → add n Z ≡ n
 addZ Z = refl
 addZ (S n) = cong S (addZ n)
 
+-- Equality of two naturals is decidable
+natDiscrete : discrete Nat
+natDiscrete = aux
+  where
+    setoid : Nat → Nat → Type₀
+    setoid Z Z = True
+    setoid Z (S b) = False
+    setoid (S a) Z = False
+    setoid (S a) (S b) = setoid a b
+    eqToSetoid : {a b : Nat} → a ≡ b → setoid a b
+    eqToSetoid {Z} refl = void
+    eqToSetoid {S a} refl = eqToSetoid (refl {a = a})
+    aux : (a b : Nat) → decidable(a ≡ b)
+    aux Z Z = inl refl
+    aux Z (S b) = inr eqToSetoid
+    aux (S a) Z = inr λ p → eqToSetoid (sym p)
+    aux (S a) (S b) = aux a b ~> λ{ (inl x) → inl (cong S x)
+                                  ; (inr x) → inr (λ p → x (SInjective p))}
+      where
+        setoidToEq : {a b : Nat} → setoid a b → a ≡ b
+        setoidToEq {Z} {Z} p = refl
+        setoidToEq {S a} {S b} p = cong S (setoidToEq p)
+        SInjective : {a b : Nat} → S a ≡ S b → a ≡ b
+        SInjective p = setoidToEq (eqToSetoid p)
+
+natIsSet : isSet Nat
+natIsSet = Hedberg natDiscrete
+
 -- Addition on natural numbers is a commutative monoid
 instance
   addCom : Commutative add
@@ -37,7 +65,7 @@ instance
     addAssocAux Z b c = refl
     addAssocAux (S a) b c = cong S (addAssocAux a b c)
   NatAddMonoid : monoid add
-  NatAddMonoid = record { e = Z ; lIdentity = λ a → refl ; rIdentity = addZ }
+  NatAddMonoid = record { e = Z ; IsSet = natIsSet ; lIdentity = λ a → refl ; rIdentity = addZ }
 
 addOut : (n m : Nat) → mult n (S m) ≡ add n (mult n m)
 addOut Z m = refl
@@ -72,33 +100,5 @@ instance
     multAssocAux Z b c = refl
     multAssocAux (S a) b c = eqTrans (cong (add (mult b c)) (multAssocAux a b c)) (NatMultDist b (mult a b) c)
   NatMultMonoid : monoid mult
-  NatMultMonoid = record { e = (S Z) ; lIdentity = addZ
+  NatMultMonoid = record { e = (S Z) ; IsSet = natIsSet ; lIdentity = addZ
                          ; rIdentity = λ a → eqTrans (commutative a (S Z)) (addZ a) }
-
--- Equality of two naturals is decidable
-natDiscrete : discrete Nat
-natDiscrete = aux
-  where
-    setoid : Nat → Nat → Type₀
-    setoid Z Z = True
-    setoid Z (S b) = False
-    setoid (S a) Z = False
-    setoid (S a) (S b) = setoid a b
-    eqToSetoid : {a b : Nat} → a ≡ b → setoid a b
-    eqToSetoid {Z} refl = void
-    eqToSetoid {S a} refl = eqToSetoid (refl {a = a})
-    aux : (a b : Nat) → decidable(a ≡ b)
-    aux Z Z = inl refl
-    aux Z (S b) = inr eqToSetoid
-    aux (S a) Z = inr λ p → eqToSetoid (sym p)
-    aux (S a) (S b) = aux a b ~> λ{ (inl x) → inl (cong S x)
-                                  ; (inr x) → inr (λ p → x (SInjective p))}
-      where
-        setoidToEq : {a b : Nat} → setoid a b → a ≡ b
-        setoidToEq {Z} {Z} p = refl
-        setoidToEq {S a} {S b} p = cong S (setoidToEq p)
-        SInjective : {a b : Nat} → S a ≡ S b → a ≡ b
-        SInjective p = setoidToEq (eqToSetoid p)
-
-natIsSet : isSet Nat
-natIsSet = Hedberg natDiscrete

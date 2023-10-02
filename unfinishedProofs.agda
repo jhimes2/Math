@@ -8,8 +8,7 @@ instance
   LFCom {{F = F}} = record { commutative = λ {(T , record {addT = addTT ; multT = multTT})
                                     (R , record {addT = addTR ; multT = multTR})
                 →
-        (λ x →
-         (Ring.rngring (CRing.crring (Field.fring F)) Rng.+ T x) (R x))
+        (λ x → (T x) + (R x))
       ,
       record
       { addT =
@@ -19,25 +18,17 @@ instance
              (addTT a b) (addTR a b))
             (eqTrans
              (sym
-              (Associative.associative
-               (group.gAssoc
-                (abelianGroup.grp
-                 (Rng.raddStr (Ring.rngring (CRing.crring (Field.fring F))))))
+              (associative
                (T a) (T b)
-               ((Ring.rngring (CRing.crring (Field.fring F)) Rng.+ R a) (R b))))
+               (R a + R b)))
              (eqTrans
-              (cong (Ring.rngring (CRing.crring (Field.fring F)) Rng.+ T a)
-               (Associative.associative
-                (group.gAssoc
-                 (abelianGroup.grp
-                  (Rng.raddStr (Ring.rngring (CRing.crring (Field.fring F))))))
+              (cong (T a +_)
+               (associative
                 (T b) (R a) (R b)))
               (eqTrans
-               (right (Rng._+_ (Ring.rngring (CRing.crring (Field.fring F))))
-                (left (Rng._+_ (Ring.rngring (CRing.crring (Field.fring F))))
-                 (Commutative.commutative
-                  (abelianGroup.comgroup
-                   (Rng.raddStr (Ring.rngring (CRing.crring (Field.fring F)))))
+               (right _+_
+                (left _+_
+                 (commutative
                   (T b) (R a))))
                (eqTrans
                 (right (Rng._+_ (Ring.rngring (CRing.crring (Field.fring F))))
@@ -130,7 +121,7 @@ instance
   LFAssoc : {{F : Field A}}{{VS : Module}} → Associative (dualSum VS)
   LFAssoc = record { associative = {!!} }
   LFGroup : {{F : Field A}}{{VS : Module }} → group (dualSum VS)
-  LFGroup {{VS = VS}} = record { e = dualZero VS ; inverse = {!!} ; lIdentity = {!!} }
+  LFGroup {{VS = VS}} = record { e = dualZero VS ; IsSet = {!!} ; inverse = {!!} ; lIdentity = {!!} }
   LFAGroup : {{F : Field A}}{{VS : Module}} → abelianGroup (dualSum VS)
   LFAGroup = record {}
                            -- ΣPathPProp ((λ _ → isPropΠ λ _ → isPropIsProp)) H } }
