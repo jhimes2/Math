@@ -2,6 +2,7 @@
 
 open import Agda.Primitive
 open import Linear
+open import Natural
 
 instance
   LFCom : {{F : Field A}}{{VS : Module}} → Commutative (dualSum VS)
@@ -142,5 +143,9 @@ dualSpace  VS =
    V : Module 
    V = VS
  
+finDecrInj : {n m : Nat} → (f : fin (S n) → fin (S m)) → ((x y : fin (S n)) → f x ≡ f y → x ≡ y) → Σ λ(g : fin n → fin m) → injective g
+finDecrInj {n} {m} f fInj = {!!}
+
+
 demorgan6 : {P : A → Type l} → ¬((x : A) → implicit (P x)) → ∃ λ(x : A) → ¬ (P x)
 demorgan6 f g = demorgan2 (f , g) let H = demorgan5 g in inl {!!}
