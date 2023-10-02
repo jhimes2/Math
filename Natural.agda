@@ -102,10 +102,17 @@ instance
   NatMultMonoid : monoid mult
   NatMultMonoid = record { e = (S Z) ; IsSet = natIsSet ; lIdentity = addZ
                          ; rIdentity = λ a → eqTrans (commutative a (S Z)) (addZ a) }
-_≤_ : Nat → Nat → Set
+_≤_ : Nat → Nat → Type₀
 Z ≤ _ = True
 S x ≤ S y = x ≤ y
 _ ≤ Z = False
+
+_<_ : Nat → Nat → Type₀
+a < b = S a ≤ b
+
+-- finite Sets
+fin : Nat → Type₀
+fin n = (Σ λ x → x < n)
 
 leAdd : (z n c : Nat) → add z n ≤ c → z ≤ c
 leAdd Z n c p = void
