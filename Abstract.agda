@@ -65,9 +65,9 @@ instance
         -- Proof that a group has right identity property
         ; rIdentity =
            λ a →
-           a ∙ e           ≡⟨ right _∙_ (sym (lInverse a)) ⟩
+           a ∙ e           ≡⟨ right _∙_ (sym (lInverse a))⟩
            a ∙ (inv a ∙ a) ≡⟨ associative a (inv a) a ⟩
-           (a ∙ inv a) ∙ a ≡⟨ left _∙_ (rInverse a) ⟩
+           (a ∙ inv a) ∙ a ≡⟨ left _∙_ (rInverse a)⟩
            e ∙ a           ≡⟨ lIdentity a ⟩
            a ∎
    }
@@ -94,7 +94,7 @@ module grp {_∙_ : A → A → A} {{G : group _∙_}} where
       (inv a ∙ a) ∙ x ≡⟨ sym (associative (inv a) a x)⟩
       inv a ∙ (a ∙ x) ≡⟨ right _∙_ p ⟩
       inv a ∙ (a ∙ y) ≡⟨ associative (inv a) a y ⟩
-      (inv a ∙ a) ∙ y ≡⟨ left _∙_ (lInverse a) ⟩
+      (inv a ∙ a) ∙ y ≡⟨ left _∙_ (lInverse a)⟩
       e ∙ y           ≡⟨ lIdentity y ⟩
       y ∎
 
@@ -133,8 +133,8 @@ module grp {_∙_ : A → A → A} {{G : group _∙_}} where
     let H : (inv b ∙ inv a) ∙ inv(inv(a ∙ b)) ≡ e
                               → inv b ∙ inv a ≡ inv (a ∙ b)
         H = uniqueInv in H $
-    (inv b ∙ inv a) ∙ inv(inv(a ∙ b)) ≡⟨ right _∙_ (doubleInv (_∙_ a b))⟩
-    (inv b ∙ inv a) ∙ (a ∙ b)         ≡⟨ sym (associative (inv b) (inv a) (_∙_ a b))⟩
+    (inv b ∙ inv a) ∙ inv(inv(a ∙ b)) ≡⟨ right _∙_ (doubleInv (a ∙ b))⟩
+    (inv b ∙ inv a) ∙ (a ∙ b)         ≡⟨ sym (associative (inv b) (inv a) (a ∙ b))⟩
     inv b ∙ (inv a ∙ (a ∙ b))         ≡⟨ right _∙_ (associative (inv a) a b)⟩
     inv b ∙ ((inv a ∙ a) ∙ b)         ≡⟨ right _∙_ (left _∙_ (lInverse a))⟩
     inv b ∙ (e ∙ b)                   ≡⟨ right _∙_ (lIdentity b)⟩
@@ -321,6 +321,7 @@ nonZeroMult (a , a') (b , b') = λ(f : (a * b) ≡ zero) →
 
 nonZMult : {{F : Field A}} → nonZero → nonZero → nonZero
 nonZMult (a , a') (b , b') = (a * b) , nonZeroMult (a , a') ((b , b'))
+
 -- https://en.wikipedia.org/wiki/Module_(mathematics)
 -- Try not to confuse 'Module' with Agda's built-in 'module' keyword.
 record Module {scalar : Type l} {{R : Ring scalar}} : Type (lsuc l) where
