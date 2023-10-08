@@ -67,7 +67,10 @@ instance
   AddAssoc : Associative add
   AddAssoc = record { assoc = addAssoc }
   NatAddMonoid : monoid add
-  NatAddMonoid = record { e = Z ; IsSet = natIsSet ; lIdentity = λ a → refl ; rIdentity = addZ }
+  NatAddMonoid = record { e = Z
+                        ; IsSet = natIsSet
+                        ; lIdentity = λ a → refl
+                        ; rIdentity = addZ }
 
 addOut : (n m : Nat) → mult n (S m) ≡ add n (mult n m)
 addOut Z m = refl
@@ -83,9 +86,10 @@ multZ (S n) = multZ n
 
 NatMultDist : (a b c : Nat) → add (mult a c) (mult b c) ≡ mult (add a b) c
 NatMultDist Z b c = refl
-NatMultDist (S a) b c = add (add c (mult a c)) (mult b c) ≡⟨ sym (assoc c (mult a c) (mult b c))⟩
-                        add c (add (mult a c) (mult b c)) ≡⟨ cong (add c) (NatMultDist a b c)⟩
-                        add c (mult (add a b) c) ∎
+NatMultDist (S a) b c =
+  add (add c (mult a c)) (mult b c) ≡⟨ sym (assoc c (mult a c) (mult b c))⟩
+  add c (add (mult a c) (mult b c)) ≡⟨ cong (add c) (NatMultDist a b c)⟩
+  add c (mult (add a b) c) ∎
 
 -- Multiplication on natural numbers is a commutative monoid
 instance
@@ -100,7 +104,8 @@ instance
    where
     multAssocAux : (a b c : Nat) → mult a (mult b c) ≡ mult (mult a b) c
     multAssocAux Z b c = refl
-    multAssocAux (S a) b c = eqTrans (cong (add (mult b c)) (multAssocAux a b c)) (NatMultDist b (mult a b) c)
+    multAssocAux (S a) b c = eqTrans (cong (add (mult b c)) (multAssocAux a b c))
+                                     (NatMultDist b (mult a b) c)
   NatMultMonoid : monoid mult
   NatMultMonoid = record { e = (S Z) ; IsSet = natIsSet ; lIdentity = addZ
                          ; rIdentity = λ a → eqTrans (comm a (S Z)) (addZ a) }
@@ -148,14 +153,14 @@ division a b = aux a a (eqLe a)
         r = p ~> λ{refl → q} in
    (λ{(t , (u , (v , w))) → (S t) , (u , (
      (x ≡⟨ p ⟩
-      S (add d b) ≡⟨ cong S (comm d b) ⟩
-      S (add b d) ≡⟨ cong S (right add v) ⟩
-      S (add b (add u (add t (mult b t)))) ≡⟨ cong S (assoc b u (add t (mult b t)))⟩
-      S (add (add b u) (add t (mult b t))) ≡⟨ cong S (left add (comm b u)) ⟩
-      S (add (add u b) (add t (mult b t))) ≡⟨ cong S (sym (assoc u b (add t (mult b t))))⟩
-      S (add u (add b (add t (mult b t)))) ≡⟨ cong S (cong (add u) (assoc b t (mult b t)))⟩
-      S (add u (add (add b t) (mult b t))) ≡⟨ cong S (cong (add u) (left add (comm b t)))⟩
-      S (add u (add (add t b) (mult b t))) ≡⟨ cong S (cong (add u) (sym (assoc t b (mult b t))))⟩
-      S (add u (add t (add b (mult b t)))) ≡⟨ cong S (cong (add u) (right add (sym (addOut b t))))⟩
-      S (add u (add t (mult b (S t)))) ≡⟨ sym (Sout u (add t (mult b (S t)))) ⟩
-       add u (S(add t (mult b (S t)))) ∎) , w))}) $ aux d c (leAdd d b c r)
+      S(add d b) ≡⟨ cong S (comm d b) ⟩
+      S(add b d) ≡⟨ cong S (right add v) ⟩
+      S(add b (add u (add t (mult b t)))) ≡⟨ cong S(assoc b u (add t (mult b t)))⟩
+      S(add (add b u) (add t (mult b t))) ≡⟨ cong S(left add (comm b u))⟩
+      S(add (add u b) (add t (mult b t))) ≡⟨ cong S(sym(assoc u b (add t (mult b t))))⟩
+      S(add u (add b (add t (mult b t)))) ≡⟨ cong S(cong(add u)(assoc b t (mult b t)))⟩
+      S(add u (add (add b t) (mult b t))) ≡⟨ cong S(cong(add u)(left add (comm b t)))⟩
+      S(add u (add (add t b) (mult b t))) ≡⟨ cong S(cong(add u)(sym (assoc t b (mult b t))))⟩
+      S(add u (add t (add b (mult b t)))) ≡⟨ cong S(cong(add u)(right add (sym(addOut b t))))⟩
+      S(add u (add t (mult b (S t))))     ≡⟨ sym(Sout u (add t (mult b (S t))))⟩
+      add u (S(add t (mult b (S t)))) ∎) , w))}) $ aux d c (leAdd d b c r)

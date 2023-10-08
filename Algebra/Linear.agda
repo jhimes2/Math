@@ -82,18 +82,18 @@ dualSum {{F}} VS =
      → (λ x → T x [+] R x)
        , record
           { addT = λ a b → 
-              T (a [+] b) [+] R (a [+] b)     ≡⟨ cong2 _[+]_ (addTT a b) (addTR a b) ⟩
+              T (a [+] b) [+] R (a [+] b)     ≡⟨ cong2 _[+]_ (addTT a b) (addTR a b)⟩
               (T a [+] T b) [+] (R a [+] R b) ≡⟨ sym (assoc (T a) (T b) (R a [+] R b))⟩
-              T a [+] (T b [+] (R a [+] R b)) ≡⟨ cong (T a [+]_) (assoc (T b) (R a) (R b)) ⟩
+              T a [+] (T b [+] (R a [+] R b)) ≡⟨ cong (T a [+]_) (assoc (T b) (R a) (R b))⟩
               T a [+] ((T b [+] R a) [+] R b) ≡⟨ right _[+]_ (left _[+]_ (comm (T b) (R a)))⟩
-              T a [+] ((R a [+] T b) [+] R b) ≡⟨ right _[+]_ (sym (assoc (R a) (T b) (R b))) ⟩
-              T a [+] (R a [+] (T b [+] R b)) ≡⟨ assoc (T a) (R a) (T b [+] R b) ⟩
+              T a [+] ((R a [+] T b) [+] R b) ≡⟨ right _[+]_ (sym (assoc (R a) (T b) (R b)))⟩
+              T a [+] (R a [+] (T b [+] R b)) ≡⟨ assoc (T a) (R a) (T b [+] R b)⟩
               ((T a [+] R a) [+] (T b [+] R b)) ∎
           ; multT = λ a c →
-              T (scale c a) [+] R (scale c a) ≡⟨ cong2 _[+]_ (multTT a c) (multTR a c) ⟩
-              scale c (T a) [+] scale c (R a) ≡⟨ sym (scalarDistribute c (T a) (R a)) ⟩
+              T (scale c a) [+] R (scale c a) ≡⟨ cong2 _[+]_ (multTT a c) (multTR a c)⟩
+              scale c (T a) [+] scale c (R a) ≡⟨ sym (scalarDistribute c (T a) (R a))⟩
               scale c (T a [+] R a) ∎
-                   } }
+          } }
   where
    instance
     V : Module 
