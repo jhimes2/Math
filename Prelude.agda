@@ -121,13 +121,16 @@ _<*>_ {m = m} mf mA = mf >>= λ f → map f mA
 instance
   -- Double-negation is a functor and monad
   dnFunctor : {l : Level} → Functor (implicit {l = l})
-  dnFunctor = record { map = λ x y z → y (λ a → z (x a)) ; compPreserve = λ f g → λ x → refl ; idPreserve = λ x → refl }
+  dnFunctor = record { map = λ x y z → y (λ a → z (x a))
+                     ; compPreserve = λ f g → λ x → refl
+                     ; idPreserve = λ x → refl }
   dnMonad : {l : Level} → Monad (implicit {l = l})
   dnMonad = record { μ = λ x y → x (λ z → z y) ; η = λ x y → y x }
 
 -- Proof that double-negation elimination is implicitly true.
 implicitDNElim : (A : Type l) → implicit ((implicit A) → A)
-implicitDNElim A = implicitLEM A >>= λ{ (inl x) → λ f → f (λ g → x) ; (inr x) → λ f → f (λ g → g x ~> λ{()} )}
+implicitDNElim A = implicitLEM A >>= λ{ (inl x) → λ f → f (λ g → x)
+                                      ; (inr x) → λ f → f (λ g → g x ~> λ{()} )}
 
 -- One of DeMorgan's laws that is only implicitly true.
 demorgan4 : implicit(¬(A ∧ B) → ¬ A ∨ ¬ B)
@@ -137,8 +140,11 @@ demorgan4 {l} {A = A} {B = B} = implicitLEM (A ∨ B) >>= λ{ (inl (inl a)) → 
 
 DNOut : (A → implicit B) → implicit (A → B)
 DNOut {A = A} {B = B} f = implicitLEM (A ∧ (B ∨ ¬ B))
-         >>= λ{ (inl (a , b)) → let b' = f a in b ~> λ{ (inl b) → η (λ _ → b) ; (inr b) → b' b ~> λ{()}} ; (inr x) → let H = demorgan4 <*> η x in
-       H >>= λ{ (inl x) → η (λ a → x a ~> λ{()}) ; (inr x) → demorgan3 x ~> λ{(b , b') → b' b ~> λ{()}}}}
+         >>= λ{ (inl (a , b)) → let b' = f a in b ~> λ{ (inl b) → η (λ _ → b)
+                                                      ; (inr b) → b' b ~> λ{()}}
+                                                      ; (inr x) → let H = demorgan4 <*> η x in
+       H >>= λ{ (inl x) → η (λ a → x a ~> λ{()})
+              ; (inr x) → demorgan3 x ~> λ{(b , b') → b' b ~> λ{()}}}}
 
 demorgan5 : {P : A → Type l} → ¬(Σ λ(x : A) → P x) → (x : A) → ¬ (P x)
 demorgan5 p x q = p (x , q)
