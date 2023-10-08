@@ -1,5 +1,7 @@
 {-# OPTIONS --overlapping-instances #-}
 
+module Data.Bool where
+
 open import Prelude
 open import Abstract
 

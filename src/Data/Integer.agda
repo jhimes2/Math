@@ -1,4 +1,8 @@
-open import Natural
+{-# OPTIONS --safe --without-K #-}
+
+module Data.Integer where
+
+open import Data.Natural
 
 data int : Set where
   ZI : int

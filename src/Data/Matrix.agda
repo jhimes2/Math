@@ -1,7 +1,9 @@
 {-# OPTIONS --safe --overlapping-instances #-}
 
+module Data.Matrix where
+
 open import Linear public
-open import Natural
+open import Data.Natural
 
 -- vector definition
 -- `[ Bool ^ n ]` would be a vector of booleans with length `n`

@@ -1,5 +1,7 @@
 {-# OPTIONS --without-K --safe #-}
 
+module Data.Natural where
+
 open import Abstract public
 
 data Nat : Type₀ where

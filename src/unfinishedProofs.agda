@@ -2,7 +2,7 @@
 
 open import Agda.Primitive
 open import Linear
-open import Natural
+open import Data.Natural
 
 instance
   LFCom : {{F : Field A}}{{VS : Module}} → Commutative (dualSum VS)
