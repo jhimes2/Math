@@ -59,7 +59,7 @@ decidable A = A ∨ ¬ A
 -- Explicitly exists
 data Σ {A : Type l} (P : A → Type l') : Type(l ⊔ l') where
   _,_ : (a : A) → P a → Σ P
-infix 6 _,_
+infixr 6 _,_
 
 _∧_ : (A : Type l)(B : Type l') → Type (l ⊔ l')
 _∧_ A B = Σ λ (_ : A) → B

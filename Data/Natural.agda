@@ -151,7 +151,7 @@ division a b = aux a a (eqLe a)
   aux x (S c) q   | inr (d , p) =
     let r : add d b ≤ c
         r = p ~> λ{refl → q} in
-   (λ{(t , (u , (v , w))) → (S t) , (u , (
+   (λ{(t , u , v , w) → (S t) , u , 
      (x ≡⟨ p ⟩
       S(add d b) ≡⟨ cong S (comm d b) ⟩
       S(add b d) ≡⟨ cong S (right add v) ⟩
@@ -163,4 +163,4 @@ division a b = aux a a (eqLe a)
       S(add u (add (add t b) (mult b t))) ≡⟨ cong S(cong(add u)(sym (assoc t b (mult b t))))⟩
       S(add u (add t (add b (mult b t)))) ≡⟨ cong S(cong(add u)(right add (sym(addOut b t))))⟩
       S(add u (add t (mult b (S t))))     ≡⟨ sym(Sout u (add t (mult b (S t))))⟩
-      add u (S(add t (mult b (S t)))) ∎) , w))}) $ aux d c (leAdd d b c r)
+      add u (S(add t (mult b (S t)))) ∎) , w}) $ aux d c (leAdd d b c r)
