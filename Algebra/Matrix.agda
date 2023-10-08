@@ -127,8 +127,8 @@ instance
             ; _[+]_ = addv
             ; addvStr = abelianV
             ; scale = scaleV
-            ; scalarDistribution = scalar-distributivity2
-            ; vectorDistribution = λ v a b → scalar-distributivity a b v
+            ; scalarDistribute = scalar-distributivity2
+            ; vectorDistribute = λ v a b → scalar-distributivity a b v
             ; scalarAssoc = scaleAssocAux
             ; scaleId = scaleIdv
             }
@@ -159,7 +159,7 @@ instance
         MT (u :: M) (x * c :: scale c v) ≡⟨By-Definition⟩
         (scale (x * c) u) [+] (MT M (scale c v)) ≡⟨ cong2 _[+]_ (sym (scalarAssoc u c x)) refl ⟩
         scale c (scale x u) [+] (MT M (scale c v)) ≡⟨ cong2 _[+]_ refl (multTAux M v c)⟩
-        scale c (scale x u) [+] (scale c (MT M v)) ≡⟨ sym (scalarDistribution c (scale x u) (MT M v))⟩
+        scale c (scale x u) [+] (scale c (MT M v)) ≡⟨ sym (scalarDistribute c (scale x u) (MT M v))⟩
         scale c (scale x u [+] MT M v) ≡⟨By-Definition⟩
         scale c (MT (u :: M) (x :: v)) ∎
       TAdd : {n m : Nat} → {{R : Ring A}} → (M : Matrix A n m)

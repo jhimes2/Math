@@ -87,6 +87,6 @@ instance
   boolCRing = record {}
   boolField : Field Bool
   boolField = record { oneNotZero = yesNEqNo
-                     ; reciprocal = id
-                     ; recInv = λ{ (yes , _) → refl
-                                 ; (no , x) → x refl ~> λ{()}} }
+                     ; reciprocal = pr1
+                     ; recInv = λ{ (yes , x) → refl
+                                 ; (no , x) → x refl ~> λ{()} }}

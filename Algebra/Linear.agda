@@ -60,8 +60,8 @@ instance
             ; _[+]_ = _+_
             ; addvStr = record {}
             ; scale = _*_
-            ; scalarDistribution = lDistribute
-            ; vectorDistribution = rDistribute
+            ; scalarDistribute = lDistribute
+            ; vectorDistribute = rDistribute
             ; scalarAssoc = λ a b c → b * (c * a) ≡⟨ associative b c a ⟩
                                       (b * c) * a ≡⟨ left _*_ (commutative b c)⟩
                                       (c * b) * a ∎
@@ -91,7 +91,7 @@ dualSum {{F}} VS =
               ((T a [+] R a) [+] (T b [+] R b)) ∎
           ; multT = λ a c →
               T (scale c a) [+] R (scale c a) ≡⟨ cong2 _[+]_ (multTT a c) (multTR a c) ⟩
-              scale c (T a) [+] scale c (R a) ≡⟨ sym (scalarDistribution c (T a) (R a)) ⟩
+              scale c (T a) [+] scale c (R a) ≡⟨ sym (scalarDistribute c (T a) (R a)) ⟩
               scale c (T a [+] R a) ∎
                    } }
   where

@@ -341,8 +341,10 @@ record Module {scalar : Type l} {{R : Ring scalar}} : Type (lsuc l) where
     _[+]_ : vector → vector → vector
     addvStr : abelianGroup _[+]_
     scale : scalar → vector → vector
-    scalarDistribution : (a : scalar) → (u v : vector) → scale a (u [+] v) ≡ (scale a u) [+] (scale a v)
-    vectorDistribution : (v : vector) → (a b : scalar) → scale (a + b) v ≡ (scale a v) [+] (scale b v)
+    scalarDistribute : (a : scalar) → (u v : vector)
+                     → scale a (u [+] v) ≡ (scale a u) [+] (scale a v)
+    vectorDistribute : (v : vector) → (a b : scalar)
+                     → scale (a + b) v ≡ (scale a v) [+] (scale b v)
     scalarAssoc : (v : vector) → (a b : scalar) → scale a (scale b v) ≡ scale (b * a) v
     scaleId : (v : vector) → scale one v ≡ v
 open Module {{...}} public
@@ -367,7 +369,7 @@ module _{scalar : Type l}{{R : Ring scalar}}{{V : Module}} where
     let H : scale zero v [+] scale zero v ≡ (scale zero v [+] vZero)
                            → scale zero v ≡ vZero
         H = grp.cancel (scale zero v) in H $
-    scale zero v [+] scale zero v ≡⟨ sym (vectorDistribution v zero zero)⟩
+    scale zero v [+] scale zero v ≡⟨ sym (vectorDistribute v zero zero)⟩
     scale (zero + zero) v         ≡⟨ left scale (lIdentity zero)⟩
     scale zero v                  ≡⟨ sym (rIdentity (scale zero v))⟩
     scale zero v [+] vZero ∎
@@ -378,7 +380,7 @@ module _{scalar : Type l}{{R : Ring scalar}}{{V : Module}} where
     let H : scale c vZero [+] scale c vZero ≡ scale c vZero [+] vZero
                             → scale c vZero ≡ vZero
         H = grp.cancel (scale c vZero) in H $
-    scale c vZero [+] scale c vZero ≡⟨ sym (scalarDistribution c vZero vZero)⟩
+    scale c vZero [+] scale c vZero ≡⟨ sym (scalarDistribute c vZero vZero)⟩
     scale c (vZero [+] vZero)       ≡⟨ right scale (lIdentity vZero)⟩
     scale c vZero                   ≡⟨ sym (rIdentity (scale c vZero))⟩
     scale c vZero [+] vZero ∎
@@ -388,7 +390,7 @@ module _{scalar : Type l}{{R : Ring scalar}}{{V : Module}} where
     let H : scale one v [+] scale (neg one) v ≡ scale one v [+] negV v
                          →  scale (neg one) v ≡ negV v     
         H = grp.cancel (scale one v) in H $
-    scale one v [+] scale (neg one) v ≡⟨ sym (vectorDistribution v one (neg one))⟩
+    scale one v [+] scale (neg one) v ≡⟨ sym (vectorDistribute v one (neg one))⟩
     scale (one + neg one) v           ≡⟨ left scale (rInverse one)⟩
     scale zero v                      ≡⟨ scaleZ v ⟩
     vZero                             ≡⟨ sym (rInverse v)⟩
@@ -401,7 +403,7 @@ module _{scalar : Type l}{{R : Ring scalar}}{{V : Module}} where
                                     → scale (neg c) v ≡ negV (scale c v)
         H = grp.uniqueInv in H $
     scale (neg c) v [+] negV(negV(scale c v)) ≡⟨ right _[+]_ (grp.doubleInv (scale c v))⟩
-    scale (neg c) v [+] (scale c v)           ≡⟨ sym (vectorDistribution v (neg c) c)⟩
+    scale (neg c) v [+] (scale c v)           ≡⟨ sym (vectorDistribute v (neg c) c)⟩
     scale ((neg c) + c) v                     ≡⟨ left scale (lInverse c)⟩
     scale zero v                              ≡⟨ scaleZ v ⟩
     vZero ∎
@@ -449,13 +451,15 @@ module _ {scalar : Type l}{{R : Ring scalar}}{{V U : Module}}
           scale zero (T vZero)  ≡⟨ scaleZ (T vZero)⟩
           vZero ∎
 
-  -- If 'T' and 'R' are module homomorphisms and are composable, then 'R ∘ T' is a module homomorphism.
+  -- If 'T' and 'R' are module homomorphisms and are composable, then 'R ∘ T' is
+  -- a module homomorphism.
   modHomomorphismComp : {{W : Module}}
                →  (R : < V > → < W >)
                → {{SLT : moduleHomomorphism R}}
                → moduleHomomorphism (R ∘ T)
-  modHomomorphismComp R = record { addT = λ u v → eqTrans (cong R (addT u v)) (addT (T u) (T v))
-                         ; multT = λ u c → eqTrans (cong R (multT u c)) (multT (T u) c) }
+  modHomomorphismComp R =
+     record { addT = λ u v → eqTrans (cong R (addT u v)) (addT (T u) (T v))
+            ; multT = λ u c → eqTrans (cong R (multT u c)) (multT (T u) c) }
 
 week7 : {{CR : CRing A}} → {{V : Module}}
       → (T : < V > → < V >) → {{TLT : moduleHomomorphism T}}
@@ -467,7 +471,7 @@ week7 T c = record
     ; ssAdd = λ {v} {u} (p : T v ≡ scale c v) (q : T u ≡ scale c u) →
                    T (v [+] u)             ≡⟨ addT v u ⟩
                    T v [+] T u             ≡⟨ cong2 _[+]_ p q ⟩
-                   scale c v [+] scale c u ≡⟨ sym (scalarDistribution c v u)⟩
+                   scale c v [+] scale c u ≡⟨ sym (scalarDistribute c v u)⟩
                    scale c (v [+] u) ∎
     ; ssScale = λ {v} (p : T v ≡ scale c v) d →
                    T (scale d v)       ≡⟨ multT v d ⟩
