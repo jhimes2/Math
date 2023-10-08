@@ -1,20 +1,6 @@
 {-# OPTIONS  --without-K --safe #-}
 
-open import Agda.Primitive public
-
--- `Type l` is an alias for `Set l`.
-Type : (l : Level) → Set (lsuc l)
-Type l = Set l
-
--- `Type₀` is an alias for `Type lzero`
-Type₀ : Type (lsuc lzero)
-Type₀ = Type lzero
-
-Type₁ : Type (lsuc(lsuc lzero))
-Type₁ = Type (lsuc lzero)
-
-Type₂ : Type (lsuc(lsuc(lsuc lzero)))
-Type₂ = Type (lsuc(lsuc lzero))
+open import renameSetToType public
 
 data False : Type₀ where
 

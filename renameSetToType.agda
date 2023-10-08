@@ -1,3 +1,5 @@
+{-# OPTIONS --safe --without-K #-}
+
 open import Agda.Primitive public
 
 -- `Type l` is an alias for `Set l`.
@@ -15,4 +17,3 @@ Type₂ = Set₂
 
 Type₃ : Set₄
 Type₃ = Set₃
-
