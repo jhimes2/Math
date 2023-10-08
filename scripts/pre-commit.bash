@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
 
 echo "Running pre-commit hook"
-echo $(git ls-files $(git rev-parse --show-toplevel)) \
+find "$(dirname "$0")"/.. -type f -name "*\.agda" \
      | tr ' ' '\n' \
-     | grep "\.agda" \
      | grep -v "unfinishedProofs.agda" \
      | while read line
 do
