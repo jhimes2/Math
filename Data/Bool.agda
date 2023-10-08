@@ -40,8 +40,8 @@ boolDiscrete no no = inl refl
 
 instance
   andAssoc : Associative and
-  andAssoc = record { associative = λ{ yes _ _ → refl
-                                     ; no _ _ → refl} }
+  andAssoc = record { assoc = λ{ yes _ _ → refl
+                               ; no _ _ → refl} }
   andCom : Commutative and
   andCom = record { comm = λ{ yes yes → refl
                                    ; yes no → refl
@@ -54,10 +54,10 @@ instance
                      ; rIdentity = λ{ yes → refl
                                     ; no → refl} }
   xorAssoc : Associative xor
-  xorAssoc = record { associative = λ{ yes yes yes → refl
-                                     ; yes yes no → refl
-                                     ; yes no _ → refl
-                                     ; no _ _ → refl}}
+  xorAssoc = record { assoc = λ{ yes yes yes → refl
+                               ; yes yes no → refl
+                               ; yes no _ → refl
+                               ; no _ _ → refl}}
   xorGroup : group xor
   xorGroup = record { e = no
                     ; IsSet = Hedberg boolDiscrete

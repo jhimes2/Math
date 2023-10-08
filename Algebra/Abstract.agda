@@ -6,7 +6,7 @@ open import Prelude public
 
 record Associative {A : Type l}(f : A → A → A) : Type(lsuc l) where
   field
-      associative : (a b c : A) → f a (f b c) ≡ f (f a b) c
+      assoc : (a b c : A) → f a (f b c) ≡ f (f a b) c
 open Associative {{...}} public
 
 record Commutative {A : Type l}(_∙_ : A → A → A) : Type(lsuc l) where
@@ -49,8 +49,8 @@ module _{_∙_ : A → A → A} {{G : group _∙_}} where
   rInverse a =
       a ∙ inv a                          ≡⟨ sym (lIdentity (a ∙ inv a))⟩
       e ∙ (a ∙ inv a)                    ≡⟨ left _∙_ (sym (lInverse (inv a)))⟩
-      (inv(inv a) ∙ inv a) ∙ (a ∙ inv a) ≡⟨ sym (associative (inv(inv a)) (inv a) (a ∙ inv a))⟩
-      inv(inv a) ∙ (inv a ∙ (a ∙ inv a)) ≡⟨ right _∙_ (associative (inv a) a (inv a))⟩
+      (inv(inv a) ∙ inv a) ∙ (a ∙ inv a) ≡⟨ sym (assoc (inv(inv a)) (inv a) (a ∙ inv a))⟩
+      inv(inv a) ∙ (inv a ∙ (a ∙ inv a)) ≡⟨ right _∙_ (assoc (inv a) a (inv a))⟩
       inv(inv a) ∙ ((inv a ∙ a) ∙ inv a) ≡⟨ right _∙_ (left _∙_ (lInverse a))⟩
       inv(inv a) ∙ (e ∙ (inv a))         ≡⟨ right _∙_ (lIdentity (inv a))⟩
       inv(inv a) ∙ (inv a)               ≡⟨ lInverse (inv a)⟩
@@ -68,7 +68,7 @@ instance
         ; rIdentity =
            λ a →
            a ∙ e           ≡⟨ right _∙_ (sym (lInverse a))⟩
-           a ∙ (inv a ∙ a) ≡⟨ associative a (inv a) a ⟩
+           a ∙ (inv a ∙ a) ≡⟨ assoc a (inv a) a ⟩
            (a ∙ inv a) ∙ a ≡⟨ left _∙_ (rInverse a)⟩
            e ∙ a           ≡⟨ lIdentity a ⟩
            a ∎
@@ -93,9 +93,9 @@ module grp {_∙_ : A → A → A} {{G : group _∙_}} where
     λ(p : a ∙ x ≡ a ∙ y) →
       x               ≡⟨ sym (lIdentity x)⟩
       e ∙ x           ≡⟨ left _∙_ (sym (lInverse a))⟩
-      (inv a ∙ a) ∙ x ≡⟨ sym (associative (inv a) a x)⟩
+      (inv a ∙ a) ∙ x ≡⟨ sym (assoc (inv a) a x)⟩
       inv a ∙ (a ∙ x) ≡⟨ right _∙_ p ⟩
-      inv a ∙ (a ∙ y) ≡⟨ associative (inv a) a y ⟩
+      inv a ∙ (a ∙ y) ≡⟨ assoc (inv a) a y ⟩
       (inv a ∙ a) ∙ y ≡⟨ left _∙_ (lInverse a)⟩
       e ∙ y           ≡⟨ lIdentity y ⟩
       y ∎
@@ -106,7 +106,7 @@ module grp {_∙_ : A → A → A} {{G : group _∙_}} where
       x               ≡⟨ sym (rIdentity x)⟩
       x ∙ e           ≡⟨ right _∙_ (sym (lInverse y))⟩
       x ∙ (inv y ∙ y) ≡⟨ right _∙_ (left _∙_ (sym p))⟩
-      x ∙ (inv x ∙ y) ≡⟨ associative x (inv x) y ⟩
+      x ∙ (inv x ∙ y) ≡⟨ assoc x (inv x) y ⟩
       (x ∙ inv x) ∙ y ≡⟨ left _∙_ (rInverse x)⟩
       e ∙ y           ≡⟨ lIdentity y ⟩
       y ∎
@@ -115,7 +115,7 @@ module grp {_∙_ : A → A → A} {{G : group _∙_}} where
   doubleInv x = 
     inv(inv x)               ≡⟨ sym (rIdentity (inv (inv x)))⟩
     inv(inv x) ∙ e           ≡⟨ right _∙_ (sym (lInverse x))⟩
-    inv(inv x) ∙ (inv x ∙ x) ≡⟨ associative (inv(inv x)) (inv x) x ⟩
+    inv(inv x) ∙ (inv x ∙ x) ≡⟨ assoc (inv(inv x)) (inv x) x ⟩
     (inv(inv x) ∙ inv x) ∙ x ≡⟨ left _∙_ (lInverse (inv x))⟩
     e ∙ x                    ≡⟨ lIdentity x ⟩
     x ∎
@@ -125,7 +125,7 @@ module grp {_∙_ : A → A → A} {{G : group _∙_}} where
     λ(p : x ∙ inv y ≡ e) →
       x               ≡⟨ sym (rIdentity x)⟩
       x ∙ e           ≡⟨ right _∙_ (sym (lInverse y))⟩
-      x ∙ (inv y ∙ y) ≡⟨ associative x (inv y) y ⟩
+      x ∙ (inv y ∙ y) ≡⟨ assoc x (inv y) y ⟩
       (x ∙ inv y) ∙ y ≡⟨ left _∙_ p ⟩
       e ∙ y           ≡⟨ lIdentity y ⟩
       y ∎
@@ -136,8 +136,8 @@ module grp {_∙_ : A → A → A} {{G : group _∙_}} where
                               → inv b ∙ inv a ≡ inv (a ∙ b)
         H = uniqueInv in H $
     (inv b ∙ inv a) ∙ inv(inv(a ∙ b)) ≡⟨ right _∙_ (doubleInv (a ∙ b))⟩
-    (inv b ∙ inv a) ∙ (a ∙ b)         ≡⟨ sym (associative (inv b) (inv a) (a ∙ b))⟩
-    inv b ∙ (inv a ∙ (a ∙ b))         ≡⟨ right _∙_ (associative (inv a) a b)⟩
+    (inv b ∙ inv a) ∙ (a ∙ b)         ≡⟨ sym (assoc (inv b) (inv a) (a ∙ b))⟩
+    inv b ∙ (inv a ∙ (a ∙ b))         ≡⟨ right _∙_ (assoc (inv a) a b)⟩
     inv b ∙ ((inv a ∙ a) ∙ b)         ≡⟨ right _∙_ (left _∙_ (lInverse a))⟩
     inv b ∙ (e ∙ b)                   ≡⟨ right _∙_ (lIdentity b)⟩
     inv b ∙ b                         ≡⟨ lInverse b ⟩
@@ -147,7 +147,7 @@ module grp {_∙_ : A → A → A} {{G : group _∙_}} where
   lemma2 {a}{b}{c} =
     λ(p : c ≡ a ∙ b) →
       inv a ∙ c       ≡⟨ right _∙_ p ⟩
-      inv a ∙ (a ∙ b) ≡⟨ associative (inv a) a b ⟩
+      inv a ∙ (a ∙ b) ≡⟨ assoc (inv a) a b ⟩
       (inv a ∙ a) ∙ b ≡⟨ left _∙_ (lInverse a)⟩
       e ∙ b           ≡⟨ lIdentity b ⟩
       b ∎
@@ -176,11 +176,11 @@ record grpHomomorphism {A : Type l}
 assocCom4 : {_∙_ : A → A → A}{{_ : Commutative _∙_}}{{_ : monoid _∙_}}
           → (a b c d : A) → (a ∙ b) ∙ (c ∙ d) ≡ (a ∙ c) ∙ (b ∙ d)
 assocCom4 {_∙_ = _∙_} a b c d =
-  (a ∙ b) ∙ (c ∙ d) ≡⟨ associative (_∙_ a b) c d ⟩
-  ((a ∙ b) ∙ c) ∙ d ≡⟨ left _∙_ (sym(associative a b c))⟩
+  (a ∙ b) ∙ (c ∙ d) ≡⟨ assoc (_∙_ a b) c d ⟩
+  ((a ∙ b) ∙ c) ∙ d ≡⟨ left _∙_ (sym(assoc a b c))⟩
   (a ∙ (b ∙ c)) ∙ d ≡⟨ left _∙_ (right _∙_ (comm b c))⟩
-  (a ∙ (c ∙ b)) ∙ d ≡⟨ left _∙_ (associative a c b)⟩
-  ((a ∙ c) ∙ b) ∙ d ≡⟨ sym (associative (_∙_ a c) b d)⟩
+  (a ∙ (c ∙ b)) ∙ d ≡⟨ left _∙_ (assoc a c b)⟩
+  ((a ∙ c) ∙ b) ∙ d ≡⟨ sym (assoc (_∙_ a c) b d)⟩
   (a ∙ c) ∙ (b ∙ d) ∎
 
 -- https://en.wikipedia.org/wiki/Abelian_group
@@ -213,7 +213,7 @@ rMultZ : {{R : Rng A}} → (x : A) → x * zero ≡ zero
 rMultZ x =
   x * zero                                ≡⟨ sym (rIdentity (x * zero))⟩
   (x * zero) + zero                       ≡⟨ right _+_ (sym (rInverse (x * zero)))⟩
-  (x * zero)+((x * zero) + neg(x * zero)) ≡⟨ associative (x * zero) (x * zero) (neg(x * zero))⟩
+  (x * zero)+((x * zero) + neg(x * zero)) ≡⟨ assoc (x * zero) (x * zero) (neg(x * zero))⟩
   ((x * zero)+(x * zero)) + neg(x * zero) ≡⟨ left _+_ (sym (lDistribute x zero zero))⟩
   (x * (zero + zero)) + neg(x * zero)     ≡⟨ left _+_ (right _*_ (lIdentity zero))⟩
   (x * zero) + neg(x * zero)              ≡⟨ rInverse (x * zero)⟩
@@ -223,7 +223,7 @@ lMultZ : {{R : Rng A}} → (x : A) → zero * x ≡ zero
 lMultZ x =
   zero * x                                ≡⟨ sym (rIdentity (zero * x))⟩
   (zero * x) + zero                       ≡⟨ right _+_ (sym (rInverse (zero * x)))⟩
-  (zero * x)+((zero * x) + neg(zero * x)) ≡⟨ associative (zero * x) (zero * x) (neg(zero * x))⟩
+  (zero * x)+((zero * x) + neg(zero * x)) ≡⟨ assoc (zero * x) (zero * x) (neg(zero * x))⟩
   ((zero * x)+(zero * x)) + neg(zero * x) ≡⟨ left _+_ (sym (rDistribute x zero zero))⟩
   ((zero + zero) * x) + neg(zero * x)     ≡⟨ left _+_ (left _*_ (lIdentity zero))⟩
   (zero * x) + neg(zero * x)              ≡⟨ rInverse (zero * x)⟩
@@ -324,7 +324,7 @@ nonZeroMult (a , a') (b , b') = λ(f : (a * b) ≡ zero) →
       G = rMultZ (reciprocal (a , a')) in
   let F = b       ≡⟨ sym(lIdentity b)⟩
           one * b ≡⟨ left _*_ (sym (recInv ((a , a'))))⟩
-          (reciprocal (a , a') * a) * b ≡⟨ sym (associative (reciprocal (a , a')) a b)⟩
+          (reciprocal (a , a') * a) * b ≡⟨ sym (assoc (reciprocal (a , a')) a b)⟩
           (reciprocal (a , a')) * (a * b) ∎ in
   let contradiction : b ≡ zero
       contradiction = eqTrans F (eqTrans H G)

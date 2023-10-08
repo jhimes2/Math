@@ -105,11 +105,11 @@ instance
     addvCom {n = Z} [] [] = refl
     addvCom {n = S n} (x :: u) (y :: v) = cong2 _::_ (comm x y) (addvCom u v)
  assocv : {{SR : Rng A}} → Associative (addv {n = n})
- assocv = record { associative = addvAssoc }
+ assocv = record { assoc = addvAssoc }
    where
      addvAssoc : {n : Nat} → {{R : Rng A}} → (u v w : [ A ^ n ]) → (addv u (addv v w)) ≡ addv (addv u v) w
      addvAssoc {n = Z} [] [] [] = refl
-     addvAssoc {n = S n} (x :: u) (y :: v) (z :: w) = cong2 _::_ (associative x y z) (addvAssoc u v w)
+     addvAssoc {n = S n} (x :: u) (y :: v) (z :: w) = cong2 _::_ (assoc x y z) (addvAssoc u v w)
  grpV : {n : Nat} {{R : Ring A}} → group (addv {n = n})
  grpV {n = n} {{R}} = record { inverse = λ v → map neg v , grpAux v ; IsSet = vectSet (monoid.IsSet (Ring.multStr R)) ; lIdentity = λ v → eqTrans (comm (zeroV n) v) (addvId v) }
    where
@@ -138,7 +138,7 @@ instance
     scaleIdv (x :: v) = cong2 _::_ (rIdentity x) (scaleIdv v)
     scaleAssocAux : {A : Type l} {{R : Ring A}} → (v : [ A ^ n ]) → (a b : A) → scaleV a (scaleV b v) ≡ scaleV (b * a) v
     scaleAssocAux [] a b = refl
-    scaleAssocAux {{R}} (x :: v) a b = cong2 _::_ (sym (associative x b a)
+    scaleAssocAux {{R}} (x :: v) a b = cong2 _::_ (sym (assoc x b a)
                         ) (scaleAssocAux v a b)
     scaleIdAux : {A : Type l} {{R : Ring A}} → (v : [ A ^ n ]) → scaleV one v ≡ v
     scaleIdAux [] = refl
@@ -322,7 +322,7 @@ ILInv {m = S m} (v :: M) = cong2 _::_ (IMT v) (ILInv M)
 
 instance
   mMultAssocInstance : {{R : Ring A}} → Associative (mMult {a = n} {b = n} {c = n})
-  mMultAssocInstance = record { associative = λ a b c → mMultAssoc a b c }
+  mMultAssocInstance = record { assoc = λ a b c → mMultAssoc a b c }
   sqrMMultMonoid : {{R : Ring A}} → monoid (mMult {a = n} {b = n} {c = n})
   sqrMMultMonoid {{R}} = let H = Ring.multStr R in record {
                          e = I
