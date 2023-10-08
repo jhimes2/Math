@@ -306,6 +306,15 @@ record Field (A : Type l) : Type (lsuc l) where
     recInv : (a : nonZero) → reciprocal a * pr1 a ≡ one
 open Field {{...}} public
 
+reciprocalNonzeroCodomain : {{F : Field A}} (a : nonZero) → reciprocal a ≠ zero
+reciprocalNonzeroCodomain (a , p) contra =
+  let H : a * reciprocal (a , p) ≡ a * zero
+      H = right _*_ contra in
+  let G : one ≡ a * zero
+      G = eqTrans (sym (eqTrans (commutative a (reciprocal (a , p))) (recInv (a , p)))) H in
+  let F : one ≡ zero
+      F = eqTrans G (rMultZ a) in oneNotZero F
+
 -- Multiplying two nonzero values gives a nonzero value
 nonZeroMult : {{F : Field A}} (a b : nonZero) → (pr1 a * pr1 b) ≠ zero
 nonZeroMult (a , a') (b , b') = λ(f : (a * b) ≡ zero) →
