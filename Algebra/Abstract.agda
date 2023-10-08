@@ -302,21 +302,21 @@ record Field (A : Type l) : Type (lsuc l) where
   field
     {{fring}} : CRing A
     oneNotZero : one ≠ zero
-    reciprocal : nonZero → nonZero
-    recInv : (a : nonZero) → pr1(reciprocal a) * pr1 a ≡ one
+    reciprocal : nonZero → A
+    recInv : (a : nonZero) → reciprocal a * pr1 a ≡ one
 open Field {{...}} public
 
 -- Multiplying two nonzero values gives a nonzero value
 nonZeroMult : {{F : Field A}} (a b : nonZero) → (pr1 a * pr1 b) ≠ zero
 nonZeroMult (a , a') (b , b') = λ(f : (a * b) ≡ zero) →
-  let H : (pr1 (reciprocal (a , a'))) * (a * b) ≡ (pr1 (reciprocal (a , a'))) * zero
+  let H : reciprocal (a , a') * (a * b) ≡ reciprocal (a , a') * zero
       H = right _*_ f in
-  let G : (pr1 (reciprocal (a , a'))) * zero ≡ zero
-      G = rMultZ (pr1 (reciprocal (a , a'))) in
+  let G : (reciprocal (a , a')) * zero ≡ zero
+      G = rMultZ (reciprocal (a , a')) in
   let F = b       ≡⟨ sym(lIdentity b)⟩
           one * b ≡⟨ left _*_ (sym (recInv ((a , a'))))⟩
-          ((pr1 (reciprocal (a , a'))) * a) * b ≡⟨ sym (associative (pr1 (reciprocal (a , a'))) a b)⟩
-          (pr1 (reciprocal (a , a'))) * (a * b) ∎ in
+          (reciprocal (a , a') * a) * b ≡⟨ sym (associative (reciprocal (a , a')) a b)⟩
+          (reciprocal (a , a')) * (a * b) ∎ in
   let contradiction : b ≡ zero
       contradiction = eqTrans F (eqTrans H G)
       in b' contradiction
