@@ -1,6 +1,6 @@
 {-# OPTIONS --safe --overlapping-instances #-}
 
-module Data.Matrix where
+module Algebra.Matrix where
 
 open import Algebra.Linear public
 open import Data.Natural
