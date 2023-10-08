@@ -33,7 +33,8 @@ instance
     rec : (A → B) → [ A ^ n ] → [ B ^ n ]
     rec f [] = []
     rec f (x ∷ v) = f x ∷ rec f v
-    compPreserveAux : (f : B → C) (g : A → B) (x : [ A ^ n ]) → rec (f ∘ g) x ≡ (rec f ∘ rec g) x
+    compPreserveAux : (f : B → C) (g : A → B) (x : [ A ^ n ])
+                    → rec (f ∘ g) x ≡ (rec f ∘ rec g) x
     compPreserveAux f g [] = refl
     compPreserveAux f g (x ∷ x') = cong (f (g x) ∷_) (compPreserveAux f g x')
     idPreserveAux : (x : [ A ^ n ]) → rec id x ≡ id x
@@ -145,8 +146,8 @@ instance
     scaleAssocAux : {A : Type l} {{R : Ring A}} → (v : [ A ^ n ]) → (a b : A)
                   → scaleV a (scaleV b v) ≡ scaleV (b * a) v
     scaleAssocAux [] a b = refl
-    scaleAssocAux {{R}} (x ∷ v) a b = cong2 _∷_ (sym (assoc x b a)
-                        ) (scaleAssocAux v a b)
+    scaleAssocAux {{R}} (x ∷ v) a b =
+            cong2 _∷_ (sym (assoc x b a)) (scaleAssocAux v a b)
     scaleIdAux : {A : Type l} {{R : Ring A}} → (v : [ A ^ n ]) → scaleV one v ≡ v
     scaleIdAux [] = refl
     scaleIdAux (x ∷ v) = cong2 _∷_ (rIdentity x) (scaleIdAux v)
@@ -157,17 +158,23 @@ instance
   MHMT {{R}} {M = M} = record { addT = TAdd M ; multT = multTAux {{R}} M }
     where
       multTAux : {{R : Ring A}} → (M : Matrix A n m)
-                                           → (v : [ A ^ m ])
-                                           → (c : A)
-                                           → (MT M (scaleV c v)) ≡ scaleV c (MT M v)
+                                → (v : [ A ^ m ])
+                                → (c : A)
+                                → (MT M (scaleV c v)) ≡ scaleV c (MT M v)
       multTAux {m = Z} [] [] c = sym (scaleVZ c)
       multTAux {m = (S m)} (u ∷ M) (x ∷ v) c =
-        MT (u ∷ M) (scale c (x ∷ v)) ≡⟨By-Definition⟩
-        MT (u ∷ M) (x * c ∷ scale c v) ≡⟨By-Definition⟩
-        (scale (x * c) u)[+](MT M (scale c v)) ≡⟨ cong2 _[+]_ (sym (scalarAssoc u c x)) refl ⟩
-        scale c (scale x u)[+](MT M (scale c v)) ≡⟨ cong2 _[+]_ refl (multTAux M v c)⟩
-        scale c (scale x u)[+](scale c (MT M v)) ≡⟨ sym(scalarDistribute c (scale x u) (MT M v))⟩
-        scale c (scale x u [+] MT M v) ≡⟨By-Definition⟩
+        MT (u ∷ M) (scale c (x ∷ v))
+          ≡⟨By-Definition⟩
+        MT (u ∷ M) (x * c ∷ scale c v)
+          ≡⟨By-Definition⟩
+        (scale (x * c) u)[+](MT M (scale c v))
+          ≡⟨ left _[+]_ (sym (scalarAssoc u c x))⟩
+        scale c (scale x u)[+](MT M (scale c v))
+          ≡⟨ right _[+]_ (multTAux M v c)⟩
+        scale c (scale x u)[+] scale c (MT M v)
+          ≡⟨ sym(scalarDistribute c (scale x u) (MT M v))⟩
+        scale c (scale x u [+] MT M v)
+          ≡⟨By-Definition⟩
         scale c (MT (u ∷ M) (x ∷ v)) ∎
       TAdd : {n m : Nat} → {{R : Ring A}} → (M : Matrix A n m)
                                           → (u v : [ A ^ m ])
@@ -395,7 +402,8 @@ transposeMMult : {{R : CRing A}} → (M : Matrix A n m)
                      → transpose (mMult M N) ≡ mMult (transpose N) (transpose M)
 transposeMMult {n = Z} {m = m} M N = refl
 transposeMMult {A = A} {n = S n} {m = m} M N =
-   cong2 _∷_ (aux M N) (eqTrans (cong transpose (tailRev M N)) (transposeMMult (map tail M) N))
+   cong2 _∷_ (aux M N)
+             (eqTrans (cong transpose (tailRev M N)) (transposeMMult (map tail M) N))
   where
     aux3 : {n m o : Nat} → (M : Matrix A (S n) m) → (N : Matrix A m o) → (v : [ A ^ m ])
        → (head (MT M v) ∷ MT (transpose N) (map head M)) ≡ MT(transpose (v ∷ N)) (map head M)
