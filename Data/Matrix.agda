@@ -2,7 +2,7 @@
 
 module Data.Matrix where
 
-open import Linear public
+open import Algebra.Linear public
 open import Data.Natural
 
 -- vector definition

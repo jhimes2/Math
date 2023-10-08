@@ -1,5 +1,7 @@
 {-# OPTIONS  --without-K --safe --overlapping-instances #-}
 
+module Algebra.Abstract where
+
 open import Prelude public
 
 record Associative {A : Type l}(f : A → A → A) : Type(lsuc l) where

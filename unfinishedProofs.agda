@@ -1,7 +1,7 @@
 {-# OPTIONS --without-K --safe --overlapping-instances #-}
 
 open import Agda.Primitive
-open import Linear
+open import Algebra.Linear
 open import Data.Natural
 
 instance

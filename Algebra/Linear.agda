@@ -1,6 +1,8 @@
 {-# OPTIONS  --without-K --safe --overlapping-instances #-}
 
-open import Abstract public
+module Algebra.Linear where
+
+open import Algebra.Abstract public
 
 --https://en.wikipedia.org/wiki/Vector_space
 -- A vector space is a module whose ring is a field.

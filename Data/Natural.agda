@@ -2,7 +2,7 @@
 
 module Data.Natural where
 
-open import Abstract public
+open import Algebra.Abstract public
 
 data Nat : Type₀ where
   Z : Nat

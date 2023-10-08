@@ -1,9 +1,9 @@
-{-# OPTIONS --overlapping-instances #-}
+{-# OPTIONS --overlapping-instances --without-K #-}
 
 module Data.Bool where
 
 open import Prelude
-open import Abstract
+open import Algebra.Abstract
 
 data Bool : Type₀ where
   yes : Bool
