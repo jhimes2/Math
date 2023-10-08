@@ -43,7 +43,7 @@ instance
   andAssoc = record { associative = λ{ yes _ _ → refl
                                      ; no _ _ → refl} }
   andCom : Commutative and
-  andCom = record { commutative = λ{ yes yes → refl
+  andCom = record { comm = λ{ yes yes → refl
                                    ; yes no → refl
                                    ; no yes → refl
                                    ; no no → refl}}
@@ -65,7 +65,7 @@ instance
                                  ; no → no , refl}
                     ; lIdentity = λ _ → refl }
   xorCom : Commutative xor
-  xorCom = record { commutative = λ{ yes yes → refl
+  xorCom = record { comm = λ{ yes yes → refl
                                    ; yes no → refl
                                    ; no yes → refl
                                    ; no no → refl}}

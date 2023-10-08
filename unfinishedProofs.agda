@@ -6,7 +6,7 @@ open import Data.Natural
 
 instance
   LFCom : {{F : Field A}}{{VS : Module}} → Commutative (dualSum VS)
-  LFCom {{F = F}} = record { commutative = λ {(T , record {addT = addTT ; multT = multTT})
+  LFCom {{F = F}} = record { comm = λ {(T , record {addT = addTT ; multT = multTT})
                                     (R , record {addT = addTR ; multT = multTR})
                 →
         (λ x → (T x) + (R x))
@@ -29,7 +29,7 @@ instance
               (eqTrans
                (right _+_
                 (left _+_
-                 (commutative
+                 (comm
                   (T b) (R a))))
                (eqTrans
                 (right (Rng._+_ (Ring.rngring (CRing.crring (Field.fring F))))
@@ -86,7 +86,7 @@ instance
               (eqTrans
                (right (Rng._+_ (Ring.rngring (CRing.crring (Field.fring F))))
                 (left (Rng._+_ (Ring.rngring (CRing.crring (Field.fring F))))
-                 (Commutative.commutative
+                 (Commutative.comm
                   (abelianGroup.comgroup
                    (Rng.raddStr (Ring.rngring (CRing.crring (Field.fring F)))))
                   (R b) (T a))))
@@ -133,8 +133,8 @@ dualSpace  VS =
      ; _[+]_ = dualSum VS
      ; addvStr = {!!}
      ; scale = {!!}
-     ; scalarDistribution = {!!}
-     ; vectorDistribution = {!!}
+     ; scalarDistribute = {!!}
+     ; vectorDistribute = {!!}
      ; scalarAssoc = {!!}
      ; scaleId = {!!}
      }

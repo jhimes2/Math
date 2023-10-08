@@ -99,11 +99,11 @@ scalar-distributivity2 {n = S n} {{SR}} s (x :: u) (y :: v) =
 
 instance
  comv : {{SR : Rng A}} → Commutative (addv {n = n})
- comv = record { commutative = addvCom }
+ comv = record { comm = addvCom }
   where
     addvCom : {n : Nat} → {{R : Rng A}} → (u v : [ A ^ n ]) → addv u v ≡ addv v u
     addvCom {n = Z} [] [] = refl
-    addvCom {n = S n} (x :: u) (y :: v) = cong2 _::_ (commutative x y) (addvCom u v)
+    addvCom {n = S n} (x :: u) (y :: v) = cong2 _::_ (comm x y) (addvCom u v)
  assocv : {{SR : Rng A}} → Associative (addv {n = n})
  assocv = record { associative = addvAssoc }
    where
@@ -111,7 +111,7 @@ instance
      addvAssoc {n = Z} [] [] [] = refl
      addvAssoc {n = S n} (x :: u) (y :: v) (z :: w) = cong2 _::_ (associative x y z) (addvAssoc u v w)
  grpV : {n : Nat} {{R : Ring A}} → group (addv {n = n})
- grpV {n = n} {{R}} = record { inverse = λ v → map neg v , grpAux v ; IsSet = vectSet (monoid.IsSet (Ring.multStr R)) ; lIdentity = λ v → eqTrans (commutative (zeroV n) v) (addvId v) }
+ grpV {n = n} {{R}} = record { inverse = λ v → map neg v , grpAux v ; IsSet = vectSet (monoid.IsSet (Ring.multStr R)) ; lIdentity = λ v → eqTrans (comm (zeroV n) v) (addvId v) }
    where
     grpAux : {n : Nat} {A : Type l} {{R : Ring A}} → (v : [ A ^ n ]) → addv (map neg v) v ≡ zeroV n
     grpAux [] = refl
@@ -211,7 +211,7 @@ mMultAssoc {A = A} {a = a} {b = b} M {c} N {d = S d} (w :: O) = cong2 _::_ (aux 
       MT (v :: M) (zeroV (S b)) ≡⟨By-Definition⟩
       MT (v :: M) (zero :: (zeroV b)) ≡⟨By-Definition⟩
       addv (scaleV zero v) (MT M (zeroV b)) ≡⟨ left addv (scaleZ v) ⟩
-      addv (zeroV a) (MT M (zeroV b)) ≡⟨ sym (eqTrans (sym(rIdentity(MT M (zeroV b)))) (commutative(MT M (zeroV b)) (zeroV a)))⟩
+      addv (zeroV a) (MT M (zeroV b)) ≡⟨ sym (eqTrans (sym(rIdentity(MT M (zeroV b)))) (comm(MT M (zeroV b)) (zeroV a)))⟩
       MT M (zeroV b) ≡⟨ aux a b Z M [] [] ⟩
       zeroV a ∎
   aux a b (S c) M (v :: N) (z :: w) =
@@ -353,7 +353,7 @@ transposeMMult {A = A} {n = S n} {m = m} M N = cong2 _::_ (aux M N)
         H + head (MT M v) :: MT (map head N :: transpose (map tail N)) (x :: map head M) ≡⟨By-Definition⟩
         H + head (MT M v) :: (scale x (map head N)) [+] (MT (transpose (map tail N)) (map head M)) ≡⟨By-Definition⟩
         (H :: scale x (map head N)) [+] (head (MT M v) :: (MT (transpose (map tail N)) (map head M))) ≡⟨ right _[+]_ (aux3 M (map tail N) v)⟩
-        (H :: scale x (map head N)) [+] (MT (transpose (v :: map tail N)) (map head M)) ≡⟨ left _[+]_ (left _::_ (commutative x y))⟩
+        (H :: scale x (map head N)) [+] (MT (transpose (v :: map tail N)) (map head M)) ≡⟨ left _[+]_ (left _::_ (comm x y))⟩
         ((y * x) :: (scale x (map head N))) [+] MT (transpose (v :: map tail N)) (map head M) ≡⟨By-Definition⟩
         (scale x (y :: map head N)) [+] MT (transpose (v :: map tail N)) (map head M) ∎
     tailRev : {n m o : Nat} → (M : Matrix A (S n) m) → (N : Matrix A m o) → map tail (mMult M N) ≡ mMult (map tail M) N

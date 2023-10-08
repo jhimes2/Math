@@ -11,7 +11,7 @@ open Associative {{...}} public
 
 record Commutative {A : Type l}(_∙_ : A → A → A) : Type(lsuc l) where
   field
-    commutative : (a b : A) → _∙_ a b ≡ _∙_ b a
+    comm : (a b : A) → _∙_ a b ≡ _∙_ b a
 open Commutative {{...}} public
 
 -- https://en.wikipedia.org/wiki/Monoid
@@ -178,7 +178,7 @@ assocCom4 : {_∙_ : A → A → A}{{_ : Commutative _∙_}}{{_ : monoid _∙_}}
 assocCom4 {_∙_ = _∙_} a b c d =
   (a ∙ b) ∙ (c ∙ d) ≡⟨ associative (_∙_ a b) c d ⟩
   ((a ∙ b) ∙ c) ∙ d ≡⟨ left _∙_ (sym(associative a b c))⟩
-  (a ∙ (b ∙ c)) ∙ d ≡⟨ left _∙_ (right _∙_ (commutative b c))⟩
+  (a ∙ (b ∙ c)) ∙ d ≡⟨ left _∙_ (right _∙_ (comm b c))⟩
   (a ∙ (c ∙ b)) ∙ d ≡⟨ left _∙_ (associative a c b)⟩
   ((a ∙ c) ∙ b) ∙ d ≡⟨ sym (associative (_∙_ a c) b d)⟩
   (a ∙ c) ∙ (b ∙ d) ∎
@@ -290,7 +290,7 @@ rMultNegOne x =
   x * zero                   ≡⟨ rMultZ x ⟩
   zero ∎
 
--- https://en.wikipedia.org/wiki/Commutative_ring
+-- https://en.wikipedia.org/wiki/Comm_ring
 record CRing (A : Type l) : Type (lsuc l) where
   field
     {{crring}} : Ring A
@@ -311,7 +311,7 @@ reciprocalNonzeroCodomain (a , p) contra =
   let H : a * reciprocal (a , p) ≡ a * zero
       H = right _*_ contra in
   let G : one ≡ a * zero
-      G = eqTrans (sym (eqTrans (commutative a (reciprocal (a , p))) (recInv (a , p)))) H in
+      G = eqTrans (sym (eqTrans (comm a (reciprocal (a , p))) (recInv (a , p)))) H in
   let F : one ≡ zero
       F = eqTrans G (rMultZ a) in oneNotZero F
 
@@ -477,7 +477,7 @@ week7 T c = record
                    T (scale d v)       ≡⟨ multT v d ⟩
                    scale d (T v)       ≡⟨ right scale p ⟩
                    scale d (scale c v) ≡⟨ scalarAssoc v d c ⟩
-                   scale (c * d) v     ≡⟨ left scale (commutative c d)⟩
+                   scale (c * d) v     ≡⟨ left scale (comm c d)⟩
                    scale (d * c) v     ≡⟨ sym (scalarAssoc v c d)⟩
                    scale c (scale d v) ∎
     }
