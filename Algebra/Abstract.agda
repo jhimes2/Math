@@ -410,11 +410,11 @@ module _{scalar : Type l}{{R : Ring scalar}}{{V : Module}} where
 
 -- Not necessarily a linear span since we're using a module instead of a vector space
   data Span (X : vector → Type l) : vector → Type l where
-    intro : {v : vector} → X v → Span X v
-    spanAdd : {v : vector} → Span X v → {u : vector} → Span X u → Span X (v [+] u)
-    spanScale : {v : vector} → Span X v → (c : scalar) → Span X (scale c v)
+    intro : {v : vector} → v ∈ X → v ∈ Span X
+    spanAdd : {v : vector} → v ∈ Span X → {u : vector} → u ∈ Span X → v [+] u ∈ Span X
+    spanScale : {v : vector} → v ∈ Span X → (c : scalar) → scale c v ∈ Span X
 
-  spanJoin : (X : vector → Type l) → (x : vector) → (Span ∘ Span) X x → Span X x
+  spanJoin : (X : vector → Type l) → (x : vector) → x ∈ (Span ∘ Span) X → x ∈ Span X
   spanJoin X x (intro p) = p
   spanJoin X x (spanAdd {v} p {u} q) =
       let H = spanJoin X v p in
@@ -425,8 +425,8 @@ module _{scalar : Type l}{{R : Ring scalar}}{{V : Module}} where
   record Subspace (X : vector → Type l) : Type (lsuc l)
     where field
         ssZero : X vZero 
-        ssAdd : {v u : vector} → X v → X u → X (v [+] u)
-        ssScale : {v : vector} → X v → (c : scalar) → X (scale c v)
+        ssAdd : {v u : vector} → v ∈ X → u ∈ X → v [+] u ∈ X
+        ssScale : {v : vector} → v ∈ X → (c : scalar) → scale c v ∈ X
 
 <_> : {A : Type l}{{F : Ring A}}(V : Module) → Type l
 < V > = Module.vector V

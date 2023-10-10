@@ -42,6 +42,14 @@ _~>_ : A → (A → B) → B
 a ~> f = f a
 infixr 0 _~>_
 
+_∈_ : A → (A → Type l) → Type l
+_∈_ = _~>_
+infixr 0 _∈_
+
+_∉_ : A → (A → Type l) → Type l
+a ∉ f = ¬(a ∈ f)
+infixr 0 _∉_
+
 -- Function application operator
 -- Equivalent to `$` in Haskell
 _$_ : (A → B) → A → B
