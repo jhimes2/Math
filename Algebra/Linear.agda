@@ -15,7 +15,7 @@ module _{scalar : Type l}{{F : Field scalar}}{{V : VectorSpace}} where
   record LinearlyIndependent (X : vector → Type l) : Type (lsuc l)
     where field
         -- ∀ v ∈ V, Span(V) ≠ Span(X - {v})
-        linInd : {v : vector} → X v → Span X ≠ Span (λ(x : vector) → X x ∧ ¬ (X v))
+        linInd : {v : vector} → X v → Span X ≠ Span (λ(x : vector) → X x ∧ (v ≠ x))
         noZero : ¬ (X vZero)
   open LinearlyIndependent {{...}} public
 
