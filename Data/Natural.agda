@@ -1,4 +1,4 @@
-{-# OPTIONS --without-K --safe #-}
+{-# OPTIONS --cubical --without-K --safe #-}
 
 module Data.Natural where
 
@@ -24,34 +24,6 @@ addZ : (n : Nat) → add n Z ≡ n
 addZ Z = refl
 addZ (S n) = cong S (addZ n)
 
--- Equality of two naturals is decidable
-natDiscrete : discrete Nat
-natDiscrete = aux
-  where
-    setoid : Nat → Nat → Type₀
-    setoid Z Z = True
-    setoid Z (S b) = False
-    setoid (S a) Z = False
-    setoid (S a) (S b) = setoid a b
-    eqToSetoid : {a b : Nat} → a ≡ b → setoid a b
-    eqToSetoid {Z} refl = void
-    eqToSetoid {S a} refl = eqToSetoid (refl {a = a})
-    aux : (a b : Nat) → decidable(a ≡ b)
-    aux Z Z = inl refl
-    aux Z (S b) = inr eqToSetoid
-    aux (S a) Z = inr λ p → eqToSetoid (sym p)
-    aux (S a) (S b) = aux a b ~> λ{ (inl x) → inl (cong S x)
-                                  ; (inr x) → inr (λ p → x (SInjective p))}
-      where
-        setoidToEq : {a b : Nat} → setoid a b → a ≡ b
-        setoidToEq {Z} {Z} p = refl
-        setoidToEq {S a} {S b} p = cong S (setoidToEq p)
-        SInjective : {a b : Nat} → S a ≡ S b → a ≡ b
-        SInjective p = setoidToEq (eqToSetoid p)
-
-natIsSet : isSet Nat
-natIsSet = Hedberg natDiscrete
-
 addCom : (a b : Nat) → add a b ≡ add b a
 addCom a Z = addZ a
 addCom a (S b) = eqTrans (Sout a b) (cong S (addCom a b))
@@ -59,6 +31,40 @@ addCom a (S b) = eqTrans (Sout a b) (cong S (addCom a b))
 addAssoc : (a b c : Nat) → add a (add b c) ≡ add (add a b) c
 addAssoc Z b c = refl
 addAssoc (S a) b c = cong S (addAssoc a b c)
+
+natSetoid : Nat → Nat → Type
+natSetoid Z Z = ⊤
+natSetoid Z (S b) = ⊥
+natSetoid (S a) Z = ⊥
+natSetoid (S a) (S b) = natSetoid a b
+
+natSetoidRefl : (n : Nat) → natSetoid n n
+natSetoidRefl Z = tt
+natSetoidRefl (S n) = natSetoidRefl n
+
+eqToNatSetoid : {a b : Nat} → a ≡ b → natSetoid a b
+eqToNatSetoid {Z} q = transport (λ i → natSetoid Z (q i)) tt
+eqToNatSetoid {S a} {b} q = transport (λ i → natSetoid (q (~ i)) b) (natSetoidRefl b)
+
+natSetoidToEq : {a b : Nat} → natSetoid a b → a ≡ b
+natSetoidToEq {Z} {Z} p = refl
+natSetoidToEq {S a} {S b} p = cong S (natSetoidToEq p)
+
+SInjective : injective S
+SInjective p = natSetoidToEq (eqToNatSetoid p)
+
+ZNotS : {n : Nat} → Z ≢ S n
+ZNotS p = eqToNatSetoid p
+
+-- Equality of two naturals is decidable
+natDiscrete : Discrete Nat
+natDiscrete Z Z = yes refl
+natDiscrete Z (S b) = no (λ x → ZNotS x)
+natDiscrete (S a) Z = no (λ x → ZNotS (sym x))
+natDiscrete (S a) (S b) = natDiscrete a b ~> λ{ (yes x) → yes (cong S x) ; (no x) → no (λ y → x (SInjective y))}
+
+natIsSet : isSet Nat
+natIsSet = Discrete→isSet natDiscrete
 
 -- Addition on natural numbers is a comm monoid
 instance
@@ -110,47 +116,53 @@ instance
   NatMultMonoid = record { e = (S Z) ; IsSet = natIsSet ; lIdentity = addZ
                          ; rIdentity = λ a → eqTrans (comm a (S Z)) (addZ a) }
 _≤_ : Nat → Nat → Type₀
-Z ≤ _ = True
+Z ≤ _ = ⊤
 S x ≤ S y = x ≤ y
-_ ≤ Z = False
+_ ≤ Z = ⊥
+
+leS : {n m : Nat} → S n ≤ m → n ≤ m
+leS {Z} {S m} p = tt
+leS {S n} {S m} p = leS {n} {m} p
+
+leRefl : (n : Nat) → n ≤ n
+leRefl Z = tt
+leRefl (S n) = leRefl n
 
 _<_ : Nat → Nat → Type₀
 a < b = S a ≤ b
 
 -- finite Sets
 fin : Nat → Type₀
-fin n = (Σ λ x → x < n)
+fin n = (Σ' Nat λ x → x < n)
 
 leAdd : (z n c : Nat) → add z n ≤ c → z ≤ c
-leAdd Z n c p = void
+leAdd Z n c p = tt
 leAdd (S z) n Z p = p
 leAdd (S z) n (S c) p = leAdd z n c p
 
-ZNotS : (n : Nat) → ¬(Z ≡ S n)
-ZNotS = λ n ()
-
 eqLe : (x : Nat) → x ≤ x
-eqLe Z = void
+eqLe Z = tt
 eqLe (S x) = eqLe x
 
-isLe : (x y : Nat) → (x ≤ y) ∨ (Σ λ(z : Nat) → x ≡ S (add z  y))
-isLe Z Z = inl void
+isLe : (x y : Nat) → (x ≤ y) ＋ (Σ λ(z : Nat) → x ≡ S (add z  y))
+isLe Z Z = inl tt
 isLe (S x) Z = inr (x , eqTrans (cong S (sym (addZ x))) (sym refl))
-isLe Z (S y) = inl void
+isLe Z (S y) = inl tt
 isLe (S x) (S y) with (isLe x y)
 ...              | (inl l) = inl l
 ...              | (inr (r , p)) = inr (r , cong S let q = Sout r y in eqTrans p (sym q))
 
-division : (a b : Nat) → Σ λ q → Σ λ r → (a ≡ add r (mult (S b) q)) ∧ (r ≤ b)
+division : (a b : Nat) → Σ λ q → Σ λ r → (a ≡ add r (mult (S b) q)) × (r ≤ b)
 division a b = aux a a (eqLe a)
   where
-  aux : (x c : Nat) → x ≤ c →  Σ λ q  → Σ λ r → (x ≡ add r (mult (S b) q)) ∧ (r ≤ b)
+  aux : (x c : Nat) → x ≤ c →  Σ λ q  → Σ λ r → (x ≡ add r (mult (S b) q)) × (r ≤ b)
   aux x c q with isLe x b
-  aux x _ _       | inl p = Z , (x , (eqTrans (sym (addZ x)) (right add (sym (multZ b))) , p))
-  aux Z Z void    | inr (d , p) = ZNotS (add d b) p ~> λ{()}
+  aux x _ _       | inl p = Z , (x , ((sym (addZ x)) ∙ (right add (sym (multZ b))) , p))
+  aux Z Z void    | inr (d , p) = ZNotS p ~> λ{()}
   aux x (S c) q   | inr (d , p) =
     let r : add d b ≤ c
-        r = p ~> λ{refl → q} in
+        r = let H : S (add d b) ≤ S c
+                H = transport (λ i → p i ≤ S c) q in H in
    (λ{(t , u , v , w) → (S t) , u , 
      (x ≡⟨ p ⟩
       S(add d b) ≡⟨ cong S (comm d b) ⟩
@@ -164,3 +176,15 @@ division a b = aux a a (eqLe a)
       S(add u (add t (add b (mult b t)))) ≡⟨ cong S(cong(add u)(right add (sym(addOut b t))))⟩
       S(add u (add t (mult b (S t))))     ≡⟨ sym(Sout u (add t (mult b (S t))))⟩
       add u (S(add t (mult b (S t)))) ∎) , w}) $ aux d c (leAdd d b c r)
+
+open import Cubical.Data.Sigma.Properties
+
+≤isProp : (a b : Nat) → isProp (a ≤ b)
+≤isProp Z Z = isPropUnit
+≤isProp Z (S b) = isPropUnit
+≤isProp (S a) Z = isProp⊥
+≤isProp (S a) (S b) = ≤isProp a b
+
+finDiscrete : (n : Nat) → Discrete (fin n)
+finDiscrete n = discreteΣ natDiscrete λ a x y → yes (≤isProp ((S a)) n x y)
+  where open Cubical.Data.Sigma.Properties

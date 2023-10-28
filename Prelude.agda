@@ -1,11 +1,15 @@
-{-# OPTIONS  --without-K --safe #-}
+{-# OPTIONS  --without-K --cubical --safe #-}
 
-open import renameSetToType public
-
-data False : Type₀ where
-
-data True : Type₀ where
-  void : True
+open import Agda.Primitive public
+open import Cubical.Core.Everything renaming (Σ to Σ'; I to Interval) public
+open import Cubical.Foundations.Prelude hiding (Σ ; _∎ ; _≡⟨⟩_ ; step-≡)
+                                        renaming (I to Interval) public
+open import Cubical.Relation.Nullary public
+open import Cubical.Data.Unit renaming (Unit to ⊤) public
+open import Cubical.Data.Empty public
+open import Cubical.Data.Sigma renaming (∃ to ∃') hiding (Σ ; I) public
+open import Cubical.HITs.PropositionalTruncation
+                    renaming (map to map' ; rec to truncRec ; elim to truncElim)
 
 variable
     l l' al bl cl : Level
@@ -16,25 +20,11 @@ variable
 id : A → A
 id x = x
 
-¬ : Type l → Type l
-¬ a = a → False
-
-data _≡_ {A : Type l} (a : A) : A → Type l where
-  refl : a ≡ a
-infixl 4 _≡_
-
-_≠_ : {A : Type l} → A → A → Type l 
-a ≠ b = ¬(a ≡ b)
-
-sym : {a b : A} → a ≡ b → b ≡ a
-sym refl = refl
+_≢_ : {A : Type l} → A → A → Type l 
+a ≢ b = ¬(a ≡ b)
 
 eqTrans : {x y z : A} → x ≡ y → y ≡ z → x ≡ z
-eqTrans refl = id
-
--- congruence
-cong : (f : A → B) → {a b : A} → a ≡ b → f a ≡ f b
-cong f refl = refl
+eqTrans = _∙_
 
 -- Pipe Operator
 -- Equivalent to `|>` in F#
@@ -56,45 +46,37 @@ _$_ : (A → B) → A → B
 _$_ f a = f a
 infixr 0 _$_
 
-data _∨_ (A : Type l)(B : Type l') : Type(l ⊔ l') where
-  inl : A → A ∨ B
-  inr : B → A ∨ B
-infixr 3 _∨_
-
-decidable : Type l → Type l
-decidable A = A ∨ ¬ A
+data _＋_ (A : Type l)(B : Type l') : Type(l ⊔ l') where
+  inl : A → A ＋ B
+  inr : B → A ＋ B
+infixr 1 _＋_
 
 -- Explicitly exists
-data Σ {A : Type l} (P : A → Type l') : Type(l ⊔ l') where
-  _,_ : (a : A) → P a → Σ P
-infixr 6 _,_
+Σ : {A : Type l} → (P : A → Type l') → Type(l ⊔ l')
+Σ {A = A} = Σ' A
 
-_∧_ : (A : Type l)(B : Type l') → Type (l ⊔ l')
-_∧_ A B = Σ λ (_ : A) → B
-infixr 2 _∧_
+-- Merely exists
+∃ : {A : Type l} → (P : A → Type l') → Type(l ⊔ l')
+∃ {A = A} = ∃' A
 
 -- https://en.wikipedia.org/wiki/De_Morgan's_laws
-demorgan : ¬ A ∨ ¬ B → ¬(A ∧ B)
+demorgan : (¬ A) ＋ (¬ B) → ¬(A × B)
 demorgan (inl x) (a , _) = x a
 demorgan (inr x) (_ , b) = x b
 
-demorgan2 : ¬ A ∧ ¬ B → ¬(A ∨ B)
+demorgan2 : (¬ A) × (¬ B) → ¬(A ＋ B)
 demorgan2 (a , b) (inl x) = a x
 demorgan2 (a , b) (inr x) = b x
 
-demorgan3 : (¬(A ∨ B) → ¬ A ∧ ¬ B)
+demorgan3 : ¬(A ＋ B) → (¬ A) × (¬ B)
 demorgan3 z = (λ x → z (inl x)) , (λ x → z (inr x))
 
 implicit : Type l → Type l
 implicit A = ¬(¬ A)
 
 -- All types are implicitly decidable.
-implicitLEM : (A : Type l) → implicit(decidable A)
-implicitLEM A f = f (inr (λ x → f (inl x)))
-
--- Implicitly exists.
-∃ : {A : Type l} → (A → Type l') → Type(l ⊔ l')
-∃ f = implicit(Σ f)
+implicitLEM : (A : Type l) → implicit(Dec A)
+implicitLEM A f = f (no (λ x → f (yes x)))
 
 -- Function Composition
 _∘_ :  (B → C) → (A → B) → (A → C)
@@ -126,50 +108,54 @@ _>>=_ {m = m} mA p = μ (map p mA)
 _<*>_ : {m : Type l → Type l} → {{Monad m}} → m (A → B) → m A → m B
 _<*>_ {m = m} mf mA = mf >>= λ f → map f mA
 
+tcomp : (f : B → C) → (g : A → B) → (x : ∥ A ∥₁) → map' (f ∘ g) x ≡ (map' f ∘ map' g) x
+tcomp f g x = squash₁ (map' (f ∘ g) x) ((map' f ∘ map' g) x)
+
+truncNeg : ¬ ∥ A ∥₁ → ¬ A
+truncNeg = λ z z₁ → z ∣ z₁ ∣₁
+
 instance
   -- Double-negation is a functor and monad
-  dnFunctor : {l : Level} → Functor (implicit {l = l})
+  dnFunctor : Functor (implicit {l = l})
   dnFunctor = record { map = λ x y z → y (λ a → z (x a))
                      ; compPreserve = λ f g → λ x → refl
                      ; idPreserve = λ x → refl }
-  dnMonad : {l : Level} → Monad (implicit {l = l})
+  dnMonad : Monad (implicit {l = l})
   dnMonad = record { μ = λ x y → x (λ z → z y) ; η = λ x y → y x }
-
--- Proof that double-negation elimination is implicitly true.
-implicitDNElim : (A : Type l) → implicit ((implicit A) → A)
-implicitDNElim A = implicitLEM A >>= λ{ (inl x) → λ f → f (λ g → x)
-                                      ; (inr x) → λ f → f (λ g → g x ~> λ{()} )}
+  truncFunctor : Functor (∥_∥₁ {ℓ = l})
+  truncFunctor {l} = record {
+         map = λ f → truncRec squash₁ λ a → ∣ f a ∣₁
+       ; compPreserve = λ f g x → squash₁ (map' (f ∘ g) x) ((map' f ∘ map' g) x)
+       ; idPreserve = λ x → squash₁ (truncRec squash₁ (λ a → ∣ id a ∣₁) x) x }
+  truncMonad : Monad (∥_∥₁ {ℓ = l})
+  truncMonad = record { μ = transport (propTruncIdempotent squash₁) ; η = ∣_∣₁ }
 
 -- One of DeMorgan's laws that is only implicitly true.
-demorgan4 : implicit(¬(A ∧ B) → ¬ A ∨ ¬ B)
-demorgan4 {l} {A = A} {B = B} = implicitLEM (A ∨ B) >>= λ{ (inl (inl a)) → λ p
-  → p (λ q → inr (λ b → q (a , b))) ; (inl (inr b)) → λ p → p (λ q → inl (λ a → q (a , b)))
-  ; (inr x) → λ p → p (λ q → inl (λ a → x (inl a)))}
+demorgan4 : implicit(¬(A × B) → (¬ A) ＋ (¬ B))
+demorgan4 {l} {A = A} {B = B} = implicitLEM (A ＋ B) >>= λ{ (yes (inl a)) → λ p
+  → p (λ q → inr (λ b → q (a , b))) ; (yes (inr b)) → λ p → p (λ q → inl (λ a → q (a , b)))
+  ; (no x) → λ p → p (λ q → inl (λ a → x (inl a)))}
 
 DNOut : (A → implicit B) → implicit (A → B)
-DNOut {A = A} {B = B} f = implicitLEM (A ∧ (B ∨ ¬ B))
-         >>= λ{ (inl (a , b)) → let b' = f a in b ~> λ{ (inl b) → η (λ _ → b)
+DNOut {A = A} {B = B} f = implicitLEM (A × (B ＋ ¬ B))
+         >>= λ{ (yes (a , b)) → let b' = f a in b ~> λ{ (inl b) → η (λ _ → b)
                                                       ; (inr b) → b' b ~> λ{()}}
-                                                      ; (inr x) → let H = demorgan4 <*> η x in
+                                                      ; (no x) → let H = demorgan4 <*> η x in
        H >>= λ{ (inl x) → η (λ a → x a ~> λ{()})
               ; (inr x) → demorgan3 x ~> λ{(b , b') → b' b ~> λ{()}}}}
 
 demorgan5 : {P : A → Type l} → ¬(Σ λ(x : A) → P x) → (x : A) → ¬ (P x)
 demorgan5 p x q = p (x , q)
 
-cong2 : (f : A → B → C) → {a b : A} → {c d : B} → a ≡ b → c ≡ d → f a c ≡ f b d
-cong2 f refl refl = refl
-
 -- left argument
-left : (f : A → B → C) → {x y : A} → (x ≡ y) → {z : B} -> f x z ≡ f y z
-left _ refl = refl
+left : {B : A → Type l} {x y : A} (f : (a : A) → C → B a) (p : x ≡ y)
+        → {z : C} → PathP (λ i → B (p i)) (f x z) (f y z)
+left f p {z} i = f (p i) z
 
 -- right argument
-right : (f : A → B → C) → {x y : B} → (x ≡ y) → {z : A} -> f z x ≡ f z y
-right _ refl = refl
-
-transport : (f : A → Type l) → {a b : A} → a ≡ b → f a → f b
-transport f refl = id
+right : {B : A → Type l} (f : C → (a : A) → B a) {x y : A} (p : x ≡ y)
+        → {z : C} → PathP (λ i → B (p i)) (f z x) (f z y)
+right f p {z} i = f z (p i)
 
 -- https://en.wikipedia.org/wiki/Bijection,_injection_and_surjection
 
@@ -183,7 +169,7 @@ surjective {A = A} {B} f = (b : B) → ∃ λ(a : A) → f a ≡ b
 
 -- https://en.wikipedia.org/wiki/Bijection
 bijective : {A : Type l}{B : Type l'} → (A → B) → Type(l ⊔ l')
-bijective f = injective f ∧ surjective f
+bijective f = injective f × surjective f
 
 -- https://en.wikipedia.org/wiki/Inverse_function#Left_and_right_inverses
 
@@ -202,7 +188,7 @@ rInvToSurjective : {f : A → B} → rightInverse f → surjective f
 rInvToSurjective (rInv , r') = λ b → η ((rInv b) , (r' b))
 
 equiv : (A : Type l)(B : Type l') → Type (l ⊔ l')
-equiv A B = Σ λ (f : A → B) → injective f ∧ surjective f
+equiv A B = Σ λ (f : A → B) → injective f × surjective f
 
 -- Left side of a dependent pair.
 pr1 : {P : A → Type l} → Σ P → A
@@ -211,6 +197,9 @@ pr1 (a , _) = a
 -- Right side of a dependent pair.
 pr2 : {P : A → Type l} → (x : Σ P) → P (pr1 x)
 pr2 (_ , b) = b
+
+transpose : (B → C → A) → (C → B → A)
+transpose f x y = f y x
 
 -- Syntactic sugar to chain equalites along with its proof.
 _≡⟨_⟩_ : (x : A) → {y z : A} → x ≡ y → y ≡ z → x ≡ z
@@ -224,42 +213,3 @@ infixr 3 _≡⟨By-Definition⟩_
 _∎ : (x : A) → x ≡ x
 _ ∎ = refl
 infixl 4 _∎
-
-isProp : Type l → Type l
-isProp A = (x y : A) → x ≡ y
-
-isSet : Type l → Type l
-isSet A = (x y : A) → isProp (x ≡ y)
-
-discrete : Type l → Type l
-discrete A = (x y : A) → decidable (x ≡ y)
-
-⁻¹-left∙ : {X : Type l} {x y : X} (p : x ≡ y)
-         → eqTrans (sym p) p ≡ refl
-⁻¹-left∙ refl = refl
-
-⁻¹-right∙ : {X : Type l} {x y : X} (p : x ≡ y)
-          → eqTrans p (sym p) ≡ refl
-⁻¹-right∙ refl = refl
-
-Hedberg : {X : Type l} → discrete X → isSet X
-Hedberg {X = X} d = hedberg (hedberg-lemma d)
-  where
-    wconstant-endomap : Type l → Type l
-    wconstant-endomap A = Σ λ (f : A → A) → (x y : A) → f x ≡ f y
-    hedberg : ((x y : A) → wconstant-endomap (x ≡ y)) → isSet A
-    hedberg {A = X} c x y p q =
-     p                               ≡⟨ a y p ⟩
-     eqTrans(sym (f x refl)) (f y p) ≡⟨ cong (eqTrans (sym(f x refl))) (κ y p q)⟩
-     eqTrans(sym (f x refl)) (f y q) ≡⟨ sym (a y q)⟩
-     q ∎
-     where
-      f : (y : X) → x ≡ y → x ≡ y
-      f y = pr1 (c x y)
-      κ : (y : X) (p q : x ≡ y) → f y p ≡ f y q
-      κ y = pr2 (c x y)
-      a : (y : X) (p : x ≡ y) → p ≡ eqTrans (sym(f x refl)) (f y p)
-      a x refl = sym (⁻¹-left∙ (f x refl))
-    hedberg-lemma : {X : Type l} → discrete X → (x y : X) → wconstant-endomap (x ≡ y)
-    hedberg-lemma {X = X} d x y = d x y ~> λ{(inl x) → (λ _ → x) , (λ _ _ → refl)
-                                           ; (inr e) → id , λ x → e x ~> λ{()}}

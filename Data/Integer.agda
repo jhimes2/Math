@@ -1,4 +1,4 @@
-{-# OPTIONS --safe --without-K #-}
+{-# OPTIONS --safe --cubical --without-K #-}
 
 module Data.Integer where
 

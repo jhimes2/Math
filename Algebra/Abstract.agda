@@ -1,4 +1,4 @@
-{-# OPTIONS  --without-K --safe --overlapping-instances #-}
+{-# OPTIONS --cubical --without-K --safe --overlapping-instances #-}
 
 module Algebra.Abstract where
 
@@ -21,7 +21,7 @@ record monoid {A : Type l}(_∙_ : A → A → A) : Type(lsuc l) where
       IsSet : isSet A
       lIdentity : (a : A) → e ∙ a ≡ a
       rIdentity : (a : A) → a ∙ e ≡ a
-      overlap {{mAssoc}} : Associative _∙_
+      {{mAssoc}} : Associative _∙_
 
 -- https://en.wikipedia.org/wiki/Group_(mathematics)
 record group {A : Type l}(_∙_ : A → A → A) : Type(lsuc l) where
@@ -30,7 +30,7 @@ record group {A : Type l}(_∙_ : A → A → A) : Type(lsuc l) where
       IsSet : isSet A
       inverse : (a : A) → Σ λ(b : A) → b ∙ a ≡ e
       lIdentity : (a : A) → e ∙ a ≡ a
-      overlap {{gAssoc}} : Associative _∙_
+      {{gAssoc}} : Associative _∙_
 
 module _{_∙_ : A → A → A} {{G : group _∙_}} where
 
@@ -204,7 +204,7 @@ zero : {{SR : Rng A}} → A
 zero = e
 
 nonZero : {A : Type l} {{R : Rng A}} → Type l
-nonZero {A = A} = Σ λ (a : A) → a ≠ zero
+nonZero {A = A} = Σ λ (a : A) → a ≢ zero
 
 neg : {{R : Rng A}} → A → A
 neg = inv
@@ -301,12 +301,12 @@ open CRing {{...}} public
 record Field (A : Type l) : Type (lsuc l) where
   field
     {{fring}} : CRing A
-    oneNotZero : one ≠ zero
+    oneNotZero : one ≢ zero
     reciprocal : nonZero → A
     recInv : (a : nonZero) → reciprocal a * pr1 a ≡ one
 open Field {{...}} public
 
-reciprocalNonzeroCodomain : {{F : Field A}} (a : nonZero) → reciprocal a ≠ zero
+reciprocalNonzeroCodomain : {{F : Field A}} (a : nonZero) → reciprocal a ≢ zero
 reciprocalNonzeroCodomain (a , p) contra =
   let H : a * reciprocal (a , p) ≡ a * zero
       H = right _*_ contra in
@@ -316,7 +316,7 @@ reciprocalNonzeroCodomain (a , p) contra =
       F = eqTrans G (rMultZ a) in oneNotZero F
 
 -- Multiplying two nonzero values gives a nonzero value
-nonZeroMult : {{F : Field A}} (a b : nonZero) → (pr1 a * pr1 b) ≠ zero
+nonZeroMult : {{F : Field A}} (a b : nonZero) → (pr1 a * pr1 b) ≢ zero
 nonZeroMult (a , a') (b , b') = λ(f : (a * b) ≡ zero) →
   let H : reciprocal (a , a') * (a * b) ≡ reciprocal (a , a') * zero
       H = right _*_ f in
@@ -335,9 +335,9 @@ nonZMult (a , a') (b , b') = (a * b) , nonZeroMult (a , a') ((b , b'))
 
 -- https://en.wikipedia.org/wiki/Module_(mathematics)
 -- Try not to confuse 'Module' with Agda's built-in 'module' keyword.
-record Module {scalar : Type l} {{R : Ring scalar}} : Type (lsuc l) where
+record Module {scalar : Type l} {{R : Ring scalar}} (l' : Level) : Type (lsuc (l ⊔ l')) where
   field
-    vector : Type l
+    vector : Type l'
     _[+]_ : vector → vector → vector
     addvStr : abelianGroup _[+]_
     scale : scalar → vector → vector
@@ -345,11 +345,11 @@ record Module {scalar : Type l} {{R : Ring scalar}} : Type (lsuc l) where
                      → scale a (u [+] v) ≡ (scale a u) [+] (scale a v)
     vectorDistribute : (v : vector) → (a b : scalar)
                      → scale (a + b) v ≡ (scale a v) [+] (scale b v)
-    scalarAssoc : (v : vector) → (a b : scalar) → scale a (scale b v) ≡ scale (b * a) v
+    scalarAssoc : (v : vector) → (a b : scalar) → scale a (scale b v) ≡ scale (a * b) v
     scaleId : (v : vector) → scale one v ≡ v
 open Module {{...}} public
 
-module _{scalar : Type l}{{R : Ring scalar}}{{V : Module}} where
+module _{scalar : Type l}{{R : Ring scalar}}{{V : Module l'}} where
 
   vZero : vector
   vZero = e
@@ -385,18 +385,6 @@ module _{scalar : Type l}{{R : Ring scalar}}{{V : Module}} where
     scale c vZero                   ≡⟨ sym (rIdentity (scale c vZero))⟩
     scale c vZero [+] vZero ∎
 
-  scaleNegOneInv : (v : vector) → scale (neg one) v ≡ negV v
-  scaleNegOneInv v =
-    let H : scale one v [+] scale (neg one) v ≡ scale one v [+] negV v
-                         →  scale (neg one) v ≡ negV v     
-        H = grp.cancel (scale one v) in H $
-    scale one v [+] scale (neg one) v ≡⟨ sym (vectorDistribute v one (neg one))⟩
-    scale (one + neg one) v           ≡⟨ left scale (rInverse one)⟩
-    scale zero v                      ≡⟨ scaleZ v ⟩
-    vZero                             ≡⟨ sym (rInverse v)⟩
-    v [+] negV v                      ≡⟨ left _[+]_ (sym (scaleId v))⟩
-    scale one v [+] negV v ∎
-
   scaleInv : (v : vector) → (c : scalar) → scale (neg c) v ≡ (negV (scale c v))
   scaleInv v c =
     let H : scale (neg c) v [+] negV(negV(scale c v)) ≡ vZero
@@ -408,8 +396,14 @@ module _{scalar : Type l}{{R : Ring scalar}}{{V : Module}} where
     scale zero v                              ≡⟨ scaleZ v ⟩
     vZero ∎
 
+  scaleNegOneInv : (v : vector) → scale (neg one) v ≡ negV v
+  scaleNegOneInv v =
+    scale (neg one) v ≡⟨ scaleInv v one ⟩
+    negV (scale one v) ≡⟨ cong negV (scaleId v) ⟩
+    negV v ∎
+
 -- Not necessarily a linear span since we're using a module instead of a vector space
-  data Span (X : vector → Type l) : vector → Type l where
+  data Span (X : vector → Type al) : vector → Type (l ⊔ l' ⊔ al) where
     intro : {v : vector} → v ∈ X → v ∈ Span X
     spanAdd : {v : vector} → v ∈ Span X → {u : vector} → u ∈ Span X → v [+] u ∈ Span X
     spanScale : {v : vector} → v ∈ Span X → (c : scalar) → scale c v ∈ Span X
@@ -422,26 +416,27 @@ module _{scalar : Type l}{{R : Ring scalar}}{{V : Module}} where
   spanJoin X x (spanScale {v} p c) = spanScale (spanJoin X v p) c
 
   -- Not necessarily a linear subspace.
-  record Subspace (X : vector → Type l) : Type (lsuc l)
+  record Subspace (X : vector → Type al) : Type (lsuc (al ⊔ l ⊔ l'))
     where field
         ssZero : X vZero 
         ssAdd : {v u : vector} → v ∈ X → u ∈ X → v [+] u ∈ X
         ssScale : {v : vector} → v ∈ X → (c : scalar) → scale c v ∈ X
 
-<_> : {A : Type l}{{F : Ring A}}(V : Module) → Type l
+<_> : {A : Type l}{{F : Ring A}}(V : Module l') → Type l'
 < V > = Module.vector V
 
 -- https://en.wikipedia.org/wiki/Module_homomorphism
 record moduleHomomorphism  {A : Type l}
                           {{R : Ring A}}
-                          {{V U : Module}}
-                           (T : < U > → < V >) : Type l
+                          {{V : Module l'}}
+                          {{U : Module al}}
+                           (T : < U > → < V >) : Type (l ⊔ l' ⊔ al)
   where field
   addT : (u v : vector) →  T (u [+] v) ≡ T u [+] T v
   multT : (u : vector) → (c : A) → T (scale c u) ≡ scale c (T u)
 open moduleHomomorphism {{...}} public 
 
-module _ {scalar : Type l}{{R : Ring scalar}}{{V U : Module}}
+module _ {scalar : Type l}{{R : Ring scalar}}{{V U : Module l'}}
          (T : < U > → < V >){{TLT : moduleHomomorphism T}} where
 
   modHomomorphismZ : T vZero ≡ vZero
@@ -453,7 +448,7 @@ module _ {scalar : Type l}{{R : Ring scalar}}{{V U : Module}}
 
   -- If 'T' and 'R' are module homomorphisms and are composable, then 'R ∘ T' is
   -- a module homomorphism.
-  modHomomorphismComp : {{W : Module}}
+  modHomomorphismComp : {{W : Module l'}}
                →  (R : < V > → < W >)
                → {{SLT : moduleHomomorphism R}}
                → moduleHomomorphism (R ∘ T)
@@ -461,7 +456,7 @@ module _ {scalar : Type l}{{R : Ring scalar}}{{V U : Module}}
      record { addT = λ u v → eqTrans (cong R (addT u v)) (addT (T u) (T v))
             ; multT = λ u c → eqTrans (cong R (multT u c)) (multT (T u) c) }
 
-week7 : {{CR : CRing A}} → {{V : Module}}
+week7 : {{CR : CRing A}} → {{V : Module l'}}
       → (T : < V > → < V >) → {{TLT : moduleHomomorphism T}}
       → (c : A) → Subspace (λ x → T x ≡ scale c x)
 week7 T c = record
@@ -470,14 +465,14 @@ week7 T c = record
                scale c vZero ∎
     ; ssAdd = λ {v} {u} (p : T v ≡ scale c v) (q : T u ≡ scale c u) →
                    T (v [+] u)             ≡⟨ addT v u ⟩
-                   T v [+] T u             ≡⟨ cong2 _[+]_ p q ⟩
+                   T v [+] T u             ≡⟨ cong₂ _[+]_ p q ⟩
                    scale c v [+] scale c u ≡⟨ sym (scalarDistribute c v u)⟩
                    scale c (v [+] u) ∎
     ; ssScale = λ {v} (p : T v ≡ scale c v) d →
                    T (scale d v)       ≡⟨ multT v d ⟩
                    scale d (T v)       ≡⟨ right scale p ⟩
                    scale d (scale c v) ≡⟨ scalarAssoc v d c ⟩
-                   scale (c * d) v     ≡⟨ left scale (comm c d)⟩
-                   scale (d * c) v     ≡⟨ sym (scalarAssoc v c d)⟩
+                   scale (d * c) v     ≡⟨ left scale (comm d c)⟩
+                   scale (c * d) v     ≡⟨ sym (scalarAssoc v c d)⟩
                    scale c (scale d v) ∎
     }

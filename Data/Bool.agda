@@ -1,4 +1,4 @@
-{-# OPTIONS --overlapping-instances --without-K #-}
+{-# OPTIONS --overlapping-instances --cubical #-}
 
 module Data.Bool where
 
@@ -6,87 +6,87 @@ open import Prelude
 open import Algebra.Abstract
 
 data Bool : Type₀ where
-  yes : Bool
-  no : Bool
+  Yes : Bool
+  No : Bool
 
 not : Bool → Bool
-not yes = no
-not no = yes
+not Yes = No
+not No = Yes
 
 xor : Bool → Bool → Bool
-xor yes b = not b
-xor no b = b
+xor Yes b = not b
+xor No b = b
 
 and : Bool → Bool → Bool
-and yes b = b
-and no _ = no
+and Yes b = b
+and No _ = No
 
-yesNEqNo : yes ≠ no
-yesNEqNo p = eqToSetoid p
+YesNEqNo : Yes ≢ No
+YesNEqNo p = eqToSetoid p
  where
     setoid : Bool → Bool → Type₀
-    setoid yes yes = True
-    setoid no no = True
-    setoid _ _ = False
+    setoid Yes Yes = ⊤
+    setoid No No = ⊤
+    setoid _ _ = ⊥
     eqToSetoid : {a b : Bool} → a ≡ b → setoid a b
-    eqToSetoid {yes} refl = void
-    eqToSetoid {no} refl = void
+    eqToSetoid {Yes} p = transport (λ i → setoid Yes (p i)) tt
+    eqToSetoid {No} p = transport (λ i → setoid No (p i)) tt
 
-boolDiscrete : discrete Bool
-boolDiscrete yes yes = inl refl
-boolDiscrete yes no = inr yesNEqNo
-boolDiscrete no yes = inr (λ x → yesNEqNo (sym x))
-boolDiscrete no no = inl refl
+boolDiscrete : Discrete Bool
+boolDiscrete Yes Yes = yes refl
+boolDiscrete Yes No = no YesNEqNo
+boolDiscrete No Yes = no (λ x → YesNEqNo (sym x))
+boolDiscrete No No = yes refl
 
 instance
   andAssoc : Associative and
-  andAssoc = record { assoc = λ{ yes _ _ → refl
-                               ; no _ _ → refl} }
+  andAssoc = record { assoc = λ{ Yes _ _ → refl
+                               ; No _ _ → refl} }
   andCom : Commutative and
-  andCom = record { comm = λ{ yes yes → refl
-                                   ; yes no → refl
-                                   ; no yes → refl
-                                   ; no no → refl}}
+  andCom = record { comm = λ{ Yes Yes → refl
+                                   ; Yes No → refl
+                                   ; No Yes → refl
+                                   ; No No → refl}}
   andMonoid : monoid and
-  andMonoid = record { e = yes
-                     ; IsSet = Hedberg boolDiscrete
+  andMonoid = record { e = Yes
+                     ; IsSet = Discrete→isSet boolDiscrete
                      ; lIdentity = λ _ → refl
-                     ; rIdentity = λ{ yes → refl
-                                    ; no → refl} }
+                     ; rIdentity = λ{ Yes → refl
+                                    ; No → refl} }
   xorAssoc : Associative xor
-  xorAssoc = record { assoc = λ{ yes yes yes → refl
-                               ; yes yes no → refl
-                               ; yes no _ → refl
-                               ; no _ _ → refl}}
+  xorAssoc = record { assoc = λ{ Yes Yes Yes → refl
+                               ; Yes Yes No → refl
+                               ; Yes No _ → refl
+                               ; No _ _ → refl}}
   xorGroup : group xor
-  xorGroup = record { e = no
-                    ; IsSet = Hedberg boolDiscrete
-                    ; inverse = λ{ yes → yes , refl
-                                 ; no → no , refl}
+  xorGroup = record { e = No
+                    ; IsSet = Discrete→isSet boolDiscrete
+                    ; inverse = λ{ Yes → Yes , refl
+                                 ; No → No , refl}
                     ; lIdentity = λ _ → refl }
   xorCom : Commutative xor
-  xorCom = record { comm = λ{ yes yes → refl
-                                   ; yes no → refl
-                                   ; no yes → refl
-                                   ; no no → refl}}
+  xorCom = record { comm = λ{ Yes Yes → refl
+                                   ; Yes No → refl
+                                   ; No Yes → refl
+                                   ; No No → refl}}
   xorAbelian : abelianGroup xor
   xorAbelian = record {}
   boolRng : Rng Bool
   boolRng = record { _+_ = xor
                    ; _*_ = and
-                   ; lDistribute = λ{ yes _ _ → refl
-                                    ; no _ _ → refl}
-                   ; rDistribute = λ{ yes yes yes → refl
-                                    ; yes yes no → refl
-                                    ; no yes yes → refl
-                                    ; no yes no → refl
-                                    ; _ no _ → refl}}
+                   ; lDistribute = λ{ Yes _ _ → refl
+                                    ; No _ _ → refl}
+                   ; rDistribute = λ{ Yes Yes Yes → refl
+                                    ; Yes Yes No → refl
+                                    ; No Yes Yes → refl
+                                    ; No Yes No → refl
+                                    ; _ No _ → refl}}
   boolRing : Ring Bool
   boolRing = record {}
   boolCRing : CRing Bool
   boolCRing = record {}
   boolField : Field Bool
-  boolField = record { oneNotZero = yesNEqNo
+  boolField = record { oneNotZero = YesNEqNo
                      ; reciprocal = pr1
-                     ; recInv = λ{ (yes , x) → refl
-                                 ; (no , x) → x refl ~> λ{()} }}
+                     ; recInv = λ{ (Yes , x) → refl
+                                 ; (No , x) → x refl ~> λ{()} }}
