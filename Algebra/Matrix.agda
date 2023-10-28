@@ -48,8 +48,8 @@ Matrix A n m = [ [ A ^ n ] ^ m ]
 instance
   fvect : Functor λ(A : Type l) → B → A
   fvect = record { map = λ f v x → f (v x)
-                 ; compPreserve = λ f g x → refl
-                 ; idPreserve = λ x → refl }
+                 ; compPreserve = λ f g → funExt λ x → refl
+                 ; idPreserve = funExt λ x → refl }
   mvect : {B : Type l} → Monad λ(A : Type l) → B → A
   mvect = record { μ = λ f a → f a a
                  ; η = λ x _ → x }
