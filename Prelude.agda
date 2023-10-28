@@ -201,6 +201,9 @@ pr2 (_ , b) = b
 transpose : (B → C → A) → (C → B → A)
 transpose f x y = f y x
 
+transposeInvolution : (f : B → C → A) → transpose (transpose f) ≡ f
+transposeInvolution M = funExt λ x → funExt λ y → refl
+
 -- Syntactic sugar to chain equalites along with its proof.
 _≡⟨_⟩_ : (x : A) → {y z : A} → x ≡ y → y ≡ z → x ≡ z
 _ ≡⟨ x≡y ⟩ y≡z = eqTrans x≡y y≡z

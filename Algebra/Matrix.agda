@@ -183,10 +183,6 @@ instance
   LTMT : {{F : Field A}} → {M : fin n → B → A} → LinearMap (MT {n = n} M)
   LTMT {n = n} {{F}} {M = M} = MHMT {n = n}
 
-transposeInvolution : {{R : Ring A}} → (M : B → C → A) → transpose (transpose M) ≡ M
-transposeInvolution M = funExt λ x → funExt λ y → refl
-
-
 indicateEqRing : {{R : Ring A}} → (n : Nat) → {a b : fin n} → Dec (a ≡ b) → A
 indicateEqRing n (yes p) = one
 indicateEqRing n (no ¬p) = zero
