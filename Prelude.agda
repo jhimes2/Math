@@ -87,8 +87,8 @@ f ∘ g = λ a → f (g a)
 record Functor (F : Type al → Type bl) : Type (lsuc al ⊔ lsuc bl)  where
   field
     map : (A → B) → F A → F B
-    compPreserve : (f : B → C) → (g : A → B) → (x : F A) → map (f ∘ g) x ≡ (map f ∘ map g) x
-    idPreserve : (x : F A) → map {A = A} id x ≡ x
+    compPreserve : (f : B → C) → (g : A → B) → map (f ∘ g) ≡ (map f ∘ map g)
+    idPreserve : map {A = A} id ≡ id
 open Functor {{...}} public
 
 -- https://en.wikipedia.org/wiki/Monad_(functional_programming)
@@ -118,15 +118,15 @@ instance
   -- Double-negation is a functor and monad
   dnFunctor : Functor (implicit {l = l})
   dnFunctor = record { map = λ x y z → y (λ a → z (x a))
-                     ; compPreserve = λ f g → λ x → refl
-                     ; idPreserve = λ x → refl }
+                     ; compPreserve = λ f g → funExt λ x → refl
+                     ; idPreserve = funExt λ x → refl }
   dnMonad : Monad (implicit {l = l})
   dnMonad = record { μ = λ x y → x (λ z → z y) ; η = λ x y → y x }
   truncFunctor : Functor (∥_∥₁ {ℓ = l})
   truncFunctor {l} = record {
          map = λ f → truncRec squash₁ λ a → ∣ f a ∣₁
-       ; compPreserve = λ f g x → squash₁ (map' (f ∘ g) x) ((map' f ∘ map' g) x)
-       ; idPreserve = λ x → squash₁ (truncRec squash₁ (λ a → ∣ id a ∣₁) x) x }
+       ; compPreserve = λ f g → funExt λ x → squash₁ (map' (f ∘ g) x) ((map' f ∘ map' g) x)
+       ; idPreserve = funExt λ x → squash₁ (truncRec squash₁ (λ a → ∣ id a ∣₁) x) x }
   truncMonad : Monad (∥_∥₁ {ℓ = l})
   truncMonad = record { μ = transport (propTruncIdempotent squash₁) ; η = ∣_∣₁ }
 
