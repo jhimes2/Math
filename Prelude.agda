@@ -10,6 +10,7 @@ open import Cubical.Data.Empty public
 open import Cubical.Data.Sigma renaming (∃ to ∃') hiding (Σ ; I) public
 open import Cubical.HITs.PropositionalTruncation
                     renaming (map to map' ; rec to truncRec ; elim to truncElim)
+open import Cubical.Foundations.Powerset public
 
 variable
     l l' al bl cl : Level
@@ -32,13 +33,12 @@ _~>_ : A → (A → B) → B
 a ~> f = f a
 infixr 0 _~>_
 
-_∈_ : A → (A → Type l) → Type l
-_∈_ = _~>_
-infixr 0 _∈_
+ℙ' : Type l → Type (lsuc l)
+ℙ' {l} A = A → Type l
 
-_∉_ : A → (A → Type l) → Type l
-a ∉ f = ¬(a ∈ f)
-infixr 0 _∉_
+_∈'_ : A → (A → Type l) → Type l
+_∈'_ = _~>_
+infixr 5 _∈'_
 
 -- Function application operator
 -- Equivalent to `$` in Haskell

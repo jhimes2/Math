@@ -19,6 +19,8 @@ open import Cubical.Foundations.Isomorphism
 
 variable
   n m : Nat
+  dl : Level
+  D : Type dl
 
 [_^_] : Type l → Nat → Type l
 [_^_] A n = fin n → A
@@ -131,6 +133,20 @@ instance
             ; scalarAssoc = λ v c d → funExt λ x → assoc c d (v x)
             ; scaleId = λ v → funExt λ x → lIdentity (v x)
             }
+
+mt : {{R : Ring A}} → ((C → A) → A) → (C → B → A) → (C → A) → (B → A)
+mt fold M v x = fold (zip _*_ v λ y → M y x)
+
+mmult : {{R : Ring C}} {B : Type l}{D : Type l'} → (fold : (A → C) → C) → (A → B → C) → (D → A → C) → D → B → C
+mmult fold M N c = mt fold M (N c)
+
+--genMatrix : {{R : Ring C}}
+--          → (fold : (A → C) → C)
+--          → ((M : A → B → C) → moduleHomomorphism (mt fold M))
+--          → (f : A → B → C)
+--           → (g : D → A → C)
+--           → transpose(mmult fold f g) ≡ mmult fold (transpose g) (transpose f)
+--genMatrix = λ LT x f g → funExt λ y → funExt λ z → {!!}
 
 foldrMC : {_∙_ : A → A → A}{{M : monoid _∙_}}{{C : Commutative _∙_}} → (u v : [ A ^ n ])
      → foldr _∙_ e {n} (zip _∙_ u v) ≡ foldr _∙_ e {n} u ∙ foldr _∙_ e {n} v

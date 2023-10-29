@@ -3,6 +3,7 @@
 module Algebra.Abstract where
 
 open import Prelude public
+open import Cubical.Foundations.HLevels
 
 record Associative {A : Type l}(f : A → A → A) : Type(lsuc l) where
   field
@@ -297,6 +298,23 @@ record CRing (A : Type l) : Type (lsuc l) where
     {{ringCom}} : Commutative _*_
 open CRing {{...}} public
 
+multInvUnique : {{R : CRing A}} → (r : A) → isProp (Σ λ(r' : A) → r * r' ≡ one)
+multInvUnique {{R}} r (r' , rr'≡1) (r'' , rr''≡1) =
+   let isset = monoid.IsSet (Ring.multStr (CRing.crring R)) in
+   Σ≡Prop (λ x → isset (r * x) one) path
+  where
+  path : r' ≡ r''
+  path = r'              ≡⟨ sym (rIdentity r') ⟩
+         r' * one        ≡⟨ cong (r' *_) (sym rr''≡1) ⟩
+         r' * (r * r'')  ≡⟨ assoc r' r r'' ⟩
+         (r' * r) * r''  ≡⟨ cong (_* r'') (comm r' r) ⟩
+         (r * r') * r''  ≡⟨ cong (_* r'') rr'≡1 ⟩
+         one * r''       ≡⟨ lIdentity r'' ⟩
+         r''            ∎
+
+--_ˣ : {A : Type l} {{R : CRing A}} → A → Type l
+--r ˣ = (Σ λ r' → r * r' ≡ one) , multInvUnique r
+
 -- https://en.wikipedia.org/wiki/Field_(mathematics)
 record Field (A : Type l) : Type (lsuc l) where
   field
@@ -404,11 +422,22 @@ module _{scalar : Type l}{{R : Ring scalar}}{{V : Module l'}} where
 
 -- Not necessarily a linear span since we're using a module instead of a vector space
   data Span (X : vector → Type al) : vector → Type (l ⊔ l' ⊔ al) where
+    intro : {v : vector} → v ∈' X → v ∈' Span X
+    spanAdd : {v : vector} → v ∈' Span X → {u : vector} → u ∈' Span X → v [+] u ∈' Span X
+    spanScale : {v : vector} → v ∈' Span X → (c : scalar) → scale c v ∈' Span X
+
+{- Here's how I wish I can define 'Span'
+
+  data Span (X : ℙ vector) : ℙ vector where
     intro : {v : vector} → v ∈ X → v ∈ Span X
     spanAdd : {v : vector} → v ∈ Span X → {u : vector} → u ∈ Span X → v [+] u ∈ Span X
     spanScale : {v : vector} → v ∈ Span X → (c : scalar) → scale c v ∈ Span X
 
-  spanJoin : (X : vector → Type l) → (x : vector) → x ∈ (Span ∘ Span) X → x ∈ Span X
+-- Unfortunately, the 'final codomain' of a data definition should be a sort,
+-- and there's no 'Prop' sort in safe Agda.
+-}
+
+  spanJoin : (X : vector → Type l) → (x : vector) → x ∈' (Span ∘ Span) X → x ∈' Span X
   spanJoin X x (intro p) = p
   spanJoin X x (spanAdd {v} p {u} q) =
       let H = spanJoin X v p in
@@ -419,8 +448,8 @@ module _{scalar : Type l}{{R : Ring scalar}}{{V : Module l'}} where
   record Subspace (X : vector → Type al) : Type (lsuc (al ⊔ l ⊔ l'))
     where field
         ssZero : X vZero 
-        ssAdd : {v u : vector} → v ∈ X → u ∈ X → v [+] u ∈ X
-        ssScale : {v : vector} → v ∈ X → (c : scalar) → scale c v ∈ X
+        ssAdd : {v u : vector} → v ∈' X → u ∈' X → v [+] u ∈' X
+        ssScale : {v : vector} → v ∈' X → (c : scalar) → scale c v ∈' X
 
 <_> : {A : Type l}{{F : Ring A}}(V : Module l') → Type l'
 < V > = Module.vector V
