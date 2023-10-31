@@ -1,7 +1,8 @@
-{-# OPTIONS --cubical --safe --overlapping-instances #-}
+{-# OPTIONS --cubical --overlapping-instances #-}
 
 open import Agda.Primitive
 open import Algebra.Linear
+open import Algebra.Matrix
 open import Data.Natural
 
 instance
@@ -37,3 +38,6 @@ dualSpace {l = l} {l' = l'} VS =
  
 finDecrInj : {n m : Nat} → (f : fin (S n) → fin (S m)) → ((x y : fin (S n)) → f x ≡ f y → x ≡ y) → Σ λ(g : fin n → fin m) → injective g
 finDecrInj {n} {m} f fInj = {!!}
+
+generalized-field-property : {{R : CRing A}} → {n : Nat} → (xs : [ A ^ n ]) → xs ≢ (λ _ → zero) → ∃ λ i → xs i ∈ A ˣ
+generalized-field-property {A = A} xs xs≢0 = {!!}

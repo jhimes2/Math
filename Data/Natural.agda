@@ -53,6 +53,10 @@ natSetoidToEq {S a} {S b} p = cong S (natSetoidToEq p)
 SInjective : injective S
 SInjective p = natSetoidToEq (eqToNatSetoid p)
 
+natCancel : {a b : Nat} → (c : Nat) → add c a ≡ add c b → a ≡ b
+natCancel Z p = p
+natCancel {a} {b} (S c) p = natCancel c (SInjective p) 
+
 ZNotS : {n : Nat} → Z ≢ S n
 ZNotS p = eqToNatSetoid p
 

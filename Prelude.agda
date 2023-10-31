@@ -40,6 +40,9 @@ _∈'_ : A → (A → Type l) → Type l
 _∈'_ = _~>_
 infixr 5 _∈'_
 
+modusTollens : (A → B) → ¬ B → ¬ A
+modusTollens f Bn a = Bn (f a)
+
 -- Function application operator
 -- Equivalent to `$` in Haskell
 _$_ : (A → B) → A → B
@@ -117,7 +120,7 @@ truncNeg = λ z z₁ → z ∣ z₁ ∣₁
 instance
   -- Double-negation is a functor and monad
   dnFunctor : Functor (implicit {l = l})
-  dnFunctor = record { map = λ x y z → y (λ a → z (x a))
+  dnFunctor = record { map = λ f y z → y (λ a → z (f a))
                      ; compPreserve = λ f g → funExt λ x → refl
                      ; idPreserve = funExt λ x → refl }
   dnMonad : Monad (implicit {l = l})
@@ -130,7 +133,6 @@ instance
   truncMonad : Monad (∥_∥₁ {ℓ = l})
   truncMonad = record { μ = transport (propTruncIdempotent squash₁) ; η = ∣_∣₁ }
 
--- One of DeMorgan's laws that is only implicitly true.
 demorgan4 : implicit(¬(A × B) → (¬ A) ＋ (¬ B))
 demorgan4 {l} {A = A} {B = B} = implicitLEM (A ＋ B) >>= λ{ (yes (inl a)) → λ p
   → p (λ q → inr (λ b → q (a , b))) ; (yes (inr b)) → λ p → p (λ q → inl (λ a → q (a , b)))
@@ -140,12 +142,18 @@ DNOut : (A → implicit B) → implicit (A → B)
 DNOut {A = A} {B = B} f = implicitLEM (A × (B ＋ ¬ B))
          >>= λ{ (yes (a , b)) → let b' = f a in b ~> λ{ (inl b) → η (λ _ → b)
                                                       ; (inr b) → b' b ~> λ{()}}
-                                                      ; (no x) → let H = demorgan4 <*> η x in
-       H >>= λ{ (inl x) → η (λ a → x a ~> λ{()})
-              ; (inr x) → demorgan3 x ~> λ{(b , b') → b' b ~> λ{()}}}}
+              ; (no x) → let H = demorgan4 <*> η x in
+                 H >>= λ{ (inl x) → η (λ a → x a ~> λ{()})
+                        ; (inr x) → demorgan3 x ~> λ{(b , b') → b' b ~> λ{()}}}}
 
-demorgan5 : {P : A → Type l} → ¬(Σ λ(x : A) → P x) → (x : A) → ¬ (P x)
+demorgan5 : {P : A → Type l} → ¬(Σ P) → (x : A) → ¬ (P x)
 demorgan5 p x q = p (x , q)
+
+demorgan6 : {P : A → Type l} → ((a : A) → ¬ P a) → ¬ Σ P
+demorgan6 f (a , p) = f a p
+
+demorgan7 : {P : A → Type l} → ¬ ((x : A) → implicit (P x)) → implicit (Σ λ x → ¬ P x)
+demorgan7 g f = g λ x → λ z → f (x , z)
 
 -- left argument
 left : {B : A → Type l} {x y : A} (f : (a : A) → C → B a) (p : x ≡ y)

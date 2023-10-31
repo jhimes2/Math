@@ -4,6 +4,8 @@ module Algebra.Abstract where
 
 open import Prelude public
 open import Cubical.Foundations.HLevels
+open import Cubical.HITs.PropositionalTruncation
+                    renaming (map to map' ; rec to truncRec ; elim to truncElim)
 
 record Associative {A : Type l}(f : A → A → A) : Type(lsuc l) where
   field
@@ -312,8 +314,8 @@ multInvUnique {{R}} r (r' , rr'≡1) (r'' , rr''≡1) =
          one * r''       ≡⟨ lIdentity r'' ⟩
          r''            ∎
 
---_ˣ : {A : Type l} {{R : CRing A}} → A → Type l
---r ˣ = (Σ λ r' → r * r' ≡ one) , multInvUnique r
+_ˣ : (A : Type l) → {{R : CRing A}} → ℙ A
+(A ˣ) r = (Σ λ r' → r * r' ≡ one) , multInvUnique r
 
 -- https://en.wikipedia.org/wiki/Field_(mathematics)
 record Field (A : Type l) : Type (lsuc l) where
