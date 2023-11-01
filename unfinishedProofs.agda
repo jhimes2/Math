@@ -4,14 +4,19 @@ open import Agda.Primitive
 open import Algebra.Linear
 open import Algebra.Matrix
 open import Data.Natural
+open import Cubical.Data.Sigma.Properties
+open import Cubical.Foundations.HLevels
+open import Cubical.Foundations.Isomorphism
+
+VSIsProp : {{F : Field A}} → {{VS : VectorSpace l}}{{VS' : VectorSpace l'}} → (LT : < VS > → < VS' >) → isProp (LinearMap LT)
+VSIsProp = {!!}
 
 instance
   LFCom : {{F : Field A}}{{VS : VectorSpace {scalar = A} l}} → Commutative (dualSum VS)
   LFCom {{F = F}} = record { comm = λ {(T , record {addT = addTT ; multT = multTT})
                                     (R , record {addT = addTR ; multT = multTR})
-                                    → ΣPathPProp {!!} {!!}
+                                    → ΣPathPProp (λ LT → VSIsProp LT) {!!}
                            }}
-   where open import Cubical.Data.Sigma.Properties
   LFAssoc : {{F : Field A}}{{VS : VectorSpace {scalar = A} l}} → Associative (dualSum VS)
   LFAssoc = record { assoc = λ a b c → {!!} }
   LFGroup : {{F : Field A}}{{VS : VectorSpace {scalar = A} l}} → group (dualSum VS)
