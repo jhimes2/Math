@@ -90,3 +90,4 @@ addℤ = rec2 (Discrete→isSet ℤDiscrete)
       add (add p1 n1) (add p3 n2) ≡⟨ assocCom4 p1 n1 p3 n2 ⟩
       add (add p1 p3) (add n1 n2) ∎
     }
+

@@ -1,4 +1,4 @@
-{-# OPTIONS --cubical --without-K --safe --overlapping-instances #-}
+{-# OPTIONS --cubical --safe --overlapping-instances #-}
 
 module Algebra.Abstract where
 

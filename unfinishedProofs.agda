@@ -9,13 +9,13 @@ open import Cubical.Foundations.HLevels
 open import Cubical.Foundations.Isomorphism
 
 VSIsProp : {{F : Field A}} → {{VS : VectorSpace l}}{{VS' : VectorSpace l'}} → (LT : < VS > → < VS' >) → isProp (LinearMap LT)
-VSIsProp = {!!}
+VSIsProp = λ LT x y → {!!}
 
 instance
   LFCom : {{F : Field A}}{{VS : VectorSpace {scalar = A} l}} → Commutative (dualSum VS)
   LFCom {{F = F}} = record { comm = λ {(T , record {addT = addTT ; multT = multTT})
                                     (R , record {addT = addTR ; multT = multTR})
-                                    → ΣPathPProp (λ LT → VSIsProp LT) {!!}
+                                    → ΣPathPProp VSIsProp {!!}
                            }}
   LFAssoc : {{F : Field A}}{{VS : VectorSpace {scalar = A} l}} → Associative (dualSum VS)
   LFAssoc = record { assoc = λ a b c → {!!} }
@@ -44,5 +44,14 @@ dualSpace {l = l} {l' = l'} VS =
 finDecrInj : {n m : Nat} → (f : fin (S n) → fin (S m)) → ((x y : fin (S n)) → f x ≡ f y → x ≡ y) → Σ λ(g : fin n → fin m) → injective g
 finDecrInj {n} {m} f fInj = {!!}
 
-generalized-field-property : {{R : CRing A}} → {n : Nat} → (xs : [ A ^ n ]) → xs ≢ (λ _ → zero) → ∃ λ i → xs i ∈ A ˣ
-generalized-field-property {A = A} xs xs≢0 = {!!}
+_¬¬=_ : (¬ ¬ A) → (A → ¬ B) → ¬ B
+x ¬¬= f = λ z → x (λ z₁ → f z₁ z)
+
+generalized-field-property : {n : Nat} → (xs : [ A ^ n ]) → {a : A} → xs ≢ (λ _ → a) → ¬ ¬(Σ λ i → xs i ≢ a)
+generalized-field-property {n = Z} xs p contra = p (funExt (λ{()}))
+generalized-field-property {n = S n} xs {a} p = implicitLEM (head xs ≡ a)
+     >>= λ{ (yes q) → let rec = generalized-field-property {n = n} (tail xs) (aux p q) in map (λ{(x , x') → finS x , x'}) rec
+     ; (no ¬p) → η ((Z , tt) , ¬p)}
+ where
+  aux : {n : Nat} → {xs : [ A ^ S n ]} → {a : A} → xs ≢ (λ _ → a) → head xs ≡ a → tail xs ≢ (λ _ → a)
+  aux {xs} nEq headEq contra = nEq $ funExt λ{ (Z , x') → headEq ; (S x , x') → funRed contra (x , x')}

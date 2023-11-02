@@ -3,6 +3,8 @@
 module Data.Natural where
 
 open import Algebra.Abstract public
+open import Cubical.Foundations.Pointed
+open import Cubical.Foundations.Pointed.Homogeneous
 
 data Nat : Type₀ where
   Z : Nat
@@ -128,6 +130,11 @@ leS : {n m : Nat} → S n ≤ m → n ≤ m
 leS {Z} {S m} p = tt
 leS {S n} {S m} p = leS {n} {m} p
 
+leS2 : (n m : Nat) → n ≤ m → n ≤ S m
+leS2 Z Z p = tt
+leS2 Z (S m) p = tt
+leS2 (S n) (S m) p = leS2 n m p
+
 leRefl : (n : Nat) → n ≤ n
 leRefl Z = tt
 leRefl (S n) = leRefl n
@@ -138,6 +145,9 @@ a < b = S a ≤ b
 -- finite Sets
 fin : Nat → Type₀
 fin n = (Σ' Nat λ x → x < n)
+
+finS : {n : Nat} → fin n → fin (S n)
+finS {n = n} (x , x') = S x , x'
 
 leAdd : (z n c : Nat) → add z n ≤ c → z ≤ c
 leAdd Z n c p = tt
@@ -192,3 +202,6 @@ open import Cubical.Data.Sigma.Properties
 finDiscrete : (n : Nat) → Discrete (fin n)
 finDiscrete n = discreteΣ natDiscrete λ a x y → yes (≤isProp ((S a)) n x y)
   where open Cubical.Data.Sigma.Properties
+
+NatHomogeneous : isHomogeneous (Nat , Z)
+NatHomogeneous = isHomogeneousDiscrete natDiscrete
