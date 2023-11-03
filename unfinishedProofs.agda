@@ -9,15 +9,11 @@ open import Cubical.Foundations.HLevels
 open import Cubical.Foundations.Isomorphism
 
 instance
-  LFCom : {{F : Field A}}{{VS : VectorSpace {scalar = A} B}} → Commutative (dualSum VS)
-  LFCom {{F = F}} = record { comm = λ {(T , record {addT = addTT ; multT = multTT})
-                                    (R , record {addT = addTR ; multT = multTR})
-                                    → ΣPathPProp modHomomorphismIsProp {!!}
-                           }}
-  LFAssoc : {{F : Field A}}{{VS : VectorSpace {scalar = A} B}} → Associative (dualSum VS)
-  LFAssoc = record { assoc = λ a b c → {!!} }
   LFGroup : {{F : Field A}}{{VS : VectorSpace {scalar = A} B}} → group (dualSum VS)
-  LFGroup {{VS = VS}} = record { e = dualZero VS ; IsSet = {!!} ; inverse = {!!} ; lIdentity = {!!} }
+  LFGroup {{VS = VS}} = record { e = dualZero VS
+                               ; IsSet = {!!}
+                               ; inverse = {!!}
+                               ; lIdentity = {!!}}
   LFAGroup : {{F : Field A}}{{VS : VectorSpace {scalar = A} B}} → abelianGroup (dualSum VS)
   LFAGroup = record {}
                            -- ΣPathPProp ((λ _ → isPropΠ λ _ → isPropIsProp)) H } }

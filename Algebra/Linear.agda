@@ -107,3 +107,17 @@ dualZero {A = A}{{F}} {vector = vector} VS = (λ _ → vZero) , record { addT = 
   instance
    V : VectorSpace vector
    V = VS
+instance
+  DualSumComm : {{F : Field A}}{{VS : VectorSpace {scalar = A} B}} → Commutative (dualSum VS)
+  DualSumComm {{F = F}} =
+    record { comm = λ {(T , record {addT = addTT ; multT = multTT})
+                       (R , record {addT = addTR ; multT = multTR})
+                          → ΣPathPProp modHomomorphismIsProp
+                                      (funExt λ x → comm (T x) (R x))}}
+  DualSumAssoc : {{F : Field A}}{{VS : VectorSpace {scalar = A} B}} → Associative (dualSum VS)
+  DualSumAssoc =
+    record { assoc = λ {(T , record {addT = addTT ; multT = multTT})
+                        (R , record {addT = addTR ; multT = multTR})
+                        (Q , record {addT = addTQ ; multT = multTQ})
+                           → ΣPathPProp modHomomorphismIsProp
+                                       (funExt λ x → assoc (T x) (R x) (Q x))}}
