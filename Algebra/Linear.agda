@@ -6,10 +6,10 @@ open import Algebra.Abstract public
 
 --https://en.wikipedia.org/wiki/Vector_space
 -- A vector space is a module whose ring is a field.
-VectorSpace : {scalar : Type l} → {{F : Field scalar}} → (l' : Level) → Type (lsuc (l ⊔ l'))
-VectorSpace vl = Module vl
+VectorSpace : {scalar : Type l} → {{F : Field scalar}} → (vector : Type l') → Type (lsuc (l ⊔ l'))
+VectorSpace vector = Module vector
 
-module _{scalar : Type l}{{F : Field scalar}}{{V : VectorSpace l'}} where
+module _{scalar : Type l}{{F : Field scalar}}{vector : Type l'}{{V : VectorSpace vector}} where
 
   -- https://en.wikipedia.org/wiki/Linear_independence
   record LinearlyIndependent (X : vector → Type l) : Type (lsuc (l ⊔ l'))
@@ -42,23 +42,22 @@ module _{scalar : Type l}{{F : Field scalar}}{{V : VectorSpace l'}} where
              ; ssAdd = λ x y → spanAdd x y
              ; ssScale = λ x c → spanScale x c }
 
-  module _{{U : VectorSpace al}} where
+  module _{vector' : Type al}{{U : VectorSpace vector'}} where
 
     -- https://en.wikipedia.org/wiki/Linear_map
     -- A linear map is a module homomorphism whose underlying module is a vector space.
-    LinearMap : (T : < U > → < V >) → Type (l ⊔ l' ⊔ al)
+    LinearMap : (T : vector' → vector) → Type (l ⊔ l' ⊔ al)
     LinearMap T = moduleHomomorphism T
 
     -- https://en.wikipedia.org/wiki/Kernel_(linear_algebra)
-    nullSpace : (T : < U > → < V >) → {{TLM : LinearMap T}} → < U > → Type l'
+    nullSpace : (T : vector' → vector) → {{TLM : LinearMap T}} → vector' → Type l'
     nullSpace T x = T x ≡ vZero
 
 instance
-    FieldToVectorSpace : {A : Type l} → {{F : Field A}} → VectorSpace l
+    FieldToVectorSpace : {A : Type l} → {{F : Field A}} → VectorSpace A
     FieldToVectorSpace {A = A} {{F}}  =
       record {
-              vector = A
-            ; _[+]_ = _+_
+              _[+]_ = _+_
             ; addvStr = record {}
             ; scale = _*_
             ; scalarDistribute = lDistribute
@@ -69,16 +68,16 @@ instance
             ; scaleId = lIdentity
       }
 
-linearForm : {A : Type l}{{F : Field A}}(VS : VectorSpace l') → Type (l ⊔ l')
-linearForm {l} {l'} {{F}} VS = Σ λ(T : < U > → < FieldToVectorSpace {{F}} >) → LinearMap {{U = U}} T
+linearForm : {A : Type l}{vector : Type l'}{{F : Field A}}(VS : VectorSpace vector) → Type (l ⊔ l')
+linearForm {A = A} {vector} {{F}} VS = Σ λ(T : vector → A) → LinearMap T
   where
    instance
-     U : VectorSpace l'
+     U : VectorSpace vector
      U = VS
 
-dualSum : {A : Type l}{{F : Field A}}(VS : VectorSpace l')
+dualSum : {A : Type l}{vector : Type l'}{{F : Field A}}(VS : VectorSpace vector)
         → linearForm VS → linearForm VS → linearForm VS
-dualSum {l} {l'} {{F}} VS =
+dualSum {l} {vector = vector} {{F}} VS =
  λ{(T , record { addT = addTT ; multT = multTT })
    (R , record { addT = addTR ; multT = multTR })
      → (λ x → T x [+] R x)
@@ -98,15 +97,13 @@ dualSum {l} {l'} {{F}} VS =
           } }
   where
    instance
-    V : VectorSpace l'
+    V : VectorSpace vector
     V = VS
 
-dualZero : {A : Type l}{{F : Field A}}(VS : VectorSpace l') → linearForm VS
-dualZero {l} {l'} VS = (λ _ → zero) , record { addT = λ u v →
-                                       zero ≡⟨ sym (lIdentity zero) ⟩
-                                       (zero + zero) ∎
+dualZero : {A : Type l}{{F : Field A}}{vector : Type l'}(VS : VectorSpace vector) → linearForm VS
+dualZero {A = A}{{F}} {vector = vector} VS = (λ _ → vZero) , record { addT = λ u v → sym (lIdentity vZero)
                                       ; multT = λ v c → sym (rMultZ c) }
  where
   instance
-   V : VectorSpace l'
+   V : VectorSpace vector
    V = VS

@@ -122,10 +122,9 @@ instance
                              ; lIdentity = λ v → funExt (λ x → lIdentity (v x)) }
  abelianV : {{R : Ring A}} → abelianGroup (addv {B = B})
  abelianV = record {}
- vectVS :{A : Type l}{B : Type l'} → {{R : Ring A}} → Module (l ⊔ l')
+ vectVS :{A : Type l}{B : Type l'} → {{R : Ring A}} → Module (B → A)
  vectVS {A = A} {B = B} {{R = R}} = record
-            { vector = B → A
-            ; _[+]_ = addv
+            { _[+]_ = addv
             ; addvStr = abelianV
             ; scale = scaleV
             ; scalarDistribute = scalar-distributivity2

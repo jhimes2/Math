@@ -415,9 +415,8 @@ nonZMult (a , a') (b , b') = (a * b) , nonZeroMult (a , a') ((b , b'))
 
 -- https://en.wikipedia.org/wiki/Module_(mathematics)
 -- Try not to confuse 'Module' with Agda's built-in 'module' keyword.
-record Module {scalar : Type l} {{R : Ring scalar}} (l' : Level) : Type (lsuc (l ⊔ l')) where
+record Module {scalar : Type l} {{R : Ring scalar}} (vector : Type l') : Type (lsuc (l ⊔ l')) where
   field
-    vector : Type l'
     _[+]_ : vector → vector → vector
     addvStr : abelianGroup _[+]_
     scale : scalar → vector → vector
@@ -429,7 +428,7 @@ record Module {scalar : Type l} {{R : Ring scalar}} (l' : Level) : Type (lsuc (l
     scaleId : (v : vector) → scale one v ≡ v
 open Module {{...}} public
 
-module _{scalar : Type l}{{R : Ring scalar}}{{V : Module l'}} where
+module _{scalar : Type l}{vector : Type l'}{{R : Ring scalar}}{{V : Module vector}} where
 
   vZero : vector
   vZero = e
@@ -513,22 +512,22 @@ module _{scalar : Type l}{{R : Ring scalar}}{{V : Module l'}} where
         ssAdd : {v u : vector} → v ∈' X → u ∈' X → v [+] u ∈' X
         ssScale : {v : vector} → v ∈' X → (c : scalar) → scale c v ∈' X
 
-<_> : {A : Type l}{{F : Ring A}}(V : Module l') → Type l'
-< V > = Module.vector V
-
 -- https://en.wikipedia.org/wiki/Module_homomorphism
-record moduleHomomorphism  {A : Type l}
-                          {{R : Ring A}}
-                          {{V : Module l'}}
-                          {{U : Module al}}
-                           (T : < U > → < V >) : Type (l ⊔ l' ⊔ al)
+record moduleHomomorphism {A : Type l}
+                         {{R : Ring A}}
+                          {<V> : Type l'}
+                          {<U> : Type al}
+                         {{V : Module <V>}}
+                         {{U : Module <U>}}
+                          (T : <U> → <V>) : Type (l ⊔ l' ⊔ al)
   where field
-  addT : (u v : vector) →  T (u [+] v) ≡ T u [+] T v
-  multT : (u : vector) → (c : A) → T (scale c u) ≡ scale c (T u)
+  addT : ∀ u v →  T (u [+] v) ≡ T u [+] T v
+  multT : ∀ u → (c : A) → T (scale c u) ≡ scale c (T u)
 open moduleHomomorphism {{...}} public 
 
-module _ {scalar : Type l}{{R : Ring scalar}}{{V U : Module l'}}
-         (T : < U > → < V >){{TLT : moduleHomomorphism T}} where
+module _ {scalar : Type l}{{R : Ring scalar}}
+         {{V : Module A}}{{U : Module B}}
+         (T : A → B){{TLT : moduleHomomorphism T}} where
 
   modHomomorphismZ : T vZero ≡ vZero
   modHomomorphismZ =
@@ -539,16 +538,16 @@ module _ {scalar : Type l}{{R : Ring scalar}}{{V U : Module l'}}
 
   -- If 'T' and 'R' are module homomorphisms and are composable, then 'R ∘ T' is
   -- a module homomorphism.
-  modHomomorphismComp : {{W : Module l'}}
-               →  (R : < V > → < W >)
+  modHomomorphismComp : {{W : Module C}}
+               →  (R : B → C)
                → {{SLT : moduleHomomorphism R}}
                → moduleHomomorphism (R ∘ T)
   modHomomorphismComp R =
      record { addT = λ u v → eqTrans (cong R (addT u v)) (addT (T u) (T v))
             ; multT = λ u c → eqTrans (cong R (multT u c)) (multT (T u) c) }
 
-week7 : {{CR : CRing A}} → {{V : Module l'}}
-      → (T : < V > → < V >) → {{TLT : moduleHomomorphism T}}
+week7 : {{CR : CRing A}} → {{V : Module B}}
+      → (T : B → B) → {{TLT : moduleHomomorphism T}}
       → (c : A) → Subspace (λ x → T x ≡ scale c x)
 week7 T c = record
     { ssZero = T vZero ≡⟨ modHomomorphismZ T ⟩

@@ -8,27 +8,33 @@ open import Cubical.Data.Sigma.Properties
 open import Cubical.Foundations.HLevels
 open import Cubical.Foundations.Isomorphism
 
-VSIsProp : {{F : Field A}} → {{VS : VectorSpace l}}{{VS' : VectorSpace l'}} → (LT : < VS > → < VS' >) → isProp (LinearMap LT)
-VSIsProp = λ LT x y → {!!}
+VSIsProp : {{F : Field A}} → {{VS : VectorSpace B}}{{VS' : VectorSpace C}} → (LT : C → C) → isProp (LinearMap LT)
+VSIsProp {{VS' = VS'}} LT x y i = let set = λ{a b p q} → group.IsSet (abelianGroup.grp (Module.addvStr VS')) a b p q in record {
+   addT = λ u v →
+     let H : moduleHomomorphism.addT x u v ≡ moduleHomomorphism.addT y u v
+         H = set in H i
+ ; multT = λ u c →
+     let H : moduleHomomorphism.multT x u c ≡ moduleHomomorphism.multT y u c
+         H = set in H i
+    }
 
 instance
-  LFCom : {{F : Field A}}{{VS : VectorSpace {scalar = A} l}} → Commutative (dualSum VS)
+  LFCom : {{F : Field A}}{{VS : VectorSpace {scalar = A} B}} → Commutative (dualSum VS)
   LFCom {{F = F}} = record { comm = λ {(T , record {addT = addTT ; multT = multTT})
                                     (R , record {addT = addTR ; multT = multTR})
-                                    → ΣPathPProp VSIsProp {!!}
+                                    → {!!} -- ΣPathPProp VSIsProp {!!}
                            }}
-  LFAssoc : {{F : Field A}}{{VS : VectorSpace {scalar = A} l}} → Associative (dualSum VS)
+  LFAssoc : {{F : Field A}}{{VS : VectorSpace {scalar = A} B}} → Associative (dualSum VS)
   LFAssoc = record { assoc = λ a b c → {!!} }
-  LFGroup : {{F : Field A}}{{VS : VectorSpace {scalar = A} l}} → group (dualSum VS)
+  LFGroup : {{F : Field A}}{{VS : VectorSpace {scalar = A} B}} → group (dualSum VS)
   LFGroup {{VS = VS}} = record { e = dualZero VS ; IsSet = {!!} ; inverse = {!!} ; lIdentity = {!!} }
-  LFAGroup : {{F : Field A}}{{VS : VectorSpace {scalar = A} l}} → abelianGroup (dualSum VS)
+  LFAGroup : {{F : Field A}}{{VS : VectorSpace {scalar = A} B}} → abelianGroup (dualSum VS)
   LFAGroup = record {}
                            -- ΣPathPProp ((λ _ → isPropΠ λ _ → isPropIsProp)) H } }
-dualSpace : {A : Type l} {{F : Field A}}(VS : VectorSpace l') → VectorSpace (l ⊔ l')
-dualSpace {l = l} {l' = l'} VS =
+dualSpace : {{F : Field A}}(VS : VectorSpace B) → VectorSpace (linearForm VS)
+dualSpace {B = B} VS =
  record
-     { vector = linearForm VS
-     ; _[+]_ = dualSum VS
+     { _[+]_ = dualSum VS
      ; addvStr = record {}
      ; scale = {!!}
      ; scalarDistribute = {!!}
@@ -38,7 +44,7 @@ dualSpace {l = l} {l' = l'} VS =
      }
  where
   instance
-   V : VectorSpace l'
+   V : VectorSpace B
    V = VS
  
 finDecrInj : {n m : Nat} → (f : fin (S n) → fin (S m)) → ((x y : fin (S n)) → f x ≡ f y → x ≡ y) → Σ λ(g : fin n → fin m) → injective g
