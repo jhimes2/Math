@@ -525,6 +525,21 @@ record moduleHomomorphism {A : Type l}
   multT : ∀ u → (c : A) → T (scale c u) ≡ scale c (T u)
 open moduleHomomorphism {{...}} public 
 
+modHomomorphismIsProp : {{F : Ring A}}
+                      → {{VS : Module B}}
+                      → {{VS' : Module C}}
+                      → (LT : B → C)
+                      → isProp (moduleHomomorphism LT)
+modHomomorphismIsProp {{VS' = VS'}} LT x y i = let set = λ{a b p q} → IsSet a b p q in
+ record {
+    addT = λ u v →
+     let H : moduleHomomorphism.addT x u v ≡ moduleHomomorphism.addT y u v
+         H = set in H i
+  ; multT = λ u c →
+     let H : moduleHomomorphism.multT x u c ≡ moduleHomomorphism.multT y u c
+         H = set in H i
+ }
+
 module _ {scalar : Type l}{{R : Ring scalar}}
          {{V : Module A}}{{U : Module B}}
          (T : A → B){{TLT : moduleHomomorphism T}} where

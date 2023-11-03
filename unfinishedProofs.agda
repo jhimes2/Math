@@ -8,21 +8,11 @@ open import Cubical.Data.Sigma.Properties
 open import Cubical.Foundations.HLevels
 open import Cubical.Foundations.Isomorphism
 
-VSIsProp : {{F : Field A}} → {{VS : VectorSpace B}}{{VS' : VectorSpace C}} → (LT : C → C) → isProp (LinearMap LT)
-VSIsProp {{VS' = VS'}} LT x y i = let set = λ{a b p q} → group.IsSet (abelianGroup.grp (Module.addvStr VS')) a b p q in record {
-   addT = λ u v →
-     let H : moduleHomomorphism.addT x u v ≡ moduleHomomorphism.addT y u v
-         H = set in H i
- ; multT = λ u c →
-     let H : moduleHomomorphism.multT x u c ≡ moduleHomomorphism.multT y u c
-         H = set in H i
-    }
-
 instance
   LFCom : {{F : Field A}}{{VS : VectorSpace {scalar = A} B}} → Commutative (dualSum VS)
   LFCom {{F = F}} = record { comm = λ {(T , record {addT = addTT ; multT = multTT})
                                     (R , record {addT = addTR ; multT = multTR})
-                                    → {!!} -- ΣPathPProp VSIsProp {!!}
+                                    → ΣPathPProp modHomomorphismIsProp {!!}
                            }}
   LFAssoc : {{F : Field A}}{{VS : VectorSpace {scalar = A} B}} → Associative (dualSum VS)
   LFAssoc = record { assoc = λ a b c → {!!} }
