@@ -1,14 +1,11 @@
-{-# OPTIONS --cubical --without-K --safe #-}
+{-# OPTIONS --cubical --safe #-}
 
 module Data.Natural where
 
-open import Algebra.Abstract public
+open import Data.Base
+open import Algebra.Abstract
 open import Cubical.Foundations.Pointed
 open import Cubical.Foundations.Pointed.Homogeneous
-
-data Nat : Type₀ where
-  Z : Nat
-  S : Nat → Nat
 
 add : Nat → Nat → Nat
 add Z b = b
@@ -121,10 +118,6 @@ instance
   NatMultMonoid : monoid mult
   NatMultMonoid = record { e = (S Z) ; IsSet = natIsSet ; lIdentity = addZ
                          ; rIdentity = λ a → eqTrans (comm a (S Z)) (addZ a) }
-_≤_ : Nat → Nat → Type₀
-Z ≤ _ = ⊤
-S x ≤ S y = x ≤ y
-_ ≤ Z = ⊥
 
 leS : {n m : Nat} → S n ≤ m → n ≤ m
 leS {Z} {S m} p = tt
@@ -138,13 +131,6 @@ leS2 (S n) (S m) p = leS2 n m p
 leRefl : (n : Nat) → n ≤ n
 leRefl Z = tt
 leRefl (S n) = leRefl n
-
-_<_ : Nat → Nat → Type₀
-a < b = S a ≤ b
-
--- finite Sets
-fin : Nat → Type₀
-fin n = (Σ' Nat λ x → x < n)
 
 finS : {n : Nat} → fin n → fin (S n)
 finS {n = n} (x , x') = S x , x'

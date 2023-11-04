@@ -383,7 +383,7 @@ record Field (A : Type l) : Type (lsuc l) where
     {{fring}} : CRing A
     oneNotZero : one ≢ zero
     reciprocal : nonZero → A
-    recInv : (a : nonZero) → reciprocal a * pr1 a ≡ one
+    recInv : (a : nonZero) → pr1 a * reciprocal a ≡ one
 open Field {{...}} public
 
 reciprocalNonzeroCodomain : {{F : Field A}} (a : nonZero) → reciprocal a ≢ zero
@@ -391,7 +391,7 @@ reciprocalNonzeroCodomain (a , p) contra =
   let H : a * reciprocal (a , p) ≡ a * zero
       H = right _*_ contra in
   let G : one ≡ a * zero
-      G = eqTrans (sym (eqTrans (comm a (reciprocal (a , p))) (recInv (a , p)))) H in
+      G = eqTrans (sym (recInv (a , p))) H in
   let F : one ≡ zero
       F = eqTrans G (rMultZ a) in oneNotZero F
 
@@ -403,7 +403,8 @@ nonZeroMult (a , a') (b , b') = λ(f : (a * b) ≡ zero) →
   let G : (reciprocal (a , a')) * zero ≡ zero
       G = rMultZ (reciprocal (a , a')) in
   let F = b       ≡⟨ sym(lIdentity b)⟩
-          one * b ≡⟨ left _*_ (sym (recInv ((a , a'))))⟩
+          one * b ≡⟨ left _*_ (sym (recInv (a , a')))⟩
+          (a * reciprocal (a , a')) * b ≡⟨ left _*_ (comm a (reciprocal (a , a'))) ⟩
           (reciprocal (a , a') * a) * b ≡⟨ sym (assoc (reciprocal (a , a')) a b)⟩
           (reciprocal (a , a')) * (a * b) ∎ in
   let contradiction : b ≡ zero

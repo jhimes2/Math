@@ -2,14 +2,12 @@
 
 module Data.Integer where
 
+open import Data.Base
+open import Prelude
+open import Algebra.Abstract
 open import Data.Natural
 open import Cubical.HITs.SetQuotients renaming (rec to QRec)
 open import Cubical.Foundations.HLevels
-
-data int : Type where
-  ZI : int
-  Pos : Nat → int
-  Neg : Nat → int
 
 subn : Nat → Nat → int
 subn Z Z = ZI

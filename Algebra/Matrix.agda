@@ -12,7 +12,9 @@
 
 module Algebra.Matrix where
 
-open import Algebra.Linear public
+open import Algebra.Abstract
+open import Algebra.Linear
+open import Data.Base
 open import Data.Natural
 open import Cubical.Foundations.HLevels
 open import Cubical.Foundations.Isomorphism
@@ -21,9 +23,6 @@ variable
   n m : Nat
   dl : Level
   D : Type dl
-
-[_^_] : Type l → Nat → Type l
-[_^_] A n = fin n → A
 
 [] : [ A ^ Z ]
 [] (_ , ())
