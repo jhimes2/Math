@@ -3,6 +3,8 @@
 open import Prelude
 open import Cubical.HITs.PropositionalTruncation renaming (rec to propTruncRec)
 open import Cubical.Foundations.HLevels
+open import Cubical.Foundations.Isomorphism
+open import Cubical.Data.Sigma
 
 module ClassicalTopology.Topology where
 
@@ -17,6 +19,7 @@ record topology {A : Type al} (T : (A → hProp l') → Type l) : Type (l ⊔ ls
    tfull : T λ _ → True , λ{ truth truth → refl}
    tunion : {X Y : (A → hProp l')} → T X → T Y → T(X ∪ Y)
    tintersection : {X Y : A → hProp l'} → T X → T Y → T(X ∩ Y)
+open topology {{...}}
 
 -- preimage
 _⁻¹[_] : (f : A → B) → (B → hProp l) → (A → hProp l)
@@ -57,3 +60,12 @@ instance
 discreteDomainContinuous : {A : Type al} → {X : (B → hProp l') → Type l}{{XT : topology X}}
                          → (f : A → B) → continuous {l = (al ⊔ l')} {{T1 = discreteTopology}} {{XT}} f
 discreteDomainContinuous f = λ _ → truth
+
+TrueEq : isProp A → A → A ≡ True
+TrueEq p a = isoToPath (iso (λ x → truth) (λ x → a) (λ{ truth → refl}) λ b → p a b )
+
+contrExt : isContr A → isContr B → A ≡ B
+contrExt p q = isoToPath (iso (λ _ → fst q) (λ _ → fst p) (snd q) (snd p))
+
+isPropEq : (V : A → hProp l) → ((x : A) → fst(V x)) → (λ(x : A) → fst(V x)) ≡ λ _ → True
+isPropEq V p = funExt (λ x → isoToPath (iso (λ x₁ → truth) (λ _ → p x) (λ{truth → refl}) λ a → snd (V x) (p x) a))
