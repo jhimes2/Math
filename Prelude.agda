@@ -12,6 +12,8 @@ open import Cubical.HITs.PropositionalTruncation
                     renaming (map to map' ; rec to truncRec ; elim to truncElim)
 open import Cubical.Foundations.Powerset public
 open import Cubical.Data.Sum hiding (elim ; rec ; map) renaming (_⊎_ to infix 2 _＋_) public
+open import Cubical.Foundations.HLevels
+open import Cubical.HITs.PropositionalTruncation renaming (rec to propTruncRec) hiding (map)
 
 variable
     l l' al bl cl : Level
@@ -221,20 +223,17 @@ _∎ : (x : A) → x ≡ x
 _ ∎ = refl
 infixl 4 _∎
 
-set : (l : Level) → (A : Type l') → Type (lsuc l ⊔ l')
-set l A = Σ λ(f : A → Type l) → ∀ a → isProp (f a)
-
-_∪_ : set l A → set l' A → set ((l ⊔ l')) A
-_∪_ (X , X') (Y , Y') = (λ x → ∥ X x ＋ Y x ∥₁) , (λ a x y → squash₁ x y)
+_∪_ : (A → hProp l) → (A → hProp l') → A → hProp (l ⊔ l')
+_∪_ f g = λ x → ∥ fst(f x) ＋ fst(g x) ∥₁ , squash₁
 infix 6 _∪_
 
-_∩_ : set l A → set l' A → set ((l ⊔ l')) A
-_∩_ (X , X') (Y , Y') = (λ x → X x × Y x)
-                      ,  λ a → λ{ (x , x') (y , y') → cong₂ _,_ (X' a x y) (Y' a x' y')}
+_∩_ : (A → hProp l) → (A → hProp l') → A → hProp (l ⊔ l')
+_∩_ f g = λ x → fst(f x) × fst(g x) , λ{(y , y') (z , z')
+              → cong₂ _,_ (snd (f x) y z) (snd (g x) y' z')}
 infix 7 _∩_
 
-_ᶜ : set l A → set l A
-(f , f') ᶜ = (λ x → ¬ (f x)) , λ a x y → funExt λ{z → isProp⊥ (x z) (y z)}
+_ᶜ : (A → hProp l) → (A → hProp l)
+f ᶜ = λ x → (¬ fst(f x)) , λ y z → funExt λ w → isProp⊥ (y w) (z w)
 infix 20 _ᶜ
 
 propExt : isProp A → isProp B → (A → B) → (B → A) → A ≡ B
