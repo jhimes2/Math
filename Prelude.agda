@@ -11,6 +11,7 @@ open import Cubical.Data.Sigma renaming (∃ to ∃') hiding (Σ ; I) public
 open import Cubical.HITs.PropositionalTruncation
                     renaming (map to map' ; rec to truncRec ; elim to truncElim)
 open import Cubical.Foundations.Powerset public
+open import Cubical.Data.Sum hiding (elim ; rec ; map) renaming (_⊎_ to infix 2 _＋_) public
 
 variable
     l l' al bl cl : Level
@@ -48,11 +49,6 @@ modusTollens f Bn a = Bn (f a)
 _$_ : (A → B) → A → B
 _$_ f a = f a
 infixr 0 _$_
-
-data _＋_ (A : Type l)(B : Type l') : Type(l ⊔ l') where
-  inl : A → A ＋ B
-  inr : B → A ＋ B
-infixr 1 _＋_
 
 -- Explicitly exists
 Σ : {A : Type l} → (P : A → Type l') → Type(l ⊔ l')
