@@ -6,9 +6,7 @@ echo "$(dirname "$0")"
 find "$(dirname "$0")"/.. -type f -name "*\.agdai" -exec rm {} \;
 
 echo "Running pre-commit hook"
-find "$(dirname "$0")"/.. -type f -name "*\.agda" \
-     | tr ' ' '\n' \
-     | while read line
+git ls-files | grep -E "*\.agda" 2> /dev/null | while read line
 do
     agda $line
 
