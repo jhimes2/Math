@@ -40,23 +40,10 @@ finDecrInj {n} {m} f fInj = {!!}
 _¬¬=_ : (¬ ¬ A) → (A → ¬ B) → ¬ B
 x ¬¬= f = λ z → x (λ z₁ → f z₁ z)
 
-distinguishingOutput : {n : Nat} → (xs : [ A ^ n ]) → {a : A} → xs ≢ (λ _ → a) → ¬ ¬(Σ λ i → xs i ≢ a)
-distinguishingOutput {n = Z} xs p contra = p (funExt (λ{()}))
-distinguishingOutput {n = S n} xs {a} p = implicitLEM (head xs ≡ a)
-     >>= λ{ (yes q) → let rec = distinguishingOutput {n = n} (tail xs) (aux p q) in map (λ{(x , x') → finS x , x'}) rec
-     ; (no ¬p) → η ((Z , tt) , ¬p)}
- where
-  aux : {n : Nat} → {xs : [ A ^ S n ]} → {a : A} → xs ≢ (λ _ → a) → head xs ≡ a → tail xs ≢ (λ _ → a)
-  aux {xs} nEq headEq contra = nEq $ funExt λ{ (Z , x') → headEq ; (S x , x') → funRed contra (x , x')}
-
 isLocal : (A : Type l) → {{R : CRing A}} → Type l
 isLocal A = {n : Nat} → (xs : [ A ^ n ]) →
         foldr _+_ zero {n} xs ∈ A ˣ →
         ∃ λ(i : fin n) → (xs i ∈ A ˣ)
-
-generalized-field-property : {n : Nat} → {{R : Field A}} → (xs : [ A ^ n ]) → xs ≢ (λ _ → zero) → ¬ ¬ (Σ λ(i : fin n) → (xs i ∈ A ˣ))
-generalized-field-property {A = A} {n = n} xs p = distinguishingOutput {n = n} xs p
-         >>= λ{ (x , x') → η (x , (reciprocal (xs x , x') , recInv (xs x , x')))}
 
 zeroN : ⊤ → Nat
 zeroN _ = Z

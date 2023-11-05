@@ -132,9 +132,6 @@ leRefl : (n : Nat) → n ≤ n
 leRefl Z = tt
 leRefl (S n) = leRefl n
 
-finS : {n : Nat} → fin n → fin (S n)
-finS {n = n} (x , x') = S x , x'
-
 leAdd : (z n c : Nat) → add z n ≤ c → z ≤ c
 leAdd Z n c p = tt
 leAdd (S z) n Z p = p

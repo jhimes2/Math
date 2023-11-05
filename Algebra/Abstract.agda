@@ -3,6 +3,7 @@
 module Algebra.Abstract where
 
 open import Prelude public
+open import Data.Base public
 open import Cubical.Foundations.HLevels
 open import Cubical.HITs.PropositionalTruncation
                     renaming (map to map' ; rec to truncRec ; elim to truncElim)
@@ -413,6 +414,23 @@ nonZeroMult (a , a') (b , b') = λ(f : (a * b) ≡ zero) →
 
 nonZMult : {{F : Field A}} → nonZero → nonZero → nonZero
 nonZMult (a , a') (b , b') = (a * b) , nonZeroMult (a , a') ((b , b'))
+
+distinguishingOutput : (xs : [ A ^ n ]) → {a : A} → xs ≢ (λ _ → a) → ¬ ¬(Σ λ i → xs i ≢ a)
+distinguishingOutput {n = Z} xs p contra = p (funExt (λ{()}))
+distinguishingOutput {n = S n} xs {a} p = implicitLEM (head xs ≡ a)
+     >>= λ{ (yes q) → let rec = distinguishingOutput {n = n} (tail xs) (aux p q)
+                      in   map (λ{(x , x') → finS x , x'}) rec
+     ; (no ¬p) → η ((Z , tt) , ¬p)}
+ where
+  aux : {xs : [ A ^ S n ]} → {a : A} → xs ≢ (λ _ → a) → head xs ≡ a → tail xs ≢ (λ _ → a)
+  aux {xs} nEq headEq contra = nEq $ funExt λ{ (Z , x') → headEq
+                                             ; (S x , x') → funRed contra (x , x')}
+
+generalized-field-property :{{F : Field A}}
+                           → (xs : [ A ^ n ])
+                           → xs ≢ (λ _ → zero) → ¬ ¬ (Σ λ(i : fin n) → (xs i ∈ A ˣ))
+generalized-field-property {A = A} {n = n} xs p = distinguishingOutput {n = n} xs p
+         >>= λ{ (x , x') → η (x , (reciprocal (xs x , x') , recInv (xs x , x')))}
 
 -- https://en.wikipedia.org/wiki/Module_(mathematics)
 -- Try not to confuse 'Module' with Agda's built-in 'module' keyword.

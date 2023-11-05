@@ -20,25 +20,8 @@ open import Cubical.Foundations.HLevels
 open import Cubical.Foundations.Isomorphism
 
 variable
-  n m : Nat
   dl : Level
   D : Type dl
-
-[] : [ A ^ Z ]
-[] (_ , ())
-
-head : [ A ^ S n ] → A
-head v = v (Z , tt)
-
-tail : [ A ^ S n ] → [ A ^ n ]
-tail v (x , p) = v (S x , p)
-
-cons : (A → [ A ^ n ] → B) → [ A ^ S n ] → B
-cons f v = f (head v) (tail v)
-
-_∷_ : A → [ A ^ n ] → [ A ^ S n ]
-(a ∷ _) (Z , _) = a
-(_ ∷ v) (S x , p) = v (x , p)
 
 zip : (A → B → C) → {D : Type l} → (D → A) → (D → B) → (D → C)
 zip f u v x = f (u x) (v x)
@@ -223,9 +206,6 @@ I n x y = I∞ (pr1 x) (pr1 y)
 
 DecEqP : (x y : A) → Dec(x ≡ y) ≡ Dec(y ≡ x)
 DecEqP x y = isoToPath (iso (λ{ (yes p) → yes (sym p) ; (no p) → no (λ z → p (sym z))}) ( λ{ (yes p) → yes (sym p) ; (no p) → no (λ z → p (sym z))}) (λ{ (yes z) → refl ; (no z) → refl}) λ{ (yes x) → refl ; (no x) → refl})
-
-funRed : {f g : A → B} → f ≡ g → (x : A) → f x ≡ g x
-funRed p x i = p i x
 
 idTranspose : {{R : Ring A}} (n : Nat) → I n ≡ transpose (I n)
 idTranspose n = funExt λ{(x , _) → funExt λ{(y , _) → funRed (funRed I∞Transpose x) y}}
