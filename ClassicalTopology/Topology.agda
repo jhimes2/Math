@@ -53,3 +53,7 @@ instance
                          ; (inl x) (inr y) → inr (λ{ p (_ , q) → y p q})
                          ; (inr x) (inl y) → inr (λ{p (q , _) → x p q})
                          ; (inr x) (inr y) → inr (λ p q → y p (snd q)) }}
+
+discreteDomainContinuous : {A : Type al} → {X : (B → hProp l') → Type l}{{XT : topology X}}
+                         → (f : A → B) → continuous {l = (al ⊔ l')} {{T1 = discreteTopology}} {{XT}} f
+discreteDomainContinuous f = λ _ → truth
