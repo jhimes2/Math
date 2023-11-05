@@ -513,8 +513,7 @@ module _{scalar : Type l}{vector : Type l'}{{R : Ring scalar}}{{V : Module vecto
     spanAdd : {v : vector} → v ∈ Span X → {u : vector} → u ∈ Span X → v [+] u ∈ Span X
     spanScale : {v : vector} → v ∈ Span X → (c : scalar) → scale c v ∈ Span X
 
--- Unfortunately, the 'final codomain' of a data definition should be a sort,
--- and there's no 'Prop' sort in safe Agda.
+-- Unfortunately, the 'final codomain' of a data definition should be a sort
 -}
 
   spanJoin : (X : vector → Type l) → (x : vector) → x ∈' (Span ∘ Span) X → x ∈' Span X

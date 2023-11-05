@@ -220,3 +220,26 @@ infixr 3 _≡⟨By-Definition⟩_
 _∎ : (x : A) → x ≡ x
 _ ∎ = refl
 infixl 4 _∎
+
+set : (l : Level) → (A : Type l') → Type (lsuc l ⊔ l')
+set l A = Σ λ(f : A → Type l) → ∀ a → isProp (f a)
+
+_∪_ : set l A → set l' A → set ((l ⊔ l')) A
+_∪_ (X , X') (Y , Y') = (λ x → ∥ X x ＋ Y x ∥₁) , (λ a x y → squash₁ x y)
+infix 6 _∪_
+
+_∩_ : set l A → set l' A → set ((l ⊔ l')) A
+_∩_ (X , X') (Y , Y') = (λ x → X x × Y x)
+                      ,  λ a → λ{ (x , x') (y , y') → cong₂ _,_ (X' a x y) (Y' a x' y')}
+infix 7 _∩_
+
+_ᶜ : set l A → set l A
+(f , f') ᶜ = (λ x → ¬ (f x)) , λ a x y → funExt λ{z → isProp⊥ (x z) (y z)}
+infix 20 _ᶜ
+
+propExt : isProp A → isProp B → (A → B) → (B → A) → A ≡ B
+propExt pA pB ab ba = isoToPath (iso ab ba (λ b → pB (ab (ba b)) b) λ a → pA (ba (ab a)) a)
+  where open import Cubical.Foundations.Isomorphism
+
+propTruncExt : (A → B) → (B → A) → ∥ A ∥₁ ≡ ∥ B ∥₁
+propTruncExt ab ba = propExt squash₁ squash₁ (map ab) (map ba)
