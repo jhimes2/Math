@@ -1,4 +1,4 @@
-{-# OPTIONS --cubical --overlapping-instances #-}
+{-# OPTIONS --allow-unsolved-metas --cubical --overlapping-instances #-}
 
 open import Agda.Primitive
 open import Algebra.Linear
