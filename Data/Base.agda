@@ -9,35 +9,35 @@ data Bool : Type₀ where
   Yes : Bool
   No : Bool
 
-data Nat : Type₀ where
-  Z : Nat
-  S : Nat → Nat
+data ℕ : Type₀ where
+  Z : ℕ
+  S : ℕ → ℕ
 
 data int : Type where
   ZI : int
-  Pos : Nat → int
-  Neg : Nat → int
+  Pos : ℕ → int
+  Neg : ℕ → int
 
-_≤_ : Nat → Nat → Type₀
+_≤_ : ℕ → ℕ → Type₀
 Z ≤ _ = ⊤
 S x ≤ S y = x ≤ y
 _ ≤ Z = ⊥
 
-_<_ : Nat → Nat → Type₀
+_<_ : ℕ → ℕ → Type₀
 a < b = S a ≤ b
 
 -- finite Sets
-fin : Nat → Type₀
-fin n = (Σ' Nat λ x → x < n)
+fin : ℕ → Type₀
+fin n = (Σ' ℕ λ x → x < n)
 
-[_^_] : Type l → Nat → Type l
+[_^_] : Type l → ℕ → Type l
 [_^_] A n = fin n → A
 
 [] : [ A ^ Z ]
 [] (_ , ())
 
 variable
-  n m : Nat
+  n m : ℕ
 
 head : [ A ^ S n ] → A
 head v = v (Z , tt)
@@ -55,6 +55,6 @@ _∷_ : A → [ A ^ n ] → [ A ^ S n ]
 funRed : {f g : A → B} → f ≡ g → (x : A) → f x ≡ g x
 funRed p x i = p i x
 
-finS : {n : Nat} → fin n → fin (S n)
+finS : {n : ℕ} → fin n → fin (S n)
 finS {n = n} (x , x') = S x , x'
 

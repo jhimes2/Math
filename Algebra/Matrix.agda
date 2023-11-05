@@ -26,7 +26,7 @@ variable
 zip : (A → B → C) → {D : Type l} → (D → A) → (D → B) → (D → C)
 zip f u v x = f (u x) (v x)
 
-Matrix : Type l → Nat → Nat → Type l
+Matrix : Type l → ℕ → ℕ → Type l
 Matrix A n m = [ [ A ^ n ] ^ m ]
 
 instance
@@ -53,15 +53,15 @@ multv = zip _*_
 scaleV : {{Rng A}} → A → (B → A) → (B → A)
 scaleV a v x = a * (v x)
 
-foldr : (A → B → B) → B → {n : Nat} → [ A ^ n ] → B
+foldr : (A → B → B) → B → {n : ℕ} → [ A ^ n ] → B
 foldr f b {Z} [] = b
 foldr f b {S n} v = f (head v) (foldr f b {n} (tail v))
 
-foldr2 : (A → B → B) → B → {n : Nat} → ((a : Nat) → a < n → A) → B
+foldr2 : (A → B → B) → B → {n : ℕ} → ((a : ℕ) → a < n → A) → B
 foldr2 f b {Z} [] = b
 foldr2 f b {S n} v = f (v n (leRefl n)) (foldr2 f b {n} λ a x → v a (leS {n = a} x))
 
-foldr∞ : Nat → (A → B → B) → B → ((a : Nat) → A) → B
+foldr∞ : ℕ → (A → B → B) → B → ((a : ℕ) → A) → B
 foldr∞ Z f b [] = b
 foldr∞ (S n) f b v = f (v n) (foldr∞ n f b v)
 
@@ -69,7 +69,7 @@ foldr∞ (S n) f b v = f (v n) (foldr∞ n f b v)
 MT : {{R : Rng A}} → (fin n → B → A) → [ A ^ n ] → (B → A)
 MT {n = n} M v x = foldr _+_ zero {n} (zip _*_ v λ y → M y x)
 
-MT∞ : {{R : Rng A}} → Nat → (Nat → B → A) → (Nat → A) → (B → A)
+MT∞ : {{R : Rng A}} → ℕ → (ℕ → B → A) → (ℕ → A) → (B → A)
 MT∞ n M v x = foldr∞ n _+_ zero (zip _*_ v λ y → M y x)
 
 columnSpace : {A : Type l} → {B : Type l'} → {{F : Field A}} → (fin n → B → A) → (B → A) → Type (l ⊔ l')
@@ -82,7 +82,7 @@ rowSpace {n = n} M = columnSpace {n = n} (transpose M)
 mMult : {{R : Rng A}} → (fin n → B → A) → (C → fin n → A) → C → B → A
 mMult {n = n} M N c = MT {n = n} M (N c)
 
-mMult∞ : {{R : Rng A}} → Nat → (Nat → B → A) → (C → Nat → A) → C → B → A
+mMult∞ : {{R : Rng A}} → ℕ → (ℕ → B → A) → (C → ℕ → A) → C → B → A
 mMult∞ n M N c = MT∞ n M (N c)
 
 scalar-distributivity : ∀ {{R : Rng A}} (x y : A) (v : B → A)
@@ -167,7 +167,7 @@ instance
        scaleV c (MT {n = n} M u) x ∎
    }
       where
-        Rec : {{R : Ring A}} {n : Nat} (M : fin n → B → A) (u : fin n → A) → (c : A) → (x : B)
+        Rec : {{R : Ring A}} {n : ℕ} (M : fin n → B → A) (u : fin n → A) → (c : A) → (x : B)
             → foldr _+_ zero {n} (λ y → (c * (u y * M y x))) ≡ c * foldr _+_ zero {n} (λ y → u y * M y x)
         Rec {n = Z} M u c x = sym (rMultZ c)
         Rec {n = S n} M u c x =
@@ -180,12 +180,12 @@ instance
   LTMT : {{F : Field A}} → {M : fin n → B → A} → LinearMap (MT {n = n} M)
   LTMT {n = n} {{F}} {M = M} = MHMT {n = n}
 
-indicateEqRing : {{R : Ring A}} → (n : Nat) → {a b : fin n} → Dec (a ≡ b) → A
+indicateEqRing : {{R : Ring A}} → (n : ℕ) → {a b : fin n} → Dec (a ≡ b) → A
 indicateEqRing n (yes p) = one
 indicateEqRing n (no ¬p) = zero
 
 -- infinite identity matrix
-I∞ : {{R : Ring A}} → Nat → Nat → A
+I∞ : {{R : Ring A}} → ℕ → ℕ → A
 I∞ Z Z = one
 I∞ Z (S b) = zero
 I∞ (S a) Z = zero
@@ -194,20 +194,20 @@ I∞ (S a) (S b) = I∞ a b
 I∞Transpose : {{R : Ring A}} → I∞ ≡ transpose I∞
 I∞Transpose = funExt λ x → funExt λ y → Rec x y
   where
-  Rec : {A : Type l} {{R : Ring A}} → (x y : Nat) → I∞ {{R}} x y ≡ I∞ y x
+  Rec : {A : Type l} {{R : Ring A}} → (x y : ℕ) → I∞ {{R}} x y ≡ I∞ y x
   Rec Z Z = refl
   Rec Z (S y) = refl
   Rec (S x) Z = refl
   Rec (S x) (S y) = Rec x y
 
 -- Identity Matrix
-I : {{R : Ring A}} (n : Nat) → Matrix A n n
+I : {{R : Ring A}} (n : ℕ) → Matrix A n n
 I n x y = I∞ (pr1 x) (pr1 y)
 
 DecEqP : (x y : A) → Dec(x ≡ y) ≡ Dec(y ≡ x)
 DecEqP x y = isoToPath (iso (λ{ (yes p) → yes (sym p) ; (no p) → no (λ z → p (sym z))}) ( λ{ (yes p) → yes (sym p) ; (no p) → no (λ z → p (sym z))}) (λ{ (yes z) → refl ; (no z) → refl}) λ{ (yes x) → refl ; (no x) → refl})
 
-idTranspose : {{R : Ring A}} (n : Nat) → I n ≡ transpose (I n)
+idTranspose : {{R : Ring A}} (n : ℕ) → I n ≡ transpose (I n)
 idTranspose n = funExt λ{(x , _) → funExt λ{(y , _) → funRed (funRed I∞Transpose x) y}}
 
 postulate

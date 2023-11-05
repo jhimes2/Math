@@ -9,7 +9,7 @@ open import Data.Natural
 open import Cubical.HITs.SetQuotients renaming (rec to QRec)
 open import Cubical.Foundations.HLevels
 
-subn : Nat → Nat → int
+subn : ℕ → ℕ → int
 subn Z Z = ZI
 subn Z (S b) = Neg b
 subn (S a) Z = Pos a
@@ -52,7 +52,7 @@ addICom (Neg x) (Neg y) = cong Neg (cong S (comm x y))
 -- Experimenting with integers defined with set quotients
 
 ℤ : Type
-ℤ = (Nat × Nat) / λ{(p1 , n1) (p2 , n2) → add p1 n2 ≡ add p2 n1}
+ℤ = (ℕ × ℕ) / λ{(p1 , n1) (p2 , n2) → add p1 n2 ≡ add p2 n1}
 
 ℤDiscrete : Discrete ℤ
 ℤDiscrete = discreteSetQuotients (BinaryRelation.equivRel (λ{(p , n) → refl})
@@ -70,7 +70,7 @@ addICom (Neg x) (Neg y) = cong Neg (cong S (comm x y))
     }) λ{(p1 , n1) (p2 , n2) → natDiscrete (add p1 n2) (add p2 n1)}
   where open import Cubical.Relation.Binary
 
-addℤaux : Nat × Nat → Nat × Nat → ℤ
+addℤaux : ℕ × ℕ → ℕ × ℕ → ℤ
 addℤaux (p1 , n1) (p2 , n2) = [ add p1 p2 , add n1 n2 ]
 
 addℤ : ℤ → ℤ → ℤ

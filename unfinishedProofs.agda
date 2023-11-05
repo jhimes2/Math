@@ -34,18 +34,18 @@ dualSpace {B = B} VS =
    V : VectorSpace B
    V = VS
  
-finDecrInj : {n m : Nat} → (f : fin (S n) → fin (S m)) → ((x y : fin (S n)) → f x ≡ f y → x ≡ y) → Σ λ(g : fin n → fin m) → injective g
+finDecrInj : (f : fin (S n) → fin (S m)) → ((x y : fin (S n)) → f x ≡ f y → x ≡ y) → Σ λ(g : fin n → fin m) → injective g
 finDecrInj {n} {m} f fInj = {!!}
 
 _¬¬=_ : (¬ ¬ A) → (A → ¬ B) → ¬ B
 x ¬¬= f = λ z → x (λ z₁ → f z₁ z)
 
 isLocal : (A : Type l) → {{R : CRing A}} → Type l
-isLocal A = {n : Nat} → (xs : [ A ^ n ]) →
+isLocal A = {n : ℕ} → (xs : [ A ^ n ]) →
         foldr _+_ zero {n} xs ∈ A ˣ →
         ∃ λ(i : fin n) → (xs i ∈ A ˣ)
 
-zeroN : ⊤ → Nat
+zeroN : ⊤ → ℕ
 zeroN _ = Z
 
 JRule : (P : {x y : A} → x ≡ y → Type l) → (x : A) → P (λ _ → x) → {y : A} → (p : x ≡ y) → P p
