@@ -2,8 +2,9 @@
 
 module Algebra.Ring where
 
-open import Prelude public
-open import Algebra.Base public
+open import Prelude
+open import Algebra.Base
+open import Algebra.Rng
 
 lMultNegOne : {{R : Ring A}} → (x : A) → neg one * x ≡ neg x
 lMultNegOne x =

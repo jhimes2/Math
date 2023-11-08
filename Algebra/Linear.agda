@@ -4,6 +4,7 @@ module Algebra.Linear where
 
 open import Algebra.Base public
 open import Algebra.Module
+open import Algebra.Rng
 
 --https://en.wikipedia.org/wiki/Vector_space
 -- A vector space is a module whose ring is a field.

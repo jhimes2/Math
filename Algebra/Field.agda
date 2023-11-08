@@ -5,6 +5,7 @@ module Algebra.Field where
 open import Prelude public
 open import Data.Base public
 open import Algebra.Base public
+open import Algebra.Rng public
 open import Algebra.CRing public
 
 reciprocalNonzeroCodomain : {{F : Field A}} (a : nonZero) → reciprocal a ≢ zero
