@@ -5,6 +5,7 @@ module Algebra.OrderedRng where
 open import Relations
 open import Prelude
 open import Algebra.Base
+open import Algebra.Group
 open import Algebra.Rng
 
 open import Cubical.HITs.PropositionalTruncation
@@ -72,4 +73,9 @@ module _{{R : Rng A}}{{F : OrderedRng A}} where
             eqToLe p
         ~> λ(q : a ≤ neg a) → eqToLe (sym p)
         ~> λ(r : neg a ≤ a) →
-            antiSymmetric {!!} {!!}
+        truncRec (IsSet a zero)
+                 (λ{ (inl x) → antiSymmetric (lemma3 x ~> λ(y : neg a ≤ neg zero) →
+                                                  transport (λ i → p (~ i) ≤ grp.lemma4 i) y) x
+                   ; (inr x) → antiSymmetric x (lemma3 x ~> λ(y : neg zero ≤ neg a) →
+                                                 transport (λ i → grp.lemma4 i ≤ p (~ i)) y)})
+                 (stronglyConnected zero a)
