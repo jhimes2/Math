@@ -4,7 +4,7 @@ module Data.Integer where
 
 open import Data.Base
 open import Prelude
-open import Algebra.Abstract
+open import Algebra.Base
 open import Data.Natural
 open import Cubical.HITs.SetQuotients renaming (rec to QRec)
 open import Cubical.Foundations.HLevels

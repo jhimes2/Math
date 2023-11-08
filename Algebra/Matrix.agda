@@ -12,8 +12,9 @@
 
 module Algebra.Matrix where
 
-open import Algebra.Abstract
+open import Algebra.Base
 open import Algebra.Linear
+open import Algebra.Module
 open import Data.Base
 open import Data.Natural
 open import Cubical.Foundations.HLevels

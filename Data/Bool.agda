@@ -4,7 +4,7 @@ module Data.Bool where
 
 open import Prelude
 open import Data.Base
-open import Algebra.Abstract
+open import Algebra.Base
 
 not : Bool → Bool
 not Yes = No

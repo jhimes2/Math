@@ -3,7 +3,7 @@
 module Data.Natural where
 
 open import Data.Base
-open import Algebra.Abstract
+open import Algebra.Base
 open import Cubical.Foundations.Pointed
 open import Cubical.Foundations.Pointed.Homogeneous
 
