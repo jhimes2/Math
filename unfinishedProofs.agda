@@ -1,6 +1,7 @@
 {-# OPTIONS --allow-unsolved-metas --cubical --overlapping-instances #-}
 
 open import Agda.Primitive
+open import Algebra.Base
 open import Algebra.Linear
 open import Algebra.Matrix
 open import Algebra.CRing

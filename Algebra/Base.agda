@@ -3,10 +3,7 @@
 module Algebra.Base where
 
 open import Prelude public
-open import Data.Base public
-open import Cubical.Foundations.HLevels
-open import Cubical.HITs.PropositionalTruncation
-                    renaming (map to map' ; rec to truncRec ; elim to truncElim)
+open import Relations
 
 -- https://en.wikipedia.org/wiki/Monoid
 record monoid {A : Type l}(_∙_ : A → A → A) : Type(lsuc l) where
@@ -109,6 +106,13 @@ one = multStr .e
 
 _-_ : {{R : Rng A}} → A → A → A
 a - b = a + (neg b)
+
+record OrderedRng (A : Type l) {{ordrng : Rng A}} : Type (lsuc l) where
+  field
+    {{totalOrd}} : TotalOrder A
+    addLe : {a b : A} → a ≤ b → (c : A) → (a + c) ≤ (b + c) 
+    multLe : {a b : A} → zero < a → zero < b → zero < (a * b)
+open OrderedRng {{...}} public
 
 -- https://en.wikipedia.org/wiki/Comm_ring
 record CRing (A : Type l) : Type (lsuc l) where
