@@ -13,6 +13,7 @@
 module Algebra.Matrix where
 
 open import Algebra.Base
+open import Algebra.Monoid
 open import Algebra.Rng
 open import Algebra.Linear
 open import Algebra.Module
