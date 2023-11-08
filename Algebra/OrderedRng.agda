@@ -63,7 +63,9 @@ module _{{R : Rng A}}{{F : OrderedRng A}} where
    ~> transport (λ i → neg b ≤ lIdentity (neg a) i)
 
   lemma4 : {a b : A} → a ≤ b → {c : A} → zero ≤ c → a ≤ (b + c)
-  lemma4 {a = a} {b} p {c} q = ?
+  lemma4 {a = a} {b} p {c} q =
+    let H : (a + zero) ≤ (b + c)
+        H = lemma2 p q in transport (λ i → rIdentity a i ≤ (b + c)) H
 
   lemma5 : {a : A} → a ≡ neg a → a ≡ zero
   lemma5 {a = a} = λ(p : a ≡ neg a) →
