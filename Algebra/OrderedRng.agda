@@ -79,3 +79,8 @@ module _{{R : Rng A}}{{F : OrderedRng A}} where
                    ; (inr x) → antiSymmetric x (lemma3 x ~> λ(y : neg zero ≤ neg a) →
                                                  transport (λ i → grp.lemma4 i ≤ p (~ i)) y)})
                  (stronglyConnected zero a)
+
+module orderedField{{F : Field A}}{{OF : OrderedRng A}} where
+
+  zeroLtOne : zero < one
+  zeroLtOne = {!!}

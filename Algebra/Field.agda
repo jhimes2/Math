@@ -53,3 +53,11 @@ generalized-field-property :{{F : Field A}}
                            → xs ≢ (λ _ → zero) → ¬ ¬ (Σ λ(i : fin n) → (xs i ∈ A ˣ))
 generalized-field-property {A = A} {n = n} xs p = distinguishingOutput {n = n} xs p
          >>= λ{ (x , x') → η (x , (reciprocal (xs x , x') , recInv (xs x , x')))}
+
+negOneNotZero : {{F : Field A}} → neg one ≢ zero
+negOneNotZero =
+  λ(contra : neg one ≡ zero) → oneNotZero $
+                         grp.invInjective $
+                             neg one ≡⟨ contra ⟩
+                             zero    ≡⟨ sym (grp.lemma4) ⟩
+                             neg zero ∎
