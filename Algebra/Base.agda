@@ -104,6 +104,9 @@ open Ring {{...}} public
 1r : {{SR : Ring A}} → A
 1r = multStr .e
 
+2r : {{SR : Ring A}} → A
+2r = 1r + 1r
+
 _-_ : {{R : Rng A}} → A → A → A
 a - b = a + (neg b)
 
@@ -129,6 +132,9 @@ record Field (A : Type l) : Type (lsuc l) where
     reciprocal : nonZero → A
     recInv : (a : nonZero) → pr1 a * reciprocal a ≡ 1r
 open Field {{...}} public
+
+1f : {{F : Field A}} → nonZero
+1f = (multStr .e , oneNotZero)
 
 -- https://en.wikipedia.org/wiki/Module_(mathematics)
 -- Try not to confuse 'Module' with Agda's built-in 'module' keyword.
