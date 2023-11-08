@@ -3,6 +3,7 @@
 open import Agda.Primitive
 open import Algebra.Linear
 open import Algebra.Matrix
+open import Algebra.CRing
 open import Data.Base
 open import Data.Natural
 open import Cubical.Data.Sigma.Properties

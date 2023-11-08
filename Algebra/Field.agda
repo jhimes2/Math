@@ -5,9 +5,7 @@ module Algebra.Field where
 open import Prelude public
 open import Data.Base public
 open import Algebra.Base public
-open import Cubical.Foundations.HLevels
-open import Cubical.HITs.PropositionalTruncation
-                    renaming (map to map' ; rec to truncRec ; elim to truncElim)
+open import Algebra.CRing public
 
 reciprocalNonzeroCodomain : {{F : Field A}} (a : nonZero) → reciprocal a ≢ zero
 reciprocalNonzeroCodomain (a , p) contra =
