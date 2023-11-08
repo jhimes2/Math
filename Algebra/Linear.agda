@@ -3,6 +3,7 @@
 module Algebra.Linear where
 
 open import Algebra.Base public
+open import Algebra.Group
 open import Algebra.Module
 open import Algebra.Rng
 

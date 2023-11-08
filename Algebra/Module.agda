@@ -4,6 +4,7 @@ module Algebra.Module where
 
 open import Prelude
 open import Algebra.Base
+open import Algebra.Group
 
 module _{scalar : Type l}{vector : Type l'}{{R : Ring scalar}}{{V : Module vector}} where
 

@@ -3,10 +3,11 @@
 module Algebra.Field where
 
 open import Prelude public
-open import Data.Base public
-open import Algebra.Base public
-open import Algebra.Rng public
-open import Algebra.CRing public
+open import Data.Base
+open import Algebra.Base
+open import Algebra.Group
+open import Algebra.Rng
+open import Algebra.CRing
 
 reciprocalNonzeroCodomain : {{F : Field A}} (a : nonZero) → reciprocal a ≢ zero
 reciprocalNonzeroCodomain (a , p) contra =

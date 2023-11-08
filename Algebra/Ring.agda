@@ -4,6 +4,7 @@ module Algebra.Ring where
 
 open import Prelude
 open import Algebra.Base
+open import Algebra.Group
 open import Algebra.Rng
 
 lMultNegOne : {{R : Ring A}} → (x : A) → neg one * x ≡ neg x
