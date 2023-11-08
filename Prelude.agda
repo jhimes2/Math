@@ -34,7 +34,7 @@ eqTrans = _∙_
 -- Equivalent to `|>` in F#
 _~>_ : A → (A → B) → B
 a ~> f = f a
-infixr 0 _~>_
+infixl 0 _~>_
 
 ℙ' : Type l → Type (lsuc l)
 ℙ' {l} A = A → Type l
