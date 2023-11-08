@@ -242,3 +242,14 @@ propExt pA pB ab ba = isoToPath (iso ab ba (λ b → pB (ab (ba b)) b) λ a → 
 
 propTruncExt : (A → B) → (B → A) → ∥ A ∥₁ ≡ ∥ B ∥₁
 propTruncExt ab ba = propExt squash₁ squash₁ (map ab) (map ba)
+
+record Associative {A : Type l}(f : A → A → A) : Type(lsuc l) where
+  field
+      assoc : (a b c : A) → f a (f b c) ≡ f (f a b) c
+open Associative {{...}} public
+
+record Commutative {A : Type l}{B : Type l'}(_∙_ : A → A → B) : Type(lsuc (l ⊔ l')) where
+  field
+    comm : (a b : A) → _∙_ a b ≡ _∙_ b a
+open Commutative {{...}} public
+

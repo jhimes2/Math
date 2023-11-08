@@ -8,16 +8,6 @@ open import Cubical.Foundations.HLevels
 open import Cubical.HITs.PropositionalTruncation
                     renaming (map to map' ; rec to truncRec ; elim to truncElim)
 
-record Associative {A : Type l}(f : A → A → A) : Type(lsuc l) where
-  field
-      assoc : (a b c : A) → f a (f b c) ≡ f (f a b) c
-open Associative {{...}} public
-
-record Commutative {A : Type l}{B : Type l'}(_∙_ : A → A → B) : Type(lsuc (l ⊔ l')) where
-  field
-    comm : (a b : A) → _∙_ a b ≡ _∙_ b a
-open Commutative {{...}} public
-
 -- https://en.wikipedia.org/wiki/Monoid
 record monoid {A : Type l}(_∙_ : A → A → A) : Type(lsuc l) where
   field
