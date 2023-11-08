@@ -85,11 +85,11 @@ record Rng (A : Type l) : Type (lsuc l) where
     {{raddStr}} : abelianGroup _+_
 open Rng {{...}} public
 
-zero : {{SR : Rng A}} → A
-zero = e
+0r : {{SR : Rng A}} → A
+0r = e
 
 nonZero : {A : Type l} {{R : Rng A}} → Type l
-nonZero {A = A} = Σ λ (a : A) → a ≢ zero
+nonZero {A = A} = Σ λ (a : A) → a ≢ 0r
 
 neg : {{R : Rng A}} → A → A
 neg = inv
@@ -101,8 +101,8 @@ record Ring (A : Type l) : Type (lsuc l) where
     {{multStr}} : monoid _*_
 open Ring {{...}} public
 
-one : {{SR : Ring A}} → A
-one = multStr .e
+1r : {{SR : Ring A}} → A
+1r = multStr .e
 
 _-_ : {{R : Rng A}} → A → A → A
 a - b = a + (neg b)
@@ -111,7 +111,7 @@ record OrderedRng (A : Type l) {{ordrng : Rng A}} : Type (lsuc l) where
   field
     {{totalOrd}} : TotalOrder A
     addLe : {a b : A} → a ≤ b → (c : A) → (a + c) ≤ (b + c) 
-    multLe : {a b : A} → zero < a → zero < b → zero < (a * b)
+    multLe : {a b : A} → 0r < a → 0r < b → 0r < (a * b)
 open OrderedRng {{...}} public
 
 -- https://en.wikipedia.org/wiki/Comm_ring
@@ -125,9 +125,9 @@ open CRing {{...}} public
 record Field (A : Type l) : Type (lsuc l) where
   field
     {{fring}} : CRing A
-    oneNotZero : one ≢ zero
+    oneNotZero : 1r ≢ 0r
     reciprocal : nonZero → A
-    recInv : (a : nonZero) → pr1 a * reciprocal a ≡ one
+    recInv : (a : nonZero) → pr1 a * reciprocal a ≡ 1r
 open Field {{...}} public
 
 -- https://en.wikipedia.org/wiki/Module_(mathematics)
@@ -142,5 +142,5 @@ record Module {scalar : Type l} {{R : Ring scalar}} (vector : Type l') : Type (l
     vectorDistribute : (v : vector) → (a b : scalar)
                      → scale (a + b) v ≡ (scale a v) [+] (scale b v)
     scalarAssoc : (v : vector) → (a b : scalar) → scale a (scale b v) ≡ scale (a * b) v
-    scaleId : (v : vector) → scale one v ≡ v
+    scaleId : (v : vector) → scale 1r v ≡ v
 open Module {{...}} public

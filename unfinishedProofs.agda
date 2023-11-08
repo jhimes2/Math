@@ -45,7 +45,7 @@ x ¬¬= f = λ z → x (λ z₁ → f z₁ z)
 
 isLocal : (A : Type l) → {{R : CRing A}} → Type l
 isLocal A = {n : ℕ} → (xs : [ A ^ n ]) →
-        foldr _+_ zero {n} xs ∈ A ˣ →
+        foldr _+_ 0r {n} xs ∈ A ˣ →
         ∃ λ(i : fin n) → (xs i ∈ A ˣ)
 
 zeroN : ⊤ → ℕ

@@ -7,26 +7,26 @@ open import Algebra.Base
 open import Algebra.Group
 open import Algebra.Rng
 
-lMultNegOne : {{R : Ring A}} → (x : A) → neg one * x ≡ neg x
+lMultNegOne : {{R : Ring A}} → (x : A) → neg 1r * x ≡ neg x
 lMultNegOne x =
-  let H : (neg one * x)+(neg(neg x)) ≡ zero
-                       → neg one * x ≡ neg x
+  let H : (neg 1r * x)+(neg(neg x)) ≡ 0r
+                       → neg 1r * x ≡ neg x
       H = grp.uniqueInv in H $
-  (neg one * x)+(neg(neg x)) ≡⟨ right _+_ (grp.doubleInv x)⟩
-  (neg one * x) + x          ≡⟨ right _+_ (sym (lIdentity x))⟩
-  (neg one * x)+(one * x)    ≡⟨ sym (rDistribute x (neg one) one)⟩
-  (neg one + one) * x        ≡⟨ left _*_ (lInverse one)⟩
-  zero * x                   ≡⟨ lMultZ x ⟩
-  zero ∎
+  (neg 1r * x)+(neg(neg x)) ≡⟨ right _+_ (grp.doubleInv x)⟩
+  (neg 1r * x) + x          ≡⟨ right _+_ (sym (lIdentity x))⟩
+  (neg 1r * x)+(1r * x)    ≡⟨ sym (rDistribute x (neg 1r) 1r)⟩
+  (neg 1r + 1r) * x        ≡⟨ left _*_ (lInverse 1r)⟩
+  0r * x                   ≡⟨ lMultZ x ⟩
+  0r ∎
 
-rMultNegOne : {{R : Ring A}} → (x : A) → x * neg one ≡ neg x
+rMultNegOne : {{R : Ring A}} → (x : A) → x * neg 1r ≡ neg x
 rMultNegOne x =
-  let H : (x * neg one)+(neg(neg x)) ≡ zero
-                       → x * neg one ≡ neg x
+  let H : (x * neg 1r)+(neg(neg x)) ≡ 0r
+                       → x * neg 1r ≡ neg x
       H = grp.uniqueInv in H $
-  (x * neg one)+(neg(neg x)) ≡⟨ right _+_ (grp.doubleInv x)⟩
-  (x * neg one) + x          ≡⟨ right _+_ (sym (rIdentity x))⟩
-  (x * neg one)+(x * one)    ≡⟨ sym (lDistribute x (neg one) one)⟩
-  x * (neg one + one)        ≡⟨ right _*_ (lInverse one)⟩
-  x * zero                   ≡⟨ rMultZ x ⟩
-  zero ∎
+  (x * neg 1r)+(neg(neg x)) ≡⟨ right _+_ (grp.doubleInv x)⟩
+  (x * neg 1r) + x          ≡⟨ right _+_ (sym (rIdentity x))⟩
+  (x * neg 1r)+(x * 1r)    ≡⟨ sym (lDistribute x (neg 1r) 1r)⟩
+  x * (neg 1r + 1r)        ≡⟨ right _*_ (lInverse 1r)⟩
+  x * 0r                   ≡⟨ rMultZ x ⟩
+  0r ∎

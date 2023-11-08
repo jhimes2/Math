@@ -41,7 +41,7 @@ module _{scalar : Type l}{{F : Field scalar}}{vector : Type l'}{{V : VectorSpace
                         → Subspace (Span X)
   NonEmptySpanIsSubspace {X = X} (v , v') =
       record { ssZero = scaleZ v ~> λ{p → transport (λ i → Span X (p i))
-                                                    (spanScale (intro v') zero)}
+                                                    (spanScale (intro v') 0r)}
              ; ssAdd = λ x y → spanAdd x y
              ; ssScale = λ x c → spanScale x c }
 

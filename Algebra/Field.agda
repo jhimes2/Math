@@ -9,28 +9,28 @@ open import Algebra.Group
 open import Algebra.Rng
 open import Algebra.CRing
 
-reciprocalNonzeroCodomain : {{F : Field A}} (a : nonZero) → reciprocal a ≢ zero
+reciprocalNonzeroCodomain : {{F : Field A}} (a : nonZero) → reciprocal a ≢ 0r 
 reciprocalNonzeroCodomain (a , p) contra =
-  let H : a * reciprocal (a , p) ≡ a * zero
+  let H : a * reciprocal (a , p) ≡ a * 0r 
       H = right _*_ contra in
-  let G : one ≡ a * zero
+  let G : 1r ≡ a * 0r 
       G = eqTrans (sym (recInv (a , p))) H in
-  let F : one ≡ zero
+  let F : 1r ≡ 0r 
       F = eqTrans G (rMultZ a) in oneNotZero F
 
 -- Multiplying two nonzero values gives a nonzero value
-nonZeroMult : {{F : Field A}} (a b : nonZero) → (pr1 a * pr1 b) ≢ zero
-nonZeroMult (a , a') (b , b') = λ(f : (a * b) ≡ zero) →
-  let H : reciprocal (a , a') * (a * b) ≡ reciprocal (a , a') * zero
+nonZeroMult : {{F : Field A}} (a b : nonZero) → (pr1 a * pr1 b) ≢ 0r 
+nonZeroMult (a , a') (b , b') = λ(f : (a * b) ≡ 0r ) →
+  let H : reciprocal (a , a') * (a * b) ≡ reciprocal (a , a') * 0r 
       H = right _*_ f in
-  let G : (reciprocal (a , a')) * zero ≡ zero
+  let G : (reciprocal (a , a')) * 0r  ≡ 0r 
       G = rMultZ (reciprocal (a , a')) in
   let F = b       ≡⟨ sym(lIdentity b)⟩
-          one * b ≡⟨ left _*_ (sym (recInv (a , a')))⟩
+          1r * b ≡⟨ left _*_ (sym (recInv (a , a')))⟩
           (a * reciprocal (a , a')) * b ≡⟨ left _*_ (comm a (reciprocal (a , a'))) ⟩
           (reciprocal (a , a') * a) * b ≡⟨ sym (assoc (reciprocal (a , a')) a b)⟩
           (reciprocal (a , a')) * (a * b) ∎ in
-  let contradiction : b ≡ zero
+  let contradiction : b ≡ 0r 
       contradiction = eqTrans F (eqTrans H G)
       in b' contradiction
 
@@ -50,14 +50,14 @@ distinguishingOutput {n = S n} xs {a} p = implicitLEM (head xs ≡ a)
 
 generalized-field-property :{{F : Field A}}
                            → (xs : [ A ^ n ])
-                           → xs ≢ (λ _ → zero) → ¬ ¬ (Σ λ(i : fin n) → (xs i ∈ A ˣ))
+                           → xs ≢ (λ _ → 0r ) → ¬ ¬ (Σ λ(i : fin n) → (xs i ∈ A ˣ))
 generalized-field-property {A = A} {n = n} xs p = distinguishingOutput {n = n} xs p
          >>= λ{ (x , x') → η (x , (reciprocal (xs x , x') , recInv (xs x , x')))}
 
-negOneNotZero : {{F : Field A}} → neg one ≢ zero
+negOneNotZero : {{F : Field A}} → neg 1r ≢ 0r 
 negOneNotZero =
-  λ(contra : neg one ≡ zero) → oneNotZero $
+  λ(contra : neg 1r ≡ 0r ) → oneNotZero $
                          grp.invInjective $
-                             neg one ≡⟨ contra ⟩
-                             zero    ≡⟨ sym (grp.lemma4) ⟩
-                             neg zero ∎
+                             neg 1r ≡⟨ contra ⟩
+                             0r     ≡⟨ sym (grp.lemma4) ⟩
+                             neg 0r  ∎

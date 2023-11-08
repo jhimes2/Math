@@ -20,18 +20,18 @@ module _{scalar : Type l}{vector : Type l'}{{R : Ring scalar}}{{V : Module vecto
   vGrp : group _[+]_
   vGrp = abelianGroup.grp addvStr
 
-  -- Vector scaled by zero is zero vector
-  scaleZ : (v : vector) → scale zero v ≡ vZero
+  -- Vector scaled by 0r is 0r vector
+  scaleZ : (v : vector) → scale 0r v ≡ vZero
   scaleZ v =
-    let H : scale zero v [+] scale zero v ≡ (scale zero v [+] vZero)
-                           → scale zero v ≡ vZero
-        H = grp.cancel (scale zero v) in H $
-    scale zero v [+] scale zero v ≡⟨ sym (vectorDistribute v zero zero)⟩
-    scale (zero + zero) v         ≡⟨ left scale (lIdentity zero)⟩
-    scale zero v                  ≡⟨ sym (rIdentity (scale zero v))⟩
-    scale zero v [+] vZero ∎
+    let H : scale 0r v [+] scale 0r v ≡ (scale 0r v [+] vZero)
+                           → scale 0r v ≡ vZero
+        H = grp.cancel (scale 0r v) in H $
+    scale 0r v [+] scale 0r v ≡⟨ sym (vectorDistribute v 0r 0r)⟩
+    scale (0r + 0r) v         ≡⟨ left scale (lIdentity 0r)⟩
+    scale 0r v                  ≡⟨ sym (rIdentity (scale 0r v))⟩
+    scale 0r v [+] vZero ∎
 
-  -- Zero vector scaled is zero vector
+  -- 0r vector scaled is 0r vector
   scaleVZ : (c : scalar) → scale c vZero ≡ vZero
   scaleVZ c =
     let H : scale c vZero [+] scale c vZero ≡ scale c vZero [+] vZero
@@ -50,13 +50,13 @@ module _{scalar : Type l}{vector : Type l'}{{R : Ring scalar}}{{V : Module vecto
     scale (neg c) v [+] negV(negV(scale c v)) ≡⟨ right _[+]_ (grp.doubleInv (scale c v))⟩
     scale (neg c) v [+] (scale c v)           ≡⟨ sym (vectorDistribute v (neg c) c)⟩
     scale ((neg c) + c) v                     ≡⟨ left scale (lInverse c)⟩
-    scale zero v                              ≡⟨ scaleZ v ⟩
+    scale 0r v                              ≡⟨ scaleZ v ⟩
     vZero ∎
 
-  scaleNegOneInv : (v : vector) → scale (neg one) v ≡ negV v
+  scaleNegOneInv : (v : vector) → scale (neg 1r) v ≡ negV v
   scaleNegOneInv v =
-    scale (neg one) v ≡⟨ scaleInv v one ⟩
-    negV (scale one v) ≡⟨ cong negV (scaleId v) ⟩
+    scale (neg 1r) v ≡⟨ scaleInv v 1r ⟩
+    negV (scale 1r v) ≡⟨ cong negV (scaleId v) ⟩
     negV v ∎
 
 -- Not necessarily a linear span since we're using a module instead of a vector space
@@ -124,8 +124,8 @@ module _ {scalar : Type l}{{R : Ring scalar}}
   modHomomorphismZ : T vZero ≡ vZero
   modHomomorphismZ =
           T vZero  ≡⟨ sym (cong T (scaleZ vZero))⟩
-          T (scale zero vZero)  ≡⟨ moduleHomomorphism.multT TLT vZero zero ⟩
-          scale zero (T vZero)  ≡⟨ scaleZ (T vZero)⟩
+          T (scale 0r vZero)  ≡⟨ moduleHomomorphism.multT TLT vZero 0r ⟩
+          scale 0r (T vZero)  ≡⟨ scaleZ (T vZero)⟩
           vZero ∎
 
   -- If 'T' and 'R' are module homomorphisms and are composable, then 'R ∘ T' is

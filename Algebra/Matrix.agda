@@ -42,7 +42,7 @@ instance
                  ; η = λ x _ → x }
 
 zeroV : {{Rng A}} → B → A
-zeroV x = zero
+zeroV x = 0r
 
 addv : {{R : Rng A}} → (B → A) → (B → A) → (B → A)
 addv = zip _+_
@@ -70,10 +70,10 @@ foldr∞ (S n) f b v = f (v n) (foldr∞ n f b v)
 
 -- Matrix Transformation
 MT : {{R : Rng A}} → (fin n → B → A) → [ A ^ n ] → (B → A)
-MT {n = n} M v x = foldr _+_ zero {n} (zip _*_ v λ y → M y x)
+MT {n = n} M v x = foldr _+_ 0r {n} (zip _*_ v λ y → M y x)
 
 MT∞ : {{R : Rng A}} → ℕ → (ℕ → B → A) → (ℕ → A) → (B → A)
-MT∞ n M v x = foldr∞ n _+_ zero (zip _*_ v λ y → M y x)
+MT∞ n M v x = foldr∞ n _+_ 0r (zip _*_ v λ y → M y x)
 
 columnSpace : {A : Type l} → {B : Type l'} → {{F : Field A}} → (fin n → B → A) → (B → A) → Type (l ⊔ l')
 columnSpace {n = n} M x = ∃ λ y → MT {n = n} M y ≡ x
@@ -147,51 +147,51 @@ instance
      addT = λ u v → funExt λ x →
      MT {n = n} M (addv u v) x
        ≡⟨By-Definition⟩
-     foldr _+_ zero {n} (zip _*_ (addv u v) (transpose M x))
+     foldr _+_ 0r {n} (zip _*_ (addv u v) (transpose M x))
        ≡⟨By-Definition⟩
-     foldr _+_ zero {n} (λ y → (addv u v) y * transpose M x y)
+     foldr _+_ 0r {n} (λ y → (addv u v) y * transpose M x y)
        ≡⟨By-Definition⟩
-     foldr _+_ zero {n} (λ y → (u y + v y) * transpose M x y)
-       ≡⟨ cong (foldr _+_ zero {n}) (funExt λ z → rDistribute (transpose M x z) (u z) (v z))⟩
-     foldr _+_ zero {n} (λ y → ((u y * transpose M x y) + (v y * transpose M x y)))
+     foldr _+_ 0r {n} (λ y → (u y + v y) * transpose M x y)
+       ≡⟨ cong (foldr _+_ 0r {n}) (funExt λ z → rDistribute (transpose M x z) (u z) (v z))⟩
+     foldr _+_ 0r {n} (λ y → ((u y * transpose M x y) + (v y * transpose M x y)))
        ≡⟨By-Definition⟩
-     foldr _+_ zero {n} (addv (multv u (transpose M x)) (multv v (transpose M x)))
+     foldr _+_ 0r {n} (addv (multv u (transpose M x)) (multv v (transpose M x)))
        ≡⟨ foldrMC {n = n} (multv u (transpose M x)) (multv v (transpose M x))⟩
-     foldr _+_ zero {n} ((multv u (transpose M x))) + foldr _+_ zero {n} (multv v (transpose M x))
+     foldr _+_ 0r {n} ((multv u (transpose M x))) + foldr _+_ 0r {n} (multv v (transpose M x))
        ≡⟨By-Definition⟩
-     foldr _+_ zero {n} (zip _*_ u (transpose M x)) + foldr _+_ zero {n} (zip _*_ v (transpose M x))
+     foldr _+_ 0r {n} (zip _*_ u (transpose M x)) + foldr _+_ 0r {n} (zip _*_ v (transpose M x))
        ≡⟨By-Definition⟩
      addv (MT {n = n} M u) (MT {n = n} M v) x ∎
    ; multT = λ u c → funExt λ x →
        MT {n = n} M (scaleV c u) x ≡⟨By-Definition⟩
-       foldr _+_ zero {n} (λ y → (c * u y) * M y x) ≡⟨ cong (foldr _+_ zero {n}) (funExt λ y → sym (assoc c (u y) (M y x))) ⟩
-       foldr _+_ zero {n} (λ y → c * (u y * M y x)) ≡⟨ Rec {n = n} M u c x ⟩
-       c * (foldr _+_ zero {n} (λ y → u y * M y x)) ≡⟨By-Definition⟩
+       foldr _+_ 0r {n} (λ y → (c * u y) * M y x) ≡⟨ cong (foldr _+_ 0r {n}) (funExt λ y → sym (assoc c (u y) (M y x))) ⟩
+       foldr _+_ 0r {n} (λ y → c * (u y * M y x)) ≡⟨ Rec {n = n} M u c x ⟩
+       c * (foldr _+_ 0r {n} (λ y → u y * M y x)) ≡⟨By-Definition⟩
        scaleV c (MT {n = n} M u) x ∎
    }
       where
         Rec : {{R : Ring A}} {n : ℕ} (M : fin n → B → A) (u : fin n → A) → (c : A) → (x : B)
-            → foldr _+_ zero {n} (λ y → (c * (u y * M y x))) ≡ c * foldr _+_ zero {n} (λ y → u y * M y x)
+            → foldr _+_ 0r {n} (λ y → (c * (u y * M y x))) ≡ c * foldr _+_ 0r {n} (λ y → u y * M y x)
         Rec {n = Z} M u c x = sym (rMultZ c)
         Rec {n = S n} M u c x =
-          head (λ y → (c * (u y * M y x))) + foldr _+_ zero {n} (tail (λ y → (c * (u y * M y x))))
+          head (λ y → (c * (u y * M y x))) + foldr _+_ 0r {n} (tail (λ y → (c * (u y * M y x))))
            ≡⟨ right _+_ (Rec {n = n} (tail M) (tail u) c x) ⟩
-          (c * head (λ y → u y * M y x)) + (c * (foldr _+_ zero {n} (tail(λ y → u y * M y x))))
-            ≡⟨ sym (lDistribute c ((head (λ y → u y * M y x))) (foldr _+_ zero {n} (tail(λ y → u y * M y x)))) ⟩
-          c * (head (λ y → u y * M y x) + foldr _+_ zero {n} (tail(λ y → u y * M y x))) ∎
+          (c * head (λ y → u y * M y x)) + (c * (foldr _+_ 0r {n} (tail(λ y → u y * M y x))))
+            ≡⟨ sym (lDistribute c ((head (λ y → u y * M y x))) (foldr _+_ 0r {n} (tail(λ y → u y * M y x)))) ⟩
+          c * (head (λ y → u y * M y x) + foldr _+_ 0r {n} (tail(λ y → u y * M y x))) ∎
   -- Matrix transformation over a field is a linear map.
   LTMT : {{F : Field A}} → {M : fin n → B → A} → LinearMap (MT {n = n} M)
   LTMT {n = n} {{F}} {M = M} = MHMT {n = n}
 
 indicateEqRing : {{R : Ring A}} → (n : ℕ) → {a b : fin n} → Dec (a ≡ b) → A
-indicateEqRing n (yes p) = one
-indicateEqRing n (no ¬p) = zero
+indicateEqRing n (yes p) = 1r
+indicateEqRing n (no ¬p) = 0r
 
 -- infinite identity matrix
 I∞ : {{R : Ring A}} → ℕ → ℕ → A
-I∞ Z Z = one
-I∞ Z (S b) = zero
-I∞ (S a) Z = zero
+I∞ Z Z = 1r
+I∞ Z (S b) = 0r
+I∞ (S a) Z = 0r
 I∞ (S a) (S b) = I∞ a b
 
 I∞Transpose : {{R : Ring A}} → I∞ ≡ transpose I∞
