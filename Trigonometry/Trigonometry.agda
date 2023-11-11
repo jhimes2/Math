@@ -268,14 +268,14 @@ module trig(sinAngleAdd : ∀ x y → sin(x + y) ≡ (sin x * cos y)+(cos x * si
    (sin² θ + cos² θ) - (2* (sin² θ)) ≡⟨ left _-_ (pythagorean θ)⟩
    1r - (2* (sin² θ)) ∎
 
--- tan : ∀ {θ} → cos θ ≢ 0r → A
--- tan {θ = θ} cosθ≢0 = sin θ / (cos θ , cosθ≢0)
---
--- cot : ∀ {θ} → sin θ ≢ 0r → A
--- cot {θ = θ} sinθ≢0 = cos θ / (sin θ , sinθ≢0)
---
--- csc : ∀ {θ} → sin θ ≢ 0r → A
--- csc {θ = θ} sinθ≢0 = reciprocal (sin θ , sinθ≢0)
--- 
--- sec : ∀ {θ} → cos θ ≢ 0r → A
--- sec {θ = θ} cosθ≢0 = reciprocal (cos θ , cosθ≢0)
+ tan : ∀ {θ} → cos θ ≢ 0r → A
+ tan {θ = θ} cosθ≢0 = sin θ / (cos θ , cosθ≢0)
+
+ cot : ∀ {θ} → sin θ ≢ 0r → A
+ cot {θ = θ} sinθ≢0 = cos θ / (sin θ , sinθ≢0)
+
+ csc : ∀ {θ} → sin θ ≢ 0r → A
+ csc {θ = θ} sinθ≢0 = reciprocal (sin θ , sinθ≢0)
+ 
+ sec : ∀ {θ} → cos θ ≢ 0r → A
+ sec {θ = θ} cosθ≢0 = reciprocal (cos θ , cosθ≢0)

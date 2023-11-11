@@ -9,6 +9,9 @@ open import Algebra.Group
 open import Algebra.Rng
 open import Algebra.CRing
 
+_/_ : {{F : Field A}} → A → nonZero → A
+a / b = a * reciprocal b
+
 reciprocalNonzeroCodomain : {{F : Field A}} (a : nonZero) → reciprocal a ≢ 0r 
 reciprocalNonzeroCodomain (a , p) contra =
   let H : a * reciprocal (a , p) ≡ a * 0r 
