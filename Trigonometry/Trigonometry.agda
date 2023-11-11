@@ -215,7 +215,7 @@ module trig(sinAngleAdd : ∀ x y → sin(x + y) ≡ (sin x * cos y)+(cos x * si
            (cos π * cos π) - 0r ≡⟨ right _+_ grp.lemma4 ⟩
            (cos π * cos π) + 0r ≡⟨ rIdentity (cos π * cos π)⟩
            cos π * cos π ≡⟨ cong₂ _*_ cosπ≡-1 cosπ≡-1 ⟩
-           neg 1r * neg 1r ≡⟨ negSwap 1r (neg 1r)⟩
+           neg 1r * neg 1r ≡⟨ -x*y≡x*-y 1r (neg 1r)⟩
            1r * neg(neg 1r) ≡⟨ right _*_ (grp.doubleInv 1r)⟩
            1r * 1r ≡⟨ lIdentity 1r ⟩
            1r ∎

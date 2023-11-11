@@ -26,8 +26,8 @@ x*0≡0 x =
   (0r * x) + neg(0r * x)            ≡⟨ rInverse (0r * x)⟩
   0r ∎
 
-negSwap : {{R : Rng A}} → (x y : A) → neg x * y ≡ x * neg y
-negSwap x y =
+-x*y≡x*-y : {{R : Rng A}} → (x y : A) → neg x * y ≡ x * neg y
+-x*y≡x*-y x y =
   let H : (x * y)+(neg x * y) ≡ (x * y)+(x * neg y)
                   → neg x * y ≡ x * neg y
       H = grp.cancel (x * y) in H $
