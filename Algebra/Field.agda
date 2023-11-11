@@ -12,8 +12,8 @@ open import Algebra.CRing
 _/_ : {{F : Field A}} → A → nonZero → A
 a / b = a * reciprocal b
 
-reciprocalNonzeroCodomain : {{F : Field A}} (a : nonZero) → reciprocal a ≢ 0r 
-reciprocalNonzeroCodomain (a , p) contra =
+x⁻¹≢0 : {{F : Field A}} (x : nonZero) → reciprocal x ≢ 0r 
+x⁻¹≢0 (a , p) contra =
   let H : a * reciprocal (a , p) ≡ a * 0r 
       H = right _*_ contra in
   let G : 1r ≡ a * 0r 
