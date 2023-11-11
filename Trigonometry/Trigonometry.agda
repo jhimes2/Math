@@ -131,7 +131,7 @@ module trig(sinAngleAdd : ∀ x y → sin(x + y) ≡ (sin x * cos y)+(cos x * si
  cosπ≡-1 = cos π ≡⟨By-Definition⟩
            cos (π/2 + π/2) ≡⟨ cosAngleAdd π/2 π/2 ⟩
            (cos π/2 * cos π/2) - (sin π/2 * sin π/2) ≡⟨ left _-_ (left _*_ cosπ/2≡0)⟩
-           (0r * cos π/2) - (sin π/2 * sin π/2) ≡⟨ left _-_ (lMultZ (cos π/2))⟩
+           (0r * cos π/2) - (sin π/2 * sin π/2) ≡⟨ left _-_ (0*x≡0 (cos π/2))⟩
            0r - (sin π/2 * sin π/2) ≡⟨By-Definition⟩
            0r + neg (sin π/2 * sin π/2) ≡⟨ lIdentity (neg (sin π/2 * sin π/2))⟩
            neg (sin π/2 * sin π/2) ≡⟨ cong neg (cong₂ _*_ evaluation evaluation)⟩
@@ -145,7 +145,7 @@ module trig(sinAngleAdd : ∀ x y → sin(x + y) ≡ (sin x * cos y)+(cos x * si
           (sin π/2 * 0r) + (cos π/2 * sin π/2) ≡⟨ left _+_ (x*0≡0 (sin π/2))⟩
           0r + (cos π/2 * sin π/2) ≡⟨ lIdentity (cos π/2 * sin π/2)⟩
           cos π/2 * sin π/2 ≡⟨ left _*_ cosπ/2≡0 ⟩
-          0r * sin π/2 ≡⟨ lMultZ (sin π/2)⟩
+          0r * sin π/2 ≡⟨ 0*x≡0 (sin π/2)⟩
           0r ∎
 
  sinθ+π≡-sinθ : ∀ θ → sin (θ + π) ≡ neg(sin θ)
@@ -165,7 +165,7 @@ module trig(sinAngleAdd : ∀ x y → sin(x + y) ≡ (sin x * cos y)+(cos x * si
    (sin π * cos π) + (cos π * sin π) ≡⟨ right _+_ (comm (cos π) (sin π))⟩
    (sin π * cos π) + (sin π * cos π) ≡⟨ x+x≡2x (sin π * cos π)⟩
    2r * (sin π * cos π) ≡⟨ right _*_ (left _*_ sinπ≡0)⟩
-   2r * (0r * cos π) ≡⟨ right _*_ (lMultZ (cos π))⟩
+   2r * (0r * cos π) ≡⟨ right _*_ (0*x≡0 (cos π))⟩
    2r * 0r ≡⟨ x*0≡0 2r ⟩
    0r ∎
 
@@ -211,7 +211,7 @@ module trig(sinAngleAdd : ∀ x y → sin(x + y) ≡ (sin x * cos y)+(cos x * si
  cos2π≡1 = cos 2π ≡⟨By-Definition⟩
            cos(π + π) ≡⟨ cosAngleAdd π π ⟩
            (cos π * cos π) - (sin π * sin π) ≡⟨ right _-_ (left _*_ sinπ≡0)⟩
-           (cos π * cos π) - (0r * sin π) ≡⟨ right _-_ (lMultZ (sin π))⟩
+           (cos π * cos π) - (0r * sin π) ≡⟨ right _-_ (0*x≡0 (sin π))⟩
            (cos π * cos π) - 0r ≡⟨ right _+_ grp.lemma4 ⟩
            (cos π * cos π) + 0r ≡⟨ rIdentity (cos π * cos π)⟩
            cos π * cos π ≡⟨ cong₂ _*_ cosπ≡-1 cosπ≡-1 ⟩

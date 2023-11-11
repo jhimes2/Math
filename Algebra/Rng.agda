@@ -16,8 +16,8 @@ x*0≡0 x =
   (x * 0r) + neg(x * 0r)              ≡⟨ rInverse (x * 0r)⟩
   0r ∎
 
-lMultZ : {{R : Rng A}} → (x : A) → 0r * x ≡ 0r
-lMultZ x =
+0*x≡0 : {{R : Rng A}} → (x : A) → 0r * x ≡ 0r
+0*x≡0 x =
   0r * x                                ≡⟨ sym (rIdentity (0r * x))⟩
   (0r * x) + 0r                       ≡⟨ right _+_ (sym (rInverse (0r * x)))⟩
   (0r * x)+((0r * x) + neg(0r * x)) ≡⟨ assoc (0r * x) (0r * x) (neg(0r * x))⟩
@@ -33,7 +33,7 @@ negSwap x y =
       H = grp.cancel (x * y) in H $
   (x * y)+(neg x * y)   ≡⟨ sym(rDistribute y x (neg x))⟩
   (x + neg x) * y       ≡⟨ left _*_ (rInverse x)⟩
-  0r * y              ≡⟨ lMultZ y ⟩
+  0r * y              ≡⟨ 0*x≡0 y ⟩
   0r                  ≡⟨ sym (x*0≡0 x)⟩
   x * 0r              ≡⟨ right _*_ (sym (rInverse y))⟩
   x * (y + neg y)       ≡⟨ lDistribute x y (neg y)⟩
@@ -46,7 +46,7 @@ multNeg x y =
       H = grp.cancel (x * y) in H $
   (x * y)+(neg x * y) ≡⟨ sym(rDistribute y x (neg x))⟩
   (x + neg x) * y     ≡⟨ left _*_ (rInverse x)⟩
-  0r * y            ≡⟨ lMultZ y ⟩
+  0r * y            ≡⟨ 0*x≡0 y ⟩
   0r                ≡⟨ sym (rInverse (x * y))⟩
   (x * y) + neg(x * y) ∎
 
