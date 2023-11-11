@@ -102,7 +102,7 @@ module _{u : Level}{F : Type u}{{_ : Field F}}{{OF : OrderedRng F}} where
            ~> transport (λ i → grp.lemma4 i ≤ neg 1r)
            ~> λ(p : 0r ≤ neg 1r) → (λ x → negOneNotZero (sym x))
            ~> λ(q : 0r ≢ neg 1r) → multLe (p , q) (p , q)
-           ~> transport (λ i → 0r < rMultNegOne (neg 1r) i)
+           ~> transport (λ i → 0r < x*-1≡-x (neg 1r) i)
            ~> transport (λ i → 0r < grp.doubleInv 1r i)
            ~> λ(p : 0r < 1r) → (fst p)
       in oneNotZero $ antiSymmetric contra $ G
