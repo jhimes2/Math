@@ -119,7 +119,7 @@ module trig(sinAngleAdd : ∀ x y → sin(x + y) ≡ (sin x * cos y)+(cos x * si
    (sin(neg y) * cos(neg x + π/2)) + (cos y * sin(neg x + π/2)) ≡⟨ left _+_ (left _*_ (sym(oddFunction y)))⟩
    (neg(sin y) * cos(neg x + π/2)) + (cos y * sin(neg x + π/2)) ≡⟨ left _+_ (right _*_ (cong cos (comm (neg x) π/2)))⟩
    (neg(sin y) * cos(π/2 - x)) + (cos y * sin(neg x + π/2)) ≡⟨ left _+_ (right _*_ (cosπ/2-θ≡sinθ x))⟩
-   (neg(sin y) * sin x) + (cos y * sin(neg x + π/2)) ≡⟨ left _+_ (multNeg (sin y) (sin x))⟩
+   (neg(sin y) * sin x) + (cos y * sin(neg x + π/2)) ≡⟨ left _+_ (-x*y≡-[x*y] (sin y) (sin x))⟩
    neg(sin y * sin x) + (cos y * sin(neg x + π/2)) ≡⟨ comm (neg(sin y * sin x)) (cos y * sin(neg x + π/2))⟩
    (cos y * sin(neg x + π/2)) - (sin y * sin x) ≡⟨ right _-_ (comm (sin y) (sin x))⟩
    (cos y * sin(neg x + π/2)) - (sin x * sin y) ≡⟨ left _-_ (right _*_ (cong sin (comm (neg x) π/2)))⟩

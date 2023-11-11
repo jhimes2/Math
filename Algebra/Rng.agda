@@ -39,8 +39,8 @@ negSwap x y =
   x * (y + neg y)       ≡⟨ lDistribute x y (neg y)⟩
   (x * y)+(x * neg y) ∎
 
-multNeg : {{R : Rng A}} → (x y : A) → (neg x) * y ≡ neg(x * y)
-multNeg x y =
+-x*y≡-[x*y] : {{R : Rng A}} → (x y : A) → (neg x) * y ≡ neg(x * y)
+-x*y≡-[x*y] x y =
   let H : (x * y)+(neg x * y) ≡ (x * y) + neg(x * y)
                   → neg x * y ≡ neg(x * y)
       H = grp.cancel (x * y) in H $
