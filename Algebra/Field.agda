@@ -19,7 +19,7 @@ reciprocalNonzeroCodomain (a , p) contra =
   let G : 1r ≡ a * 0r 
       G = eqTrans (sym (recInv (a , p))) H in
   let F : 1r ≡ 0r 
-      F = eqTrans G (rMultZ a) in oneNotZero F
+      F = eqTrans G (x*0≡0 a) in oneNotZero F
 
 -- Multiplying two nonzero values gives a nonzero value
 nonZeroMult : {{F : Field A}} (a b : nonZero) → (pr1 a * pr1 b) ≢ 0r 
@@ -27,7 +27,7 @@ nonZeroMult (a , a') (b , b') = λ(f : (a * b) ≡ 0r ) →
   let H : reciprocal (a , a') * (a * b) ≡ reciprocal (a , a') * 0r 
       H = right _*_ f in
   let G : (reciprocal (a , a')) * 0r  ≡ 0r 
-      G = rMultZ (reciprocal (a , a')) in
+      G = x*0≡0 (reciprocal (a , a')) in
   let F = b       ≡⟨ sym(lIdentity b)⟩
           1r * b ≡⟨ left _*_ (sym (recInv (a , a')))⟩
           (a * reciprocal (a , a')) * b ≡⟨ left _*_ (comm a (reciprocal (a , a'))) ⟩

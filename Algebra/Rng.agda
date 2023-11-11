@@ -6,8 +6,8 @@ open import Prelude
 open import Algebra.Base
 open import Algebra.Group
 
-rMultZ : {{R : Rng A}} → (x : A) → x * 0r ≡ 0r
-rMultZ x =
+x*0≡0 : {{R : Rng A}} → (x : A) → x * 0r ≡ 0r
+x*0≡0 x =
   x * 0r                                ≡⟨ sym (rIdentity (x * 0r))⟩
   (x * 0r) + 0r                       ≡⟨ right _+_ (sym (rInverse (x * 0r)))⟩
   (x * 0r)+((x * 0r) + neg(x * 0r)) ≡⟨ assoc (x * 0r) (x * 0r) (neg(x * 0r))⟩
@@ -34,7 +34,7 @@ negSwap x y =
   (x * y)+(neg x * y)   ≡⟨ sym(rDistribute y x (neg x))⟩
   (x + neg x) * y       ≡⟨ left _*_ (rInverse x)⟩
   0r * y              ≡⟨ lMultZ y ⟩
-  0r                  ≡⟨ sym (rMultZ x)⟩
+  0r                  ≡⟨ sym (x*0≡0 x)⟩
   x * 0r              ≡⟨ right _*_ (sym (rInverse y))⟩
   x * (y + neg y)       ≡⟨ lDistribute x y (neg y)⟩
   (x * y)+(x * neg y) ∎

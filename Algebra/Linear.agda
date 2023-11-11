@@ -105,7 +105,7 @@ dualSum {l} {vector = vector} {{F}} VS =
 
 dualZero : {A : Type l}{{F : Field A}}{vector : Type l'}(VS : VectorSpace vector) → linearForm VS
 dualZero {A = A}{{F}} {vector = vector} VS = (λ _ → vZero) , record { addT = λ u v → sym (lIdentity vZero)
-                                      ; multT = λ v c → sym (rMultZ c) }
+                                      ; multT = λ v c → sym (x*0≡0 c) }
  where
   instance
    V : VectorSpace vector

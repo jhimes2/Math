@@ -172,7 +172,7 @@ instance
       where
         Rec : {{R : Ring A}} {n : ℕ} (M : fin n → B → A) (u : fin n → A) → (c : A) → (x : B)
             → foldr _+_ 0r {n} (λ y → (c * (u y * M y x))) ≡ c * foldr _+_ 0r {n} (λ y → u y * M y x)
-        Rec {n = Z} M u c x = sym (rMultZ c)
+        Rec {n = Z} M u c x = sym (x*0≡0 c)
         Rec {n = S n} M u c x =
           head (λ y → (c * (u y * M y x))) + foldr _+_ 0r {n} (tail (λ y → (c * (u y * M y x))))
            ≡⟨ right _+_ (Rec {n = n} (tail M) (tail u) c x) ⟩

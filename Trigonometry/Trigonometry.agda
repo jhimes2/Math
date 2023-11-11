@@ -71,7 +71,7 @@ module trig(sinAngleAdd : ∀ x y → sin(x + y) ≡ (sin x * cos y)+(cos x * si
    (sin θ * cos(neg π/2)) + (cos θ * sin(neg π/2)) ≡⟨ right _+_ (right _*_ sin-π/2≡-1)⟩
    (sin θ * cos(neg π/2)) + (cos θ * neg 1r)       ≡⟨ right _+_ (x*-1≡-x (cos θ))⟩
    (sin θ * cos(neg π/2)) + neg(cos θ)             ≡⟨ left _+_ (right _*_ cos-π/2≡0)⟩
-   (sin θ * 0r) + neg(cos θ)                       ≡⟨ left _+_ (rMultZ (sin θ)) ⟩
+   (sin θ * 0r) + neg(cos θ)                       ≡⟨ left _+_ (x*0≡0 (sin θ)) ⟩
    0r + neg(cos θ)                                 ≡⟨ lIdentity (neg(cos θ)) ⟩
    neg(cos θ) ∎
 
@@ -142,7 +142,7 @@ module trig(sinAngleAdd : ∀ x y → sin(x + y) ≡ (sin x * cos y)+(cos x * si
  sinπ≡0 = sin π ≡⟨By-Definition⟩
           sin(π/2 + π/2) ≡⟨ sinAngleAdd π/2 π/2 ⟩
           (sin π/2 * cos π/2) + (cos π/2 * sin π/2) ≡⟨ left _+_ (right _*_ cosπ/2≡0)⟩
-          (sin π/2 * 0r) + (cos π/2 * sin π/2) ≡⟨ left _+_ (rMultZ (sin π/2))⟩
+          (sin π/2 * 0r) + (cos π/2 * sin π/2) ≡⟨ left _+_ (x*0≡0 (sin π/2))⟩
           0r + (cos π/2 * sin π/2) ≡⟨ lIdentity (cos π/2 * sin π/2)⟩
           cos π/2 * sin π/2 ≡⟨ left _*_ cosπ/2≡0 ⟩
           0r * sin π/2 ≡⟨ lMultZ (sin π/2)⟩
@@ -152,7 +152,7 @@ module trig(sinAngleAdd : ∀ x y → sin(x + y) ≡ (sin x * cos y)+(cos x * si
  sinθ+π≡-sinθ θ =
    sin (θ + π) ≡⟨ sinAngleAdd θ π ⟩
    (sin θ * cos π) + (cos θ * sin π) ≡⟨ right _+_ (right _*_ sinπ≡0)⟩
-   (sin θ * cos π) + (cos θ * 0r) ≡⟨ right _+_ (rMultZ (cos θ))⟩
+   (sin θ * cos π) + (cos θ * 0r) ≡⟨ right _+_ (x*0≡0 (cos θ))⟩
    (sin θ * cos π) + 0r ≡⟨ rIdentity (sin θ * cos π)⟩
    sin θ * cos π ≡⟨ right _*_ cosπ≡-1 ⟩
    sin θ * neg 1r ≡⟨ x*-1≡-x (sin θ)⟩
@@ -166,7 +166,7 @@ module trig(sinAngleAdd : ∀ x y → sin(x + y) ≡ (sin x * cos y)+(cos x * si
    (sin π * cos π) + (sin π * cos π) ≡⟨ x+x≡2x (sin π * cos π)⟩
    2r * (sin π * cos π) ≡⟨ right _*_ (left _*_ sinπ≡0)⟩
    2r * (0r * cos π) ≡⟨ right _*_ (lMultZ (cos π))⟩
-   2r * 0r ≡⟨ rMultZ 2r ⟩
+   2r * 0r ≡⟨ x*0≡0 2r ⟩
    0r ∎
 
  sinθ+2π≡sinθ : ∀ θ → sin(θ + 2π) ≡ sin θ
@@ -175,7 +175,7 @@ module trig(sinAngleAdd : ∀ x y → sin(x + y) ≡ (sin x * cos y)+(cos x * si
    sin (θ + (π + π)) ≡⟨ cong sin (assoc θ π π)⟩
    sin ((θ + π) + π) ≡⟨ sinAngleAdd (θ + π) π ⟩
    (sin(θ + π) * cos π) + (cos(θ + π) * sin π) ≡⟨ right _+_ (right _*_ sinπ≡0)⟩
-   (sin(θ + π) * cos π) + (cos(θ + π) * 0r) ≡⟨ right _+_ (rMultZ (cos(θ + π)))⟩
+   (sin(θ + π) * cos π) + (cos(θ + π) * 0r) ≡⟨ right _+_ (x*0≡0 (cos(θ + π)))⟩
    (sin(θ + π) * cos π) + 0r ≡⟨ rIdentity (sin(θ + π) * cos π)⟩
    sin(θ + π) * cos π ≡⟨ cong₂ _*_ (sinθ+π≡-sinθ θ) cosπ≡-1 ⟩
    neg(sin θ) * neg 1r ≡⟨ x*-1≡-x (neg(sin θ))⟩
