@@ -82,7 +82,8 @@ module trig(sinAngleAdd : ∀ x y → sin(x + y) ≡ (sin x * cos y)+(cos x * si
 
  sinπ/2-θ≡cosθ : ∀ θ → sin(π/2 - θ) ≡ cos θ
  sinπ/2-θ≡cosθ θ =
-    let H : neg(sin(π/2 - θ)) ≡ neg(cos θ) → sin(π/2 - θ) ≡ cos θ
+    let H : neg(sin(π/2 - θ)) ≡ neg(cos θ)
+               → sin(π/2 - θ) ≡ cos θ
         H = grp.invInjective in H $
     neg(sin(π/2 - θ))           ≡⟨ oddFunction (π/2 - θ)⟩
     sin(neg(π/2 - θ))           ≡⟨By-Definition⟩
@@ -272,7 +273,7 @@ module trig(sinAngleAdd : ∀ x y → sin(x + y) ≡ (sin x * cos y)+(cos x * si
 
  cos2θ≡1-[2sin²θ] : ∀ θ → cos(2* θ) ≡ 1r - 2*(sin² θ)
  cos2θ≡1-[2sin²θ] θ =
-   cos(2* θ)                                  ≡⟨  cos2θ≡[cos²θ]-[sin²θ] θ ⟩
+   cos(2* θ)                                  ≡⟨ cos2θ≡[cos²θ]-[sin²θ] θ ⟩
    cos² θ - sin² θ                            ≡⟨ right _+_ (sym (lIdentity (neg(sin² θ))))⟩
    cos² θ + (0r - sin² θ)                     ≡⟨ right _+_ (left _-_ (sym(rInverse (sin² θ))))⟩
    cos² θ + ((sin² θ - sin² θ) - sin² θ)      ≡⟨ right _+_ $ sym
