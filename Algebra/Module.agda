@@ -25,11 +25,11 @@ module _{scalar : Type l}{vector : Type l'}{{R : Ring scalar}}{{V : Module vecto
   scaleZ : (v : vector) → scale 0r v ≡ vZero
   scaleZ v =
     let H : scale 0r v [+] scale 0r v ≡ (scale 0r v [+] vZero)
-                           → scale 0r v ≡ vZero
+                         → scale 0r v ≡ vZero
         H = grp.cancel (scale 0r v) in H $
     scale 0r v [+] scale 0r v ≡⟨ sym (vectorDistribute v 0r 0r)⟩
     scale (0r + 0r) v         ≡⟨ left scale (lIdentity 0r)⟩
-    scale 0r v                  ≡⟨ sym (rIdentity (scale 0r v))⟩
+    scale 0r v                ≡⟨ sym (rIdentity (scale 0r v))⟩
     scale 0r v [+] vZero ∎
 
   -- zero vector scaled is 0r vector
@@ -43,7 +43,7 @@ module _{scalar : Type l}{vector : Type l'}{{R : Ring scalar}}{{V : Module vecto
     scale c vZero                   ≡⟨ sym (rIdentity (scale c vZero))⟩
     scale c vZero [+] vZero ∎
 
-  scaleInv : (v : vector) → (c : scalar) → scale (neg c) v ≡ (negV (scale c v))
+  scaleInv : (v : vector) → (c : scalar) → scale (neg c) v ≡ negV (scale c v)
   scaleInv v c =
     let H : scale (neg c) v [+] negV(negV(scale c v)) ≡ vZero
                                     → scale (neg c) v ≡ negV (scale c v)
@@ -51,13 +51,13 @@ module _{scalar : Type l}{vector : Type l'}{{R : Ring scalar}}{{V : Module vecto
     scale (neg c) v [+] negV(negV(scale c v)) ≡⟨ right _[+]_ (grp.doubleInv (scale c v))⟩
     scale (neg c) v [+] (scale c v)           ≡⟨ sym (vectorDistribute v (neg c) c)⟩
     scale ((neg c) + c) v                     ≡⟨ left scale (lInverse c)⟩
-    scale 0r v                              ≡⟨ scaleZ v ⟩
+    scale 0r v                                ≡⟨ scaleZ v ⟩
     vZero ∎
 
   scaleNegOneInv : (v : vector) → scale (neg 1r) v ≡ negV v
   scaleNegOneInv v =
     scale (neg 1r) v ≡⟨ scaleInv v 1r ⟩
-    negV (scale 1r v) ≡⟨ cong negV (scaleId v) ⟩
+    negV (scale 1r v) ≡⟨ cong negV (scaleId v)⟩
     negV v ∎
 
   scaleNeg : (v : vector) → (c : scalar) → scale (neg c) v ≡ scale c (negV v)
