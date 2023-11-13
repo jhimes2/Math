@@ -2,41 +2,14 @@
 
 open import Agda.Primitive
 open import Algebra.Base
-open import Algebra.Linear
 open import Algebra.Matrix
 open import Algebra.CRing
 open import Data.Base
 open import Data.Natural
-open import Cubical.Data.Sigma.Properties
 open import Cubical.Foundations.HLevels
 open import Cubical.Foundations.Isomorphism
 open import ClassicalTopology.Topology
 
-instance
-  LFGroup : {{F : Field A}}{{VS : VectorSpace {scalar = A} B}} → group (dualSum VS)
-  LFGroup {{VS = VS}} = record { e = dualZero VS
-                               ; IsSet = {!!}
-                               ; inverse = {!!}
-                               ; lIdentity = {!!}}
-  LFAGroup : {{F : Field A}}{{VS : VectorSpace {scalar = A} B}} → abelianGroup (dualSum VS)
-  LFAGroup = record {}
-                           -- ΣPathPProp ((λ _ → isPropΠ λ _ → isPropIsProp)) H } }
-dualSpace : {B : Type l} {{F : Field A}}(VS : VectorSpace {scalar = A} B) → VectorSpace {scalar = A} (linearForm VS)
-dualSpace {B = B} VS =
- record
-     { _[+]_ = dualSum VS
-     ; addvStr = record {}
-     ; scale = {!!}
-     ; scalarDistribute = {!!}
-     ; vectorDistribute = {!!}
-     ; scalarAssoc = {!!}
-     ; scaleId = {!!}
-     }
- where
-  instance
-   V : VectorSpace B
-   V = VS
- 
 finDecrInj : (f : fin (S n) → fin (S m)) → ((x y : fin (S n)) → f x ≡ f y → x ≡ y) → Σ λ(g : fin n → fin m) → injective g
 finDecrInj {n} {m} f fInj = {!!}
 
@@ -57,8 +30,6 @@ JRule P x = J (λ y → P {x = x} {y})
 JTrans : {a b c : A} → a ≡ b → b ≡ c → a ≡ c
 JTrans {A = A} {a = a} {b} {c} p = let P = λ {b c : A} (q : b ≡ c) → a ≡ c
    in JRule P b p 
-
--- NCategory : (f : ⊤ → A → A) → Σ λ (morphism : Nat → A) → zeroN
 
 _==_ : {A : Type l} → A → A → Type (l ⊔ (lsuc lzero))
 _==_ {A = A} a b = (P : A → Type) → P a → P b

@@ -6,9 +6,9 @@ open import Algebra.Base
 open import Algebra.Group
 open import Algebra.Module
 open import Algebra.Rng
+open import Cubical.Foundations.HLevels
 
 --https://en.wikipedia.org/wiki/Vector_space
--- A vector space is a module whose ring is a field.
 VectorSpace : {scalar : Type l} → {{F : Field scalar}} → (vector : Type l') → Type (lsuc (l ⊔ l'))
 VectorSpace vector = Module vector
 
@@ -111,16 +111,63 @@ dualZero {A = A}{{F}} {vector = vector} VS = (λ _ → vZero) , record { addT = 
    V : VectorSpace vector
    V = VS
 instance
-  DualSumComm : {{F : Field A}}{{VS : VectorSpace {scalar = A} B}} → Commutative (dualSum VS)
+  DualSumComm : {{F : Field A}}{{VS : VectorSpace B}} → Commutative (dualSum VS)
   DualSumComm {{F = F}} =
     record { comm = λ {(T , record {addT = addTT ; multT = multTT})
                        (R , record {addT = addTR ; multT = multTR})
                           → ΣPathPProp modHomomorphismIsProp
                                       (funExt λ x → comm (T x) (R x))}}
-  DualSumAssoc : {{F : Field A}}{{VS : VectorSpace {scalar = A} B}} → Associative (dualSum VS)
+  DualSumAssoc : {{F : Field A}}{{VS : VectorSpace B}} → Associative (dualSum VS)
   DualSumAssoc =
     record { assoc = λ {(T , record {addT = addTT ; multT = multTT})
                         (R , record {addT = addTR ; multT = multTR})
                         (Q , record {addT = addTQ ; multT = multTQ})
                            → ΣPathPProp modHomomorphismIsProp
                                        (funExt λ x → assoc (T x) (R x) (Q x))}}
+  LFGroup : {{F : Field A}}{{VS : VectorSpace B}} → group (dualSum VS)
+  LFGroup {{F}} {{VS = VS}} =
+   record { e = dualZero VS
+          ; IsSet = isSetΣSndProp (isSet→ (F .fring .crring .multStr .IsSet))
+                                  modHomomorphismIsProp
+          ; inverse = λ (T , record {addT = addTT ; multT = multTT}) → ((λ x → neg(T x)) ,
+             record { addT = λ u v →
+                         neg(T(u [+] v))       ≡⟨ cong neg (addTT u v)⟩
+                         neg(T u [+] T v)      ≡⟨ sym (grp.lemma1 (T u) (T v))⟩
+                         neg(T v) [+] neg(T u) ≡⟨ comm (neg(T v)) (neg(T u))⟩
+                         neg(T u) [+] neg(T v) ∎
+                    ; multT = λ u c →
+                         neg(T (scale c u))  ≡⟨ cong neg (multTT u c)⟩
+                         neg(scale c (T u))  ≡⟨ sym (scaleInv (T u) c)⟩
+                         scale (neg c) (T u) ≡⟨ scaleNeg (T u) c ⟩
+                         scale c (neg(T u)) ∎
+                     }) , ΣPathPProp modHomomorphismIsProp (funExt λ x → lInverse (T x))
+          ; lIdentity = λ (T , _) →
+                ΣPathPProp modHomomorphismIsProp (funExt λ x → lIdentity (T x))}
+  LFAGroup : {{F : Field A}}{{VS : VectorSpace B}} → abelianGroup (dualSum VS)
+  LFAGroup = record {}
+
+  dualSpace : {B : Type l} {{F : Field A}}{{VS : VectorSpace B}} → VectorSpace (linearForm VS)
+  dualSpace {{VS = VS}} =
+   record
+       { _[+]_ = dualSum VS
+       ; addvStr = record {}
+       ; scale = λ c (T , record {addT = addTT ; multT = multTT}) →
+                (λ b → scale c (T b))
+                 , record {
+                     addT = λ u v → scale c (T(u [+] v))  ≡⟨ right scale (addTT u v)⟩
+                                    scale c (T u [+] T v) ≡⟨ scalarDistribute c (T u) (T v)⟩
+                                    (scale c (T u)) [+] (scale c (T v)) ∎
+                   ; multT = λ u d → scale c (T (scale d u)) ≡⟨ right scale (multTT u d)⟩
+                                     scale c (scale d (T u)) ≡⟨ scalarAssoc (T u) c d ⟩
+                                     scale (c * d) (T u)     ≡⟨ left scale (comm c d)⟩
+                                     scale (d * c) (T u)     ≡⟨ sym (scalarAssoc (T u) d c)⟩
+                                 scale d (scale c (T u)) ∎}
+       ; scalarDistribute = λ a (T , _) (R , _) →
+                ΣPathPProp modHomomorphismIsProp (funExt λ x → scalarDistribute a (T x) (R x))
+       ; vectorDistribute = λ (T , _) a b →
+                ΣPathPProp modHomomorphismIsProp (funExt λ x → vectorDistribute (T x) a b)
+       ; scalarAssoc = λ (T , _) a b →
+                ΣPathPProp modHomomorphismIsProp (funExt λ x → scalarAssoc (T x) a b)
+       ; scaleId = λ (T , _) →
+                ΣPathPProp modHomomorphismIsProp (funExt λ x → scaleId (T x))
+       }
