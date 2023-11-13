@@ -149,7 +149,10 @@ isLe (S x) (S y) with (isLe x y)
 ...              | (inl l) = inl l
 ...              | (inr (r , p)) = inr (r , cong S let q = Sout r y in eqTrans p (sym q))
 
-division : (a b : ℕ) → Σ λ q → Σ λ r → (a ≡ add r (mult (S b) q)) × (r ≤ b)
+copy : ℕ → ℕ → ℕ
+copy a b = mult (S a) b
+
+division : (a b : ℕ) → Σ λ q → Σ λ r → (a ≡ add r (copy b q)) × (r ≤ b)
 division a b = aux a a (eqLe a)
   where
   aux : (x c : ℕ) → x ≤ c →  Σ λ q  → Σ λ r → (x ≡ add r (mult (S b) q)) × (r ≤ b)
@@ -188,3 +191,16 @@ finDiscrete n = discreteΣ natDiscrete λ a x y → yes (≤isProp ((S a)) n x y
 
 NatHomogeneous : isHomogeneous (ℕ , Z)
 NatHomogeneous = isHomogeneousDiscrete natDiscrete
+
+cut : ℕ → ℕ → ℕ
+cut a b = fst $ division a b
+
+-- I don't know what else to call this function
+paste : ℕ → ℕ → ℕ
+paste a b = fst $ snd (division a b)
+
+div2 : (a b : ℕ) → a ≡ add (paste a b) (copy b (cut a b))
+div2 a b = fst(snd(snd(division a b)))
+
+pasteLe : (a b : ℕ) → (paste a b) ≤ b
+pasteLe a b = snd(snd(snd(division a b)))
