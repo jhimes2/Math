@@ -8,6 +8,7 @@ open import Algebra.Base
 open import Algebra.Group
 open import Algebra.Rng
 open import Algebra.CRing
+open import Cubical.Foundations.HLevels
 
 _/_ : {{F : Field A}} → A → nonZero → A
 a / b = a * reciprocal b
@@ -37,8 +38,8 @@ nonZeroMult (a , a') (b , b') = λ(f : (a * b) ≡ 0r ) →
       contradiction = eqTrans F (eqTrans H G)
       in b' contradiction
 
-nonZMult : {{F : Field A}} → nonZero → nonZero → nonZero
-nonZMult (a , a') (b , b') = (a * b) , nonZeroMult (a , a') ((b , b'))
+NZMult : {{F : Field A}} → nonZero → nonZero → nonZero
+NZMult (a , a') (b , b') = (a * b) , nonZeroMult (a , a') ((b , b'))
 
 distinguishingOutput : (xs : [ A ^ n ]) → {a : A} → xs ≢ (λ _ → a) → ¬ ¬(Σ λ i → xs i ≢ a)
 distinguishingOutput {n = Z} xs p contra = p (funExt (λ{()}))
@@ -64,3 +65,24 @@ negOneNotZero =
                              neg 1r ≡⟨ contra ⟩
                              0r     ≡⟨ sym (grp.lemma4) ⟩
                              neg 0r  ∎
+
+instance
+  NZMultComm : {{F : Field A}} → Commutative NZMult
+  NZMultComm = record { comm = λ a b → ΣPathPProp (λ w x y → funExt λ p → y p ~> λ{()})
+                                                  (comm (fst a) (fst b)) }
+  NZMultAssoc : {{F : Field A}} → Associative NZMult
+  NZMultAssoc = record { assoc = λ a b c → ΣPathPProp (λ w x y → funExt λ p → y p ~> λ{()})
+                                                      (assoc (fst a) (fst b) (fst c)) }
+  -- Non-zero multiplication is a group
+  NZMultGroup : {{F : Field A}} → group NZMult
+  NZMultGroup {{F}} =
+    record { e = 1r , oneNotZero
+           ; IsSet = isSetΣSndProp (F .fring .crring .multStr .IsSet)
+                                   λ w x y → funExt λ p → y p ~> λ{()}
+           ; inverse = λ a → ((reciprocal a) , x⁻¹≢0 a)
+                               , ΣPathPProp (λ w x y → funExt λ p → y p ~> λ{()})
+                               (reciprocal a * fst a ≡⟨ comm (reciprocal a) (fst a)⟩
+                               fst a * reciprocal a  ≡⟨ recInv a ⟩
+                               1r ∎)
+           ; lIdentity = λ a → ΣPathPProp (λ w x y → funExt (λ p → y p ~> λ{()}))
+                                          (lIdentity (fst a)) }
