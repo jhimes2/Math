@@ -171,3 +171,15 @@ instance
        ; scaleId = λ (T , _) →
                 ΣPathPProp modHomomorphismIsProp (funExt λ x → scaleId (T x))
        }
+
+instance
+  naturalPairing : {B : Type bl} → {{F : Field A}}{{VS : VectorSpace B}}
+                   → Bilinear (λ(b : B)(LF : linearForm VS) → fst LF b)
+  naturalPairing = record { lLinear = λ v → record { addT = λ a b → refl
+                                                   ; multT = λ u c → refl }
+                          ; rLinear = λ w →
+                       let instance
+                          LM : LinearMap (fst w)
+                          LM = snd w in
+                                record { addT = addT
+                                       ; multT = multT } }
