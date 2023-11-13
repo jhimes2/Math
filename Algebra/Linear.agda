@@ -146,6 +146,7 @@ instance
   LFAGroup : {{F : Field A}}{{VS : VectorSpace B}} → abelianGroup (dualSum VS)
   LFAGroup = record {}
 
+  -- https://en.wikipedia.org/wiki/Dual_space
   dualSpace : {B : Type l} {{F : Field A}}{{VS : VectorSpace B}} → VectorSpace (linearForm VS)
   dualSpace {{VS = VS}} =
    record
