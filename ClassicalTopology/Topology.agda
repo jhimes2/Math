@@ -12,7 +12,8 @@ data False {l : Level} : Type l where
 
 data True {l : Level} : Type l where
   truth : True {l}
-
+  
+-- https://en.wikipedia.org/wiki/Topological_space
 record topology {A : Type al} (T : (A → hProp l') → Type l) : Type (l ⊔ lsuc l' ⊔ al) where
   field
    tempty : T λ _ → False , λ{()}
