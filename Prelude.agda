@@ -136,13 +136,17 @@ demorgan4 {l} {A = A} {B = B} = implicitLEM (A ＋ B) >>= λ{ (yes (inl a)) → 
   → p (λ q → inr (λ b → q (a , b))) ; (yes (inr b)) → λ p → p (λ q → inl (λ a → q (a , b)))
   ; (no x) → λ p → p (λ q → inl (λ a → x (inl a)))}
 
+-- https://en.wikipedia.org/wiki/Principle_of_explosion
+UNREACHABLE : ⊥ → {A : Type l} → A
+UNREACHABLE ()
+
 DNOut : (A → implicit B) → implicit (A → B)
 DNOut {A = A} {B = B} f = implicitLEM (A × (B ＋ ¬ B))
          >>= λ{ (yes (a , b)) → let b' = f a in b ~> λ{ (inl b) → η (λ _ → b)
-                                                      ; (inr b) → b' b ~> λ{()}}
+                                                      ; (inr b) → b' b ~> UNREACHABLE}
               ; (no x) → let H = demorgan4 <*> η x in
-                 H >>= λ{ (inl x) → η (λ a → x a ~> λ{()})
-                        ; (inr x) → demorgan3 x ~> λ{(b , b') → b' b ~> λ{()}}}}
+                 H >>= λ{ (inl x) → η (λ a → x a ~> UNREACHABLE)
+                        ; (inr x) → demorgan3 x ~> λ{(b , b') → b' b ~> UNREACHABLE}}}
 
 demorgan5 : {P : A → Type l} → ¬(Σ P) → (x : A) → ¬ (P x)
 demorgan5 p x q = p (x , q)
@@ -252,4 +256,3 @@ record Commutative {A : Type l}{B : Type l'}(_∙_ : A → A → B) : Type(lsuc 
   field
     comm : (a b : A) → _∙_ a b ≡ _∙_ b a
 open Commutative {{...}} public
-

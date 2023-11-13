@@ -68,21 +68,21 @@ negOneNotZero =
 
 instance
   NZMultComm : {{F : Field A}} → Commutative NZMult
-  NZMultComm = record { comm = λ a b → ΣPathPProp (λ w x y → funExt λ p → y p ~> λ{()})
+  NZMultComm = record { comm = λ a b → ΣPathPProp (λ w x y → funExt λ p → y p ~> UNREACHABLE)
                                                   (comm (fst a) (fst b)) }
   NZMultAssoc : {{F : Field A}} → Associative NZMult
-  NZMultAssoc = record { assoc = λ a b c → ΣPathPProp (λ w x y → funExt λ p → y p ~> λ{()})
+  NZMultAssoc = record { assoc = λ a b c → ΣPathPProp (λ w x y → funExt λ p → y p ~> UNREACHABLE)
                                                       (assoc (fst a) (fst b) (fst c)) }
   -- Non-zero multiplication is a group
   NZMultGroup : {{F : Field A}} → group NZMult
   NZMultGroup {{F}} =
     record { e = 1r , oneNotZero
            ; IsSet = isSetΣSndProp (F .fring .crring .multStr .IsSet)
-                                   λ w x y → funExt λ p → y p ~> λ{()}
+                                   λ w x y → funExt λ p → y p ~> UNREACHABLE
            ; inverse = λ a → ((reciprocal a) , x⁻¹≢0 a)
-                               , ΣPathPProp (λ w x y → funExt λ p → y p ~> λ{()})
+                               , ΣPathPProp (λ w x y → funExt λ p → y p ~> UNREACHABLE)
                                (reciprocal a * fst a ≡⟨ comm (reciprocal a) (fst a)⟩
                                fst a * reciprocal a  ≡⟨ recInv a ⟩
                                1r ∎)
-           ; lIdentity = λ a → ΣPathPProp (λ w x y → funExt (λ p → y p ~> λ{()}))
+           ; lIdentity = λ a → ΣPathPProp (λ w x y → funExt (λ p → y p ~> UNREACHABLE))
                                           (lIdentity (fst a)) }

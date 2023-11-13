@@ -15,7 +15,7 @@ data True {l : Level} : Type l where
 
 record topology {A : Type al} (T : (A → hProp l') → Type l) : Type (l ⊔ lsuc l' ⊔ al) where
   field
-   tempty : T λ _ → False , (λ{()})
+   tempty : T λ _ → False , λ{()}
    tfull : T λ _ → True , λ{ truth truth → refl}
    tunion : {X Y : (A → hProp l')} → T X → T Y → T(X ∪ Y)
    tintersection : {X Y : A → hProp l'} → T X → T Y → T(X ∩ Y)

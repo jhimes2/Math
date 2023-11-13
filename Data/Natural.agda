@@ -155,7 +155,7 @@ division a b = aux a a (eqLe a)
   aux : (x c : ℕ) → x ≤ c →  Σ λ q  → Σ λ r → (x ≡ add r (mult (S b) q)) × (r ≤ b)
   aux x c q with isLe x b
   aux x _ _       | inl p = Z , (x , ((sym (addZ x)) ∙ (right add (sym (multZ b))) , p))
-  aux Z Z void    | inr (d , p) = ZNotS p ~> λ{()}
+  aux Z Z void    | inr (d , p) = ZNotS p ~> UNREACHABLE
   aux x (S c) q   | inr (d , p) =
     let r : add d b ≤ c
         r = let H : S (add d b) ≤ S c

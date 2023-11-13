@@ -86,4 +86,4 @@ instance
   boolField = record { oneNotZero = YesNEqNo
                      ; reciprocal = pr1
                      ; recInv = λ{ (Yes , x) → refl
-                                 ; (No , x) → x refl ~> λ{()} }}
+                                 ; (No , x) → x refl ~> UNREACHABLE }}

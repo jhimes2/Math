@@ -83,7 +83,7 @@ instance
                 ; isRelation = λ (a , _) (b , _) → isRelation a b }
   NZPoset : {{G : Rng A}} → {{OrderedRng A}} → Poset nonZero
   NZPoset {A = A} =
-     record { antiSymmetric = λ x y → Σ≡Prop (λ a b p → funExt λ x → b x ~> λ{()})
+     record { antiSymmetric = λ x y → Σ≡Prop (λ a b p → funExt λ x → b x ~> UNREACHABLE)
                                              (antiSymmetric x y)}
   NZTotal : {{G : Rng A}} → {{OrderedRng A}} → TotalOrder nonZero
   NZTotal {A = A} = record { stronglyConnected = λ (a , _) (b , _) → stronglyConnected a b }

@@ -31,7 +31,7 @@ open TotalOrder {{...}} public
 flipNeg : {{TO : TotalOrder A}} → {a b : A} → ¬(b ≤ a) → a < b
 flipNeg {a = a} {b} p = recTrunc (isRelation a b)
                                  (λ{ (inl x) → x
-                                   ; (inr x) → p x ~> λ{()}})
+                                   ; (inr x) → p x ~> UNREACHABLE})
                                  (stronglyConnected a b) , aux p
   where
    aux : {{P : Poset A}} → {a b : A} → ¬(b ≤ a) → a ≢ b
