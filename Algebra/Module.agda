@@ -166,3 +166,27 @@ week7 T c = record
                    scale (c * d) v     ≡⟨ sym (scalarAssoc v c d)⟩
                    scale c (scale d v) ∎
     }
+module _ {A : Type l}  {{CR : CRing A}}
+         {V : Type al} {{V' : Module V}}
+         {W : Type bl} {{W' : Module W}}
+         {X : Type cl} {{X' : Module X}} where
+
+ -- https://en.wikipedia.org/wiki/Bilinear_map
+ -- 'Bilinear' is generalized to have a commutative ring instead of a field
+ record Bilinear (B : V → W → X) : Type (al ⊔ bl ⊔ cl ⊔ l) where
+  field      
+   lLinear : (v : V) → moduleHomomorphism (B v)
+   rLinear : (w : W) → moduleHomomorphism (λ x → B x w)
+ open Bilinear {{...}}
+
+ bilinearLZ : {B : V → W → X} → {{BL : Bilinear B}} → (v : V) → B v Ô ≡ Ô
+ bilinearLZ {B = B} v = modHomomorphismZ (B v)
+   where instance
+       MH : moduleHomomorphism (B v)
+       MH = lLinear v
+
+ bilinearRZ : {B : V → W → X} → {{BL : Bilinear B}} → (w : W) → B Ô w ≡ Ô
+ bilinearRZ {B = B} w = modHomomorphismZ (λ x → B x w)
+   where instance
+       MH : moduleHomomorphism λ x → B x w
+       MH = rLinear w
