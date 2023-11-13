@@ -19,7 +19,7 @@ module _{scalar : Type l}{{F : Field scalar}}{vector : Type l'}{{V : VectorSpace
     where field
         -- ∀ v ∈ V, Span(V) ≠ Span(X - {v})
         linInd : {v : vector} → v ∈' X → Span X ≢ Span (λ(x : vector) → (x ∈' X) × (v ≢ x))
-        noZero : ¬ (X vZero)
+        noZero : ¬ (X Ô)
   open LinearlyIndependent {{...}} public
 
   -- https://en.wikipedia.org/wiki/Basis_(linear_algebra)
@@ -54,7 +54,7 @@ module _{scalar : Type l}{{F : Field scalar}}{vector : Type l'}{{V : VectorSpace
 
     -- https://en.wikipedia.org/wiki/Kernel_(linear_algebra)
     nullSpace : (T : vector' → vector) → {{TLM : LinearMap T}} → vector' → Type l'
-    nullSpace T x = T x ≡ vZero
+    nullSpace T x = T x ≡ Ô
 
 instance
     FieldToVectorSpace : {A : Type l} → {{F : Field A}} → VectorSpace A
@@ -104,7 +104,7 @@ dualSum {l} {vector = vector} {{F}} VS =
     V = VS
 
 dualZero : {A : Type l}{{F : Field A}}{vector : Type l'}(VS : VectorSpace vector) → linearForm VS
-dualZero {A = A}{{F}} {vector = vector} VS = (λ _ → vZero) , record { addT = λ u v → sym (lIdentity vZero)
+dualZero {A = A}{{F}} {vector = vector} VS = (λ _ → Ô) , record { addT = λ u v → sym (lIdentity Ô)
                                       ; multT = λ v c → sym (x*0≡0 c) }
  where
   instance

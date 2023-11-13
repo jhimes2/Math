@@ -9,8 +9,8 @@ open import Algebra.Rng
 
 module _{scalar : Type l}{vector : Type l'}{{R : Ring scalar}}{{V : Module vector}} where
 
-  vZero : vector
-  vZero = e
+  Ô : vector
+  Ô = e
 
   negV : vector → vector
   negV = inv
@@ -22,37 +22,37 @@ module _{scalar : Type l}{vector : Type l'}{{R : Ring scalar}}{{V : Module vecto
   vGrp = abelianGroup.grp addvStr
 
   -- Vector scaled by 0r is zero vector
-  scaleZ : (v : vector) → scale 0r v ≡ vZero
+  scaleZ : (v : vector) → scale 0r v ≡ Ô
   scaleZ v =
-    let H : scale 0r v [+] scale 0r v ≡ (scale 0r v [+] vZero)
-                         → scale 0r v ≡ vZero
+    let H : scale 0r v [+] scale 0r v ≡ (scale 0r v [+] Ô)
+                         → scale 0r v ≡ Ô
         H = grp.cancel (scale 0r v) in H $
     scale 0r v [+] scale 0r v ≡⟨ sym (vectorDistribute v 0r 0r)⟩
     scale (0r + 0r) v         ≡⟨ left scale (lIdentity 0r)⟩
     scale 0r v                ≡⟨ sym (rIdentity (scale 0r v))⟩
-    scale 0r v [+] vZero ∎
+    scale 0r v [+] Ô ∎
 
   -- zero vector scaled is 0r vector
-  scaleVZ : (c : scalar) → scale c vZero ≡ vZero
+  scaleVZ : (c : scalar) → scale c Ô ≡ Ô
   scaleVZ c =
-    let H : scale c vZero [+] scale c vZero ≡ scale c vZero [+] vZero
-                            → scale c vZero ≡ vZero
-        H = grp.cancel (scale c vZero) in H $
-    scale c vZero [+] scale c vZero ≡⟨ sym (scalarDistribute c vZero vZero)⟩
-    scale c (vZero [+] vZero)       ≡⟨ right scale (lIdentity vZero)⟩
-    scale c vZero                   ≡⟨ sym (rIdentity (scale c vZero))⟩
-    scale c vZero [+] vZero ∎
+    let H : scale c Ô [+] scale c Ô ≡ scale c Ô [+] Ô
+                            → scale c Ô ≡ Ô
+        H = grp.cancel (scale c Ô) in H $
+    scale c Ô [+] scale c Ô ≡⟨ sym (scalarDistribute c Ô Ô)⟩
+    scale c (Ô [+] Ô)       ≡⟨ right scale (lIdentity Ô)⟩
+    scale c Ô               ≡⟨ sym (rIdentity (scale c Ô))⟩
+    scale c Ô [+] Ô ∎
 
   scaleInv : (v : vector) → (c : scalar) → scale (neg c) v ≡ negV (scale c v)
   scaleInv v c =
-    let H : scale (neg c) v [+] negV(negV(scale c v)) ≡ vZero
+    let H : scale (neg c) v [+] negV(negV(scale c v)) ≡ Ô
                                     → scale (neg c) v ≡ negV (scale c v)
         H = grp.uniqueInv in H $
     scale (neg c) v [+] negV(negV(scale c v)) ≡⟨ right _[+]_ (grp.doubleInv (scale c v))⟩
     scale (neg c) v [+] (scale c v)           ≡⟨ sym (vectorDistribute v (neg c) c)⟩
     scale ((neg c) + c) v                     ≡⟨ left scale (lInverse c)⟩
     scale 0r v                                ≡⟨ scaleZ v ⟩
-    vZero ∎
+    Ô ∎
 
   scaleNegOneInv : (v : vector) → scale (neg 1r) v ≡ negV v
   scaleNegOneInv v =
@@ -93,7 +93,7 @@ module _{scalar : Type l}{vector : Type l'}{{R : Ring scalar}}{{V : Module vecto
   -- Not necessarily a linear subspace.
   record Subspace (X : vector → Type al) : Type (lsuc (al ⊔ l ⊔ l'))
     where field
-        ssZero : X vZero 
+        ssZero : X Ô 
         ssAdd : {v u : vector} → v ∈' X → u ∈' X → v [+] u ∈' X
         ssScale : {v : vector} → v ∈' X → (c : scalar) → scale c v ∈' X
 
@@ -129,12 +129,12 @@ module _ {scalar : Type l}{{R : Ring scalar}}
          {{V : Module A}}{{U : Module B}}
          (T : A → B){{TLT : moduleHomomorphism T}} where
 
-  modHomomorphismZ : T vZero ≡ vZero
+  modHomomorphismZ : T Ô ≡ Ô
   modHomomorphismZ =
-          T vZero  ≡⟨ sym (cong T (scaleZ vZero))⟩
-          T (scale 0r vZero)  ≡⟨ moduleHomomorphism.multT TLT vZero 0r ⟩
-          scale 0r (T vZero)  ≡⟨ scaleZ (T vZero)⟩
-          vZero ∎
+          T Ô             ≡⟨ sym (cong T (scaleZ Ô))⟩
+          T (scale 0r Ô)  ≡⟨ moduleHomomorphism.multT TLT Ô 0r ⟩
+          scale 0r (T Ô)  ≡⟨ scaleZ (T Ô)⟩
+          Ô ∎
 
   -- If 'T' and 'R' are module homomorphisms and are composable, then 'R ∘ T' is
   -- a module homomorphism.
@@ -150,9 +150,9 @@ week7 : {{CR : CRing A}} → {{V : Module B}}
       → (T : B → B) → {{TLT : moduleHomomorphism T}}
       → (c : A) → Subspace (λ x → T x ≡ scale c x)
 week7 T c = record
-    { ssZero = T vZero ≡⟨ modHomomorphismZ T ⟩
-               vZero   ≡⟨ sym (scaleVZ c)⟩
-               scale c vZero ∎
+    { ssZero = T Ô ≡⟨ modHomomorphismZ T ⟩
+               Ô   ≡⟨ sym (scaleVZ c)⟩
+               scale c Ô ∎
     ; ssAdd = λ {v} {u} (p : T v ≡ scale c v) (q : T u ≡ scale c u) →
                    T (v [+] u)             ≡⟨ addT v u ⟩
                    T v [+] T u             ≡⟨ cong₂ _[+]_ p q ⟩
