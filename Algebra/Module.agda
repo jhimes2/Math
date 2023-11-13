@@ -5,6 +5,7 @@ module Algebra.Module where
 open import Prelude
 open import Algebra.Base
 open import Algebra.Group
+open import Algebra.Rng
 
 module _{scalar : Type l}{vector : Type l'}{{R : Ring scalar}}{{V : Module vector}} where
 
@@ -20,7 +21,7 @@ module _{scalar : Type l}{vector : Type l'}{{R : Ring scalar}}{{V : Module vecto
   vGrp : group _[+]_
   vGrp = abelianGroup.grp addvStr
 
-  -- Vector scaled by 0r is 0r vector
+  -- Vector scaled by 0r is zero vector
   scaleZ : (v : vector) → scale 0r v ≡ vZero
   scaleZ v =
     let H : scale 0r v [+] scale 0r v ≡ (scale 0r v [+] vZero)
@@ -31,7 +32,7 @@ module _{scalar : Type l}{vector : Type l'}{{R : Ring scalar}}{{V : Module vecto
     scale 0r v                  ≡⟨ sym (rIdentity (scale 0r v))⟩
     scale 0r v [+] vZero ∎
 
-  -- 0r vector scaled is 0r vector
+  -- zero vector scaled is 0r vector
   scaleVZ : (c : scalar) → scale c vZero ≡ vZero
   scaleVZ c =
     let H : scale c vZero [+] scale c vZero ≡ scale c vZero [+] vZero
@@ -58,6 +59,13 @@ module _{scalar : Type l}{vector : Type l'}{{R : Ring scalar}}{{V : Module vecto
     scale (neg 1r) v ≡⟨ scaleInv v 1r ⟩
     negV (scale 1r v) ≡⟨ cong negV (scaleId v) ⟩
     negV v ∎
+
+  scaleNeg : (v : vector) → (c : scalar) → scale (neg c) v ≡ scale c (negV v)
+  scaleNeg v c = scale (neg c) v             ≡⟨ left scale (sym(rIdentity (neg c)))⟩
+                 scale (neg c * 1r) v        ≡⟨ left scale (-x*y≡x*-y c 1r)⟩
+                 scale (c * neg 1r) v        ≡⟨ sym (scalarAssoc v c (neg 1r))⟩
+                 scale c  (scale (neg 1r) v) ≡⟨ right scale (scaleNegOneInv v)⟩
+                 scale c (negV v) ∎
 
 -- Not necessarily a linear span since we're using a module instead of a vector space
   data Span (X : vector → Type al) : vector → Type (l ⊔ l' ⊔ al) where
