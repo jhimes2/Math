@@ -18,6 +18,7 @@ open import Algebra.Rng
 open import Algebra.Linear
 open import Algebra.Module
 open import Data.Base
+open import Relations
 open import Data.Natural
 open import Cubical.Foundations.HLevels
 open import Cubical.Foundations.Isomorphism

@@ -2,6 +2,7 @@
 
 module Data.Natural where
 
+open import Relations
 open import Data.Base
 open import Algebra.Base
 open import Cubical.Foundations.Pointed
@@ -179,14 +180,8 @@ division a b = aux a a (eqLe a)
 
 open import Cubical.Data.Sigma.Properties
 
-≤isProp : (a b : ℕ) → isProp (a ≤ b)
-≤isProp Z Z = isPropUnit
-≤isProp Z (S b) = isPropUnit
-≤isProp (S a) Z = isProp⊥
-≤isProp (S a) (S b) = ≤isProp a b
-
 finDiscrete : (n : ℕ) → Discrete (fin n)
-finDiscrete n = discreteΣ natDiscrete λ a x y → yes (≤isProp ((S a)) n x y)
+finDiscrete n = discreteΣ natDiscrete λ a x y → yes (isRelation ((S a)) n x y)
 
 NatHomogeneous : isHomogeneous (ℕ , Z)
 NatHomogeneous = isHomogeneousDiscrete natDiscrete

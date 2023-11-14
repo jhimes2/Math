@@ -2,6 +2,7 @@
 
 open import Agda.Primitive
 open import Algebra.Base
+open import Relations
 open import Algebra.Matrix
 open import Algebra.CRing
 open import Data.Base
