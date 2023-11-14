@@ -75,3 +75,20 @@ indiscreteCodomainContinuous {l' = l'} {T = T} ⦃ XT = XT ⦄ f {V} (inl x) =
   let H = isPropEq V x in
   let G = topology.tfull XT in {!!}
 indiscreteCodomainContinuous {l' = l'} {T = T} ⦃ XT = XT ⦄ f {V} (inr x) = {!!}
+
+strongInduction : (P : ℕ → Type) → ((x : ℕ) → ((n : ℕ) → (n ≤ x) → P n) → P (S x))
+                → (n : ℕ) → P n
+strongInduction = {!!}
+
+gcdIter : ∀ (a : ℕ) (b : nonZ) (c : ℕ) → greatest (common divisor (fst b) (mod a b)) c
+                                       → greatest (common divisor a (fst b)) c
+gcdIter a b c H = {!!}
+
+gcdFinal : (b : nonZ) → greatest (common divisor (fst b) Z) (fst b)
+gcdFinal b = {!!}
+
+gcd : (a : nonZ) → (b : ℕ) → Σ (greatest (common divisor (fst a) b))
+gcd (a , a' , p) b = transport (λ i → Σ (greatest (common divisor (p (~ i)) b))) (aux a' b)
+ where
+  aux : (a b : ℕ) → Σ (greatest (common divisor (S a) b))
+  aux = {!!}
