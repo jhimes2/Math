@@ -187,7 +187,6 @@ open import Cubical.Data.Sigma.Properties
 
 finDiscrete : (n : ℕ) → Discrete (fin n)
 finDiscrete n = discreteΣ natDiscrete λ a x y → yes (≤isProp ((S a)) n x y)
-  where open Cubical.Data.Sigma.Properties
 
 NatHomogeneous : isHomogeneous (ℕ , Z)
 NatHomogeneous = isHomogeneousDiscrete natDiscrete
@@ -199,8 +198,42 @@ cut a b = fst $ division a b
 paste : ℕ → ℕ → ℕ
 paste a b = fst $ snd (division a b)
 
-div2 : (a b : ℕ) → a ≡ add (paste a b) (copy b (cut a b))
-div2 a b = fst(snd(snd(division a b)))
+nonZ : Type
+nonZ = Σ λ x → Σ λ y → x ≡ S y
 
-pasteLe : (a b : ℕ) → (paste a b) ≤ b
+-- div a (b+1) ≡ cut a b
+div : ℕ → nonZ → ℕ
+div a (_ , b , _) = cut a b
+
+-- mod a (b+1) ≡ paste a b
+mod : ℕ → nonZ → ℕ
+mod a (_ , b , _) = paste a b
+
+-- 'mult', 'div' and 'mod' corresponds to 'copy', 'cut' and 'paste', respectively
+
+cutLemma : (a b : ℕ) → a ≡ add (paste a b) (copy b (cut a b))
+cutLemma a b = fst(snd(snd(division a b)))
+
+divLemma : (a : ℕ) → (b : nonZ) → a ≡ add (mod a b) (mult (fst b) (div a b))
+divLemma a (b , c , p) =
+    a ≡⟨ cutLemma a c ⟩
+    add (paste a c) (mult (S c) (cut a c)) ≡⟨ right add (left mult (sym p))⟩
+    add (paste a c) (mult b (cut a c)) ≡⟨By-Definition⟩
+    add (mod a (b , c , p)) (mult b (div a (b , c , p))) ∎
+
+pasteLe : (a b : ℕ) → paste a b ≤ b
 pasteLe a b = snd(snd(snd(division a b)))
+
+modLe : (a : ℕ) → (b : nonZ) → mod a b < (fst b)
+modLe a (b , b' , p) = transport (λ i → paste a b' < p (~ i)) (pasteLe a b')
+
+greatest : (ℕ → Type l) → ℕ → Type l
+greatest P n = P n × (∀ x → P x → n ≤ x → n ≡ x)
+
+common : (ℕ → ℕ → Type l) → ℕ → ℕ → ℕ → Type l
+common R a b c = R c a × R c b
+
+divisor : ℕ → ℕ → Type
+divisor a b = Σ λ x → mult x a ≡ b
+
+
