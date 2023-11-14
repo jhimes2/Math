@@ -14,9 +14,6 @@ open import ClassicalTopology.Topology
 finDecrInj : (f : fin (S n) → fin (S m)) → ((x y : fin (S n)) → f x ≡ f y → x ≡ y) → Σ λ(g : fin n → fin m) → injective g
 finDecrInj {n} {m} f fInj = {!!}
 
-_¬¬=_ : (¬ ¬ A) → (A → ¬ B) → ¬ B
-x ¬¬= f = λ z → x (λ z₁ → f z₁ z)
-
 isLocal : (A : Type l) → {{R : CRing A}} → Type l
 isLocal A = {n : ℕ} → (xs : [ A ^ n ]) →
         foldr _+_ 0r {n} xs ∈ A ˣ →

@@ -131,6 +131,9 @@ instance
   truncMonad : Monad (∥_∥₁ {ℓ = l})
   truncMonad = record { μ = transport (propTruncIdempotent squash₁) ; η = ∣_∣₁ }
 
+_¬¬=_ : (¬ ¬ A) → (A → ¬ B) → ¬ B
+x ¬¬= f = λ z → x (λ z₁ → f z₁ z)
+
 demorgan4 : implicit(¬(A × B) → (¬ A) ＋ (¬ B))
 demorgan4 {l} {A = A} {B = B} = implicitLEM (A ＋ B) >>= λ{ (yes (inl a)) → λ p
   → p (λ q → inr (λ b → q (a , b))) ; (yes (inr b)) → λ p → p (λ q → inl (λ a → q (a , b)))
