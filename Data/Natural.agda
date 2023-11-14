@@ -224,8 +224,8 @@ divLemma a (b , c , p) =
 pasteLe : (a b : ℕ) → paste a b ≤ b
 pasteLe a b = snd(snd(snd(division a b)))
 
-modLe : (a : ℕ) → (b : nonZ) → mod a b < (fst b)
-modLe a (b , b' , p) = transport (λ i → paste a b' < p (~ i)) (pasteLe a b')
+modLe : (a : ℕ) → (b : nonZ) → S(mod a b) ≤ (fst b)
+modLe a (b , b' , p) = transport (λ i → S(paste a b') ≤ p (~ i)) (pasteLe a b')
 
 greatest : (ℕ → Type l) → ℕ → Type l
 greatest P n = P n × (∀ x → P x → n ≤ x → n ≡ x)
@@ -235,5 +235,3 @@ common R a b c = R c a × R c b
 
 divisor : ℕ → ℕ → Type
 divisor a b = Σ λ x → mult x a ≡ b
-
-

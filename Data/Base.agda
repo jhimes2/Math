@@ -23,12 +23,9 @@ Z ≤ _ = ⊤
 S x ≤ S y = x ≤ y
 _ ≤ Z = ⊥
 
-_<_ : ℕ → ℕ → Type₀
-a < b = S a ≤ b
-
 -- finite Sets
 fin : ℕ → Type₀
-fin n = (Σ' ℕ λ x → x < n)
+fin n = (Σ' ℕ λ x → S x ≤ n)
 
 [_^_] : Type l → ℕ → Type l
 [_^_] A n = fin n → A

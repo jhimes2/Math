@@ -60,7 +60,7 @@ foldr : (A → B → B) → B → {n : ℕ} → [ A ^ n ] → B
 foldr f b {Z} [] = b
 foldr f b {S n} v = f (head v) (foldr f b {n} (tail v))
 
-foldr2 : (A → B → B) → B → {n : ℕ} → ((a : ℕ) → a < n → A) → B
+foldr2 : (A → B → B) → B → {n : ℕ} → ((a : ℕ) → S a ≤ n → A) → B
 foldr2 f b {Z} [] = b
 foldr2 f b {S n} v = f (v n (leRefl n)) (foldr2 f b {n} λ a x → v a (leS {n = a} x))
 
