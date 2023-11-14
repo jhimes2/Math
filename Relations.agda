@@ -36,3 +36,8 @@ flipNeg {a = a} {b} p = recTrunc (isRelation a b)
   where
    aux : {{P : Poset A}} → {a b : A} → ¬(b ≤ a) → a ≢ b
    aux {a = a} {b} = modusTollens (λ x → transport (λ i → x i ≤ a) (reflexive {a = a}))
+
+record WellOrder (A : Type l) : Type (lsuc l)
+  where field
+   {{welltotal}} : TotalOrder A
+   leastTerm : {P : A → Type} → ¬ ¬ Σ P → ¬ ¬ Σ λ x → P x × ∀ y → P y → x ≤ y
