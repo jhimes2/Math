@@ -74,10 +74,6 @@ indiscreteCodomainContinuous {l' = l'} {T = T} ⦃ XT = XT ⦄ f {V} (inl x) =
   let G = topology.tfull XT in {!!}
 indiscreteCodomainContinuous {l' = l'} {T = T} ⦃ XT = XT ⦄ f {V} (inr x) = {!!}
 
-strongInduction : (P : ℕ → Type) → ((x : ℕ) → ((n : ℕ) → (n ≤ x) → P n) → P (S x))
-                → (n : ℕ) → P n
-strongInduction = {!!}
-
 gcdIter : ∀ (a : ℕ) (b : nonZ) (c : ℕ) → greatest (commonDivisor (fst b) (mod a b)) c
                                        → greatest (commonDivisor a (fst b)) c
 gcdIter a b c H = {!!}

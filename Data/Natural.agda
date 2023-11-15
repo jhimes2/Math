@@ -155,6 +155,11 @@ natSC Z _ = inl tt
 natSC (S a) Z = inr tt
 natSC (S a) (S b) = natSC a b
 
+natSC2 : (a b : ℕ) → a ≤ b ＋ b ≤ a
+natSC2 Z _ = inl tt
+natSC2 (S a) Z = inr tt
+natSC2 (S a) (S b) = natSC2 a b
+
 leContra : (a b : ℕ) → ¬(a ≤ b × S b ≤ a)
 leContra Z b (p , q) = q
 leContra (S a) (S b) = leContra a b
@@ -272,4 +277,24 @@ _∣_ a b = Σ λ x → mult x a ≡ b
 
 commonDivisor : ℕ → ℕ → ℕ → Type
 commonDivisor a b c = (c ∣ a) × (c ∣ b)
+
+jumpInduction : (P : ℕ → Type l)
+                → (a : ℕ)
+                → ((b : ℕ) → b ≤ a → P b)
+                → ((x : ℕ) → P x → P (S(add x a)))
+                → (n : ℕ) → P n
+jumpInduction P a Base jump n = aux P a Base jump n n (leRefl n)
+ where
+  aux : (P : ℕ → Type l) → (a : ℕ) → ((b : ℕ) → b ≤ a → P b)
+                    → ((x : ℕ) → P x → P (S(add x a)))
+                    → (n iter : ℕ) → n ≤ iter → P n
+  aux P a Base jump Z _ _ = Base Z tt
+  aux P a Base jump (S n) Z q = q ~> UNREACHABLE
+  aux P a Base jump (S n) (S iter) q =
+     isLe (S n) a ~> λ{ (inl w) → Base (S n) w
+                      ; (inr (x , p)) →
+                         subst P (sym p) $ jump x
+                           let H : S(add x a) ≤ S n
+                               H = transport (λ i → SInjective p i ≤ n) (leRefl n) in
+                           aux P a Base jump x iter (transitive {a = x} (leAdd x a n H) q) }
 
