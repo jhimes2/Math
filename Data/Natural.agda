@@ -150,6 +150,48 @@ isLe (S x) (S y) with (isLe x y)
 ...              | (inl l) = inl l
 ...              | (inr (r , p)) = inr (r , cong S let q = Sout r y in eqTrans p (sym q))
 
+natSC : (a b : ℕ) → a ≤ b ＋ S b ≤ a
+natSC Z _ = inl tt
+natSC (S a) Z = inr tt
+natSC (S a) (S b) = natSC a b
+
+leContra : (a b : ℕ) → ¬(a ≤ b × S b ≤ a)
+leContra Z b (p , q) = q
+leContra (S a) (S b) = leContra a b
+
+leNEq : (a b : ℕ) → a ≤ b → a ≢ b → S a ≤ b
+leNEq Z Z p q = q refl
+leNEq Z (S b) p q = tt
+leNEq (S a) (S b) p q = leNEq a b p (λ x → q (cong S x))
+
+instance
+  WellOrderNat : WellOrder ℕ
+  WellOrderNat = record { leastTerm = λ{P} PDec → map (aux PDec) }
+   where
+    aux : {P : ℕ → Type} → (∀ n → P n ＋ ¬ P n) → Σ P → Σ λ x → P x × ∀ y → P y → x ≤ y
+    aux {P = P} PDec (p , p') = aux2 p p p' (reflexive {a = p})
+                                     λ y (q , r) → leContra p y ((leS {n = p} q) , r) ~> UNREACHABLE
+     where
+      aux2 : (x z : ℕ) → P z → x ≤ z → (∀ y → S x ≤ y × S y ≤ z → ¬ P y) → Σ λ x → P x × ∀ y → P y → x ≤ y
+      aux2 Z z Pz x≤z H = PDec Z
+            ~> λ{ (inl w) → Z , (w , λ _ _ → tt)
+                ; (inr w) → z , Pz , λ{ Z y' → w y' ~> UNREACHABLE
+                                     ; (S y) y' →
+                           let G : S(S y) ≤ z → ¬ P (S y)
+                               G = λ{q → H (S y) (S y ~> λ _ → tt , q)} in
+                                 natSC z (S y) ~>
+                                 λ{ (inl t) → t
+                                  ; (inr t) → G t y' ~> UNREACHABLE}
+                                  }}
+      aux2 (S x) (S z) Pz x≤z H = PDec (S x)
+            ~> λ{ (inl w) → aux2 x (S x) w (leS2 x x (reflexive {a = x}))
+                                        λ y (q , r) → leContra y x (r , q) ~> UNREACHABLE
+                ; (inr w) → aux2 x (S z) Pz (leS {n = x} x≤z)
+                 λ y (p , q) →
+                 natDiscrete (S x) y ~> λ{ (yes u) → subst (λ r → ¬ P r) u w
+                                         ; (no u) → H y (leNEq (S x) y p u , q)}
+                }
+
 copy : ℕ → ℕ → ℕ
 copy a b = mult (S a) b
 
