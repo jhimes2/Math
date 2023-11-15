@@ -100,7 +100,6 @@ NatMultDist (S a) b c =
   add (add c (mult a c)) (mult b c) ≡⟨ sym (assoc c (mult a c) (mult b c))⟩
   add c (add (mult a c) (mult b c)) ≡⟨ cong (add c) (NatMultDist a b c)⟩
   add c (mult (add a b) c) ∎
-
 -- Multiplication on natural numbers is a commutative monoid
 instance
   multCom : Commutative mult
@@ -119,6 +118,16 @@ instance
   NatMultMonoid : monoid mult
   NatMultMonoid = record { e = (S Z) ; IsSet = natIsSet ; lIdentity = addZ
                          ; rIdentity = λ a → eqTrans (comm a (S Z)) (addZ a) }
+
+
+natRId : (n : ℕ) → mult n (S Z) ≡ n
+natRId n = (comm n (S Z)) ∙ (addZ n)
+
+NatMultDist2 : (a b c : ℕ) → mult c (add a b) ≡ add (mult c a) (mult c b)
+NatMultDist2 a b c = mult c (add a b) ≡⟨ comm c (add a b)⟩
+                     mult (add a b) c ≡⟨ sym (NatMultDist a b c)⟩
+                     add (mult a c) (mult b c) ≡⟨ cong₂ add (comm a c) (comm b c)⟩
+                     add (mult c a) (mult c b) ∎
 
 leS : {n m : ℕ} → S n ≤ m → n ≤ m
 leS {Z} {S m} p = tt
@@ -298,3 +307,12 @@ jumpInduction P a Base jump n = aux P a Base jump n n (leRefl n)
                                H = transport (λ i → SInjective p i ≤ n) (leRefl n) in
                            aux P a Base jump x iter (transitive {a = x} (leAdd x a n H) q) }
 
+dividesTrans : (a b c : ℕ) → a ∣ b → b ∣ c → a ∣ c
+dividesTrans a b c =
+     λ((x , p) : Σ λ x → mult x a ≡ b)
+  →  λ((y , q) : Σ λ y → mult y b ≡ c)
+  →  mult y x ,
+     (mult (mult y x) a ≡⟨ sym (assoc y x a) ⟩
+     mult y (mult x a) ≡⟨ cong (mult y) p ⟩
+     mult y b ≡⟨ q ⟩
+     c ∎)
