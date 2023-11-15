@@ -267,8 +267,9 @@ modLe a (b , b' , p) = transport (λ i → S(paste a b') ≤ p (~ i)) (pasteLe a
 greatest : (ℕ → Type l) → ℕ → Type l
 greatest P n = P n × (∀ x → P x → n ≤ x → n ≡ x)
 
-common : (ℕ → ℕ → Type l) → ℕ → ℕ → ℕ → Type l
-common R a b c = R c a × R c b
+_∣_ : ℕ → ℕ → Type
+_∣_ a b = Σ λ x → mult x a ≡ b
 
-divisor : ℕ → ℕ → Type
-divisor a b = Σ λ x → mult x a ≡ b
+commonDivisor : ℕ → ℕ → ℕ → Type
+commonDivisor a b c = (c ∣ a) × (c ∣ b)
+
