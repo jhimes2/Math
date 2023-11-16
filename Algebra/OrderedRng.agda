@@ -75,18 +75,18 @@ module ordered{u : Level}{R : Type u}{{_ : Rng R}}{{_ : OrderedRng R}} where
   Negative = Σ λ (x : R) → 0r <  x
 
 instance
-  NZPreorder : {{G : Rng A}} → {{OR : OrderedRng A}} → Preorder nonZero
+  NZPreorder : {{G : Rng A}} → {{OR : OrderedRng A}} → Preorder λ ((a , _) (b , _) : nonZero) → a ≤ b
   NZPreorder {A = A} = record
-                { _≤_ = λ (a , _) (b , _) → a ≤ b
-                ; transitive = transitive {A = A}
+                { transitive = transitive {A = A}
                 ; reflexive = reflexive {A = A}
                 ; isRelation = λ (a , _) (b , _) → isRelation a b }
-  NZPoset : {{G : Rng A}} → {{OrderedRng A}} → Poset nonZero
+  NZPoset : {{G : Rng A}} → {{OR : OrderedRng A}} → Poset λ ((a , _) (b , _) : nonZero) → a ≤ b
   NZPoset {A = A} =
      record { antiSymmetric = λ x y → Σ≡Prop (λ a b p → funExt λ x → b x ~> UNREACHABLE)
                                              (antiSymmetric x y)}
-  NZTotal : {{G : Rng A}} → {{OrderedRng A}} → TotalOrder nonZero
-  NZTotal {A = A} = record { stronglyConnected = λ (a , _) (b , _) → stronglyConnected a b }
+  NZTotal : {{G : Rng A}} → {{OR : OrderedRng A}} → TotalOrder nonZero
+  NZTotal {A = A} = record { _≤_ = λ (a , _) (b , _) → a ≤ b
+                           ; stronglyConnected = λ (a , _) (b , _) → stronglyConnected a b }
 
 module _{u : Level}{F : Type u}{{_ : Field F}}{{OF : OrderedRng F}} where
 

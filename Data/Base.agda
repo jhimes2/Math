@@ -20,18 +20,19 @@ data int : Type where
   Pos : ℕ → int
   Neg : ℕ → int
 
+private
+    le : ℕ → ℕ → Type
+    le Z _ = ⊤
+    le (S x) (S y) = le x y
+    le _ Z = ⊥
+
 instance
-  preorderNat : Preorder ℕ
+  preorderNat : Preorder le
   preorderNat = record
-                 { _≤_ = le
-                 ; transitive = λ {a b c} → leTrans a b c
+                 { transitive = λ {a b c} → leTrans a b c
                  ; reflexive = λ{a} → leRefl a
                  ; isRelation = ≤isProp }
     where
-      le : ℕ → ℕ → Type
-      le Z _ = ⊤
-      le (S x) (S y) = le x y
-      le _ Z = ⊥
       leTrans : (a b c : ℕ) → le a b → le b c → le a c
       leTrans Z _ _ _ _ = tt
       leTrans (S a) (S b) (S c) = leTrans a b c
@@ -43,16 +44,17 @@ instance
       ≤isProp (S a) Z = isProp⊥
       ≤isProp (S a) (S b) = ≤isProp a b
 
-  posetNat : Poset ℕ
+  posetNat : Poset le
   posetNat = record { antiSymmetric = λ {a b} → leAntiSymmetric a b }
    where
-    leAntiSymmetric : (a b : ℕ) → a ≤ b → b ≤ a → a ≡ b
+    leAntiSymmetric : (a b : ℕ) → le a b → le b a → a ≡ b
     leAntiSymmetric Z Z p q = refl
     leAntiSymmetric (S a) (S b) p q = cong S (leAntiSymmetric a b p q)
   totalOrderNat : TotalOrder ℕ
-  totalOrderNat = record { stronglyConnected = leStronglyConnected }
+  totalOrderNat = record { _≤_ = le
+                         ; stronglyConnected = leStronglyConnected }
    where
-    leStronglyConnected : (a b : ℕ) → ∥(a ≤ b) ＋ (b ≤ a) ∥₁
+    leStronglyConnected : (a b : ℕ) → ∥ le a b ＋ le b a ∥₁
     leStronglyConnected Z _ = ∣ inl tt ∣₁
     leStronglyConnected (S a) Z =  ∣ inr tt ∣₁
     leStronglyConnected (S a) (S b) = leStronglyConnected a b
