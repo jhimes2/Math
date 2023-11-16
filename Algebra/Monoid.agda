@@ -14,6 +14,13 @@ idUnique {A = A} {_∙_ = _∙_} {a} =
     a ∙ e ≡⟨ p e ⟩
     e ∎
 
+idUnique2 : {_∙_ : A → A → A} {{M : monoid _∙_}} → {a : A} → a ∙ e ≡ e → a ≡ e
+idUnique2 {A = A} {_∙_ = _∙_} {a} =
+  λ(p : a ∙ e ≡ e) →
+    a     ≡⟨ sym (rIdentity a) ⟩
+    a ∙ e ≡⟨ p ⟩
+    e ∎
+
 -- Every operator can only be part of at most one monoid
 monoidIsProp : (_∙_ : A → A → A) → isProp (monoid _∙_)
 monoidIsProp {A = A} _∙_ M1 M2 i =

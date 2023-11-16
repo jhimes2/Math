@@ -8,6 +8,7 @@ open import Algebra.Base hiding (grpIsMonoid)
 open import Algebra.Monoid
 open import Cubical.Foundations.Pointed
 open import Cubical.Foundations.Pointed.Homogeneous
+open import Cubical.HITs.PropositionalTruncation renaming (rec to recTrunc ; map to mapTrunc)
 
 add : ℕ → ℕ → ℕ
 add Z b = b
@@ -140,8 +141,6 @@ multCancel (S a) Z m p = ZNotS (sym p) ~> UNREACHABLE
 multCancel (S a) (S b) m p = cong S
       let p = SInjective p in
       multCancel a b m (natRCancel m (comm (mult a (S m)) m ∙ p ∙ comm m (mult b (S m))))
-
--- sym (rIdentity a) ∙ p ∙ rIdentity b
 
 leS : {n m : ℕ} → S n ≤ m → n ≤ m
 leS {Z} {S m} p = tt
@@ -300,7 +299,7 @@ greatest : (ℕ → Type l) → ℕ → Type l
 greatest P n = P n × (∀ x → P x → n ≤ x → n ≡ x)
 
 _∣_ : ℕ → ℕ → Type
-_∣_ a b = Σ λ x → mult x a ≡ b
+_∣_ a b = ∃ λ x → mult x a ≡ b
 
 commonDivisor : ℕ → ℕ → ℕ → Type
 commonDivisor a b c = (c ∣ a) × (c ∣ b)
@@ -326,55 +325,81 @@ jumpInduction P a Base jump n = aux P a Base jump n n (leRefl n)
                            aux P a Base jump x iter (transitive {a = x} (leAdd x a n H) q) }
 
 module divides where
-
- trans : (a b c : ℕ) → a ∣ b → b ∣ c → a ∣ c
- trans a b c =
-      λ((x , p) : Σ λ x → mult x a ≡ b)
-   →  λ((y , q) : Σ λ y → mult y b ≡ c)
-   →  mult y x ,
-      (mult (mult y x) a ≡⟨ sym (assoc y x a) ⟩
-      mult y (mult x a) ≡⟨ cong (mult y) p ⟩
-      mult y b ≡⟨ q ⟩
-      c ∎)
  
  intertwine : (a b c d : ℕ) → a ∣ b → c ∣ d → mult a c ∣ mult b d
- intertwine a b c d =
-    λ((x , p) : Σ λ x → mult x a ≡ b)
-  → λ((y , q) : Σ λ y → mult y c ≡ d)
-  → (mult x y) , (
+ intertwine a b c d x y =
+    x >>= λ((x , p) : Σ λ x → mult x a ≡ b)
+  → y >>= λ((y , q) : Σ λ y → mult y c ≡ d)
+  → η $ (mult x y) , (
           mult (mult x y) (mult a c) ≡⟨ assocCom4 x y a c ⟩
           mult (mult x a) (mult y c) ≡⟨ cong₂ mult p q ⟩
           mult b d ∎)
  
  congruence : (a b : ℕ) → a ∣ b → ∀ m → mult m a ∣ mult m b
- congruence a b =
-    λ((x , p) : Σ λ x → mult x a ≡ b)
-     (m : ℕ) → x ,
-    (mult x (mult m a) ≡⟨ assoc x m a ⟩
-     mult (mult x m) a ≡⟨ left mult (comm x m) ⟩
-     mult (mult m x) a ≡⟨ sym (assoc m x a) ⟩
-     mult m (mult x a) ≡⟨ cong (mult m) p ⟩
-     mult m b ∎)
+ congruence a b x m =
+  x >>= λ((x , p) : Σ λ x → mult x a ≡ b)
+       → η $ x ,
+        (mult x (mult m a) ≡⟨ assoc x m a ⟩
+         mult (mult x m) a ≡⟨ left mult (comm x m) ⟩
+         mult (mult m x) a ≡⟨ sym (assoc m x a) ⟩
+         mult m (mult x a) ≡⟨ cong (mult m) p ⟩
+         mult m b ∎)
 
  cancel : (a b : ℕ) → ∀ m → mult (S m) a ∣ mult (S m) b → a ∣ b 
- cancel a b m =
-    λ((x , p) : Σ λ x → mult x (mult (S m) a) ≡ mult (S m) b) →
-     x , let H = 
-              mult (mult x a) (S m) ≡⟨ sym (assoc x a (S m)) ⟩
-              mult x (mult a (S m)) ≡⟨ cong (mult x) (comm a (S m))⟩
-              mult x (mult (S m) a) ≡⟨ p ⟩
-              mult (S m) b ≡⟨ comm (S m) b ⟩
-              mult b (S m) ∎
-     in multCancel (mult x a) b m H
+ cancel a b m x =
+   x >>= λ((x , p) : Σ λ x → mult x (mult (S m) a) ≡ mult (S m) b)
+       → η $ x , let H = 
+                      mult (mult x a) (S m) ≡⟨ sym (assoc x a (S m)) ⟩
+                      mult x (mult a (S m)) ≡⟨ cong (mult x) (comm a (S m))⟩
+                      mult x (mult (S m) a) ≡⟨ p ⟩
+                      mult (S m) b ≡⟨ comm (S m) b ⟩
+                      mult b (S m) ∎
+          in multCancel (mult x a) b m H
 
  le : (d a : ℕ) → d ∣ S a → d ≤ S a
- le d a = λ{(Z , p) → ZNotS p ~> UNREACHABLE
-          ; (S x , p) → transport (λ i → d ≤ p i) (leAdd2 d (mult x d)) }
+ le d a x = recTrunc (isRelation d (S a)) 
+           (λ{(Z , p) → ZNotS p ~> UNREACHABLE
+           ; (S x , p) → transport (λ i → d ≤ p i) (leAdd2 d (mult x d)) }) x
 
  sum : (c a b : ℕ) → c ∣ a → c ∣ b → c ∣ add a b
- sum c a b = 
-   λ((x , p) : Σ λ x → mult x c ≡ a)
-    ((y , q) : Σ λ y → mult y c ≡ b)
-   → (add x y) , (mult (add x y) c ≡⟨ sym (NatMultDist x y c)⟩
-                  add (mult x c) (mult y c) ≡⟨ cong₂ add p q ⟩
-                  add a b ∎)
+ sum c a b x y = 
+       x >>= λ((x , p) : Σ λ x → mult x c ≡ a)
+     → y >>= λ((y , q) : Σ λ y → mult y c ≡ b)
+            → η $ (add x y) , (mult (add x y) c ≡⟨ sym (NatMultDist x y c)⟩
+                          add (mult x c) (mult y c) ≡⟨ cong₂ add p q ⟩
+                          add a b ∎)
+ 
+instance
+  dividesNZPreorder : Preorder _∣_
+  dividesNZPreorder = record { transitive = λ{a b c} → trans a b c
+                           ; reflexive = λ{a} → ∣ S Z , rIdentity a ∣₁
+                           ; isRelation = λ a b → squash₁ }
+   where
+    trans : (a b c : ℕ) → a ∣ b → b ∣ c → a ∣ c
+    trans a b c x y =
+        x >>=  λ((x , p) : Σ λ x → mult x a ≡ b)
+      → y >>=  λ((y , q) : Σ λ y → mult y b ≡ c)
+      → η $ mult y x ,
+         (mult (mult y x) a ≡⟨ sym (assoc y x a)⟩
+          mult y (mult x a) ≡⟨ cong (mult y) p ⟩
+          mult y b          ≡⟨ q ⟩
+          c ∎)
+
+  dividesPoset : Poset _∣_
+  dividesPoset = record { antiSymmetric = λ{a b} → antisymmetric a b }
+   where
+    antisymmetric : (a b : ℕ) → a ∣ b → b ∣ a → a ≡ b
+    antisymmetric Z b x y = recTrunc (natIsSet Z b)
+        (λ((x , p) : Σ λ x → mult x Z ≡ b) → recTrunc (natIsSet Z b)
+        (λ((y , q) : Σ λ y → mult y b ≡ Z) → sym (multZ x) ∙ p) y) x
+    antisymmetric (S a) Z x y = recTrunc (natIsSet (S a) Z)
+        (λ((x , p) : Σ λ x → mult x (S a) ≡ Z) → recTrunc (natIsSet (S a) Z)
+        (λ((y , q) : Σ λ y → mult y Z ≡ S a) → ZNotS (sym (multZ y) ∙ q) ~> UNREACHABLE) y) x
+    antisymmetric (S a) (S b) x' y' = recTrunc (natIsSet (S a) (S b))
+        (λ((x , p) : Σ λ x → mult x (S a) ≡ S b) → recTrunc (natIsSet (S a) (S b))
+        (λ((y , q) : Σ λ y → mult y (S b) ≡ S a) →
+            let H : b ≤ a
+                H = divides.le (S b) a y' in
+            let G : a ≤ b
+                G = divides.le (S a) b x' in
+                antiSymmetric G H) y') x'
