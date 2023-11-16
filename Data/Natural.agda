@@ -164,6 +164,11 @@ leAdd2 : (a b : ℕ) → a ≤ add a b
 leAdd2 Z _ = tt
 leAdd2 (S a) b = leAdd2 a b
 
+ltS : (a b : ℕ) → a < b → S a ≤ b
+ltS Z Z (a≤b , a≢b) = a≢b refl ~> UNREACHABLE
+ltS Z (S b) (a≤b , a≢b) = tt
+ltS (S a) (S b) (a≤b , a≢b) = ltS a b (a≤b , (λ x → a≢b (cong S x)))
+
 eqLe : (x : ℕ) → x ≤ x
 eqLe Z = tt
 eqLe (S x) = eqLe x
@@ -403,3 +408,15 @@ instance
             let G : a ≤ b
                 G = divides.le (S a) b x' in
                 antiSymmetric G H) y') x'
+
+findGreatest : (P : ℕ → Type l) → (∀ n → P n ＋ ¬ P n)
+             → Σ P → (n : ℕ) → (∀ m → P m → m ≤ n) → Σ (greatest P)
+findGreatest P decide (Z , Px) Z f = Z , Px , λ{ Z y _ → refl ;
+                                                (S x) y _ → f (S x) y ~> UNREACHABLE}
+findGreatest P decide (S x , Px) Z f = f (S x) Px ~> UNREACHABLE
+findGreatest P decide (x , Px) (S n) f = decide (S n)
+      ~> λ{ (inl y) → S n , y , (λ a b c → antiSymmetric c (f a b))
+          ; (inr y) → findGreatest P decide (x , Px)
+                        n (λ a b → let H = f a b in
+                          natDiscrete a (S n) ~> λ{ (yes p) → y (subst P p b) ~> UNREACHABLE
+                                                  ; (no p) → ltS a (S n) (H , p)})}
