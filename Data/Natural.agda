@@ -238,8 +238,8 @@ NatHomogeneous = isHomogeneousDiscrete natDiscrete
 nonZ : Type
 nonZ = Σ λ x → Σ λ y → x ≡ S y
 
-greatest : (ℕ → Type l) → ℕ → Type l
-greatest P n = P n × (∀ x → P x → n ≤ x → n ≡ x)
+greatest : (ℕ → Type l) → Type l
+greatest P = Σ λ n → P n × (∀ x → P x → n ≤ x → n ≡ x)
 
 jumpInduction : (P : ℕ → Type l)
                 → (a : ℕ)
@@ -262,7 +262,7 @@ jumpInduction P a Base jump n = aux P a Base jump n n (leRefl n)
                            aux P a Base jump x iter (transitive {a = x} (leAdd x a n H) q) }
 
 findGreatest : (P : ℕ → Type l) → (∀ n → P n ＋ ¬ P n)
-             → Σ P → (n : ℕ) → (∀ m → P m → m ≤ n) → Σ (greatest P)
+             → Σ P → (n : ℕ) → (∀ m → P m → m ≤ n) → greatest P
 findGreatest P decide (Z , Px) Z f = Z , Px , λ{ Z y _ → refl ;
                                                 (S x) y _ → f (S x) y ~> UNREACHABLE}
 findGreatest P decide (S x , Px) Z f = f (S x) Px ~> UNREACHABLE
