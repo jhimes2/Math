@@ -129,3 +129,7 @@ multℤ = rec2 (Discrete→isSet ℤDiscrete)
  add (add (mult p1 p3) (mult p1 n2)) (add (mult n1 n3) (mult n1 p2))
                                                  ≡⟨ assocCom4 (mult p1 p3) (mult p1 n2) (mult n1 n3) (mult n1 p2)⟩
  add (add (mult p1 p3) (mult n1 n3)) (add (mult p1 n2) (mult n1 p2)) ∎
+
+negℤ : ℤ → ℤ
+negℤ = QRec (Discrete→isSet ℤDiscrete) (λ(p , n) → [ n , p ])
+       λ (p1 , n1) (p2 , n2) r → eq/ (n1 , p1) (n2 , p2) ((comm n1 p2 ∙ sym r) ∙ comm p1 n2)
