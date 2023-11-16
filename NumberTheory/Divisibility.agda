@@ -121,6 +121,12 @@ module divides where
                           add (mult x c) (mult y c) ≡⟨ cong₂ add p q ⟩
                           add a b ∎)
  
+ product : (a b : ℕ) → a ∣ b → ∀ c → a ∣ (mult c b)
+ product a b a∣b c = map (λ (x , p) → mult c x ,
+         (mult (mult c x) a ≡⟨ sym (assoc c x a)⟩
+         mult c (mult x a) ≡⟨ cong (mult c) p ⟩
+         mult c b ∎)) a∣b
+
 instance
   dividesNZPreorder : Preorder _∣_
   dividesNZPreorder = record { transitive = λ{a b c} → trans a b c
