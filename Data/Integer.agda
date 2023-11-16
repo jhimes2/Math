@@ -59,7 +59,7 @@ addICom (Neg x) (Neg y) = cong Neg (cong S (comm x y))
 ℤDiscrete = discreteSetQuotients (BinaryRelation.equivRel (λ{(p , n) → refl})
                                                           (λ{(p1 , n1) (p2 , n2) x → sym x})
                                                           λ{(p1 , n1) (p2 , n2) (p3 , n3) x y
-          → natCancel (add p2 n2) $
+          → natLCancel (add p2 n2) $
           add (add p2 n2) (add p1 n3) ≡⟨ cong (add (add p2 n2)) (comm p1 n3) ⟩
           add (add p2 n2) (add n3 p1) ≡⟨ assocCom4 p2 n2 n3 p1 ⟩
           add (add p2 n3) (add n2 p1) ≡⟨ cong (add (add p2 n3)) (comm n2 p1) ⟩

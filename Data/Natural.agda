@@ -1,10 +1,11 @@
-{-# OPTIONS --cubical --safe #-}
+{-# OPTIONS --cubical --safe --overlapping-instances #-}
 
 module Data.Natural where
 
 open import Relations
 open import Data.Base
-open import Algebra.Base
+open import Algebra.Base hiding (grpIsMonoid)
+open import Algebra.Monoid
 open import Cubical.Foundations.Pointed
 open import Cubical.Foundations.Pointed.Homogeneous
 
@@ -53,9 +54,9 @@ natSetoidToEq {S a} {S b} p = cong S (natSetoidToEq p)
 SInjective : injective S
 SInjective p = natSetoidToEq (eqToNatSetoid p)
 
-natCancel : {a b : ℕ} → (c : ℕ) → add c a ≡ add c b → a ≡ b
-natCancel Z p = p
-natCancel {a} {b} (S c) p = natCancel c (SInjective p) 
+natLCancel : {a b : ℕ} → (c : ℕ) → add c a ≡ add c b → a ≡ b
+natLCancel Z p = p
+natLCancel {a} {b} (S c) p = natLCancel c (SInjective p) 
 
 ZNotS : {n : ℕ} → Z ≢ S n
 ZNotS p = eqToNatSetoid p
@@ -129,6 +130,19 @@ NatMultDist2 a b c = mult c (add a b) ≡⟨ comm c (add a b)⟩
                      add (mult a c) (mult b c) ≡⟨ cong₂ add (comm a c) (comm b c)⟩
                      add (mult c a) (mult c b) ∎
 
+natRCancel : {a b : ℕ} → (c : ℕ) → add a c ≡ add b c → a ≡ b
+natRCancel {a} {b} c p = natLCancel c (comm c a ∙ p ∙ comm b c)
+
+multCancel : (a b m : ℕ) → mult a (S m) ≡ mult b (S m) → a ≡ b
+multCancel Z Z m p = refl
+multCancel Z (S b) m p = ZNotS p ~> UNREACHABLE
+multCancel (S a) Z m p = ZNotS (sym p) ~> UNREACHABLE
+multCancel (S a) (S b) m p = cong S
+      let p = SInjective p in
+      multCancel a b m (natRCancel m (comm (mult a (S m)) m ∙ p ∙ comm m (mult b (S m))))
+
+-- sym (rIdentity a) ∙ p ∙ rIdentity b
+
 leS : {n m : ℕ} → S n ≤ m → n ≤ m
 leS {Z} {S m} p = tt
 leS {S n} {S m} p = leS {n} {m} p
@@ -146,6 +160,10 @@ leAdd : (z n c : ℕ) → add z n ≤ c → z ≤ c
 leAdd Z n c p = tt
 leAdd (S z) n Z p = p
 leAdd (S z) n (S c) p = leAdd z n c p
+
+leAdd2 : (a b : ℕ) → a ≤ add a b
+leAdd2 Z _ = tt
+leAdd2 (S a) b = leAdd2 a b
 
 eqLe : (x : ℕ) → x ≤ x
 eqLe Z = tt
@@ -307,12 +325,56 @@ jumpInduction P a Base jump n = aux P a Base jump n n (leRefl n)
                                H = transport (λ i → SInjective p i ≤ n) (leRefl n) in
                            aux P a Base jump x iter (transitive {a = x} (leAdd x a n H) q) }
 
-dividesTrans : (a b c : ℕ) → a ∣ b → b ∣ c → a ∣ c
-dividesTrans a b c =
-     λ((x , p) : Σ λ x → mult x a ≡ b)
-  →  λ((y , q) : Σ λ y → mult y b ≡ c)
-  →  mult y x ,
-     (mult (mult y x) a ≡⟨ sym (assoc y x a) ⟩
-     mult y (mult x a) ≡⟨ cong (mult y) p ⟩
-     mult y b ≡⟨ q ⟩
-     c ∎)
+module divides where
+
+ trans : (a b c : ℕ) → a ∣ b → b ∣ c → a ∣ c
+ trans a b c =
+      λ((x , p) : Σ λ x → mult x a ≡ b)
+   →  λ((y , q) : Σ λ y → mult y b ≡ c)
+   →  mult y x ,
+      (mult (mult y x) a ≡⟨ sym (assoc y x a) ⟩
+      mult y (mult x a) ≡⟨ cong (mult y) p ⟩
+      mult y b ≡⟨ q ⟩
+      c ∎)
+ 
+ intertwine : (a b c d : ℕ) → a ∣ b → c ∣ d → mult a c ∣ mult b d
+ intertwine a b c d =
+    λ((x , p) : Σ λ x → mult x a ≡ b)
+  → λ((y , q) : Σ λ y → mult y c ≡ d)
+  → (mult x y) , (
+          mult (mult x y) (mult a c) ≡⟨ assocCom4 x y a c ⟩
+          mult (mult x a) (mult y c) ≡⟨ cong₂ mult p q ⟩
+          mult b d ∎)
+ 
+ congruence : (a b : ℕ) → a ∣ b → ∀ m → mult m a ∣ mult m b
+ congruence a b =
+    λ((x , p) : Σ λ x → mult x a ≡ b)
+     (m : ℕ) → x ,
+    (mult x (mult m a) ≡⟨ assoc x m a ⟩
+     mult (mult x m) a ≡⟨ left mult (comm x m) ⟩
+     mult (mult m x) a ≡⟨ sym (assoc m x a) ⟩
+     mult m (mult x a) ≡⟨ cong (mult m) p ⟩
+     mult m b ∎)
+
+ cancel : (a b : ℕ) → ∀ m → mult (S m) a ∣ mult (S m) b → a ∣ b 
+ cancel a b m =
+    λ((x , p) : Σ λ x → mult x (mult (S m) a) ≡ mult (S m) b) →
+     x , let H = 
+              mult (mult x a) (S m) ≡⟨ sym (assoc x a (S m)) ⟩
+              mult x (mult a (S m)) ≡⟨ cong (mult x) (comm a (S m))⟩
+              mult x (mult (S m) a) ≡⟨ p ⟩
+              mult (S m) b ≡⟨ comm (S m) b ⟩
+              mult b (S m) ∎
+     in multCancel (mult x a) b m H
+
+ le : (d a : ℕ) → d ∣ S a → d ≤ S a
+ le d a = λ{(Z , p) → ZNotS p ~> UNREACHABLE
+          ; (S x , p) → transport (λ i → d ≤ p i) (leAdd2 d (mult x d)) }
+
+ sum : (c a b : ℕ) → c ∣ a → c ∣ b → c ∣ add a b
+ sum c a b = 
+   λ((x , p) : Σ λ x → mult x c ≡ a)
+    ((y , q) : Σ λ y → mult y c ≡ b)
+   → (add x y) , (mult (add x y) c ≡⟨ sym (NatMultDist x y c)⟩
+                  add (mult x c) (mult y c) ≡⟨ cong₂ add p q ⟩
+                  add a b ∎)

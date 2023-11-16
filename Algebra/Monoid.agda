@@ -34,7 +34,7 @@ monoidIsProp {A = A} _∙_ M1 M2 i =
                                                     {M2 .mAssoc .assoc a b c} i }
           }
 
-assocCom4 : {_∙_ : A → A → A}{{_ : Commutative _∙_}}{{_ : monoid _∙_}}
+assocCom4 : {_∙_ : A → A → A}{{M : monoid _∙_}}{{COMM : Commutative _∙_}}
           → (a b c d : A) → (a ∙ b) ∙ (c ∙ d) ≡ (a ∙ c) ∙ (b ∙ d)
 assocCom4 {_∙_ = _∙_} a b c d =
   (a ∙ b) ∙ (c ∙ d) ≡⟨ assoc (_∙_ a b) c d ⟩
