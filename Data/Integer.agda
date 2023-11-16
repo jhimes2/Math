@@ -7,7 +7,8 @@ open import Prelude
 open import Algebra.Base
 open import Algebra.Monoid
 open import Data.Natural
-open import Cubical.HITs.SetQuotients renaming (rec to QRec)
+open import Cubical.Data.Sigma.Properties
+open import Cubical.HITs.SetQuotients renaming (rec to QRec ; elim to QElim)
 open import Cubical.Foundations.HLevels
 
 subn : ℕ → ℕ → int
@@ -71,11 +72,14 @@ addICom (Neg x) (Neg y) = cong Neg (cong S (comm x y))
     }) λ{(p1 , n1) (p2 , n2) → natDiscrete (add p1 n2) (add p2 n1)}
   where open import Cubical.Relation.Binary
 
+ℤisSet : isSet ℤ
+ℤisSet = Discrete→isSet ℤDiscrete
+
 addℤaux : ℕ × ℕ → ℕ × ℕ → ℤ
 addℤaux (p1 , n1) (p2 , n2) = [ add p1 p2 , add n1 n2 ]
 
 addℤ : ℤ → ℤ → ℤ
-addℤ = rec2 (Discrete→isSet ℤDiscrete)
+addℤ = rec2 ℤisSet
             (λ(p1 , n1) (p2 , n2) → [ add p1 p2 , add n1 n2 ])
             (λ{(p1 , n1) (p2 , n2) (p3 , n3) p →
    eq/ ((add p1 p3 , add n1 n3)) (add p2 p3 , add n2 n3) $
@@ -91,7 +95,7 @@ addℤ = rec2 (Discrete→isSet ℤDiscrete)
     }
 
 multℤ : ℤ → ℤ → ℤ
-multℤ = rec2 (Discrete→isSet ℤDiscrete)
+multℤ = rec2 (ℤisSet)
              (λ(a , b) (c , d) → [ add (mult a c) (mult b d) , add (mult a d) (mult b c) ])
              (λ (p1 , n1) (p2 , n2) (p3 , n3) H → eq/ (add (mult p1 p3) (mult n1 n3) , add (mult p1 n3) (mult n1 p3))
                                                       (add (mult p2 p3) (mult n2 n3) , add (mult p2 n3) (mult n2 p3)) $
@@ -131,5 +135,10 @@ multℤ = rec2 (Discrete→isSet ℤDiscrete)
  add (add (mult p1 p3) (mult n1 n3)) (add (mult p1 n2) (mult n1 p2)) ∎
 
 negℤ : ℤ → ℤ
-negℤ = QRec (Discrete→isSet ℤDiscrete) (λ(p , n) → [ n , p ])
+negℤ = QRec ℤisSet (λ(p , n) → [ n , p ])
        λ (p1 , n1) (p2 , n2) r → eq/ (n1 , p1) (n2 , p2) ((comm n1 p2 ∙ sym r) ∙ comm p1 n2)
+
+instance
+  ℤComm : Commutative addℤ
+  ℤComm = record { comm = elimProp2 (λ x y → ℤisSet (addℤ x y) (addℤ y x))
+        λ (p1 , n1) (p2 , n2) → cong [_] ( (≡-× (comm p1 p2) (comm n1 n2))) }
