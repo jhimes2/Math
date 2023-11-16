@@ -90,3 +90,42 @@ addℤ = rec2 (Discrete→isSet ℤDiscrete)
       add (add p1 p3) (add n1 n2) ∎
     }
 
+multℤ : ℤ → ℤ → ℤ
+multℤ = rec2 (Discrete→isSet ℤDiscrete)
+             (λ(a , b) (c , d) → [ add (mult a c) (mult b d) , add (mult a d) (mult b c) ])
+             (λ (p1 , n1) (p2 , n2) (p3 , n3) H → eq/ (add (mult p1 p3) (mult n1 n3) , add (mult p1 n3) (mult n1 p3))
+                                                      (add (mult p2 p3) (mult n2 n3) , add (mult p2 n3) (mult n2 p3)) $
+ add (add (mult p1 p3) (mult n1 n3)) (add (mult p2 n3) (mult n2 p3))
+                                                 ≡⟨ left add (comm (mult p1 p3) (mult n1 n3))⟩
+ add (add (mult n1 n3) (mult p1 p3)) (add (mult p2 n3) (mult n2 p3))
+                                                 ≡⟨ assocCom4 (mult n1 n3) (mult p1 p3) (mult p2 n3) (mult n2 p3)⟩
+ add (add (mult n1 n3) (mult p2 n3)) (add (mult p1 p3) (mult n2 p3))
+                                                 ≡⟨ cong₂ add (NatMultDist n1 p2 n3) (NatMultDist p1 n2 p3)⟩
+ add (mult (add n1 p2) n3) (mult (add p1 n2) p3) ≡⟨ left add (left mult (comm n1 p2))⟩
+ add (mult (add p2 n1) n3) (mult (add p1 n2) p3) ≡⟨ cong₂ add (left mult (sym H)) (left mult H) ⟩
+ add (mult (add p1 n2) n3) (mult (add p2 n1) p3) ≡⟨ left add (sym (NatMultDist p1 n2 n3)) ⟩
+ add (add (mult p1 n3) (mult n2 n3)) (mult (add p2 n1) p3)
+                                                 ≡⟨ right add (sym (NatMultDist p2 n1 p3))⟩
+ add (add (mult p1 n3) (mult n2 n3)) (add (mult p2 p3) (mult n1 p3))
+                                                 ≡⟨ left add (comm (mult p1 n3) (mult n2 n3)) ⟩
+ add (add (mult n2 n3) (mult p1 n3)) (add (mult p2 p3) (mult n1 p3))
+                                                 ≡⟨ assocCom4 (mult n2 n3) (mult p1 n3) (mult p2 p3) (mult n1 p3)⟩
+ add (add (mult n2 n3) (mult p2 p3)) (add (mult p1 n3) (mult n1 p3))
+                                                 ≡⟨ left add (comm (mult n2 n3) (mult p2 p3))⟩
+ add (add (mult p2 p3) (mult n2 n3)) (add (mult p1 n3) (mult n1 p3)) ∎)
+ λ (p1 , n1) (p2 , n2) (p3 , n3) x → eq/ (add (mult p1 p2) (mult n1 n2) , add (mult p1 n2) (mult n1 p2))
+                                         (add (mult p1 p3) (mult n1 n3) , add (mult p1 n3) (mult n1 p3)) $
+ add (add (mult p1 p2) (mult n1 n2)) (add (mult p1 n3) (mult n1 p3))
+                                                 ≡⟨ assocCom4 (mult p1 p2) (mult n1 n2) (mult p1 n3) (mult n1 p3)⟩
+ add (add (mult p1 p2) (mult p1 n3)) (add (mult n1 n2) (mult n1 p3))
+                                                 ≡⟨ left add (sym (NatMultDist2 p2 n3 p1))⟩
+ add (mult p1 (add p2 n3)) (add (mult n1 n2) (mult n1 p3))
+                                                 ≡⟨ right add (sym (NatMultDist2 n2 p3 n1))⟩
+ add (mult p1 (add p2 n3)) (mult n1 (add n2 p3)) ≡⟨ left add (cong (mult p1) x)⟩
+ add (mult p1 (add p3 n2)) (mult n1 (add n2 p3)) ≡⟨ right add (cong (mult n1) (comm n2 p3))⟩
+ add (mult p1 (add p3 n2)) (mult n1 (add p3 n2)) ≡⟨ right add (cong (mult n1) (sym x)) ⟩
+ add (mult p1 (add p3 n2)) (mult n1 (add p2 n3)) ≡⟨ right add (cong (mult n1) (comm p2 n3))⟩
+ add (mult p1 (add p3 n2)) (mult n1 (add n3 p2)) ≡⟨ cong₂ add (NatMultDist2 p3 n2 p1) (NatMultDist2 n3 p2 n1)⟩
+ add (add (mult p1 p3) (mult p1 n2)) (add (mult n1 n3) (mult n1 p2))
+                                                 ≡⟨ assocCom4 (mult p1 p3) (mult p1 n2) (mult n1 n3) (mult n1 p2)⟩
+ add (add (mult p1 p3) (mult n1 n3)) (add (mult p1 n2) (mult n1 p2)) ∎
