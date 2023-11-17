@@ -68,16 +68,18 @@ instance
                                    ; No No → refl}}
   xorAbelian : abelianGroup xor
   xorAbelian = record {}
+  bool*+ : *+ Bool
+  bool*+ = record { _+_ = xor
+                  ; _*_ = and
+                  ; lDistribute = λ{ Yes _ _ → refl
+                                   ; No _ _ → refl}
+                  ; rDistribute = λ{ Yes Yes Yes → refl
+                                   ; Yes Yes No → refl
+                                   ; No Yes Yes → refl
+                                   ; No Yes No → refl
+                                   ; _ No _ → refl}}
   boolRng : Rng Bool
-  boolRng = record { _+_ = xor
-                   ; _*_ = and
-                   ; lDistribute = λ{ Yes _ _ → refl
-                                    ; No _ _ → refl}
-                   ; rDistribute = λ{ Yes Yes Yes → refl
-                                    ; Yes Yes No → refl
-                                    ; No Yes Yes → refl
-                                    ; No Yes No → refl
-                                    ; _ No _ → refl}}
+  boolRng = record {}
   boolRing : Ring Bool
   boolRing = record {}
   boolCRing : CRing Bool

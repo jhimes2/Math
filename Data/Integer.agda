@@ -142,3 +142,10 @@ instance
   ℤComm : Commutative addℤ
   ℤComm = record { comm = elimProp2 (λ x y → ℤisSet (addℤ x y) (addℤ y x))
         λ (p1 , n1) (p2 , n2) → cong [_] ( (≡-× (comm p1 p2) (comm n1 n2))) }
+  ℤAssoc : Associative addℤ
+  ℤAssoc = record { assoc = elimProp3 (λ x y z → ℤisSet (addℤ x (addℤ y z))(addℤ (addℤ x y) z))
+           λ (p1 , n1) (p2 , n2) (p3 , n3) → cong [_] (≡-× (assoc p1 p2 p3) (assoc n1 n2 n3)) }
+  ℤMultComm : Commutative multℤ
+  ℤMultComm = record { comm = elimProp2 (λ x y → ℤisSet (multℤ x y) (multℤ y x))
+     λ (p1 , n1) (p2 , n2) → cong [_] (≡-× (cong₂ add (comm p1 p2) (comm n1 n2))
+        ( comm (mult p1 n2) (mult n1 p2) ∙ cong₂ add (comm n1 p2) (comm p1 n2))) }

@@ -86,7 +86,7 @@ open *+ {{...}} public
 -- https://en.wikipedia.org/wiki/Rng_(algebra)
 record Rng (A : Type l) : Type (lsuc l) where
   field
-    {{semirng}} : *+ A
+    {{rng*+}} : *+ A
     {{raddStr}} : abelianGroup _+_
 open Rng {{...}} public
 
