@@ -130,6 +130,14 @@ NatMultDist2 a b c = mult c (add a b) ≡⟨ comm c (add a b)⟩
                      add (mult a c) (mult b c) ≡⟨ cong₂ add (comm a c) (comm b c)⟩
                      add (mult c a) (mult c b) ∎
 
+instance
+  natSemiRng : *+ ℕ
+  natSemiRng =
+      record { _+_ = add
+             ; _*_ = mult
+             ; lDistribute = λ a b c → NatMultDist2 b c a
+             ; rDistribute = λ a b c → sym (NatMultDist b c a) }
+
 natRCancel : {a b : ℕ} → (c : ℕ) → add a c ≡ add b c → a ≡ b
 natRCancel {a} {b} c p = natLCancel c (comm c a ∙ p ∙ comm b c)
 

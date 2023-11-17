@@ -75,13 +75,18 @@ record abelianGroup {A : Type l}(_∙_ : A → A → A) : Type (lsuc l) where
       {{comgroup}} : Commutative _∙_
 open abelianGroup {{...}} public
 
--- https://en.wikipedia.org/wiki/Rng_(algebra)
-record Rng (A : Type l) : Type (lsuc l) where
+record *+ (A : Type l) : Type (lsuc l) where
   field
     _+_ : A → A → A
     _*_ : A → A → A
     lDistribute : (a b c : A) → a * (b + c) ≡ (a * b) + (a * c)
     rDistribute : (a b c : A) → (b + c) * a ≡ (b * a) + (c * a)
+open *+ {{...}} public
+
+-- https://en.wikipedia.org/wiki/Rng_(algebra)
+record Rng (A : Type l) : Type (lsuc l) where
+  field
+    {{semirng}} : *+ A
     {{raddStr}} : abelianGroup _+_
 open Rng {{...}} public
 
