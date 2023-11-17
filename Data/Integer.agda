@@ -6,6 +6,7 @@ open import Data.Base
 open import Prelude
 open import Algebra.Base
 open import Algebra.Monoid
+open import Algebra.Group
 open import Data.Natural
 open import Cubical.Data.Sigma.Properties
 open import Cubical.HITs.SetQuotients renaming (rec to QRec ; elim to QElim)
@@ -100,13 +101,16 @@ instance
  ℤComm : Commutative addℤ
  ℤComm = record { comm = elimProp2 (λ x y → ℤisSet (addℤ x y) (addℤ y x))
        λ (p1 , n1) (p2 , n2) → cong [_] ( (≡-× (comm p1 p2) (comm n1 n2))) }
+
  ℤAssoc : Associative addℤ
  ℤAssoc = record { assoc = elimProp3 (λ x y z → ℤisSet (addℤ x (addℤ y z))(addℤ (addℤ x y) z))
           λ (p1 , n1) (p2 , n2) (p3 , n3) → cong [_] (≡-× (assoc p1 p2 p3) (assoc n1 n2 n3)) }
+
  ℤMultComm : Commutative multℤ
  ℤMultComm = record { comm = elimProp2 (λ x y → ℤisSet (multℤ x y) (multℤ y x))
     λ (p1 , n1) (p2 , n2) → cong [_] (≡-× (cong₂ add (comm p1 p2) (comm n1 n2))
        ( comm (mult p1 n2) (mult n1 p2) ∙ cong₂ add (comm n1 p2) (comm p1 n2))) }
+
  ℤMultAssoc : Associative multℤ
  ℤMultAssoc = record { assoc = elimProp3 (λ x y z → ℤisSet (multℤ x (multℤ y z)) (multℤ (multℤ x y) z))
    λ (p1 , n1)(p2 , n2)(p3 , n3) → cong [_] (≡-× (aux p1 p2 p3 n1 n2 n3) (aux p1 p2 n3 n1 n2 p3))}
@@ -135,3 +139,15 @@ instance
         ≡⟨ assoc ((p1 * p2) * p3) ((n1 * n2) * p3) (((p1 * n2) + (n1 * p2)) * n3)⟩
       (((p1 * p2) * p3) + ((n1 * n2) * p3)) + (((p1 * n2) + (n1 * p2)) * n3) ≡⟨ left _+_ (sym(rDistribute p3 (p1 * p2) (n1 * n2)))⟩
       (((p1 * p2) + (n1 * n2)) * p3) + (((p1 * n2) + (n1 * p2)) * n3) ∎)
+
+ ℤAddGroup : group addℤ
+ ℤAddGroup = record { e = [ Z , Z ]
+           ; IsSet = ℤisSet
+           ; inverse = λ a → (negℤ a) , lInv a
+           ; lIdentity = elimProp (λ x → ℤisSet (addℤ [ Z , Z ] x) x)(λ a → refl) }
+  where
+   lInv : (a : ℤ) → addℤ (negℤ a) a ≡ [ Z , Z ]
+   lInv = elimProp (λ x → ℤisSet (addℤ (negℤ x) x) [ Z , Z ])
+      λ (p , n) → eq/ (add n p , add p n) (Z , Z) (addZ (add n p) ∙ comm n p)
+ ℤAbelianGroup : abelianGroup addℤ
+ ℤAbelianGroup = record {}
