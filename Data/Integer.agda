@@ -97,13 +97,41 @@ negℤ = QRec ℤisSet (λ(p , n) → [ n , p ])
        λ (p1 , n1) (p2 , n2) r → eq/ (n1 , p1) (n2 , p2) ((comm n1 p2 ∙ sym r) ∙ comm p1 n2)
 
 instance
-  ℤComm : Commutative addℤ
-  ℤComm = record { comm = elimProp2 (λ x y → ℤisSet (addℤ x y) (addℤ y x))
-        λ (p1 , n1) (p2 , n2) → cong [_] ( (≡-× (comm p1 p2) (comm n1 n2))) }
-  ℤAssoc : Associative addℤ
-  ℤAssoc = record { assoc = elimProp3 (λ x y z → ℤisSet (addℤ x (addℤ y z))(addℤ (addℤ x y) z))
-           λ (p1 , n1) (p2 , n2) (p3 , n3) → cong [_] (≡-× (assoc p1 p2 p3) (assoc n1 n2 n3)) }
-  ℤMultComm : Commutative multℤ
-  ℤMultComm = record { comm = elimProp2 (λ x y → ℤisSet (multℤ x y) (multℤ y x))
-     λ (p1 , n1) (p2 , n2) → cong [_] (≡-× (cong₂ add (comm p1 p2) (comm n1 n2))
-        ( comm (mult p1 n2) (mult n1 p2) ∙ cong₂ add (comm n1 p2) (comm p1 n2))) }
+ ℤComm : Commutative addℤ
+ ℤComm = record { comm = elimProp2 (λ x y → ℤisSet (addℤ x y) (addℤ y x))
+       λ (p1 , n1) (p2 , n2) → cong [_] ( (≡-× (comm p1 p2) (comm n1 n2))) }
+ ℤAssoc : Associative addℤ
+ ℤAssoc = record { assoc = elimProp3 (λ x y z → ℤisSet (addℤ x (addℤ y z))(addℤ (addℤ x y) z))
+          λ (p1 , n1) (p2 , n2) (p3 , n3) → cong [_] (≡-× (assoc p1 p2 p3) (assoc n1 n2 n3)) }
+ ℤMultComm : Commutative multℤ
+ ℤMultComm = record { comm = elimProp2 (λ x y → ℤisSet (multℤ x y) (multℤ y x))
+    λ (p1 , n1) (p2 , n2) → cong [_] (≡-× (cong₂ add (comm p1 p2) (comm n1 n2))
+       ( comm (mult p1 n2) (mult n1 p2) ∙ cong₂ add (comm n1 p2) (comm p1 n2))) }
+ ℤMultAssoc : Associative multℤ
+ ℤMultAssoc = record { assoc = elimProp3 (λ x y z → ℤisSet (multℤ x (multℤ y z)) (multℤ (multℤ x y) z))
+   λ (p1 , n1)(p2 , n2)(p3 , n3) → cong [_] (≡-× (aux p1 p2 p3 n1 n2 n3) (aux p1 p2 n3 n1 n2 p3))}
+  where
+   aux : (p1 p2 p3 n1 n2 n3 : ℕ) → (p1 * ((p2 * p3) + (n2 * n3))) + (n1 * ((p2 * n3) + (n2 * p3)))
+                                 ≡ (((p1 * p2) + (n1 * n2)) * p3) + (((p1 * n2) + (n1 * p2)) * n3)
+   aux p1 p2 p3 n1 n2 n3 = 
+      ((p1 * ((p2 * p3) + (n2 * n3))) + (n1 * ((p2 * n3) + (n2 * p3)))≡⟨ left _+_ (lDistribute p1 (p2 * p3) (n2 * n3))⟩
+      ((p1 * (p2 * p3)) + (p1 * (n2 * n3))) + (n1 * ((p2 * n3) + (n2 * p3)))
+         ≡⟨ sym (assoc (p1 * (p2 * p3)) (p1 * (n2 * n3)) (n1 * ((p2 * n3) + (n2 * p3)))) ⟩
+      (p1 * (p2 * p3)) + ((p1 * (n2 * n3)) + (n1 * ((p2 * n3) + (n2 * p3))))≡⟨ left _+_ (assoc p1 p2 p3)⟩
+      ((p1 * p2) * p3) + ((p1 * (n2 * n3)) + (n1 * ((p2 * n3) + (n2 * p3))))
+      ≡⟨ cong (add ((p1 * p2) * p3))
+              ((p1 * (n2 * n3)) + (n1 * ((p2 * n3) + (n2 * p3))) ≡⟨ right _+_ (lDistribute n1 (p2 * n3) (n2 * p3))⟩
+               (p1 * (n2 * n3)) + ((n1 * (p2 * n3)) + (n1 * (n2 * p3)))
+                  ≡⟨ cong (add (p1 * (n2 * n3))) (cong₂ _+_ (assoc n1 p2 n3) (assoc n1 n2 p3))⟩
+               (p1 * (n2 * n3)) + (((n1 * p2) * n3) + ((n1 * n2) * p3)) ≡⟨ left _+_ (assoc p1 n2 n3) ⟩
+               ((p1 * n2) * n3) + (((n1 * p2) * n3) + ((n1 * n2) * p3))
+                  ≡⟨ assoc ((p1 * n2) * n3) ((n1 * p2) * n3) ((n1 * n2) * p3)⟩
+               (((p1 * n2) * n3) + ((n1 * p2) * n3)) + ((n1 * n2) * p3)
+                  ≡⟨ comm (((p1 * n2) * n3) + ((n1 * p2) * n3))((n1 * n2) * p3) ⟩
+                ((n1 * n2) * p3) + (((p1 * n2) * n3) + ((n1 * p2) * n3))
+                 ≡⟨ cong (add ((n1 * n2) * p3)) (sym (rDistribute n3 (mult p1 n2) (mult n1 p2)))⟩
+               ((n1 * n2) * p3) + (((p1 * n2) + (n1 * p2)) * n3)∎)⟩
+      ((p1 * p2) * p3) + (((n1 * n2) * p3) + (((p1 * n2) + (n1 * p2)) * n3))
+        ≡⟨ assoc ((p1 * p2) * p3) ((n1 * n2) * p3) (((p1 * n2) + (n1 * p2)) * n3)⟩
+      (((p1 * p2) * p3) + ((n1 * n2) * p3)) + (((p1 * n2) + (n1 * p2)) * n3) ≡⟨ left _+_ (sym(rDistribute p3 (p1 * p2) (n1 * n2)))⟩
+      (((p1 * p2) + (n1 * n2)) * p3) + (((p1 * n2) + (n1 * p2)) * n3) ∎)

@@ -75,24 +75,3 @@ indiscreteCodomainContinuous {l' = l'} {T = T} ⦃ XT = XT ⦄ f {V} (inl x) =
   let H = isPropEq V x in
   let G = topology.tfull XT in {!!}
 indiscreteCodomainContinuous {l' = l'} {T = T} ⦃ XT = XT ⦄ f {V} (inr x) = {!!}
-
-instance
-  ℤMultAssoc : Associative multℤ
-  ℤMultAssoc = record { assoc = elimProp3 (λ x y z → ℤisSet (multℤ x (multℤ y z)) (multℤ (multℤ x y) z))
-    λ (p1 , n1)(p2 , n2)(p3 , n3) → cong [_] (≡-×
-       ((p1 * ((p2 * p3) + (n2 * n3))) + (n1 * ((p2 * n3) + (n2 * p3)))≡⟨ left _+_ (lDistribute p1 (p2 * p3) (n2 * n3))⟩
-        ((p1 * (p2 * p3)) + (p1 * (n2 * n3))) + (n1 * ((p2 * n3) + (n2 * p3)))
-           ≡⟨ sym (assoc (p1 * (p2 * p3)) (p1 * (n2 * n3)) (n1 * ((p2 * n3) + (n2 * p3)))) ⟩
-        (p1 * (p2 * p3)) + ((p1 * (n2 * n3)) + (n1 * ((p2 * n3) + (n2 * p3))))≡⟨ left _+_ (assoc p1 p2 p3)⟩
-        ((p1 * p2) * p3) + ((p1 * (n2 * n3)) + (n1 * ((p2 * n3) + (n2 * p3))))
-        ≡⟨ cong (add ((p1 * p2) * p3))
-                ((p1 * (n2 * n3)) + (n1 * ((p2 * n3) + (n2 * p3))) ≡⟨ right _+_ (lDistribute n1 (p2 * n3) (n2 * p3))⟩
-                 (p1 * (n2 * n3)) + ((n1 * (p2 * n3)) + (n1 * (n2 * p3)))
-                     ≡⟨ assoc (p1 * (n2 * n3))(n1 * (p2 * n3))(n1 * (n2 * p3))⟩
-                 ((p1 * (n2 * n3)) + (n1 * (p2 * n3))) + (n1 * (n2 * p3)) ≡⟨ {!!} ⟩
-                 ((n1 * n2) * p3) + (((p1 * n2) * n3) + ((n1 * p2) * n3))≡⟨ cong (add ((n1 * n2) * p3)) (sym (rDistribute n3 (p1 * n2) (n1 * p2)))⟩
-                 ((n1 * n2) * p3) + (((p1 * n2) + (n1 * p2)) * n3)∎)⟩
-        ((p1 * p2) * p3) + (((n1 * n2) * p3) + (((p1 * n2) + (n1 * p2)) * n3))
-        ≡⟨ assoc ((p1 * p2) * p3) ((n1 * n2) * p3) (((p1 * n2) + (n1 * p2)) * n3)⟩
-        (((p1 * p2) * p3) + ((n1 * n2) * p3)) + (((p1 * n2) + (n1 * p2)) * n3) ≡⟨ left _+_ (sym(rDistribute p3 (p1 * p2) (n1 * n2)))⟩
-        (((p1 * p2) + (n1 * n2)) * p3) + (((p1 * n2) + (n1 * p2)) * n3) ∎) {!!}) }
