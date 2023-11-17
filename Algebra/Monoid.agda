@@ -41,14 +41,21 @@ monoidIsProp {A = A} _∙_ M1 M2 i =
                                                     {M2 .mAssoc .assoc a b c} i }
           }
 
-assocCom : {_∙_ : A → A → A}{{M : monoid _∙_}}{{COMM : Commutative _∙_}}
+a[bc]≡b[ac] : {_∙_ : A → A → A}{{M : monoid _∙_}}{{COMM : Commutative _∙_}}
           → (a b c : A) → a ∙ (b ∙ c) ≡ b ∙ (a ∙ c)
-assocCom {_∙_ = _∙_} a b c = 
+a[bc]≡b[ac] {_∙_ = _∙_} a b c = 
          a ∙ (b ∙ c) ≡⟨ assoc a b c ⟩
          (a ∙ b) ∙ c ≡⟨ left _∙_ (comm a b) ⟩
          (b ∙ a) ∙ c ≡⟨ sym (assoc b a c) ⟩
          b ∙ (a ∙ c) ∎
 
+[ab]c≡[ac]b : {_∙_ : A → A → A}{{M : monoid _∙_}}{{COMM : Commutative _∙_}}
+          → (a b c : A) → (a ∙ b) ∙ c ≡ (a ∙ c) ∙ b
+[ab]c≡[ac]b {_∙_ = _∙_} a b c = 
+         (a ∙ b) ∙ c ≡⟨ sym (assoc a b c)⟩
+         a ∙ (b ∙ c) ≡⟨ right _∙_ (comm b c)⟩
+         a ∙ (c ∙ b) ≡⟨ assoc a c b ⟩
+         (a ∙ c) ∙ b ∎
 
 assocCom4 : {_∙_ : A → A → A}{{M : monoid _∙_}}{{COMM : Commutative _∙_}}
           → (a b c d : A) → (a ∙ b) ∙ (c ∙ d) ≡ (a ∙ c) ∙ (b ∙ d)
