@@ -4,6 +4,7 @@ module Algebra.Base where
 
 open import Prelude public
 open import Relations
+open import Data.Base
 
 -- https://en.wikipedia.org/wiki/Monoid
 record monoid {A : Type l}(_∙_ : A → A → A) : Type(lsuc l) where
@@ -136,6 +137,7 @@ record Field (A : Type l) : Type (lsuc l) where
     oneNotZero : 1r ≢ 0r
     reciprocal : nonZero → A
     recInv : (a : nonZero) → pr1 a * reciprocal a ≡ 1r
+    GFP : (xs : [ A ^ n ]) → xs ≢ (λ _ → 0r) → (x : A) → ∃ λ i → xs i ≢ 0r
 open Field {{...}} public
 
 1f : {{F : Field A}} → nonZero

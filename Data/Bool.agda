@@ -5,6 +5,7 @@ module Data.Bool where
 open import Prelude
 open import Data.Base
 open import Algebra.Base
+open import Algebra.Field
 
 not : Bool → Bool
 not Yes = No
@@ -85,7 +86,9 @@ instance
   boolCRing : CRing Bool
   boolCRing = record {}
   boolField : Field Bool
-  boolField = record { oneNotZero = YesNEqNo
-                     ; reciprocal = pr1
-                     ; recInv = λ{ (Yes , x) → refl
-                                 ; (No , x) → x refl ~> UNREACHABLE }}
+  boolField = record
+      { oneNotZero = YesNEqNo
+      ; reciprocal = pr1
+      ; recInv = λ{ (Yes , x) → refl
+                  ; (No , x) → x refl ~> UNREACHABLE }
+      ; GFP = λ {n = n} xs x y → distinguishingOutput {n = n} xs x (λ z → boolDiscrete z 0r)}

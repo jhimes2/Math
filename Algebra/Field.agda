@@ -41,22 +41,15 @@ nonZeroMult (a , a') (b , b') = λ(f : (a * b) ≡ 0r ) →
 NZMult : {{F : Field A}} → nonZero → nonZero → nonZero
 NZMult (a , a') (b , b') = (a * b) , nonZeroMult (a , a') ((b , b'))
 
-distinguishingOutput : (xs : [ A ^ n ]) → {a : A} → xs ≢ (λ _ → a) → ¬ ¬(Σ λ i → xs i ≢ a)
-distinguishingOutput {n = Z} xs p contra = p (funExt (λ{()}))
-distinguishingOutput {n = S n} xs {a} p = implicitLEM (head xs ≡ a)
-     >>= λ{ (yes q) → let rec = distinguishingOutput {n = n} (tail xs) (aux p q)
-                      in   map (λ{(x , x') → finS x , x'}) rec
-     ; (no ¬p) → η ((Z , tt) , ¬p)}
+distinguishingOutput : (xs : [ A ^ n ]) → {a : A} → xs ≢ (λ _ → a) → ((x : A) → Dec (x ≡ a)) → ∃ λ i → xs i ≢ a
+distinguishingOutput {n = Z} xs p decide = p (funExt (λ(x , y) → y ~> UNREACHABLE)) ~> UNREACHABLE
+distinguishingOutput {n = S n} xs {a} p decide = decide (head xs)
+   ~> λ{ (yes q) → map (λ(x , x') → finS x , x') (distinguishingOutput {n = n} (tail xs) (aux p q) decide)
+       ; (no ¬p) → η $ (Z , tt) , ¬p}
  where
   aux : {xs : [ A ^ S n ]} → {a : A} → xs ≢ (λ _ → a) → head xs ≡ a → tail xs ≢ (λ _ → a)
   aux {xs} nEq headEq contra = nEq $ funExt λ{ (Z , x') → headEq
                                              ; (S x , x') → funRed contra (x , x')}
-
-generalized-field-property :{{F : Field A}}
-                           → (xs : [ A ^ n ])
-                           → xs ≢ (λ _ → 0r ) → ¬ ¬ (Σ λ(i : fin n) → (xs i ∈ A ˣ))
-generalized-field-property {A = A} {n = n} xs p = distinguishingOutput {n = n} xs p
-         >>= λ{ (x , x') → η (x , (reciprocal (xs x , x') , recInv (xs x , x')))}
 
 negOneNotZero : {{F : Field A}} → neg 1r ≢ 0r 
 negOneNotZero =
