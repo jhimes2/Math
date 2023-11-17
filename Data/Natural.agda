@@ -138,16 +138,16 @@ instance
              ; lDistribute = λ a b c → NatMultDist2 b c a
              ; rDistribute = λ a b c → sym (NatMultDist b c a) }
 
-natRCancel : {a b : ℕ} → (c : ℕ) → add a c ≡ add b c → a ≡ b
+natRCancel : {a b : ℕ} → (c : ℕ) → a + c ≡ b + c → a ≡ b
 natRCancel {a} {b} c p = natLCancel c (comm c a ∙ p ∙ comm b c)
 
-multCancel : (a b m : ℕ) → mult a (S m) ≡ mult b (S m) → a ≡ b
+multCancel : (a b m : ℕ) → a * S m ≡ b * S m → a ≡ b
 multCancel Z Z m p = refl
 multCancel Z (S b) m p = ZNotS p ~> UNREACHABLE
 multCancel (S a) Z m p = ZNotS (sym p) ~> UNREACHABLE
 multCancel (S a) (S b) m p = cong S
       let p = SInjective p in
-      multCancel a b m (natRCancel m (comm (mult a (S m)) m ∙ p ∙ comm m (mult b (S m))))
+      multCancel a b m (natRCancel m (comm (a * S m) m ∙ p ∙ comm m (b * S m)))
 
 leS : {n m : ℕ} → S n ≤ m → n ≤ m
 leS {Z} {S m} p = tt
@@ -162,12 +162,12 @@ leRefl : (n : ℕ) → n ≤ n
 leRefl Z = tt
 leRefl (S n) = leRefl n
 
-leAdd : (z n c : ℕ) → add z n ≤ c → z ≤ c
+leAdd : (z n c : ℕ) → (z + n) ≤ c → z ≤ c
 leAdd Z n c p = tt
 leAdd (S z) n Z p = p
 leAdd (S z) n (S c) p = leAdd z n c p
 
-leAdd2 : (a b : ℕ) → a ≤ add a b
+leAdd2 : (a b : ℕ) → a ≤ (a + b)
 leAdd2 Z _ = tt
 leAdd2 (S a) b = leAdd2 a b
 
@@ -180,7 +180,7 @@ eqLe : (x : ℕ) → x ≤ x
 eqLe Z = tt
 eqLe (S x) = eqLe x
 
-isLe : (x y : ℕ) → (x ≤ y) ＋ (Σ λ(z : ℕ) → x ≡ S (add z  y))
+isLe : (x y : ℕ) → (x ≤ y) ＋ (Σ λ(z : ℕ) → x ≡ S (z + y))
 isLe Z Z = inl tt
 isLe (S x) Z = inr (x , eqTrans (cong S (sym (addZ x))) (sym refl))
 isLe Z (S y) = inl tt
@@ -252,12 +252,12 @@ greatest P = Σ λ n → P n × (∀ x → P x → n ≤ x → n ≡ x)
 jumpInduction : (P : ℕ → Type l)
                 → (a : ℕ)
                 → ((b : ℕ) → b ≤ a → P b)
-                → ((x : ℕ) → P x → P (S(add x a)))
+                → ((x : ℕ) → P x → P (S(x + a)))
                 → (n : ℕ) → P n
 jumpInduction P a Base jump n = aux P a Base jump n n (leRefl n)
  where
   aux : (P : ℕ → Type l) → (a : ℕ) → ((b : ℕ) → b ≤ a → P b)
-                    → ((x : ℕ) → P x → P (S(add x a)))
+                    → ((x : ℕ) → P x → P (S(x + a)))
                     → (n iter : ℕ) → n ≤ iter → P n
   aux P a Base jump Z _ _ = Base Z tt
   aux P a Base jump (S n) Z q = q ~> UNREACHABLE
@@ -265,7 +265,7 @@ jumpInduction P a Base jump n = aux P a Base jump n n (leRefl n)
      isLe (S n) a ~> λ{ (inl w) → Base (S n) w
                       ; (inr (x , p)) →
                          subst P (sym p) $ jump x
-                           let H : S(add x a) ≤ S n
+                           let H : S(x + a) ≤ S n
                                H = transport (λ i → SInjective p i ≤ n) (leRefl n) in
                            aux P a Base jump x iter (transitive {a = x} (leAdd x a n H) q) }
 
