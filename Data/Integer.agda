@@ -163,3 +163,28 @@ instance
    lId : (a : ℤ) → multℤ [ S Z , Z ] a ≡ a
    lId = elimProp (λ x → ℤisSet (multℤ [ S Z , Z ] x) x)
        (λ (p , n) → cong [_] (≡-× (addZ (add p Z) ∙ addZ p) (addZ (add n Z) ∙ addZ n)))
+
+ ℤ*+ : *+ ℤ
+ ℤ*+ = record { _+_ = addℤ
+              ; _*_ = multℤ
+              ; lDistribute = aux2
+              ; rDistribute = λ a b c → comm (addℤ b c) a ∙ aux2 a b c ∙ cong₂ addℤ (comm a b) (comm a c) }
+   where
+    aux : (p1 p2 p3 n1 n2 n3 : ℕ) →(p1 * (p2 + p3)) + (n1 * (n2 + n3)) ≡ ((p1 * p2) + (n1 * n2)) + ((p1 * p3) + (n1 * n3))
+    aux p1 p2 p3 n1 n2 n3 =
+        (p1 * (p2 + p3)) + (n1 * (n2 + n3)) ≡⟨ left _+_ (lDistribute p1 p2 p3)⟩
+       ((p1 * p2) + (p1 * p3)) + (n1 * (n2 + n3)) ≡⟨ right _+_ (lDistribute n1 n2 n3) ⟩
+       ((p1 * p2) + (p1 * p3)) + ((n1 * n2) + (n1 * n3)) ≡⟨ assocCom4 (p1 * p2) (p1 * p3) (n1 * n2) (n1 * n3) ⟩
+       ((p1 * p2) + (n1 * n2)) + ((p1 * p3) + (n1 * n3)) ∎
+    aux2 : (a b c : ℤ) → multℤ a (addℤ b c) ≡ addℤ (multℤ a b) (multℤ a c)
+    aux2 = elimProp3 (λ x y z → ℤisSet (multℤ x (addℤ y z))
+                     (addℤ(multℤ x y)(multℤ x z)))
+                     λ (p1 , n1) (p2 , n2) (p3 , n3) → cong [_] (≡-×
+                        (aux p1 p2 p3 n1 n2 n3)
+                       (aux p1 n2 n3 n1 p2 p3))
+ ℤRng : Rng ℤ
+ ℤRng = record {}
+ ℤRing : Ring ℤ
+ ℤRing = record {}
+ ℤCRing : CRing ℤ
+ ℤCRing = record {}
