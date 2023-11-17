@@ -149,5 +149,17 @@ instance
    lInv : (a : ℤ) → addℤ (negℤ a) a ≡ [ Z , Z ]
    lInv = elimProp (λ x → ℤisSet (addℤ (negℤ x) x) [ Z , Z ])
       λ (p , n) → eq/ (add n p , add p n) (Z , Z) (addZ (add n p) ∙ comm n p)
+
  ℤAbelianGroup : abelianGroup addℤ
  ℤAbelianGroup = record {}
+
+ ℤMultMonoid : monoid multℤ
+ ℤMultMonoid = record {
+     e = [ S Z , Z ]
+   ; IsSet = ℤisSet
+   ; lIdentity = lId
+   ; rIdentity = λ a → comm a [ S Z , Z ] ∙ lId a }
+  where
+   lId : (a : ℤ) → multℤ [ S Z , Z ] a ≡ a
+   lId = elimProp (λ x → ℤisSet (multℤ [ S Z , Z ] x) x)
+       (λ (p , n) → cong [_] (≡-× (addZ (add p Z) ∙ addZ p) (addZ (add n Z) ∙ addZ n)))
