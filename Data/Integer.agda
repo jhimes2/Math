@@ -254,3 +254,12 @@ instance
         → transitive {a = c + (a + f)} {e + (a + d)}
            (transport (λ i → a[bc]≡b[ac] a c f i ≤ a[bc]≡b[ac] a e d i) G)
            (transport (λ i → (e + (a + d)) ≤ a[bc]≡b[ac] e c b i) H))
+ 
+ -- Integer ≤ relation is a poset
+ intLePoset : Poset le
+ intLePoset = record { antiSymmetric = λ{a b : ℤ} → aux a b }
+  where
+   aux : (a b : ℤ) → le a b → le b a → a ≡ b
+   aux = elimProp2 (λ x y → isProp→ (isProp→ (ℤisSet x y)))
+           λ (a , b) (c , d) p q → eq/ (a , b) (c , d) (antiSymmetric {a = a + d} p q)
+ 
