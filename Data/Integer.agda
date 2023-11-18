@@ -195,6 +195,7 @@ instance
  ℤCRing = record {}
 
 private
+ -- `le'` is private because it's a helper function for `le`
  le' : ℤ → ℤ → hProp lzero
  le' = rec2 isSetHProp (λ (p1 , n1) (p2 , n2) → (p1 + n2) ≤ (p2 + n1)
     , isRelation (p1 + n2) (p2 + n1)) (λ (a , b) (c , d) (e , f) x →
@@ -228,6 +229,7 @@ private
                $ transport (λ i → a[bc]≡[ba]c b c f i ≤ a[bc]≡c[ba] d e b (~ i))
                $ leSlide2 (c + f) (e + d) b c+f≤e+d
 
+ -- `le` is private because it will be later overloaded with `≤`
  le : ℤ → ℤ → Type
  le a b = fst (le' a b)
 
