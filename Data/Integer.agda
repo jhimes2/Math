@@ -194,35 +194,63 @@ instance
  ℤCRing : CRing ℤ
  ℤCRing = record {}
 
-le : ℤ → ℤ → hProp lzero
-le = rec2 isSetHProp (λ (p1 , n1) (p2 , n2) → (p1 + n2) ≤ (p2 + n1)
-   , isRelation (p1 + n2) (p2 + n1)) (λ (a , b) (c , d) (e , f) x →
-   ΣPathPProp (λ _ → isPropIsProp) (aux a b c d e f x))
-          λ (a , b) (c , d) (e , f) c+f≡e+d
-             → ΣPathPProp (λ _ → isPropIsProp) $ propExt (isRelation (a + d) (c + b))
-                 (isRelation (a + f) (e + b))
-                 (λ a+d≤c+b → leSlide (a + f) (e + b) d
-                 (transport (λ i → a[bc]≡c[ba] d a f (~ i) ≤ a[bc]≡[ba]c d e b (~ i))
-                  (transport (λ i → (f + (a + d)) ≤ (c+f≡e+d i + b))
-                  $ transport (λ i → (f + (a + d)) ≤ [ab]c≡b[ac] c f b (~ i))
-                  $ leSlide2 (a + d) (c + b) f a+d≤c+b)))
-                λ a+f≤e+b → leSlide (a + d) (c + b) f
-                $ transport (λ i → (f + (a + d)) ≤ a[bc]≡c[ba] f c b (~ i))
-                $ transport (λ i → (f + (a + d)) ≤ (b + c+f≡e+d (~ i)))
-                $ transport (λ i → a[bc]≡c[ba] f a d (~ i) ≤ a[bc]≡c[ba] b e d (~ i))
-                $ leSlide2 (a + f) (e + b) d a+f≤e+b
+private
+ le' : ℤ → ℤ → hProp lzero
+ le' = rec2 isSetHProp (λ (p1 , n1) (p2 , n2) → (p1 + n2) ≤ (p2 + n1)
+    , isRelation (p1 + n2) (p2 + n1)) (λ (a , b) (c , d) (e , f) x →
+    ΣPathPProp (λ _ → isPropIsProp) (aux a b c d e f x))
+           λ (a , b) (c , d) (e , f) c+f≡e+d
+              → ΣPathPProp (λ _ → isPropIsProp) $ propExt (isRelation (a + d) (c + b))
+                  (isRelation (a + f) (e + b))
+                  (λ a+d≤c+b → leSlide (a + f) (e + b) d
+                  (transport (λ i → a[bc]≡c[ba] d a f (~ i) ≤ a[bc]≡[ba]c d e b (~ i))
+                   (transport (λ i → (f + (a + d)) ≤ (c+f≡e+d i + b))
+                   $ transport (λ i → (f + (a + d)) ≤ [ab]c≡b[ac] c f b (~ i))
+                   $ leSlide2 (a + d) (c + b) f a+d≤c+b)))
+                 λ a+f≤e+b → leSlide (a + d) (c + b) f
+                 $ transport (λ i → (f + (a + d)) ≤ a[bc]≡c[ba] f c b (~ i))
+                 $ transport (λ i → (f + (a + d)) ≤ (b + c+f≡e+d (~ i)))
+                 $ transport (λ i → a[bc]≡c[ba] f a d (~ i) ≤ a[bc]≡c[ba] b e d (~ i))
+                 $ leSlide2 (a + f) (e + b) d a+f≤e+b
+    where
+     aux : (a b c d e f : ℕ) → a + d ≡ c + b → (a + f) ≤ (e + b)
+                                             ≡ (c + f) ≤ (e + d)
+     aux a b c d e f a+d≡c+b =
+         propExt (isRelation (a + f) (e + b)) (isRelation (c + f) (e + d))
+             (λ a+f≤e+d → leSlide (add c f) (add e d) a
+                 $ transport (λ i → (a + (c + f)) ≤ a[bc]≡b[ac] e a d i)
+                 $ transport (λ i → (a + (c + f)) ≤ (e + a+d≡c+b (~ i)))
+                 $ transport (λ i → a[bc]≡b[ac] c a f i ≤ a[bc]≡b[ac] c e b i)
+                 $ leSlide2 (a + f) (e + b) c a+f≤e+d)
+              λ c+f≤e+d → leSlide (a + f) (e + b) d
+               $ transport (λ i → a[bc]≡[ba]c d a f (~ i) ≤ (d + (e + b)))
+               $ transport (λ i → (a+d≡c+b (~ i) + f) ≤ (d + (e + b)))
+               $ transport (λ i → a[bc]≡[ba]c b c f i ≤ a[bc]≡c[ba] d e b (~ i))
+               $ leSlide2 (c + f) (e + d) b c+f≤e+d
+
+ le : ℤ → ℤ → Type
+ le a b = fst (le' a b)
+
+instance
+ -- Integer ≤ relation is a preorder
+ intLePreorder : Preorder le
+ intLePreorder = record { transitive = λ {a b c} → intLeTrans a b c
+   ; reflexive = λ {a} → intLeRefl a
+   ; isRelation = intLeProp }
    where
-    aux : (a b c d e f : ℕ) → a + d ≡ c + b → (a + f) ≤ (e + b)
-                                            ≡ (c + f) ≤ (e + d)
-    aux a b c d e f a+d≡c+b =
-        propExt (isRelation (a + f) (e + b)) (isRelation (c + f) (e + d))
-            (λ a+f≤e+d → leSlide (add c f) (add e d) a
-                $ transport (λ i → (a + (c + f)) ≤ a[bc]≡b[ac] e a d i)
-                $ transport (λ i → (a + (c + f)) ≤ (e + a+d≡c+b (~ i)))
-                $ transport (λ i → a[bc]≡b[ac] c a f i ≤ a[bc]≡b[ac] c e b i)
-                $ leSlide2 (a + f) (e + b) c a+f≤e+d)
-             λ c+f≤e+d → leSlide (a + f) (e + b) d
-              $ transport (λ i → a[bc]≡[ba]c d a f (~ i) ≤ (d + (e + b)))
-              $ transport (λ i → (a+d≡c+b (~ i) + f) ≤ (d + (e + b)))
-              $ transport (λ i → a[bc]≡[ba]c b c f i ≤ a[bc]≡c[ba] d e b (~ i))
-              $ leSlide2 (c + f) (e + d) b c+f≤e+d
+    intLeProp : (a b : ℤ) → isProp (le a b)
+    intLeProp = elimProp2 (λ x y → isPropIsProp)
+                            λ a b → isRelation (fst a + snd b) (fst b + snd a)
+    intLeRefl : (a : ℤ) → le a a
+    intLeRefl = elimProp (λ x → intLeProp x x) λ a → reflexive {a = fst a + snd a}
+    intLeTrans : (a b c : ℤ) → le a b → le b c → le a c
+    intLeTrans = elimProp3 (λ x y z → isProp→ (isProp→ (intLeProp x z)))
+                   λ (a , b) (c , d) (e , f) → λ x y →
+         leSlide2 (a + d) (c + b) e x
+      ~> λ(H : (e + (a + d)) ≤ (e + (c + b))) → 
+         leSlide (a + f) (e + b) c
+      (leSlide2 (c + f) (e + d) a y
+      ~> λ(G : (a + (c + f)) ≤ (a + (e + d)))
+        → transitive {a = c + (a + f)} {e + (a + d)}
+           (transport (λ i → a[bc]≡b[ac] a c f i ≤ a[bc]≡b[ac] a e d i) G)
+           (transport (λ i → (e + (a + d)) ≤ a[bc]≡b[ac] e c b i) H))
