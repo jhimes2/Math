@@ -259,3 +259,33 @@ record Commutative {A : Type l}{B : Type l'}(_∙_ : A → A → B) : Type(lsuc 
   field
     comm : (a b : A) → _∙_ a b ≡ _∙_ b a
 open Commutative {{...}} public
+
+module _{_∙_ : A → A → A}{{ASSOC : Associative _∙_}}{{COMM : Commutative _∙_}} where
+
+ a[bc]≡[ba]c : (a b c : A) → a ∙ (b ∙ c) ≡ (b ∙ a) ∙ c
+ a[bc]≡[ba]c a b c = a ∙ (b ∙ c) ≡⟨ assoc a b c ⟩
+                     (a ∙ b) ∙ c ≡⟨ left _∙_ (comm a b)⟩
+                     (b ∙ a) ∙ c ∎
+ 
+ [ab]c≡a[cb] : (a b c : A) → (a ∙ b) ∙ c ≡ a ∙ (c ∙ b)
+ [ab]c≡a[cb] a b c = (a ∙ b) ∙ c ≡⟨ sym(assoc a b c)⟩
+                     a ∙ (b ∙ c) ≡⟨ right _∙_ (comm b c)⟩
+                     a ∙ (c ∙ b) ∎
+ 
+ a[bc]≡b[ac] : (a b c : A) → a ∙ (b ∙ c) ≡ b ∙ (a ∙ c)
+ a[bc]≡b[ac] a b c = a ∙ (b ∙ c) ≡⟨ a[bc]≡[ba]c a b c ⟩
+                     (b ∙ a) ∙ c ≡⟨ sym (assoc b a c) ⟩
+                     b ∙ (a ∙ c) ∎
+ 
+ [ab]c≡[ac]b : (a b c : A) → (a ∙ b) ∙ c ≡ (a ∙ c) ∙ b
+ [ab]c≡[ac]b a b c = (a ∙ b) ∙ c ≡⟨ [ab]c≡a[cb] a b c ⟩
+                     a ∙ (c ∙ b) ≡⟨ assoc a c b ⟩
+                     (a ∙ c) ∙ b ∎
+ 
+ assocCom4 : (a b c d : A) → (a ∙ b) ∙ (c ∙ d) ≡ (a ∙ c) ∙ (b ∙ d)
+ assocCom4 a b c d = (a ∙ b) ∙ (c ∙ d) ≡⟨ assoc (_∙_ a b) c d ⟩
+                     ((a ∙ b) ∙ c) ∙ d ≡⟨ left _∙_ (sym(assoc a b c))⟩
+                     (a ∙ (b ∙ c)) ∙ d ≡⟨ left _∙_ (right _∙_ (comm b c))⟩
+                     (a ∙ (c ∙ b)) ∙ d ≡⟨ left _∙_ (assoc a c b)⟩
+                     ((a ∙ c) ∙ b) ∙ d ≡⟨ sym (assoc (_∙_ a c) b d)⟩
+                     (a ∙ c) ∙ (b ∙ d) ∎
