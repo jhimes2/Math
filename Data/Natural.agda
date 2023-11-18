@@ -171,6 +171,14 @@ leAdd2 : (a b : ℕ) → a ≤ (a + b)
 leAdd2 Z _ = tt
 leAdd2 (S a) b = leAdd2 a b
 
+leSlide : (a b c : ℕ) → (c + a) ≤ (c + b) → a ≤ b 
+leSlide a b Z p = p
+leSlide a b (S x) p = leSlide a b x p
+
+leSlide2 : (a b c : ℕ) → a ≤ b → (c + a) ≤ (c + b)
+leSlide2 a b Z ab = ab
+leSlide2 a b (S c) ab = leSlide2 a b c ab
+
 ltS : (a b : ℕ) → a < b → S a ≤ b
 ltS Z Z (a≤b , a≢b) = a≢b refl ~> UNREACHABLE
 ltS Z (S b) (a≤b , a≢b) = tt

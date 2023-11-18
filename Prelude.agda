@@ -269,6 +269,16 @@ module _{_∙_ : A → A → A}{{ASSOC : Associative _∙_}}{{COMM : Commutative
                      a ∙ (c ∙ b) ≡⟨ assoc a c b ⟩
                      (a ∙ c) ∙ b ∎
  
+ a[bc]≡c[ba] : (a b c : A) → a ∙ (b ∙ c) ≡ c ∙ (b ∙ a)
+ a[bc]≡c[ba] a b c = a ∙ (b ∙ c) ≡⟨ a[bc]≡[ba]c a b c ⟩
+                     (b ∙ a) ∙ c ≡⟨ comm (b ∙ a) c ⟩
+                     c ∙ (b ∙ a) ∎
+
+ [ab]c≡b[ac] : (a b c : A) → (a ∙ b) ∙ c ≡ b ∙ (a ∙ c)
+ [ab]c≡b[ac] a b c = (a ∙ b) ∙ c ≡⟨ sym (assoc a b c)⟩
+                     a ∙ (b ∙ c) ≡⟨ a[bc]≡b[ac] a b c ⟩
+                     b ∙ (a ∙ c) ∎
+
  assocCom4 : (a b c d : A) → (a ∙ b) ∙ (c ∙ d) ≡ (a ∙ c) ∙ (b ∙ d)
  assocCom4 a b c d = (a ∙ b) ∙ (c ∙ d) ≡⟨ assoc (_∙_ a b) c d ⟩
                      ((a ∙ b) ∙ c) ∙ d ≡⟨ left _∙_ (sym(assoc a b c))⟩
