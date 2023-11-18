@@ -2,7 +2,7 @@
 
 open import Agda.Primitive public
 open import Cubical.Core.Everything renaming (Σ to Σ'; I to Interval) public
-open import Cubical.Foundations.Prelude hiding (Σ ; _∎ ; _≡⟨⟩_ ; step-≡)
+open import Cubical.Foundations.Prelude hiding (Σ)
                                         renaming (I to Interval) public
 open import Cubical.Relation.Nullary public
 open import Cubical.Data.Unit renaming (Unit to ⊤) public
@@ -216,19 +216,6 @@ transpose f x y = f y x
 
 transposeInvolution : (f : B → C → A) → transpose (transpose f) ≡ f
 transposeInvolution M = funExt λ x → funExt λ y → refl
-
--- Syntactic sugar to chain equalites along with its proof.
-_≡⟨_⟩_ : (x : A) → {y z : A} → x ≡ y → y ≡ z → x ≡ z
-_ ≡⟨ x≡y ⟩ y≡z = eqTrans x≡y y≡z
-infixr 3 _≡⟨_⟩_
-
-_≡⟨By-Definition⟩_ : (x : A) → {y : A} → x ≡ y → x ≡ y
-_≡⟨By-Definition⟩_ _ = id
-infixr 3 _≡⟨By-Definition⟩_
-
-_∎ : (x : A) → x ≡ x
-_ ∎ = refl
-infixl 4 _∎
 
 _∪_ : (A → hProp l) → (A → hProp l') → A → hProp (l ⊔ l')
 _∪_ f g = λ x → ∥ fst(f x) ＋ fst(g x) ∥₁ , squash₁

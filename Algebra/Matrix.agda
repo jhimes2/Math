@@ -147,27 +147,27 @@ instance
    record {
      addT = λ u v → funExt λ x →
      MT {n = n} M (addv u v) x
-       ≡⟨By-Definition⟩
+       ≡⟨⟩
      foldr _+_ 0r {n} (zip _*_ (addv u v) (transpose M x))
-       ≡⟨By-Definition⟩
+       ≡⟨⟩
      foldr _+_ 0r {n} (λ y → (addv u v) y * transpose M x y)
-       ≡⟨By-Definition⟩
+       ≡⟨⟩
      foldr _+_ 0r {n} (λ y → (u y + v y) * transpose M x y)
        ≡⟨ cong (foldr _+_ 0r {n}) (funExt λ z → rDistribute (transpose M x z) (u z) (v z))⟩
      foldr _+_ 0r {n} (λ y → ((u y * transpose M x y) + (v y * transpose M x y)))
-       ≡⟨By-Definition⟩
+       ≡⟨⟩
      foldr _+_ 0r {n} (addv (multv u (transpose M x)) (multv v (transpose M x)))
        ≡⟨ foldrMC {n = n} (multv u (transpose M x)) (multv v (transpose M x))⟩
      foldr _+_ 0r {n} ((multv u (transpose M x))) + foldr _+_ 0r {n} (multv v (transpose M x))
-       ≡⟨By-Definition⟩
+       ≡⟨⟩
      foldr _+_ 0r {n} (zip _*_ u (transpose M x)) + foldr _+_ 0r {n} (zip _*_ v (transpose M x))
-       ≡⟨By-Definition⟩
+       ≡⟨⟩
      addv (MT {n = n} M u) (MT {n = n} M v) x ∎
    ; multT = λ u c → funExt λ x →
-       MT {n = n} M (scaleV c u) x ≡⟨By-Definition⟩
+       MT {n = n} M (scaleV c u) x ≡⟨⟩
        foldr _+_ 0r {n} (λ y → (c * u y) * M y x) ≡⟨ cong (foldr _+_ 0r {n}) (funExt λ y → sym (assoc c (u y) (M y x))) ⟩
        foldr _+_ 0r {n} (λ y → c * (u y * M y x)) ≡⟨ Rec {n = n} M u c x ⟩
-       c * (foldr _+_ 0r {n} (λ y → u y * M y x)) ≡⟨By-Definition⟩
+       c * (foldr _+_ 0r {n} (λ y → u y * M y x)) ≡⟨⟩
        scaleV c (MT {n = n} M u) x ∎
    }
       where

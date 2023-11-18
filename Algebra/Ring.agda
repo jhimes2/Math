@@ -22,5 +22,5 @@ x*-1≡-x x =
 x+x≡2x : {{R : Ring A}} → (x : A) → x + x ≡ 2r * x
 x+x≡2x x = x + x                 ≡⟨ cong₂ _+_ (sym (lIdentity x)) (sym (lIdentity x))⟩
            ((1r * x) + (1r * x)) ≡⟨ sym (rDistribute x 1r 1r)⟩
-           (1r + 1r) * x         ≡⟨By-Definition⟩
+           (1r + 1r) * x         ≡⟨⟩
            2r * x ∎
