@@ -263,3 +263,10 @@ instance
    aux = elimProp2 (λ x y → isProp→ (isProp→ (ℤisSet x y)))
            λ (a , b) (c , d) p q → eq/ (a , b) (c , d) (antiSymmetric {a = a + d} p q)
  
+ -- Integer ≤ relation is a total order
+ intLeTotalOrder : TotalOrder ℤ
+ intLeTotalOrder = record {
+                     _≤_ = le 
+                  ; stronglyConnected = elimProp2 (λ x y → squash₁)
+                   λ (a , b) (c , d) → stronglyConnected (a + d) (c + b) }
+      where open import Cubical.HITs.PropositionalTruncation
