@@ -75,7 +75,7 @@ module divides where
     x >>= λ((x , p) : Σ λ x → x * a ≡ b)
   → y >>= λ((y , q) : Σ λ y → y * c ≡ d)
   → η $ (x * y) ,
-          ((x * y) * (a * c) ≡⟨ assocCom4 x y a c ⟩
+          ((x * y) * (a * c) ≡⟨ [ab][cd]≡[ac][bd] x y a c ⟩
           (x * a) * (y * c) ≡⟨ cong₂ _*_ p q ⟩
           b * d ∎)
  

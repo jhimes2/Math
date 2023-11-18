@@ -137,7 +137,7 @@ foldrMC : {_∙_ : A → A → A}{{M : monoid _∙_}}{{C : Commutative _∙_}} �
      → foldr _∙_ e {n} (zip _∙_ u v) ≡ foldr _∙_ e {n} u ∙ foldr _∙_ e {n} v
 foldrMC {n = Z} u v = sym(lIdentity e)
 foldrMC {n = S n} {_∙_ = _∙_} u v =
-      eqTrans (right _∙_ (foldrMC {n = n} (tail u) (tail v))) (assocCom4 (u (Z , tt))
+      eqTrans (right _∙_ (foldrMC {n = n} (tail u) (tail v))) ([ab][cd]≡[ac][bd] (u (Z , tt))
                    (v (Z , tt)) (foldr _∙_ e {n} (tail u)) (foldr _∙_ e {n} (tail v)))
 
 instance

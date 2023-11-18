@@ -22,11 +22,11 @@ open import Cubical.Foundations.HLevels
                                                           λ{(p1 , n1) (p2 , n2) (p3 , n3) x y
           → natLCancel (add p2 n2) $
           add (add p2 n2) (add p1 n3) ≡⟨ cong (add (add p2 n2)) (comm p1 n3) ⟩
-          add (add p2 n2) (add n3 p1) ≡⟨ assocCom4 p2 n2 n3 p1 ⟩
+          add (add p2 n2) (add n3 p1) ≡⟨ [ab][cd]≡[ac][bd] p2 n2 n3 p1 ⟩
           add (add p2 n3) (add n2 p1) ≡⟨ cong (add (add p2 n3)) (comm n2 p1) ⟩
           add (add p2 n3) (add p1 n2) ≡⟨ cong₂ add y x ⟩
           add (add p3 n2) (add p2 n1) ≡⟨ left add (comm p3 n2) ⟩
-          add (add n2 p3) (add p2 n1) ≡⟨ assocCom4 n2 p3 p2 n1 ⟩
+          add (add n2 p3) (add p2 n1) ≡⟨ [ab][cd]≡[ac][bd] n2 p3 p2 n1 ⟩
           add (add n2 p2) (add p3 n1) ≡⟨ left add (comm n2 p2) ⟩
           add (add p2 n2) (add p3 n1) ∎
     }) λ{(p1 , n1) (p2 , n2) → natDiscrete (add p1 n2) (add p2 n1)}
@@ -43,14 +43,14 @@ addℤ = rec2 ℤisSet
             (λ(p1 , n1) (p2 , n2) → [ add p1 p2 , add n1 n2 ])
             (λ{(p1 , n1) (p2 , n2) (p3 , n3) p →
    eq/ ((add p1 p3 , add n1 n3)) (add p2 p3 , add n2 n3) $
-     add (add p1 p3) (add n2 n3) ≡⟨ assocCom4 p1 p3 n2 n3 ⟩
+     add (add p1 p3) (add n2 n3) ≡⟨ [ab][cd]≡[ac][bd] p1 p3 n2 n3 ⟩
      add (add p1 n2) (add p3 n3) ≡⟨ left add p ⟩
-     add (add p2 n1) (add p3 n3) ≡⟨ assocCom4 p2 n1 p3 n3 ⟩
+     add (add p2 n1) (add p3 n3) ≡⟨ [ab][cd]≡[ac][bd] p2 n1 p3 n3 ⟩
      add (add p2 p3) (add n1 n3) ∎
   }) λ{(p1 , n1) (p2 , n2) (p3 , n3) p → eq/ (add p1 p2 , add n1 n2) (add p1 p3 , add n1 n3) $
-      add (add p1 p2) (add n1 n3) ≡⟨ assocCom4 p1 p2 n1 n3 ⟩
+      add (add p1 p2) (add n1 n3) ≡⟨ [ab][cd]≡[ac][bd] p1 p2 n1 n3 ⟩
       add (add p1 n1) (add p2 n3) ≡⟨ cong (add (add p1 n1)) p ⟩
-      add (add p1 n1) (add p3 n2) ≡⟨ assocCom4 p1 n1 p3 n2 ⟩
+      add (add p1 n1) (add p3 n2) ≡⟨ [ab][cd]≡[ac][bd] p1 n1 p3 n2 ⟩
       add (add p1 p3) (add n1 n2) ∎
     }
 
@@ -62,7 +62,7 @@ multℤ = rec2 (ℤisSet)
  add (add (mult p1 p3) (mult n1 n3)) (add (mult p2 n3) (mult n2 p3))
                                                  ≡⟨ left add (comm (mult p1 p3) (mult n1 n3))⟩
  add (add (mult n1 n3) (mult p1 p3)) (add (mult p2 n3) (mult n2 p3))
-                                                 ≡⟨ assocCom4 (mult n1 n3) (mult p1 p3) (mult p2 n3) (mult n2 p3)⟩
+                                                 ≡⟨ [ab][cd]≡[ac][bd] (mult n1 n3) (mult p1 p3) (mult p2 n3) (mult n2 p3)⟩
  add (add (mult n1 n3) (mult p2 n3)) (add (mult p1 p3) (mult n2 p3))
                                                  ≡⟨ cong₂ add (NatMultDist n1 p2 n3) (NatMultDist p1 n2 p3)⟩
  add (mult (add n1 p2) n3) (mult (add p1 n2) p3) ≡⟨ left add (left mult (comm n1 p2))⟩
@@ -73,14 +73,14 @@ multℤ = rec2 (ℤisSet)
  add (add (mult p1 n3) (mult n2 n3)) (add (mult p2 p3) (mult n1 p3))
                                                  ≡⟨ left add (comm (mult p1 n3) (mult n2 n3)) ⟩
  add (add (mult n2 n3) (mult p1 n3)) (add (mult p2 p3) (mult n1 p3))
-                                                 ≡⟨ assocCom4 (mult n2 n3) (mult p1 n3) (mult p2 p3) (mult n1 p3)⟩
+                                                 ≡⟨ [ab][cd]≡[ac][bd] (mult n2 n3) (mult p1 n3) (mult p2 p3) (mult n1 p3)⟩
  add (add (mult n2 n3) (mult p2 p3)) (add (mult p1 n3) (mult n1 p3))
                                                  ≡⟨ left add (comm (mult n2 n3) (mult p2 p3))⟩
  add (add (mult p2 p3) (mult n2 n3)) (add (mult p1 n3) (mult n1 p3)) ∎)
  λ (p1 , n1) (p2 , n2) (p3 , n3) x → eq/ (add (mult p1 p2) (mult n1 n2) , add (mult p1 n2) (mult n1 p2))
                                          (add (mult p1 p3) (mult n1 n3) , add (mult p1 n3) (mult n1 p3)) $
  add (add (mult p1 p2) (mult n1 n2)) (add (mult p1 n3) (mult n1 p3))
-                                                 ≡⟨ assocCom4 (mult p1 p2) (mult n1 n2) (mult p1 n3) (mult n1 p3)⟩
+                                                 ≡⟨ [ab][cd]≡[ac][bd] (mult p1 p2) (mult n1 n2) (mult p1 n3) (mult n1 p3)⟩
  add (add (mult p1 p2) (mult p1 n3)) (add (mult n1 n2) (mult n1 p3))
                                                  ≡⟨ left add (sym (NatMultDist2 p2 n3 p1))⟩
  add (mult p1 (add p2 n3)) (add (mult n1 n2) (mult n1 p3))
@@ -91,7 +91,7 @@ multℤ = rec2 (ℤisSet)
  add (mult p1 (add p3 n2)) (mult n1 (add p2 n3)) ≡⟨ right add (cong (mult n1) (comm p2 n3))⟩
  add (mult p1 (add p3 n2)) (mult n1 (add n3 p2)) ≡⟨ cong₂ add (NatMultDist2 p3 n2 p1) (NatMultDist2 n3 p2 n1)⟩
  add (add (mult p1 p3) (mult p1 n2)) (add (mult n1 n3) (mult n1 p2))
-                                                 ≡⟨ assocCom4 (mult p1 p3) (mult p1 n2) (mult n1 n3) (mult n1 p2)⟩
+                                                 ≡⟨ [ab][cd]≡[ac][bd] (mult p1 p3) (mult p1 n2) (mult n1 n3) (mult n1 p2)⟩
  add (add (mult p1 p3) (mult n1 n3)) (add (mult p1 n2) (mult n1 p2)) ∎
 
 negℤ : ℤ → ℤ
@@ -179,7 +179,7 @@ instance
     aux p1 p2 p3 n1 n2 n3 =
         (p1 * (p2 + p3)) + (n1 * (n2 + n3)) ≡⟨ left _+_ (lDistribute p1 p2 p3)⟩
        ((p1 * p2) + (p1 * p3)) + (n1 * (n2 + n3)) ≡⟨ right _+_ (lDistribute n1 n2 n3)⟩
-       ((p1 * p2) + (p1 * p3)) + ((n1 * n2) + (n1 * n3)) ≡⟨ assocCom4 (p1 * p2) (p1 * p3) (n1 * n2) (n1 * n3)⟩
+       ((p1 * p2) + (p1 * p3)) + ((n1 * n2) + (n1 * n3)) ≡⟨ [ab][cd]≡[ac][bd] (p1 * p2) (p1 * p3) (n1 * n2) (n1 * n3)⟩
        ((p1 * p2) + (n1 * n2)) + ((p1 * p3) + (n1 * n3)) ∎
     aux2 : (a b c : ℤ) → multℤ a (addℤ b c) ≡ addℤ (multℤ a b) (multℤ a c)
     aux2 = elimProp3 (λ x y z → ℤisSet (multℤ x (addℤ y z))
