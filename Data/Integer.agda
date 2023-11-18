@@ -4,6 +4,7 @@ module Data.Integer where
 
 open import Data.Base
 open import Prelude
+open import Relations
 open import Algebra.Base
 open import Algebra.Monoid
 open import Algebra.Group
@@ -162,29 +163,66 @@ instance
   where
    lId : (a : ℤ) → multℤ [ S Z , Z ] a ≡ a
    lId = elimProp (λ x → ℤisSet (multℤ [ S Z , Z ] x) x)
-       (λ (p , n) → cong [_] (≡-× (addZ (add p Z) ∙ addZ p) (addZ (add n Z) ∙ addZ n)))
+       λ (p , n) → cong [_] $ ≡-× (addZ (add p Z) ∙ addZ p)
+                                  (addZ (add n Z) ∙ addZ n)
 
  ℤ*+ : *+ ℤ
  ℤ*+ = record { _+_ = addℤ
               ; _*_ = multℤ
               ; lDistribute = aux2
-              ; rDistribute = λ a b c → comm (addℤ b c) a ∙ aux2 a b c ∙ cong₂ addℤ (comm a b) (comm a c) }
+              ; rDistribute = λ a b c → comm (addℤ b c) a
+                                      ∙ aux2 a b c
+                                      ∙ cong₂ addℤ (comm a b) (comm a c) }
    where
-    aux : (p1 p2 p3 n1 n2 n3 : ℕ) →(p1 * (p2 + p3)) + (n1 * (n2 + n3)) ≡ ((p1 * p2) + (n1 * n2)) + ((p1 * p3) + (n1 * n3))
+    aux : (p1 p2 p3 n1 n2 n3 : ℕ) → (p1 * (p2 + p3)) + (n1 * (n2 + n3))
+                                  ≡ ((p1 * p2) + (n1 * n2)) + ((p1 * p3) + (n1 * n3))
     aux p1 p2 p3 n1 n2 n3 =
         (p1 * (p2 + p3)) + (n1 * (n2 + n3)) ≡⟨ left _+_ (lDistribute p1 p2 p3)⟩
-       ((p1 * p2) + (p1 * p3)) + (n1 * (n2 + n3)) ≡⟨ right _+_ (lDistribute n1 n2 n3) ⟩
-       ((p1 * p2) + (p1 * p3)) + ((n1 * n2) + (n1 * n3)) ≡⟨ assocCom4 (p1 * p2) (p1 * p3) (n1 * n2) (n1 * n3) ⟩
+       ((p1 * p2) + (p1 * p3)) + (n1 * (n2 + n3)) ≡⟨ right _+_ (lDistribute n1 n2 n3)⟩
+       ((p1 * p2) + (p1 * p3)) + ((n1 * n2) + (n1 * n3)) ≡⟨ assocCom4 (p1 * p2) (p1 * p3) (n1 * n2) (n1 * n3)⟩
        ((p1 * p2) + (n1 * n2)) + ((p1 * p3) + (n1 * n3)) ∎
     aux2 : (a b c : ℤ) → multℤ a (addℤ b c) ≡ addℤ (multℤ a b) (multℤ a c)
     aux2 = elimProp3 (λ x y z → ℤisSet (multℤ x (addℤ y z))
                      (addℤ(multℤ x y)(multℤ x z)))
-                     λ (p1 , n1) (p2 , n2) (p3 , n3) → cong [_] (≡-×
+                     λ(p1 , n1) (p2 , n2) (p3 , n3) → cong [_] $ ≡-×
                         (aux p1 p2 p3 n1 n2 n3)
-                       (aux p1 n2 n3 n1 p2 p3))
+                        (aux p1 n2 n3 n1 p2 p3)
  ℤRng : Rng ℤ
  ℤRng = record {}
  ℤRing : Ring ℤ
  ℤRing = record {}
  ℤCRing : CRing ℤ
  ℤCRing = record {}
+
+le : ℤ → ℤ → hProp lzero
+le = rec2 isSetHProp (λ (p1 , n1) (p2 , n2) → (p1 + n2) ≤ (p2 + n1)
+   , isRelation (p1 + n2) (p2 + n1)) (λ (a , b) (c , d) (e , f) x →
+   ΣPathPProp (λ _ → isPropIsProp) (aux a b c d e f x))
+          λ (a , b) (c , d) (e , f) c+f≡e+d
+             → ΣPathPProp (λ _ → isPropIsProp) $ propExt (isRelation (a + d) (c + b))
+                 (isRelation (a + f) (e + b))
+                 (λ a+d≤c+b → leSlide (a + f) (e + b) d
+                 (transport (λ i → a[bc]≡c[ba] d a f (~ i) ≤ a[bc]≡[ba]c d e b (~ i))
+                  (transport (λ i → (f + (a + d)) ≤ (c+f≡e+d i + b))
+                  $ transport (λ i → (f + (a + d)) ≤ [ab]c≡b[ac] c f b (~ i))
+                  $ leSlide2 (a + d) (c + b) f a+d≤c+b)))
+                λ a+f≤e+b → leSlide (a + d) (c + b) f
+                $ transport (λ i → (f + (a + d)) ≤ a[bc]≡c[ba] f c b (~ i))
+                $ transport (λ i → (f + (a + d)) ≤ (b + c+f≡e+d (~ i)))
+                $ transport (λ i → a[bc]≡c[ba] f a d (~ i) ≤ a[bc]≡c[ba] b e d (~ i))
+                $ leSlide2 (a + f) (e + b) d a+f≤e+b
+   where
+    aux : (a b c d e f : ℕ) → a + d ≡ c + b → (a + f) ≤ (e + b)
+                                            ≡ (c + f) ≤ (e + d)
+    aux a b c d e f a+d≡c+b =
+        propExt (isRelation (a + f) (e + b)) (isRelation (c + f) (e + d))
+            (λ a+f≤e+d → leSlide (add c f) (add e d) a
+                $ transport (λ i → (a + (c + f)) ≤ a[bc]≡b[ac] e a d i)
+                $ transport (λ i → (a + (c + f)) ≤ (e + a+d≡c+b (~ i)))
+                $ transport (λ i → a[bc]≡b[ac] c a f i ≤ a[bc]≡b[ac] c e b i)
+                $ leSlide2 (a + f) (e + b) c a+f≤e+d)
+             λ c+f≤e+d → leSlide (a + f) (e + b) d
+              $ transport (λ i → a[bc]≡[ba]c d a f (~ i) ≤ (d + (e + b)))
+              $ transport (λ i → (a+d≡c+b (~ i) + f) ≤ (d + (e + b)))
+              $ transport (λ i → a[bc]≡[ba]c b c f i ≤ a[bc]≡c[ba] d e b (~ i))
+              $ leSlide2 (c + f) (e + d) b c+f≤e+d
