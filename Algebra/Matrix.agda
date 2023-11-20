@@ -107,7 +107,7 @@ instance
                              ; lIdentity = λ v → funExt (λ x → lIdentity (v x)) }
  abelianV : {{R : Ring A}} → abelianGroup (addv {B = B})
  abelianV = record {}
- vectMod :{A : Type l}{B : Type l'} → {{R : Ring A}} → Module (B → A)
+ vectMod : {A : Type l}{B : Type l'} → {{R : Ring A}} → Module (B → A)
  vectMod {A = A} {B = B} {{R = R}} = record
             { _[+]_ = addv
             ; addvStr = abelianV
@@ -117,6 +117,9 @@ instance
             ; scalarAssoc = λ v c d → funExt λ x → assoc c d (v x)
             ; scaleId = λ v → funExt λ x → lIdentity (v x)
             }
+
+ vectVS : {A : Type l}{B : Type l'} → {{F : Field A}} → VectorSpace {scalar = A} (B → A)
+ vectVS = vectMod
 
 mt : {{R : Ring A}} → ((C → A) → A) → (C → B → A) → (C → A) → (B → A)
 mt fold M v x = fold (zip _*_ v λ y → M y x)
@@ -246,12 +249,29 @@ dotMatrix n (S m) u M v =
  (head v * dot n (head M) u) + dot m (tail v) (tail λ m' → dot n (M m') u) ≡⟨⟩
  dot (S m) v (λ m' → dot n (M m') u) ∎
 
+dotComm : {{R : CRing A}}
+        → ∀ n
+        → (u v : [ A ^ n ])
+        → dot n u v ≡ dot n v u
+dotComm Z u v = refl
+dotComm (S n) u v = cong₂ _+_ (comm (head u) (head v)) (dotComm n (tail u) (tail v))
+
 mMultAssoc : {{R : Ring A}}
            → (M : fin n → B → A)
            → (N : Matrix A n m)
            → (O : C → fin m → A)
            → mMult {n = n} M (mMult {n = m} N O) ≡ mMult {n = m} (mMult {n = n} M N) O
 mMultAssoc {n = n}{m = m} M N O = funExt λ c → funExt λ b → dotMatrix n m (λ m' → M m' b) N (O c)
+
+transposeMMult : {{R : CRing A}}
+               → (M : fin n → C → A)
+               → (N : B → fin n → A)
+               → transpose (mMult {n = n} M N) ≡ mMult {n = n} (transpose N) (transpose M)
+transposeMMult {A = A} {n = n} {C = C} {B = B} M N = funExt λ c → funExt λ b →
+    transpose (mMult {n = n} M N) c b ≡⟨⟩
+    dot n (N b) (λ x → M x c) ≡⟨ dotComm n (N b) (λ x → M x c)⟩
+    dot n (λ x → M x c) (N b) ≡⟨⟩
+    mMult {n = n} (transpose N) (transpose M) c b ∎
 
 indicateEqRing : {{R : Ring A}} → (n : ℕ) → {a b : fin n} → Dec (a ≡ b) → A
 indicateEqRing n (yes p) = 1r
@@ -292,8 +312,4 @@ postulate
             → (O : C → fin n → A)
             → mMult {n = n} M (mMult {n = n} N O) ≡ mMult {n = n} (mMult {n = n} M N) O
  IMT : {A : Type l} {{R : Ring A}} → (v : [ A ^ n ]) → MT {n = n} (I n) v ≡ v
- transposeMMult : {{R : CRing A}}
-                → (M : fin n → C → A)
-                → (N : B → fin n → A)
-                → transpose (mMult {n = n} M N) ≡ mMult {n = n} (transpose N) (transpose M)
  sqrMMultMonoid : {{R : Ring A}} → monoid (mMult {n = n} {B = fin n} {C = fin n})
