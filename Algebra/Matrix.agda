@@ -69,9 +69,12 @@ foldr∞ : ℕ → (A → B → B) → B → ((a : ℕ) → A) → B
 foldr∞ Z f b [] = b
 foldr∞ (S n) f b v = f (v n) (foldr∞ n f b v)
 
+dot : {{R : Rng A}} → ∀ n → [ A ^ n ] → [ A ^ n ] → A
+dot n u v =  foldr _+_ 0r {n} (zip _*_ u v)
+
 -- Matrix Transformation
 MT : {{R : Rng A}} → (fin n → B → A) → [ A ^ n ] → (B → A)
-MT {n = n} M v x = foldr _+_ 0r {n} (zip _*_ v λ y → M y x)
+MT {n = n} M v x =  dot n v (λ y → M y x) 
 
 MT∞ : {{R : Rng A}} → ℕ → (ℕ → B → A) → (ℕ → A) → (B → A)
 MT∞ n M v x = foldr∞ n _+_ 0r (zip _*_ v λ y → M y x)
@@ -81,10 +84,6 @@ columnSpace {n = n} M x = ∃ λ y → MT {n = n} M y ≡ x
 
 rowSpace : {A : Type l} → {B : Type l'} → {{F : Field A}} → (B → fin n → A) → (B → A) → Type (l ⊔ l')
 rowSpace {n = n} M = columnSpace {n = n} (transpose M)
-
--- Matrix Multiplication
-mMult : {{R : Rng A}} → (fin n → B → A) → (C → fin n → A) → C → B → A
-mMult {n = n} M N c = MT {n = n} M (N c)
 
 mMult∞ : {{R : Rng A}} → ℕ → (ℕ → B → A) → (C → ℕ → A) → C → B → A
 mMult∞ n M N c = MT∞ n M (N c)
@@ -108,8 +107,8 @@ instance
                              ; lIdentity = λ v → funExt (λ x → lIdentity (v x)) }
  abelianV : {{R : Ring A}} → abelianGroup (addv {B = B})
  abelianV = record {}
- vectVS :{A : Type l}{B : Type l'} → {{R : Ring A}} → Module (B → A)
- vectVS {A = A} {B = B} {{R = R}} = record
+ vectMod :{A : Type l}{B : Type l'} → {{R : Ring A}} → Module (B → A)
+ vectMod {A = A} {B = B} {{R = R}} = record
             { _[+]_ = addv
             ; addvStr = abelianV
             ; scale = scaleV
@@ -184,6 +183,76 @@ instance
   LTMT : {{F : Field A}} → {M : fin n → B → A} → LinearMap (MT {n = n} M)
   LTMT {n = n} {{F}} {M = M} = MHMT {n = n}
 
+-- Matrix Multiplication
+mMult : {{R : Rng A}} → (fin n → B → A) → (C → fin n → A) → C → B → A
+mMult {n = n} M N c = MT {n = n} M (N c)
+
+dotDistribute : {{R : Ring A}} → ∀ n → (w u v : [ A ^ n ])
+              → dot n (u [+] v) w ≡ dot n u w + dot n v w
+dotDistribute Z w u v = sym (lIdentity 0r)
+dotDistribute (S n) w u v =
+  let v∙w = dot n (tail v) (tail w) in
+  let u∙w = dot n (tail u) (tail w) in
+ dot (S n) (u [+] v) w ≡⟨⟩
+ (head(u [+] v) * head w) + dot n (tail(u [+] v)) (tail w) ≡⟨⟩
+ ((head u + head v) * head w) + dot n ((tail u [+] tail v)) (tail w)
+    ≡⟨ right _+_ (dotDistribute n (tail w) (tail u) (tail v))⟩
+ ((head u + head v) * head w) + (u∙w + v∙w) ≡⟨ left _+_ (rDistribute (head w)(head u)(head v))⟩
+ ((head u * head w) + (head v * head w)) + (u∙w + v∙w)
+    ≡⟨ [ab][cd]≡[ac][bd] (head u * head w) (head v * head w) (u∙w) (v∙w)⟩
+ ((head u * head w) + u∙w) + ((head v * head w) + v∙w) ≡⟨⟩
+ dot (S n) u w + dot (S n) v w ∎
+
+dotScale : {{R : Ring A}} → (c : A) → (u v : [ A ^ n ])
+         → dot n (scale c u) v ≡ c * dot n u v
+dotScale {n = Z} c u v = sym (x*0≡0 c)
+dotScale {n = S n} c u v =
+ dot (S n) (scale c u) v ≡⟨⟩
+ (head(scale c u) * head v) + dot n (tail(scale c u)) (tail v)
+ ≡⟨ right _+_ (dotScale {n = n} c (tail u) (tail v))⟩
+ (head(scale c u) * head v) + (c * dot n (tail u) (tail v)) ≡⟨⟩
+ ((c * head u) * head v) + (c * dot n (tail u) (tail v))
+ ≡⟨ left _+_ (sym (assoc c (head u) (head v)))⟩
+ (c * (head u * head v)) + (c * dot n (tail u) (tail v))
+ ≡⟨ sym (lDistribute c (head u * head v) (dot n (tail u) (tail v)))⟩
+ c * ((head u * head v) + dot n (tail u) (tail v)) ≡⟨⟩
+ c * dot (S n) u v ∎
+
+dotZ : {{R : Ring A}}
+       → ∀ n
+       → (V : fin n → A)
+       → dot n (λ _ → 0r) V ≡ 0r
+dotZ Z V = refl
+dotZ (S n) V =
+ (0r * head V) + dot n ((λ (_ : fin n) → 0r)) (tail V) ≡⟨ left _+_ (0*x≡0 (head V))⟩
+ 0r + dot n ((λ (_ : fin n) → 0r)) (tail V) ≡⟨ lIdentity (dot n ((λ (_ : fin n) → 0r)) (tail V))⟩
+ dot n ((λ (_ : fin n) → 0r)) (tail V) ≡⟨ dotZ n (tail V)⟩
+ 0r ∎
+
+dotMatrix : {{R : Ring A}}
+           → ∀ n m
+           → (u : fin n → A)
+           → (M : Matrix A n m)
+           → (v : fin m → A)
+           → dot n (λ y → dot m v (λ x → M x y)) u ≡ dot m v (λ x → dot n (M x) u)
+dotMatrix n Z u M v = dotZ n u
+dotMatrix n (S m) u M v =
+ dot n (λ n' → dot (S m) v (λ m' → M m' n')) u ≡⟨⟩
+ dot n (λ n' → (head v * (head M) n') + dot m (tail v) (tail λ m' → M m' n')) u ≡⟨⟩
+ dot n ((λ n' → (head v * (head M) n')) [+] (λ n' → dot m (tail v) (λ m' → (tail M) m' n'))) u
+ ≡⟨ dotDistribute n u (λ n' → (head v * head λ m' → M m' n')) (λ n' → dot m (tail v) (λ m' → (tail M) m' n'))⟩
+ dot n (scale (head v) (head M)) u + dot n (λ n' → dot m (tail v) (λ m' → (tail M) m' n')) u
+ ≡⟨ cong₂ _+_ (dotScale {n = n} (head v) (head M) u) (dotMatrix n m u (tail M) (tail v))⟩
+ (head v * dot n (head M) u) + dot m (tail v) (tail λ m' → dot n (M m') u) ≡⟨⟩
+ dot (S m) v (λ m' → dot n (M m') u) ∎
+
+mMultAssoc : {{R : Ring A}}
+           → (M : fin n → B → A)
+           → (N : Matrix A n m)
+           → (O : C → fin m → A)
+           → mMult {n = n} M (mMult {n = m} N O) ≡ mMult {n = m} (mMult {n = n} M N) O
+mMultAssoc {n = n}{m = m} M N O = funExt λ c → funExt λ b → dotMatrix n m (λ m' → M m' b) N (O c)
+
 indicateEqRing : {{R : Ring A}} → (n : ℕ) → {a b : fin n} → Dec (a ≡ b) → A
 indicateEqRing n (yes p) = 1r
 indicateEqRing n (no ¬p) = 0r
@@ -217,11 +286,6 @@ idTranspose n = funExt λ{(x , _) → funExt λ{(y , _) → funRed (funRed I∞T
 postulate
  IRID : {{R : Ring A}} (M : fin n → B → A) → mMult {n = n} M (I n) ≡ M
  ILID : {{R : Ring A}} (M : B → fin n → A) → mMult {n = n} (I n) M ≡ M
- mMultAssoc : {{R : Ring A}}
-            → (M : fin n → B → A)
-            → (N : Matrix A n m)
-            → (O : C → fin m → A)
-            → mMult {n = n} M (mMult {n = m} N O) ≡ mMult {n = m} (mMult {n = n} M N) O
  sqrMMultAssoc : {{R : Ring A}}
             → (M : fin n → B → A)
             → (N : Matrix A n n)
