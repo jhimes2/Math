@@ -21,20 +21,6 @@ finSndIsProp : (a : ℕ) → isProp(Σ λ s → add (S a) s ≡ n)
 finSndIsProp {n = n} a (x , x') (y , y') =
    let H = natLCancel (S a) (y' ∙ sym x') in ΣPathPProp (λ b → ℕAddMonoid .IsSet (S (a + b)) n) (sym H)
 
---fin'→Fin' : (x : ℕ) → S x ≤ n → Σ λ s → add (S x) s ≡ n
---fin'→Fin' = {!!}
---
---Fin'→fin' : (x : ℕ) → Σ λ s → add (S x) s ≡ n → S x ≤ n
---Fin'→fin' = {!!}
---
---ΣExt : {P Q : A → Type l}
---     → ((x : A) → P x → Q x) → ((x : A) → Q x → P x)
---     → ((x : A) → isProp (P x))
---     → ((x : A) → isProp (Q x))
---     → Σ P ≡ Σ Q
---ΣExt = {!!}
-
-
 Fin : (n : ℕ) → Type
 Fin n = Σ (λ m → S m ≤ n)
 
@@ -47,7 +33,6 @@ finDiscrete = discreteΣ natDiscrete (λ a x y → yes (finSndIsProp a x y))
 finIsSet : isSet (fin n)
 finIsSet = Discrete→isSet finDiscrete
 
--- Fin→fin (S(S(S(S(S(S(S Z))))))) (fin→Fin (S(S(S(S(S(S(S Z))))))) test)
 [_^_] : Type l → ℕ → Type l
 [_^_] A n = fin n → A
 
@@ -56,15 +41,6 @@ head {n = n} v = v (Z , n , refl)
 
 tail : [ A ^ S n ] → [ A ^ n ]
 tail {n = n} v x = v (finS x)
-
-testV : [ ℕ ^ S(S(S(S(S Z)))) ]
-testV (Z , p) = S(S Z)
-testV (S Z , p) = S(S(S Z))
-testV (S (S Z) , p) =  S(S(S(S(S Z))))
-testV (S (S (S Z)) , p) =  S(S(S(S(S(S(S Z))))))
-testV (S (S (S (S Z))) , p) = S(S(S(S(S(S(S(S(S(S(S Z))))))))))
-testV (S (S (S (S (S x)))) , y , p) = ZNotS (sym (SInjective (
-  SInjective (SInjective (SInjective (SInjective p)))))) ~> UNREACHABLE
 
 [] : [ A ^ Z ]
 [] (_ , _ , absurd) = ZNotS (sym absurd) ~> UNREACHABLE

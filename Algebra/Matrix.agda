@@ -1,14 +1,4 @@
-{-# OPTIONS --cubical --overlapping-instances #-}
-
--------------------------------------
--- THIS FILE IS A WORK IN PROGRESS --
--------------------------------------
-{-
- Every postulate in this file was proven using a different vector definition
- before I switched to Cubical Agda. The new vector definition is more general
-  I would like this file to use the '--safe'
- option in the future with all postulates proven.
--}
+{-# OPTIONS --cubical --safe --overlapping-instances #-}
 
 module Algebra.Matrix where
 
@@ -37,9 +27,6 @@ instance
   mvect = record { μ = λ f a → f a a
                  ; η = λ x _ → x }
 
-zeroV : {{Rng A}} → B → A
-zeroV x = 0r
-
 addv : {{R : Rng A}} → (B → A) → (B → A) → (B → A)
 addv = zip _+_
 
@@ -56,10 +43,6 @@ foldr : (A → B → B) → B → {n : ℕ} → (fin n → A) → B
 foldr f b {Z} _ = b
 foldr f b {S n} v = f (head v) (foldr f b (tail v))
 
-foldr∞ : ℕ → (A → B → B) → B → ((a : ℕ) → A) → B
-foldr∞ Z f b [] = b
-foldr∞ (S n) f b v = f (v n) (foldr∞ n f b v)
-
 dot : {{R : Rng A}} → [ A ^ n ] → [ A ^ n ] → A
 dot u v = foldr _+_ 0r (zip _*_ u v)
 
@@ -67,17 +50,11 @@ dot u v = foldr _+_ 0r (zip _*_ u v)
 MT : {{R : Rng A}} → (fin n → B → A) → [ A ^ n ] → (B → A)
 MT M v x =  dot v (λ y → M y x) 
 
-MT∞ : {{R : Rng A}} → ℕ → (ℕ → B → A) → (ℕ → A) → (B → A)
-MT∞ n M v x = foldr∞ n _+_ 0r (zip _*_ v λ y → M y x)
-
 columnSpace : {A : Type l} → {B : Type l'} → {{F : Field A}} → (fin n → B → A) → (B → A) → Type (l ⊔ l')
 columnSpace {n = n} M x = ∃ λ y → MT M y ≡ x
 
 rowSpace : {A : Type l} → {B : Type l'} → {{F : Field A}} → (B → fin n → A) → (B → A) → Type (l ⊔ l')
 rowSpace {n = n} M = columnSpace {n = n} (transpose M)
-
-mMult∞ : {{R : Rng A}} → ℕ → (ℕ → B → A) → (C → ℕ → A) → C → B → A
-mMult∞ n M N c = MT∞ n M (N c)
 
 scalar-distributivity : ∀ {{R : Rng A}} (x y : A) (v : B → A)
                       → scaleV (x + y) v ≡ addv (scaleV x v) (scaleV y v)
@@ -90,14 +67,21 @@ scalar-distributivity2 s x y = funExt λ z → lDistribute s (x z) (y z)
 instance
  comv : {{R : Rng A}} → Commutative (addv {B = B})
  comv {{R}} = record { comm = λ u v → funExt λ x → comm (u x) (v x) }
+
  assocv : {{R : Rng A}} → Associative (addv {B = B})
  assocv = record { assoc = λ u v w → funExt λ x → assoc (u x) (v x) (w x) }
+
  grpV : {{R : Ring A}} → group (addv {B = B})
- grpV {{R}} = record { inverse = λ v → map neg v , funExt λ x → lInverse (v x)
-                             ; IsSet = isSet→ (monoid.IsSet (Ring.multStr R))
-                             ; lIdentity = λ v → funExt (λ x → lIdentity (v x)) }
+ grpV {{R}} = record { e = λ _ → 0r
+                     ; inverse = λ v → map neg v , funExt λ x → lInverse (v x)
+                     ; IsSet = isSet→ (monoid.IsSet (Ring.multStr R))
+                     ; lIdentity = λ v → funExt (λ x → lIdentity (v x)) }
+
  abelianV : {{R : Ring A}} → abelianGroup (addv {B = B})
  abelianV = record {}
+
+  -- A function whose codomain is an underlying set for a ring is a vector for a module.
+  -- If the codomain is an underlying set for a field, then the function is a vector for a linear space.
  vectMod : {A : Type l}{B : Type l'} → {{R : Ring A}} → Module (B → A)
  vectMod {A = A} {B = B} {{R = R}} = record
             { _[+]_ = addv
@@ -109,7 +93,7 @@ instance
             ; scaleId = λ v → funExt λ x → lIdentity (v x)
             }
 
- vectVS : {A : Type l}{B : Type l'} → {{F : Field A}} → VectorSpace {scalar = A} (B → A)
+ vectVS : {A : Type l}{B : Type l'} → {{F : Field A}} → VectorSpace (B → A)
  vectVS = vectMod
 
 foldrMC : {_∙_ : A → A → A}{{M : monoid _∙_}}{{C : Commutative _∙_}} → (u v : [ A ^ n ])
@@ -159,13 +143,14 @@ instance
           (c * head (λ y → u y * M y x)) + (c * (foldr _+_ 0r  (tail(λ y → u y * M y x))))
             ≡⟨ sym (lDistribute c ((head (λ y → u y * M y x))) (foldr _+_ 0r  (tail(λ y → u y * M y x)))) ⟩
           c * (head (λ y → u y * M y x) + foldr _+_ 0r  (tail(λ y → u y * M y x))) ∎
+
   -- Matrix transformation over a field is a linear map.
   LTMT : {{F : Field A}} → {M : fin n → B → A} → LinearMap (MT M)
   LTMT {{F}} {M = M} = MHMT 
 
 -- Matrix Multiplication
 mMult : {{R : Rng A}} → (fin n → B → A) → (C → fin n → A) → C → B → A
-mMult  M N c = MT M (N c)
+mMult M N c = MT M (N c)
 
 dotDistribute : {{R : Ring A}} → ∀ n → (w u v : [ A ^ n ])
               → dot (u [+] v) w ≡ dot u w + dot v w
@@ -198,14 +183,24 @@ dotScale {n = S n} c u v =
  c * ((head u * head v) + dot (tail u) (tail v)) ≡⟨⟩
  c * dot u v ∎
 
-dotZ : {{R : Ring A}}
+dotZL : {{R : Ring A}}
        → (V : fin n → A)
        → dot (λ _ → 0r) V ≡ 0r
-dotZ {n = Z} V = refl
-dotZ {n = S n} V =
+dotZL {n = Z} V = refl
+dotZL {n = S n} V =
  (0r * head V) + dot ((λ (_ : fin n) → 0r)) (tail V) ≡⟨ left _+_ (0*x≡0 (head V))⟩
  0r + dot ((λ (_ : fin n) → 0r)) (tail V) ≡⟨ lIdentity (dot ((λ (_ : fin n) → 0r)) (tail V))⟩
- dot ((λ (_ : fin n) → 0r)) (tail V) ≡⟨ dotZ (tail V)⟩
+ dot ((λ (_ : fin n) → 0r)) (tail V) ≡⟨ dotZL (tail V)⟩
+ 0r ∎
+
+dotZR : {{R : Ring A}}
+       → (V : fin n → A)
+       → dot V (λ _ → 0r) ≡ 0r
+dotZR {n = Z} V = refl
+dotZR {n = S n} V =
+ (head V * 0r) + dot (tail V) (λ (_ : fin n) → 0r) ≡⟨ left _+_ (x*0≡0 (head V))⟩
+ 0r + dot (tail V) (λ (_ : fin n) → 0r)  ≡⟨ lIdentity (dot (tail V) (λ (_ : fin n) → 0r))⟩
+ dot (tail V) (λ (_ : fin n) → 0r) ≡⟨ dotZR (tail V)⟩
  0r ∎
 
 dotMatrix : {{R : Ring A}}
@@ -214,7 +209,7 @@ dotMatrix : {{R : Ring A}}
            → (M : Matrix A n m)
            → (v : fin m → A)
            → dot (λ y → dot v (λ x → M x y)) u ≡ dot v (λ x → dot (M x) u)
-dotMatrix n Z u M v = dotZ u
+dotMatrix n Z u M v = dotZL u
 dotMatrix n (S m) u M v =
  dot (λ n' → dot v (λ m' → M m' n')) u ≡⟨⟩
  dot (λ n' → (head v * (head M) n') + dot (tail v) (tail λ m' → M m' n')) u ≡⟨⟩
@@ -225,33 +220,32 @@ dotMatrix n (S m) u M v =
  (head v * dot (head M) u) + dot (tail v) (tail λ m' → dot (M m') u) ≡⟨⟩
  dot v (λ m' → dot (M m') u) ∎
 
-dotComm : {{R : CRing A}}
-        → ∀ n
-        → (u v : [ A ^ n ])
-        → dot u v ≡ dot v u
-dotComm Z u v = refl
-dotComm (S n) u v = cong₂ _+_ (comm (head u) (head v)) (dotComm n (tail u) (tail v))
+instance
+ dotComm : {{R : Rng A}} {{Comm : Commutative (R .rng*+ ._*_)}} → Commutative (dot {n = n})
+ dotComm = record { comm = aux }
+  where
+   aux : {{R : Rng A}} → {{Comm : Commutative (R .rng*+ ._*_)}}
+       → (u v : [ A ^ n ])
+       → dot u v ≡ dot v u
+   aux {n = Z} u v = refl
+   aux {n = S n} u v = cong₂ _+_ (comm (head u) (head v)) (aux (tail u) (tail v))
 
 mMultAssoc : {{R : Ring A}}
            → (M : fin n → B → A)
            → (N : Matrix A n m)
            → (O : C → fin m → A)
-           → mMult  M (mMult  N O) ≡ mMult  (mMult  M N) O
+           → mMult M (mMult N O) ≡ mMult (mMult M N) O
 mMultAssoc {n = n}{m = m} M N O = funExt λ c → funExt λ b → dotMatrix n m (λ m' → M m' b) N (O c)
 
 transposeMMult : {{R : CRing A}}
                → (M : fin n → C → A)
                → (N : B → fin n → A)
-               → transpose (mMult  M N) ≡ mMult  (transpose N) (transpose M)
+               → transpose (mMult M N) ≡ mMult (transpose N) (transpose M)
 transposeMMult {A = A} {n = n} {C = C} {B = B} M N = funExt λ c → funExt λ b →
-    transpose (mMult  M N) c b ≡⟨⟩
-    dot (N b) (λ x → M x c) ≡⟨ dotComm n (N b) (λ x → M x c)⟩
+    transpose (mMult M N) c b ≡⟨⟩
+    dot (N b) (λ x → M x c) ≡⟨ comm (N b) (λ x → M x c)⟩
     dot (λ x → M x c) (N b) ≡⟨⟩
-    mMult  (transpose N) (transpose M) c b ∎
-
-indicateEqRing : {{R : Ring A}} → (n : ℕ) → {a b : fin n} → Dec (a ≡ b) → A
-indicateEqRing n (yes p) = 1r
-indicateEqRing n (no ¬p) = 0r
+    mMult (transpose N) (transpose M) c b ∎
 
 -- infinite identity matrix
 I∞ : {{R : Ring A}} → ℕ → ℕ → A
@@ -270,22 +264,75 @@ I∞Transpose = funExt λ x → funExt λ y → Rec x y
   Rec (S x) (S y) = Rec x y
 
 -- Identity Matrix
---I : {{R : Ring A}} (n : ℕ) → Matrix A n n
---I n x y = I∞ (pr1 x) (pr1 y)
+I : {{R : Ring A}} → Matrix A n n
+I x y = I∞ (pr1 x) (pr1 y)
 
-DecEqP : (x y : A) → Dec(x ≡ y) ≡ Dec(y ≡ x)
-DecEqP x y = isoToPath (iso (λ{ (yes p) → yes (sym p) ; (no p) → no (λ z → p (sym z))}) ( λ{ (yes p) → yes (sym p) ; (no p) → no (λ z → p (sym z))}) (λ{ (yes z) → refl ; (no z) → refl}) λ{ (yes x) → refl ; (no x) → refl})
-  where open import Cubical.Foundations.Isomorphism
---idTranspose : {{R : Ring A}} (n : ℕ) → I n ≡ transpose (I n)
---idTranspose n = funExt λ{(x , _) → funExt λ{(y , _) → funRed (funRed I∞Transpose x) y}}
---
---postulate
--- IRID : {{R : Ring A}} (M : fin n → B → A) → mMult  M (I n) ≡ M
--- ILID : {{R : Ring A}} (M : B → fin n → A) → mMult  (I n) M ≡ M
--- sqrMMultAssoc : {{R : Ring A}}
---            → (M : fin n → B → A)
---            → (N : Matrix A n n)
---            → (O : C → fin n → A)
---            → mMult  M (mMult  N O) ≡ mMult  (mMult  M N) O
--- IMT : {A : Type l} {{R : Ring A}} → (v : [ A ^ n ]) → MT (I n) v ≡ v
--- sqrMMultMonoid : {{R : Ring A}} → monoid (mMult  {B = fin n} {C = fin n})
+idTranspose : {{R : Ring A}} → I {n = n} ≡ transpose I
+idTranspose = funExt λ{(x , _) → funExt λ{(y , _) → funRed (funRed I∞Transpose x) y}}
+
+MTID : {{R : Ring A}} → {n : ℕ} → (v : fin n → A) → (a : fin n) → MT I v a ≡ v a 
+MTID {n = Z} v (x , y , p) = ZNotS (sym p) ~> UNREACHABLE
+MTID {n = S n} v (Z , yp) =
+  MT I v (Z , yp) ≡⟨⟩
+  dot v (I (Z , yp)) ≡⟨⟩
+  (head v * 1r) + dot (tail v) (λ _ → 0r) ≡⟨ left _+_ (rIdentity (head v))⟩
+  head v + dot (tail v) (λ _ → 0r) ≡⟨⟩
+  head v + dot (tail v) (λ _ → 0r) ≡⟨ right _+_ (dotZR (tail v))⟩
+  head v + 0r ≡⟨ rIdentity (head v)⟩
+  head v ≡⟨ cong v (ΣPathPProp (λ a → finSndIsProp a) refl)⟩
+  v (Z , yp) ∎
+MTID {n = S Z} v (S x , y , p) = ZNotS (sym (SInjective p)) ~> UNREACHABLE
+MTID {n = S (S n)} v (S x , y , p) =
+      let R' : dot (tail v) (λ z → I z (x , y , SInjective p)) ≡ tail v (x , y , SInjective p)
+          R' = MTID (tail v) (x , y , SInjective p) in
+      let R : dot (tail v) (I (x , y , SInjective p)) ≡ tail v (x , y , SInjective p)
+          R = cong (λ a → dot (tail v) (a (x , y , SInjective p))) idTranspose ∙ R' in
+ MT I v (S x , y , p) ≡⟨⟩
+ dot v (λ z → I z (S x , y , p)) ≡⟨ cong (λ a → dot v (λ z → a z (S x , y , p))) idTranspose ⟩
+ dot v (I (S x , y , p)) ≡⟨⟩
+ (head v * head (I (S x , y , p))) + dot (tail v) (tail (I (S x , y , p))) ≡⟨⟩
+ (head v * (I (S x , y , p)) (Z , (S n) , refl)) + dot (tail v) (tail (I (S x , y , p))) ≡⟨⟩
+ (head v * 0r) + dot (tail v) (tail (I (S x , y , p))) ≡⟨ left _+_ (x*0≡0 (head v))⟩
+ 0r + dot (tail v) (tail (I (S x , y , p))) ≡⟨ lIdentity (dot (tail v) (tail (I (S x , y , p))))⟩
+ dot (tail v) (tail (I (S x , y , p))) ≡⟨⟩
+ dot (tail v) (I (x , y , SInjective p)) ≡⟨ R ⟩
+ tail v (x , y , SInjective p) ≡⟨ cong v (ΣPathPProp (λ a → finSndIsProp a) refl)⟩
+ v (S x , y , p) ∎
+
+ILID : {{R : Ring A}} (M : B → fin n → A) → mMult I M ≡ M
+ILID {n = n} M = funExt λ x → funExt λ y → MTID (M x) y
+
+IRID : {{R : Ring A}} (M : fin n → B → A) → mMult M I ≡ M
+IRID {n = Z} M = funExt λ (a , b , p) → ZNotS (sym p) ~> UNREACHABLE
+IRID {n = S n} M = funExt λ (x , yp) → funExt λ b → aux M (x , yp) b
+ where
+  aux : {{R : Ring A}} → {n : ℕ} → (M : fin n → B → A) → (a : fin n) → (b : B) → mMult M I a b ≡ M a b
+  aux {n = Z} M (x , y , p) b = ZNotS (sym p) ~> UNREACHABLE
+  aux {n = S n} M (Z , yp) b =
+    dot (I (Z , yp)) (λ z → M z b) ≡⟨⟩
+    (1r * head λ z → M z b) + dot (λ _ → 0r) (tail λ z → M z b) ≡⟨ left _+_ (lIdentity (head λ z → M z b))⟩
+    head (λ z → M z b) + dot (λ _ → 0r) (tail λ z → M z b) ≡⟨ right _+_ (dotZL (tail λ z → M z b))⟩
+    head (λ z → M z b) + 0r ≡⟨ rIdentity (head λ z → M z b)⟩
+    head (λ z → M z b) ≡⟨ left M (ΣPathPProp (λ a → finSndIsProp a) refl)⟩
+    M (Z , yp) b ∎ 
+  aux {n = S Z} M (S x , y , p) b = ZNotS (sym (SInjective p)) ~> UNREACHABLE
+  aux {n = S (S n)} M (S x , y , p) b =
+   let R : dot (I (x , y , SInjective p)) (λ z → tail M z b) ≡ tail M (x , y , SInjective p) b
+       R = aux (tail M) (x , y , SInjective p) b in
+   dot (I (S x , y , p)) (λ z → M z b) ≡⟨⟩
+   (0r * head λ z → M z b) + dot (tail (I (S x , y , p))) (tail λ z → M z b) ≡⟨ left _+_ (0*x≡0 (head λ z → M z b))⟩
+   0r + dot (tail (I (S x , y , p))) (tail λ z → M z b) ≡⟨ lIdentity (dot (tail (I (S x , y , p))) (tail λ z → M z b))⟩
+   dot (tail (I (S x , y , p))) (tail λ z → M z b) ≡⟨⟩
+   dot (I (x , y , SInjective p)) (tail λ z → M z b) ≡⟨ R ⟩
+   tail M (x , y , SInjective p) b ≡⟨ left M (ΣPathPProp (λ a → finSndIsProp a) refl)⟩
+   M (S x , y , p) b ∎
+
+-- Square matrix multiplication is a monoid
+instance
+ sqrMMultAssoc : {{R : Ring A}} → Associative (mMult {n = n}{B = fin n} {C = fin n})
+ sqrMMultAssoc = record { assoc = mMultAssoc }
+ sqrMMultMonoid : {{R : Ring A}} → monoid (mMult {B = fin n} {C = fin n})
+ sqrMMultMonoid {{R}} = record { e = I
+                         ; IsSet = isSet→ (isSet→ (R .multStr .IsSet))
+                         ; lIdentity = ILID
+                         ; rIdentity = IRID }
