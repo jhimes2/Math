@@ -130,19 +130,6 @@ record CRing (A : Type l) : Type (lsuc l) where
     {{ringCom}} : Commutative _*_
 open CRing {{...}} public
 
--- https://en.wikipedia.org/wiki/Field_(mathematics)
-record Field (A : Type l) : Type (lsuc l) where
-  field
-    {{fring}} : CRing A
-    oneNotZero : 1r ≢ 0r
-    reciprocal : nonZero → A
-    recInv : (a : nonZero) → pr1 a * reciprocal a ≡ 1r
-    GFP : (xs : [ A ^ n ]) → xs ≢ (λ _ → 0r) → (x : A) → ∃ λ i → xs i ≢ 0r
-open Field {{...}} public
-
-1f : {{F : Field A}} → nonZero
-1f = (multStr .e , oneNotZero)
-
 -- https://en.wikipedia.org/wiki/Module_(mathematics)
 -- Try not to confuse 'Module' with Agda's built-in 'module' keyword.
 record Module {scalar : Type l} {{R : Ring scalar}} (vector : Type l') : Type (lsuc (l ⊔ l')) where

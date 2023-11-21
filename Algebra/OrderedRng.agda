@@ -6,6 +6,7 @@ open import Relations
 open import Algebra.Base
 open import Algebra.Group
 open import Algebra.Rng
+open import Algebra.Field
 
 open import Cubical.HITs.PropositionalTruncation
             renaming (rec to truncRec)

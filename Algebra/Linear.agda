@@ -6,6 +6,7 @@ open import Algebra.Base
 open import Algebra.Group
 open import Algebra.Module
 open import Algebra.Rng
+open import Algebra.Field
 open import Cubical.Foundations.HLevels
 
 --https://en.wikipedia.org/wiki/Vector_space

@@ -245,9 +245,6 @@ instance
 
 open import Cubical.Data.Sigma.Properties
 
-finDiscrete : (n : ℕ) → Discrete (fin n)
-finDiscrete n = discreteΣ natDiscrete λ a x y → yes (isRelation ((S a)) n x y)
-
 NatHomogeneous : isHomogeneous (ℕ , Z)
 NatHomogeneous = isHomogeneousDiscrete natDiscrete
 

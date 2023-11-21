@@ -9,6 +9,22 @@ open import Algebra.Group
 open import Algebra.Rng
 open import Algebra.CRing
 open import Cubical.Foundations.HLevels
+open import Cubical.HITs.PropositionalTruncation
+open import Data.Finite
+open import Data.Natural
+
+-- https://en.wikipedia.org/wiki/Field_(mathematics)
+record Field (A : Type l) : Type (lsuc l) where
+  field
+    {{fring}} : CRing A
+    oneNotZero : 1r ≢ 0r
+    reciprocal : nonZero → A
+    recInv : (a : nonZero) → pr1 a * reciprocal a ≡ 1r
+    GFP : (xs : [ A ^ n ]) → xs ≢ (λ _ → 0r) → (x : A) → ∃ λ i → xs i ≢ 0r
+open Field {{...}} public
+
+1f : {{F : Field A}} → nonZero
+1f = (multStr .e , oneNotZero)
 
 _/_ : {{F : Field A}} → A → nonZero → A
 a / b = a * reciprocal b
@@ -41,15 +57,18 @@ nonZeroMult (a , a') (b , b') = λ(f : (a * b) ≡ 0r ) →
 NZMult : {{F : Field A}} → nonZero → nonZero → nonZero
 NZMult (a , a') (b , b') = (a * b) , nonZeroMult (a , a') ((b , b'))
 
-distinguishingOutput : (xs : [ A ^ n ]) → {a : A} → xs ≢ (λ _ → a) → ((x : A) → Dec (x ≡ a)) → ∃ λ i → xs i ≢ a
-distinguishingOutput {n = Z} xs p decide = p (funExt (λ(x , y) → y ~> UNREACHABLE)) ~> UNREACHABLE
-distinguishingOutput {n = S n} xs {a} p decide = decide (head xs)
-   ~> λ{ (yes q) → map (λ(x , x') → finS x , x') (distinguishingOutput {n = n} (tail xs) (aux p q) decide)
-       ; (no ¬p) → η $ (Z , tt) , ¬p}
- where
-  aux : {xs : [ A ^ S n ]} → {a : A} → xs ≢ (λ _ → a) → head xs ≡ a → tail xs ≢ (λ _ → a)
-  aux {xs} nEq headEq contra = nEq $ funExt λ{ (Z , x') → headEq
-                                             ; (S x , x') → funRed contra (x , x')}
+distinguishingOutput : (xs : [ A ^ n ]) → {a : A}
+                     → ((x : A) → Dec (x ≡ a))
+                     → xs ≢ (λ _ → a) → ∃ λ i → xs i ≢ a
+distinguishingOutput {n = Z} xs {a} decide p =
+         p (funExt λ (x , y , p) → ZNotS (sym p) ~> UNREACHABLE) ~> UNREACHABLE
+distinguishingOutput {n = S n} xs {a} decide p = decide (head xs)
+  ~> λ{(yes y) → let H : tail xs ≢ (λ _ → a)
+                     H = λ absurd → p (headTail≡ xs (λ _ → a) y absurd)
+                   in distinguishingOutput {n = n} (tail xs) decide H
+                     >>= λ(r , p) →
+                     η $ (finS r) , (λ x → p x)
+     ; (no y) → ∣ ( Z , n , refl) , (λ x → y x) ∣₁}
 
 negOneNotZero : {{F : Field A}} → neg 1r ≢ 0r 
 negOneNotZero =

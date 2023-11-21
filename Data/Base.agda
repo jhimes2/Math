@@ -1,6 +1,5 @@
 {-# OPTIONS --safe --cubical #-}
 
-open import Cubical.Foundations.Prelude
 open import Prelude
 open import Relations
 open import Cubical.HITs.PropositionalTruncation renaming (rec to recTrunc)
@@ -59,35 +58,5 @@ instance
     leStronglyConnected (S a) Z =  ∣ inr tt ∣₁
     leStronglyConnected (S a) (S b) = leStronglyConnected a b
 
--- finite Sets
-fin : ℕ → Type₀
-fin n = (Σ' ℕ λ x → S x ≤ n)
-
-[_^_] : Type l → ℕ → Type l
-[_^_] A n = fin n → A
-
-[] : [ A ^ Z ]
-[] (_ , ())
-
-variable
-  n m : ℕ
-
-head : [ A ^ S n ] → A
-head v = v (Z , tt)
-
-tail : [ A ^ S n ] → [ A ^ n ]
-tail v (x , p) = v (S x , p)
-
-cons : (A → [ A ^ n ] → B) → [ A ^ S n ] → B
-cons f v = f (head v) (tail v)
-
-_∷_ : A → [ A ^ n ] → [ A ^ S n ]
-(a ∷ _) (Z , _) = a
-(_ ∷ v) (S x , p) = v (x , p)
-
 funRed : {f g : A → B} → f ≡ g → (x : A) → f x ≡ g x
 funRed p x i = p i x
-
-finS : {n : ℕ} → fin n → fin (S n)
-finS {n = n} (x , x') = S x , x'
-

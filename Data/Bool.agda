@@ -91,4 +91,4 @@ instance
       ; reciprocal = pr1
       ; recInv = λ{ (Yes , x) → refl
                   ; (No , x) → x refl ~> UNREACHABLE }
-      ; GFP = λ {n = n} xs x y → distinguishingOutput {n = n} xs x (λ z → boolDiscrete z 0r)}
+      ; GFP = λ {n = n} xs x y → distinguishingOutput {n = n} xs (λ z → boolDiscrete z 0r) x}

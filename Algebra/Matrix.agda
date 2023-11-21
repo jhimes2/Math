@@ -17,11 +17,13 @@ open import Algebra.Monoid
 open import Algebra.Rng
 open import Algebra.Linear
 open import Algebra.Module
+open import Algebra.Field
 open import Data.Base
 open import Relations
 open import Data.Natural
 open import Cubical.Foundations.HLevels
 open import Cubical.Foundations.Isomorphism
+open import Data.Finite
 
 variable
   dl : Level
@@ -57,9 +59,9 @@ multv = zip _*_
 scaleV : {{Rng A}} → A → (B → A) → (B → A)
 scaleV a v x = a * (v x)
 
-foldr : (A → B → B) → B → {n : ℕ} → [ A ^ n ] → B
-foldr f b {Z} [] = b
-foldr f b {S n} v = f (head v) (foldr f b {n} (tail v))
+foldr : (A → B → B) → B → {n : ℕ} → (fin n → A) → B
+foldr f b {Z} _ = b
+foldr f b {S n} v = f (head v) (foldr f b (tail v))
 
 foldr2 : (A → B → B) → B → {n : ℕ} → ((a : ℕ) → S a ≤ n → A) → B
 foldr2 f b {Z} [] = b
@@ -139,8 +141,8 @@ foldrMC : {_∙_ : A → A → A}{{M : monoid _∙_}}{{C : Commutative _∙_}} �
      → foldr _∙_ e {n} (zip _∙_ u v) ≡ foldr _∙_ e {n} u ∙ foldr _∙_ e {n} v
 foldrMC {n = Z} u v = sym(lIdentity e)
 foldrMC {n = S n} {_∙_ = _∙_} u v =
-      eqTrans (right _∙_ (foldrMC {n = n} (tail u) (tail v))) ([ab][cd]≡[ac][bd] (u (Z , tt))
-                   (v (Z , tt)) (foldr _∙_ e {n} (tail u)) (foldr _∙_ e {n} (tail v)))
+      eqTrans (right _∙_ (foldrMC {n = n} (tail u) (tail v))) ([ab][cd]≡[ac][bd] (head u)
+                   (head v) (foldr _∙_ e {n} (tail u)) (foldr _∙_ e {n} (tail v)))
 
 instance
 -- Matrix transformation over a ring is a module homomorphism.
@@ -294,22 +296,22 @@ I∞Transpose = funExt λ x → funExt λ y → Rec x y
   Rec (S x) (S y) = Rec x y
 
 -- Identity Matrix
-I : {{R : Ring A}} (n : ℕ) → Matrix A n n
-I n x y = I∞ (pr1 x) (pr1 y)
+--I : {{R : Ring A}} (n : ℕ) → Matrix A n n
+--I n x y = I∞ (pr1 x) (pr1 y)
 
 DecEqP : (x y : A) → Dec(x ≡ y) ≡ Dec(y ≡ x)
 DecEqP x y = isoToPath (iso (λ{ (yes p) → yes (sym p) ; (no p) → no (λ z → p (sym z))}) ( λ{ (yes p) → yes (sym p) ; (no p) → no (λ z → p (sym z))}) (λ{ (yes z) → refl ; (no z) → refl}) λ{ (yes x) → refl ; (no x) → refl})
 
-idTranspose : {{R : Ring A}} (n : ℕ) → I n ≡ transpose (I n)
-idTranspose n = funExt λ{(x , _) → funExt λ{(y , _) → funRed (funRed I∞Transpose x) y}}
-
-postulate
- IRID : {{R : Ring A}} (M : fin n → B → A) → mMult {n = n} M (I n) ≡ M
- ILID : {{R : Ring A}} (M : B → fin n → A) → mMult {n = n} (I n) M ≡ M
- sqrMMultAssoc : {{R : Ring A}}
-            → (M : fin n → B → A)
-            → (N : Matrix A n n)
-            → (O : C → fin n → A)
-            → mMult {n = n} M (mMult {n = n} N O) ≡ mMult {n = n} (mMult {n = n} M N) O
- IMT : {A : Type l} {{R : Ring A}} → (v : [ A ^ n ]) → MT {n = n} (I n) v ≡ v
- sqrMMultMonoid : {{R : Ring A}} → monoid (mMult {n = n} {B = fin n} {C = fin n})
+--idTranspose : {{R : Ring A}} (n : ℕ) → I n ≡ transpose (I n)
+--idTranspose n = funExt λ{(x , _) → funExt λ{(y , _) → funRed (funRed I∞Transpose x) y}}
+--
+--postulate
+-- IRID : {{R : Ring A}} (M : fin n → B → A) → mMult {n = n} M (I n) ≡ M
+-- ILID : {{R : Ring A}} (M : B → fin n → A) → mMult {n = n} (I n) M ≡ M
+-- sqrMMultAssoc : {{R : Ring A}}
+--            → (M : fin n → B → A)
+--            → (N : Matrix A n n)
+--            → (O : C → fin n → A)
+--            → mMult {n = n} M (mMult {n = n} N O) ≡ mMult {n = n} (mMult {n = n} M N) O
+-- IMT : {A : Type l} {{R : Ring A}} → (v : [ A ^ n ]) → MT {n = n} (I n) v ≡ v
+-- sqrMMultMonoid : {{R : Ring A}} → monoid (mMult {n = n} {B = fin n} {C = fin n})

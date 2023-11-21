@@ -12,6 +12,7 @@ open import Cubical.Foundations.Isomorphism
 open import ClassicalTopology.Topology
 open import Data.Integer
 open import Cubical.HITs.SetQuotients
+open import Data.Finite
 
 finDecrInj : (f : fin (S n) → fin (S m)) → ((x y : fin (S n)) → f x ≡ f y → x ≡ y) → Σ λ(g : fin n → fin m) → injective g
 finDecrInj {n} {m} f fInj = {!!}
