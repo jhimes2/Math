@@ -3,8 +3,7 @@
 module Algebra.Rng where
 
 open import Prelude
-open import Algebra.Base
-open import Algebra.Group
+open import Algebra.Group public
 
 x*0≡0 : {{R : Rng A}} → (x : A) → x * 0r ≡ 0r
 x*0≡0 x =

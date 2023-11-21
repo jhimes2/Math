@@ -3,9 +3,7 @@
 module Algebra.Ring where
 
 open import Prelude
-open import Algebra.Base
-open import Algebra.Group
-open import Algebra.Rng
+open import Algebra.Rng public
 
 -1*x≡-x : {{R : Ring A}} → (x : A) → neg 1r * x ≡ neg x
 -1*x≡-x x =

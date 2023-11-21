@@ -13,7 +13,6 @@ open import Cubical.HITs.PropositionalTruncation
 open import Cubical.Foundations.Powerset public
 open import Cubical.Data.Sum hiding (elim ; rec ; map) renaming (_⊎_ to infix 2 _＋_) public
 open import Cubical.Foundations.HLevels
-open import Cubical.HITs.PropositionalTruncation renaming (rec to propTruncRec) hiding (map)
 
 variable
     l l' al bl cl : Level

@@ -3,8 +3,7 @@
 module Data.Bool where
 
 open import Prelude
-open import Data.Base
-open import Algebra.Base
+open import Data.Base public
 open import Algebra.Field
 
 not : Bool → Bool

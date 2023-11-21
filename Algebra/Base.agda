@@ -2,7 +2,7 @@
 
 module Algebra.Base where
 
-open import Prelude public
+open import Prelude
 open import Relations
 open import Data.Base
 

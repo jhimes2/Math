@@ -1,11 +1,10 @@
 {-# OPTIONS --allow-unsolved-metas --cubical --overlapping-instances #-}
 
+open import Prelude
 open import Agda.Primitive
-open import Algebra.Base
 open import Relations
 open import Algebra.Matrix
 open import Algebra.CRing
-open import Data.Base
 open import Data.Natural
 open import Cubical.Foundations.HLevels
 open import Cubical.Foundations.Isomorphism
@@ -16,14 +15,6 @@ open import Data.Finite
 
 finDecrInj : (f : fin (S n) → fin (S m)) → ((x y : fin (S n)) → f x ≡ f y → x ≡ y) → Σ λ(g : fin n → fin m) → injective g
 finDecrInj {n} {m} f fInj = {!!}
-
-isLocal : (A : Type l) → {{R : CRing A}} → Type l
-isLocal A = {n : ℕ} → (xs : [ A ^ n ]) →
-        foldr _+_ 0r {n} xs ∈ A ˣ →
-        ∃ λ(i : fin n) → (xs i ∈ A ˣ)
-
-zeroN : ⊤ → ℕ
-zeroN _ = Z
 
 JRule : (P : {x y : A} → x ≡ y → Type l) → (x : A) → P (λ _ → x) → {y : A} → (p : x ≡ y) → P p
 JRule P x = J (λ y → P {x = x} {y})

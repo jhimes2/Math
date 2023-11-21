@@ -2,10 +2,9 @@
 
 module NumberTheory.Divisibility where
 
+open import Prelude
 open import Relations
-open import Data.Base
 open import Data.Natural
-open import Algebra.Base
 open import Algebra.Monoid
 open import Cubical.HITs.PropositionalTruncation renaming (rec to recTrunc ; map to mapTrunc)
 

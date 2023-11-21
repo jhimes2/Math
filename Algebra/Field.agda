@@ -2,14 +2,8 @@
 
 module Algebra.Field where
 
-open import Prelude public
-open import Data.Base
-open import Algebra.Base
-open import Algebra.Group
-open import Algebra.Rng
-open import Algebra.CRing
-open import Cubical.Foundations.HLevels
-open import Cubical.HITs.PropositionalTruncation
+open import Prelude
+open import Algebra.CRing public
 open import Data.Finite
 open import Data.Natural
 
@@ -69,6 +63,7 @@ distinguishingOutput {n = S n} xs {a} decide p = decide (head xs)
                      >>= λ(r , p) →
                      η $ (finS r) , (λ x → p x)
      ; (no y) → ∣ ( Z , n , refl) , (λ x → y x) ∣₁}
+ where open import Cubical.HITs.PropositionalTruncation
 
 negOneNotZero : {{F : Field A}} → neg 1r ≢ 0r 
 negOneNotZero =
@@ -98,3 +93,4 @@ instance
                                1r ∎)
            ; lIdentity = λ a → ΣPathPProp (λ w x y → funExt (λ p → y p ~> UNREACHABLE))
                                           (lIdentity (fst a)) }
+   where open import Cubical.Foundations.HLevels

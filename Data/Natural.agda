@@ -3,11 +3,9 @@
 module Data.Natural where
 
 open import Relations
-open import Data.Base
-open import Algebra.Base
+open import Prelude
+open import Data.Base public
 open import Algebra.Monoid
-open import Cubical.Foundations.Pointed.Homogeneous
-open import Cubical.HITs.PropositionalTruncation renaming (rec to recTrunc ; map to mapTrunc)
 
 add : ℕ → ℕ → ℕ
 add Z b = b
@@ -243,11 +241,6 @@ instance
                                          ; (no u) → H y (leNEq (S x) y p u , q)}
                 }
 
-open import Cubical.Data.Sigma.Properties
-
-NatHomogeneous : isHomogeneous (ℕ , Z)
-NatHomogeneous = isHomogeneousDiscrete natDiscrete
-
 nonZ : Type
 nonZ = Σ λ x → Σ λ y → x ≡ S y
 
@@ -285,3 +278,7 @@ findGreatest P decide (x , Px) (S n) f = decide (S n)
                         n (λ a b → let H = f a b in
                           natDiscrete a (S n) ~> λ{ (yes p) → y (subst P p b) ~> UNREACHABLE
                                                   ; (no p) → ltS a (S n) (H , p)})}
+
+open import Cubical.Foundations.Pointed.Homogeneous
+NatHomogeneous : isHomogeneous (ℕ , Z)
+NatHomogeneous = isHomogeneousDiscrete natDiscrete

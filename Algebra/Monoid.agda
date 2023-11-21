@@ -3,7 +3,7 @@
 module Algebra.Monoid where
 
 open import Prelude
-open import Algebra.Base
+open import Algebra.Base public
 open import Cubical.Foundations.HLevels
 
 -- Identity element of a monoid is unique

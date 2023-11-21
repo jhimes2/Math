@@ -3,7 +3,7 @@
 module Algebra.CRing where
 
 open import Prelude
-open import Algebra.Base
+open import Algebra.Ring public
 
 multInvUnique : {{R : CRing A}} → (r : A) → isProp (Σ λ(r' : A) → r * r' ≡ 1r)
 multInvUnique {{R}} r (r' , rr'≡1) (r'' , rr''≡1) =

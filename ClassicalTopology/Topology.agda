@@ -4,7 +4,6 @@ open import Prelude
 open import Cubical.HITs.PropositionalTruncation renaming (rec to propTruncRec)
 open import Cubical.Foundations.HLevels
 open import Cubical.Foundations.Isomorphism
-open import Cubical.Data.Sigma
 
 module ClassicalTopology.Topology where
 

@@ -2,11 +2,9 @@
 
 module Algebra.Linear where
 
-open import Algebra.Base
-open import Algebra.Group
-open import Algebra.Module
-open import Algebra.Rng
-open import Algebra.Field
+open import Prelude
+open import Algebra.Module public
+open import Algebra.Field public
 open import Cubical.Foundations.HLevels
 
 --https://en.wikipedia.org/wiki/Vector_space

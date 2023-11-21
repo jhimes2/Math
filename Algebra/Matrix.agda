@@ -12,18 +12,11 @@
 
 module Algebra.Matrix where
 
-open import Algebra.Base
-open import Algebra.Monoid
-open import Algebra.Rng
+open import Prelude
 open import Algebra.Linear
-open import Algebra.Module
-open import Algebra.Field
-open import Data.Base
-open import Relations
 open import Data.Natural
-open import Cubical.Foundations.HLevels
-open import Cubical.Foundations.Isomorphism
 open import Data.Finite
+open import Cubical.Foundations.HLevels
 
 variable
   dl : Level
@@ -282,7 +275,7 @@ I∞Transpose = funExt λ x → funExt λ y → Rec x y
 
 DecEqP : (x y : A) → Dec(x ≡ y) ≡ Dec(y ≡ x)
 DecEqP x y = isoToPath (iso (λ{ (yes p) → yes (sym p) ; (no p) → no (λ z → p (sym z))}) ( λ{ (yes p) → yes (sym p) ; (no p) → no (λ z → p (sym z))}) (λ{ (yes z) → refl ; (no z) → refl}) λ{ (yes x) → refl ; (no x) → refl})
-
+  where open import Cubical.Foundations.Isomorphism
 --idTranspose : {{R : Ring A}} (n : ℕ) → I n ≡ transpose (I n)
 --idTranspose n = funExt λ{(x , _) → funExt λ{(y , _) → funRed (funRed I∞Transpose x) y}}
 --

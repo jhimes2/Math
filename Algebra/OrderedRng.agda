@@ -2,10 +2,9 @@
 
 module Algebra.OrderedRng where
 
+open import Prelude
 open import Relations
-open import Algebra.Base
-open import Algebra.Group
-open import Algebra.Rng
+open import Algebra.Rng public
 open import Algebra.Field
 
 open import Cubical.HITs.PropositionalTruncation

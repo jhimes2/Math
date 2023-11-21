@@ -1,11 +1,6 @@
 {-# OPTIONS --cubical --safe --overlapping-instances #-}
 
 open import Prelude
-open import Algebra.Base
-open import Algebra.Group
-open import Algebra.Rng
-open import Algebra.Ring
-open import Algebra.CRing
 open import Algebra.Field
 open import Algebra.OrderedRng
 

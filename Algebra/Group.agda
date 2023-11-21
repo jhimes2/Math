@@ -3,8 +3,7 @@
 module Algebra.Group where
 
 open import Prelude
-open import Algebra.Base
-open import Algebra.Monoid
+open import Algebra.Monoid public
 open import Cubical.Foundations.HLevels
 
 module grp {_∙_ : A → A → A} {{G : group _∙_}} where
