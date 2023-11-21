@@ -63,10 +63,6 @@ foldr : (A → B → B) → B → {n : ℕ} → (fin n → A) → B
 foldr f b {Z} _ = b
 foldr f b {S n} v = f (head v) (foldr f b (tail v))
 
-foldr2 : (A → B → B) → B → {n : ℕ} → ((a : ℕ) → S a ≤ n → A) → B
-foldr2 f b {Z} [] = b
-foldr2 f b {S n} v = f (v n (leRefl n)) (foldr2 f b {n} λ a x → v a (leS {n = a} x))
-
 foldr∞ : ℕ → (A → B → B) → B → ((a : ℕ) → A) → B
 foldr∞ Z f b [] = b
 foldr∞ (S n) f b v = f (v n) (foldr∞ n f b v)
@@ -122,12 +118,6 @@ instance
 
  vectVS : {A : Type l}{B : Type l'} → {{F : Field A}} → VectorSpace {scalar = A} (B → A)
  vectVS = vectMod
-
-mt : {{R : Ring A}} → ((C → A) → A) → (C → B → A) → (C → A) → (B → A)
-mt fold M v x = fold (zip _*_ v λ y → M y x)
-
-mmult : {{R : Ring C}} {B : Type l}{D : Type l'} → (fold : (A → C) → C) → (A → B → C) → (D → A → C) → D → B → C
-mmult fold M N c = mt fold M (N c)
 
 --genMatrix : {{R : Ring C}}
 --          → (fold : (A → C) → C)
