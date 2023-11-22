@@ -60,10 +60,3 @@ retNo' = transport (λ i → flipPath i) Yes
 
 reflLoopF : ((λ i → base) ≡ loop) → Yes ≡ No
 reflLoopF contra = λ i → endPtOfYes (contra i)
-
-indiscreteCodomainContinuous : {T : (B → hProp l') → Type l}{{XT : topology T}}
-                         → (f : B → A) → continuous {l = l} {{T1 = XT}} {{T2 = indiscreteTopology}} f
-indiscreteCodomainContinuous {l' = l'} {T = T} ⦃ XT = XT ⦄ f {V} (inl x) =
-  let H = isPropEq V x in
-  let G = topology.tfull XT in {!!}
-indiscreteCodomainContinuous {l' = l'} {T = T} ⦃ XT = XT ⦄ f {V} (inr x) = {!!}

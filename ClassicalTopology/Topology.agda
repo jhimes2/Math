@@ -1,6 +1,6 @@
 {-# OPTIONS --cubical --safe #-}
 
-open import Prelude
+open import Prelude hiding (empty)
 open import Cubical.HITs.PropositionalTruncation renaming (rec to propTruncRec)
 open import Cubical.Foundations.HLevels
 open import Cubical.Foundations.Isomorphism
@@ -11,12 +11,21 @@ data False {l : Level} : Type l where
 
 data True {l : Level} : Type l where
   truth : True {l}
+
+TrueEq : isProp A → A → A ≡ True
+TrueEq p a = isoToPath (iso (λ x → truth) (λ x → a) (λ{ truth → refl}) λ b → p a b )
+
+full : A → hProp l
+full = λ _ → True , λ{ truth truth → refl}
   
+empty : A → hProp l
+empty = λ _ → False , λ{()}
+
 -- https://en.wikipedia.org/wiki/Topological_space
 record topology {A : Type al} (T : (A → hProp l') → Type l) : Type (l ⊔ lsuc l' ⊔ al) where
   field
-   tempty : T λ _ → False , λ{()}
-   tfull : T λ _ → True , λ{ truth truth → refl}
+   tempty : T empty
+   tfull : T full
    tunion : {X Y : (A → hProp l')} → T X → T Y → T(X ∪ Y)
    tintersection : {X Y : A → hProp l'} → T X → T Y → T(X ∩ Y)
 open topology {{...}}
@@ -61,11 +70,18 @@ discreteDomainContinuous : {A : Type al} → {X : (B → hProp l') → Type l}{{
                          → (f : A → B) → continuous {l = (al ⊔ l')} {{T1 = discreteTopology}} {{XT}} f
 discreteDomainContinuous f = λ _ → truth
 
-TrueEq : isProp A → A → A ≡ True
-TrueEq p a = isoToPath (iso (λ x → truth) (λ x → a) (λ{ truth → refl}) λ b → p a b )
-
-contrExt : isContr A → isContr B → A ≡ B
-contrExt p q = isoToPath (iso (λ _ → fst q) (λ _ → fst p) (snd q) (snd p))
-
 isPropEq : (V : A → hProp l) → ((x : A) → fst(V x)) → (λ(x : A) → fst(V x)) ≡ λ _ → True
 isPropEq V p = funExt (λ x → isoToPath (iso (λ x₁ → truth) (λ _ → p x) (λ{truth → refl}) λ a → snd (V x) (p x) a))
+
+indiscreteCodomainContinuous : {T : (B → hProp l') → Type l}{{XT : topology T}}
+                         → (f : B → A) → continuous {l = l} {{T1 = XT}} {{T2 = indiscreteTopology}} f
+indiscreteCodomainContinuous {T = T} f {V} (inl p) =
+  let H : full ≡ f ⁻¹[ V ]
+      H = funExt λ b → ΣPathPProp (λ _ → isPropIsProp)
+                                $ sym (TrueEq (snd ((f ⁻¹[ V ]) b)) (p (f b))) in
+       subst T H tfull
+indiscreteCodomainContinuous {T = T} f {V} (inr p) =
+  let H : empty ≡ f ⁻¹[ V ]
+      H = funExt λ b → ΣPathPProp (λ _ → isPropIsProp)
+                                $ propExt (λ()) (snd ((f ⁻¹[ V ])b)) (λ()) λ y → p (f b) y ~> UNREACHABLE in
+       subst T H tempty
