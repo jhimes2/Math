@@ -2,8 +2,8 @@
 
 open import Agda.Primitive public
 open import Cubical.Core.Everything renaming (Σ to Σ'; I to Interval) public
-open import Cubical.Foundations.Prelude hiding (Σ)
-                                        renaming (I to Interval) public
+open import Cubical.Foundations.Prelude
+    hiding (Σ) renaming (I to Interval ; congL to left ; congR to right) public
 open import Cubical.Relation.Nullary public
 open import Cubical.Data.Unit renaming (Unit to ⊤) public
 open import Cubical.Data.Empty public
@@ -158,16 +158,6 @@ demorgan6 f (a , p) = f a p
 
 demorgan7 : {P : A → Type l} → ¬ ((x : A) → implicit (P x)) → implicit (Σ λ x → ¬ P x)
 demorgan7 g f = g λ x → λ z → f (x , z)
-
--- left argument
-left : {B : A → Type l} {x y : A} (f : (a : A) → C → B a) (p : x ≡ y)
-        → {z : C} → PathP (λ i → B (p i)) (f x z) (f y z)
-left f p {z} i = f (p i) z
-
--- right argument
-right : {B : A → Type l} (f : C → (a : A) → B a) {x y : A} (p : x ≡ y)
-        → {z : C} → PathP (λ i → B (p i)) (f z x) (f z y)
-right f p {z} i = f z (p i)
 
 -- https://en.wikipedia.org/wiki/Bijection,_injection_and_surjection
 
