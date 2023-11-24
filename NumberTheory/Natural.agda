@@ -1,6 +1,6 @@
 {-# OPTIONS --cubical --safe --overlapping-instances #-}
 
-module NumberTheory.Divisibility where
+module NumberTheory.Natural where
 
 open import Prelude
 open import Relations
