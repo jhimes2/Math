@@ -164,10 +164,6 @@ leS2 Z Z p = tt
 leS2 Z (S m) p = tt
 leS2 (S n) (S m) p = leS2 n m p
 
-leRefl : (n : ℕ) → n ≤ n
-leRefl Z = tt
-leRefl (S n) = leRefl n
-
 leAdd : (z n c : ℕ) → (z + n) ≤ c → z ≤ c
 leAdd Z n c p = tt
 leAdd (S z) n Z p = p
@@ -193,10 +189,6 @@ ltS : (a b : ℕ) → a < b → S a ≤ b
 ltS Z Z (a≤b , a≢b) = a≢b refl ~> UNREACHABLE
 ltS Z (S b) (a≤b , a≢b) = tt
 ltS (S a) (S b) (a≤b , a≢b) = ltS a b (a≤b , (λ x → a≢b (cong S x)))
-
-eqLe : (x : ℕ) → x ≤ x
-eqLe Z = tt
-eqLe (S x) = eqLe x
 
 isLe : (x y : ℕ) → (x ≤ y) ＋ (Σ λ(z : ℕ) → x ≡ S (z + y))
 isLe Z Z = inl tt
@@ -268,7 +260,7 @@ jumpInduction : (P : ℕ → Type l)
                 → ((b : ℕ) → b ≤ a → P b)
                 → ((x : ℕ) → P x → P (S(x + a)))
                 → (n : ℕ) → P n
-jumpInduction P a Base jump n = aux P a Base jump n n (leRefl n)
+jumpInduction P a Base jump n = aux P a Base jump n n (reflexive {a = n})
  where
   aux : (P : ℕ → Type l) → (a : ℕ) → ((b : ℕ) → b ≤ a → P b)
                     → ((x : ℕ) → P x → P (S(x + a)))
@@ -280,7 +272,7 @@ jumpInduction P a Base jump n = aux P a Base jump n n (leRefl n)
                       ; (inr (x , p)) →
                          subst P (sym p) $ jump x
                            let H : S(x + a) ≤ S n
-                               H = transport (λ i → SInjective p i ≤ n) (leRefl n) in
+                               H = transport (λ i → SInjective p i ≤ n) (reflexive {a = n}) in
                            aux P a Base jump x iter (transitive {a = x} (leAdd x a n H) q) }
 
 findGreatest : (P : ℕ → Type l) → (∀ n → Dec (P n))
