@@ -59,6 +59,14 @@ natLCancel {a} {b} (S c) p = natLCancel c (SInjective p)
 ZNotS : {n : ℕ} → Z ≢ S n
 ZNotS p = eqToNatSetoid p
 
+x≢Sx : {x : ℕ} → x ≢ S x
+x≢Sx {x = Z} = ZNotS
+x≢Sx {x = S x} p = x≢Sx (SInjective p)
+
+x≢x+Sy : {x y : ℕ} → x ≢ (add x (S y))
+x≢x+Sy {x = Z} = ZNotS
+x≢x+Sy {x = S x} p = x≢x+Sy (SInjective p)
+
 -- Equality of two naturals is decidable
 natDiscrete : Discrete ℕ
 natDiscrete Z Z = yes refl
@@ -165,9 +173,9 @@ leAdd Z n c p = tt
 leAdd (S z) n Z p = p
 leAdd (S z) n (S c) p = leAdd z n c p
 
-leAdd2 : (a b : ℕ) → a ≤ (a + b)
-leAdd2 Z _ = tt
-leAdd2 (S a) b = leAdd2 a b
+leAdd2 : (a b c : ℕ) → a ≤ b → a ≤ (b + c)
+leAdd2 Z _ _ _ = tt
+leAdd2 (S a) (S b) c p = leAdd2 a b c p
 
 leSlide : (a b c : ℕ) → (c + a) ≤ (c + b) → a ≤ b 
 leSlide a b Z p = p
@@ -176,6 +184,10 @@ leSlide a b (S x) p = leSlide a b x p
 leSlide2 : (a b c : ℕ) → a ≤ b → (c + a) ≤ (c + b)
 leSlide2 a b Z ab = ab
 leSlide2 a b (S c) ab = leSlide2 a b c ab
+
+leSNEq : (a b : ℕ) → a ≤ b → a ≢ S b
+leSNEq Z b p q = ZNotS q
+leSNEq (S a) (S b) p q = leSNEq a b p (SInjective q)
 
 ltS : (a b : ℕ) → a < b → S a ≤ b
 ltS Z Z (a≤b , a≢b) = a≢b refl ~> UNREACHABLE
@@ -212,6 +224,10 @@ leNEq : (a b : ℕ) → a ≤ b → a ≢ b → S a ≤ b
 leNEq Z Z p q = q refl
 leNEq Z (S b) p q = tt
 leNEq (S a) (S b) p q = leNEq a b p (λ x → q (cong S x))
+
+NEqZ : {a : ℕ} → a ≢ Z → Σ λ x → a ≡ S x
+NEqZ {a = Z} p = p refl ~> UNREACHABLE
+NEqZ {a = S a} _ = a , refl
 
 instance
   WellOrderNat : WellOrder ℕ
@@ -267,14 +283,14 @@ jumpInduction P a Base jump n = aux P a Base jump n n (leRefl n)
                                H = transport (λ i → SInjective p i ≤ n) (leRefl n) in
                            aux P a Base jump x iter (transitive {a = x} (leAdd x a n H) q) }
 
-findGreatest : (P : ℕ → Type l) → (∀ n → P n ＋ ¬ P n)
+findGreatest : (P : ℕ → Type l) → (∀ n → Dec (P n))
              → Σ P → (n : ℕ) → (∀ m → P m → m ≤ n) → greatest P
 findGreatest P decide (Z , Px) Z f = Z , Px , λ{ Z y _ → refl ;
                                                 (S x) y _ → f (S x) y ~> UNREACHABLE}
 findGreatest P decide (S x , Px) Z f = f (S x) Px ~> UNREACHABLE
 findGreatest P decide (x , Px) (S n) f = decide (S n)
-      ~> λ{ (inl y) → S n , y , (λ a b c → antiSymmetric c (f a b))
-          ; (inr y) → findGreatest P decide (x , Px)
+      ~> λ{ (yes y) → S n , y , (λ a b c → antiSymmetric c (f a b))
+          ; (no y) → findGreatest P decide (x , Px)
                         n (λ a b → let H = f a b in
                           natDiscrete a (S n) ~> λ{ (yes p) → y (subst P p b) ~> UNREACHABLE
                                                   ; (no p) → ltS a (S n) (H , p)})}

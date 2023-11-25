@@ -7,7 +7,7 @@ open import Cubical.Foundations.Prelude
 open import Cubical.Relation.Nullary public
 open import Cubical.Data.Unit renaming (Unit to ⊤) public
 open import Cubical.Data.Empty public
-open import Cubical.Data.Sigma renaming (∃ to ∃') hiding (Σ ; I) public
+open import Cubical.Data.Sigma renaming (∃ to ∃') hiding (Σ ; I ; ∃!) public
 open import Cubical.HITs.PropositionalTruncation
                     renaming (map to map' ; rec to truncRec ; elim to truncElim)
 open import Cubical.Foundations.Powerset public
@@ -58,6 +58,9 @@ infixr 0 _$_
 -- Merely exists
 ∃ : {A : Type l} → (P : A → Type l') → Type(l ⊔ l')
 ∃ {A = A} = ∃' A
+
+∃! : {A : Type l} → (P : A → Type l') → Type(l ⊔ l')
+∃! {A = A} P = Σ λ x → P x × ∀ y → P y → x ≡ y
 
 -- https://en.wikipedia.org/wiki/De_Morgan's_laws
 demorgan : (¬ A) ＋ (¬ B) → ¬(A × B)

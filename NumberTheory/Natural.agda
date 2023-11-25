@@ -11,13 +11,26 @@ open import Cubical.HITs.PropositionalTruncation renaming (rec to recTrunc ; map
 copy : ℕ → ℕ → ℕ
 copy a b = (S a) * b
 
-division : (b a : ℕ) → Σ λ q → Σ λ r → (a ≡ copy b q + r) × (r ≤ b)
-division b = jumpInduction (λ a → Σ λ q → Σ λ r → (a ≡ copy b q + r) × (r ≤ b))
-              b
- {- base -}   (λ a p → Z , a , left _+_ (sym (multZ (S b))) , p)
- {- jump -}    λ a (q , r , a≡q+b*q+r , r≤b)
-               → S q , r ,
-               (cong S $
+division : (b a : ℕ) → ∃! λ(q , r) → (a ≡ copy b q + r) × (r ≤ b)
+division b =
+    jumpInduction (λ a → ∃! λ(q , r) → (a ≡ copy b q + r) × (r ≤ b))
+                  b
+                  (λ a p → (Z , a) , (left _+_ (sym (multZ (S b))) , p) ,
+                   λ (q , r) (x' , y') →
+                    natDiscrete q Z ~> λ{
+                      (yes x) → ≡-× (sym x)
+                       let H : copy b q ≡ Z
+                           H = (copy b q ≡⟨ cong (copy b) x ⟩
+                                copy b Z ≡⟨ multZ b ⟩
+                                Z ∎) in (x' ∙ left add H)
+                    ; (no x) → NEqZ x ~> λ(h , f) →
+                               let x' = a ≡⟨ x' ∙ left _+_ (comm (S b) q) ⟩
+                                        mult q (S b) + r ≡⟨ left _+_ (left _*_ f) ⟩
+                                        (S b + mult h (S b)) + r ≡⟨ sym (assoc (S b) (h * S b) r) ⟩
+                                        S b + (mult h (S b) + r) ∎ in
+                                    leSNEq a (b + (mult h (S b) + r)) (leAdd2 a b (mult h (S b) + r) p) x' ~> UNREACHABLE})
+                   λ a ((q , r) , (a≡q+b*q+r , r≤b) , y)
+                      → (S q , r ) , (( (cong S $
                a + b ≡⟨ left _+_ a≡q+b*q+r ⟩
                ((q + (b * q)) + r) + b ≡⟨ [ab]c≡[ac]b (q + (b * q)) r b ⟩
                ((q + (b * q)) + b) + r
@@ -25,15 +38,40 @@ division b = jumpInduction (λ a → Σ λ q → Σ λ r → (a ≡ copy b q + r
                        q + ((b * q) + b) ≡⟨ cong (add q) (comm (b * q) b)⟩
                        q + (b + (b * q)) ≡⟨ right _+_ (sym (addOut b q))⟩
                        q + (b * S q) ∎ ⟩
-               (q + (b * S q)) + r ∎)
-               , r≤b
+               (q + (b * S q)) + r ∎)) , r≤b) , λ{(Z , r')
+                (t , u) → let t = S (a + b) ≡⟨ t ⟩
+                                  (b * Z) + r' ≡⟨ left _+_ (multZ b) ⟩
+                                  r' ∎ in
+                          let u : S(a + b) ≤ b
+                              u = transport (λ i → t (~ i) ≤ b) u in
+                          let u : S(b + a) ≤ b
+                              u = transport (λ i → S (AddCom .comm a b i) ≤ b) u in
+                          let u : S(b + a) ≤ (b + a)
+                              u = leAdd2 (S (add b a)) b a u in
+                          let u : S(b + a) ≢ S(b + a)
+                              u = leSNEq (S (add b a)) (add b a) u in u refl ~> UNREACHABLE
+                ; (S q' , r') (t , u) →
+                let G = b + a ≡⟨ comm b a ⟩
+                        a + b ≡⟨ SInjective t ⟩
+                        (q' + (mult b (S q'))) + r' ≡⟨ left _+_ (comm q' (mult b (S q')))⟩
+                        ((mult b (S q')) + q') + r' ≡⟨ left _+_ (left _+_ (comm b (S q')))⟩
+                        ((mult (S q') b) + q') + r' ≡⟨ sym (assoc (mult (S q') b) q' r') ⟩
+                        (b + mult q' b) + (q' + r') ≡⟨ sym (assoc b (mult q' b) (q' + r')) ⟩
+                        b + (mult q' b + (q' + r')) ∎
+                in
+                let H = y (q' , r')
+                     ((a ≡⟨ natLCancel b G ⟩
+                     mult q' b + (q' + r') ≡⟨ left _+_ (comm q' b) ⟩
+                     mult  b q' + (q' + r') ≡⟨ a[bc]≡[ba]c (mult b q') q' r' ⟩
+                       (q' + mult b q') + r' ∎) , u) in
+                 ≡-× (cong S (λ i → fst(H i))) λ i → snd (H i) }
 
 cut : ℕ → ℕ → ℕ
-cut a b = fst $ division b a
+cut a b = fst $ fst $ division b a
 
 -- I don't know what else to call this function
 paste : ℕ → ℕ → ℕ
-paste a b = fst $ snd (division b a)
+paste a b = snd $ fst (division b a)
 
 -- div a (b+1) ≡ cut a b
 div : ℕ → nonZ → ℕ
@@ -46,7 +84,7 @@ mod a (_ , b , _) = paste a b
 -- '_*_', 'div' and 'mod' corresponds to 'copy', 'cut' and 'paste', respectively
 
 cutLemma : (a b : ℕ) → a ≡ copy b (cut a b) + paste a b
-cutLemma a b = fst(snd(snd(division b a)))
+cutLemma a b = fst(fst(snd(division b a)))
 
 divLemma : (a : ℕ) → (b : nonZ) → a ≡ (fst b * div a b) + mod a b
 divLemma a (b , c , p) =
@@ -56,7 +94,7 @@ divLemma a (b , c , p) =
     (b * div a (b , c , p)) + mod a (b , c , p) ∎
 
 pasteLe : (a b : ℕ) → paste a b ≤ b
-pasteLe a b = snd(snd(snd(division b a)))
+pasteLe a b = snd(fst(snd(division b a)))
 
 modLe : (a : ℕ) → (b : nonZ) → S(mod a b) ≤ (fst b)
 modLe a (b , b' , p) = transport (λ i → S(paste a b') ≤ p (~ i)) (pasteLe a b')
@@ -102,7 +140,7 @@ module divides where
  le : (d a : ℕ) → d ∣ S a → d ≤ S a
  le d a x = recTrunc (isRelation d (S a)) 
            (λ{(Z , p) → ZNotS p ~> UNREACHABLE
-           ; (S x , p) → transport (λ i → d ≤ p i) (leAdd2 d (x * d)) }) x
+           ; (S x , p) → transport (λ i → d ≤ p i) (leAdd2 d d (x * d) (reflexive {a = d})) }) x
 
  sum : (c a b : ℕ) → c ∣ a → c ∣ b → c ∣ (a + b)
  sum c a b x y = 
@@ -153,3 +191,15 @@ instance
                 G = divides.le (S a) b x' in
                 antiSymmetric G H) y') x'
 
+pasteZ : (a : ℕ) → paste a Z ≡ Z
+pasteZ a = let G = pasteLe a Z in natDiscrete (paste a Z) Z
+   ~> λ{ (yes p) → p
+       ; (no p) → NEqZ p ~> λ (q , r) → transport (λ i → r i ≤ Z) G ~> UNREACHABLE}
+
+cutZ : (a : ℕ) → cut a Z ≡ a
+cutZ a = let H = cutLemma a Z in
+   cut a Z ≡⟨ sym (rIdentity (cut a Z)) ⟩
+   mult (S Z) (cut a Z) ≡⟨ sym (rIdentity (copy Z (cut a Z)))⟩
+   copy Z (cut a Z) + Z ≡⟨ right _+_ (sym (pasteZ a))⟩
+   copy Z (cut a Z) + paste a Z ≡⟨ sym H ⟩
+   a ∎
