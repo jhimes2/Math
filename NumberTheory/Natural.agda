@@ -9,6 +9,8 @@ open import Algebra.Monoid
 open import Algebra.MultAdd
 open import Cubical.HITs.PropositionalTruncation renaming (rec to recTrunc ; map to mapTrunc)
 
+open monoid {{...}}
+
 copy : ℕ → ℕ → ℕ
 copy a b = (S a) * b
 
