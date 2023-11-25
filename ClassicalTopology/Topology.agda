@@ -74,7 +74,7 @@ isPropEq : (V : A → hProp l) → ((x : A) → fst(V x)) → (λ(x : A) → fst
 isPropEq V p = funExt (λ x → isoToPath (iso (λ x₁ → truth) (λ _ → p x) (λ{truth → refl}) λ a → snd (V x) (p x) a))
 
 indiscreteCodomainContinuous : {T : (B → hProp l') → Type l}{{XT : topology T}}
-                         → (f : B → A) → continuous {l = l} {{T1 = XT}} {{T2 = indiscreteTopology}} f
+                         → (f : B → A) → continuous {{T2 = indiscreteTopology}} f
 indiscreteCodomainContinuous {T = T} f {V} (inl p) =
   let H : full ≡ f ⁻¹[ V ]
       H = funExt λ b → ΣPathPProp (λ _ → isPropIsProp)
@@ -85,3 +85,10 @@ indiscreteCodomainContinuous {T = T} f {V} (inr p) =
       H = funExt λ b → ΣPathPProp (λ _ → isPropIsProp)
                                 $ propExt (λ()) (snd ((f ⁻¹[ V ])b)) (λ()) λ y → p (f b) y ~> UNREACHABLE in
        subst T H tempty
+
+continuousComp : {F : (A → hProp l) → Type al}{{AT : topology F}}
+                 {G : (B → hProp l) → Type bl}{{BT : topology G}}
+                 {H : (C → hProp l) → Type cl}{{CT : topology H}}
+     → {f : A → B} → continuous {{AT}}{{BT}} f
+     → {g : B → C} → continuous {{BT}}{{CT}} g → continuous {{AT}}{{CT}} (g ∘ f)
+continuousComp = λ z z₁ z₂ → z (z₁ z₂)
