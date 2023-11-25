@@ -4,11 +4,16 @@ module Algebra.OrderedRng where
 
 open import Prelude
 open import Relations
-open import Algebra.Rng public
 open import Algebra.Field
-
 open import Cubical.HITs.PropositionalTruncation
             renaming (rec to truncRec)
+
+record OrderedRng (A : Type l) {{ordrng : Rng A}} : Type (lsuc l) where
+  field
+    {{totalOrd}} : TotalOrder A
+    addLe : {a b : A} → a ≤ b → (c : A) → (a + c) ≤ (b + c) 
+    multLe : {a b : A} → 0r < a → 0r < b → 0r < (a * b)
+open OrderedRng {{...}} public
 
 module ordered{u : Level}{R : Type u}{{_ : Rng R}}{{_ : OrderedRng R}} where
 

@@ -6,6 +6,7 @@ open import Relations
 open import Prelude
 open import Data.Base public
 open import Algebra.Monoid
+open import Algebra.MultAdd
 
 add : ℕ → ℕ → ℕ
 add Z b = b

@@ -6,8 +6,7 @@ open import Data.Base
 open import Prelude
 open import Relations
 open import Algebra.Base
-open import Algebra.Monoid
-open import Algebra.Group
+open import Algebra.CRing
 open import Data.Natural
 open import Cubical.Data.Sigma.Properties
 open import Cubical.HITs.SetQuotients renaming (rec to QRec ; elim to QElim)

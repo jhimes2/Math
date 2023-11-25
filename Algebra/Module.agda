@@ -3,7 +3,22 @@
 module Algebra.Module where
 
 open import Prelude
-open import Algebra.Ring public
+open import Algebra.CRing public
+
+-- https://en.wikipedia.org/wiki/Module_(mathematics)
+-- Try not to confuse 'Module' with Agda's built-in 'module' keyword.
+record Module {scalar : Type l} {{R : Ring scalar}} (vector : Type l') : Type (lsuc (l ⊔ l')) where
+  field
+    _[+]_ : vector → vector → vector
+    addvStr : abelianGroup _[+]_
+    scale : scalar → vector → vector
+    scalarDistribute : (a : scalar) → (u v : vector)
+                     → scale a (u [+] v) ≡ (scale a u) [+] (scale a v)
+    vectorDistribute : (v : vector) → (a b : scalar)
+                     → scale (a + b) v ≡ (scale a v) [+] (scale b v)
+    scalarAssoc : (v : vector) → (a b : scalar) → scale a (scale b v) ≡ scale (a * b) v
+    scaleId : (v : vector) → scale 1r v ≡ v
+open Module {{...}} public
 
 module _{scalar : Type l}{vector : Type l'}{{R : Ring scalar}}{{V : Module vector}} where
 

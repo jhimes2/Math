@@ -4,6 +4,23 @@ module Algebra.Rng where
 
 open import Prelude
 open import Algebra.Group public
+open import Algebra.MultAdd public
+
+-- https://en.wikipedia.org/wiki/Rng_(algebra)
+record Rng (A : Type l) : Type (lsuc l) where
+  field
+    {{rng*+}} : *+ A
+    {{raddStr}} : abelianGroup _+_
+open Rng {{...}} public
+
+0r : {{SR : Rng A}} → A
+0r = e
+
+nonZero : {A : Type l} {{R : Rng A}} → Type l
+nonZero {A = A} = Σ λ (a : A) → a ≢ 0r
+
+neg : {{R : Rng A}} → A → A
+neg = inv
 
 x*0≡0 : {{R : Rng A}} → (x : A) → x * 0r ≡ 0r
 x*0≡0 x =

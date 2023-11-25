@@ -5,6 +5,23 @@ module Algebra.Ring where
 open import Prelude
 open import Algebra.Rng public
 
+-- https://en.wikipedia.org/wiki/Ring_(mathematics)
+record Ring (A : Type l) : Type (lsuc l) where
+  field
+    {{rngring}} : Rng A
+    {{multStr}} : monoid _*_
+open Ring {{...}} public
+
+1r : {{SR : Ring A}} → A
+1r = multStr .e
+
+2r : {{SR : Ring A}} → A
+2r = 1r + 1r
+
+_-_ : {{R : Rng A}} → A → A → A
+a - b = a + (neg b)
+
+
 -1*x≡-x : {{R : Ring A}} → (x : A) → neg 1r * x ≡ neg x
 -1*x≡-x x =
   neg 1r * x ≡⟨ -x*y≡x*-y 1r x ⟩

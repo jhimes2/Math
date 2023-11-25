@@ -6,6 +6,7 @@ open import Prelude
 open import Relations
 open import Data.Natural
 open import Algebra.Monoid
+open import Algebra.MultAdd
 open import Cubical.HITs.PropositionalTruncation renaming (rec to recTrunc ; map to mapTrunc)
 
 copy : ℕ → ℕ → ℕ
