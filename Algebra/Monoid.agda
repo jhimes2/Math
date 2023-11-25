@@ -3,8 +3,17 @@
 module Algebra.Monoid where
 
 open import Prelude
-open import Algebra.Base public
 open import Cubical.Foundations.HLevels
+
+-- https://en.wikipedia.org/wiki/Monoid
+record monoid {A : Type l}(_∙_ : A → A → A) : Type(lsuc l) where
+  field
+      e : A
+      IsSet : isSet A
+      lIdentity : (a : A) → e ∙ a ≡ a
+      rIdentity : (a : A) → a ∙ e ≡ a
+      {{mAssoc}} : Associative _∙_
+open monoid {{...}}
 
 -- Identity element of a monoid is unique
 idUnique : {_∙_ : A → A → A} {{M : monoid _∙_}} → {a : A} → ((x : A) → a ∙ x ≡ x) → a ≡ e

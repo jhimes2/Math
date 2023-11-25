@@ -7,9 +7,10 @@ open import Relations
 open import Data.Base
 open import Data.Natural
 open import Algebra.MultAdd
-open import Algebra.Base
 open import Algebra.Monoid
 open import Cubical.Foundations.HLevels
+
+open monoid {{...}}
 
 variable
   n m : ℕ

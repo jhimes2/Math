@@ -3,7 +3,7 @@
 module Algebra.Rng where
 
 open import Prelude
-open import Algebra.Group public
+open import Algebra.AbelianGroup public
 open import Algebra.MultAdd public
 
 -- https://en.wikipedia.org/wiki/Rng_(algebra)
