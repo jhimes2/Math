@@ -5,7 +5,6 @@ module Data.Integer where
 open import Data.Base
 open import Prelude
 open import Relations
-open import Algebra.Base
 open import Algebra.CRing
 open import Data.Natural
 open import Cubical.Data.Sigma.Properties
