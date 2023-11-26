@@ -5,6 +5,7 @@ module Algebra.OrderedRng where
 open import Prelude
 open import Relations
 open import Algebra.Field
+open import Algebra.Ring
 open import Cubical.HITs.PropositionalTruncation
             renaming (rec to truncRec)
 

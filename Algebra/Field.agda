@@ -17,40 +17,50 @@ record Field (A : Type l) : Type (lsuc l) where
     GFP : (xs : [ A ^ n ]) → xs ≢ (λ _ → 0r) → (x : A) → ∃ λ i → xs i ≢ 0r
 open Field {{...}} public
 
-1f : {{F : Field A}} → nonZero
-1f = (multStr .e , oneNotZero)
+module _{{F : Field A}} where
 
-_/_ : {{F : Field A}} → A → nonZero → A
-a / b = a * reciprocal b
-
-x⁻¹≢0 : {{F : Field A}} (x : nonZero) → reciprocal x ≢ 0r 
-x⁻¹≢0 (a , p) contra =
-  let H : a * reciprocal (a , p) ≡ a * 0r 
-      H = right _*_ contra in
-  let G : 1r ≡ a * 0r 
-      G = eqTrans (sym (recInv (a , p))) H in
-  let F : 1r ≡ 0r 
-      F = eqTrans G (x*0≡0 a) in oneNotZero F
-
--- Multiplying two nonzero values gives a nonzero value
-nonZeroMult : {{F : Field A}} (a b : nonZero) → (pr1 a * pr1 b) ≢ 0r 
-nonZeroMult (a , a') (b , b') = λ(f : (a * b) ≡ 0r ) →
-  let H : reciprocal (a , a') * (a * b) ≡ reciprocal (a , a') * 0r 
-      H = right _*_ f in
-  let G : (reciprocal (a , a')) * 0r  ≡ 0r 
-      G = x*0≡0 (reciprocal (a , a')) in
-  let F = b       ≡⟨ sym(lIdentity b)⟩
-          1r * b ≡⟨ left _*_ (sym (recInv (a , a')))⟩
-          (a * reciprocal (a , a')) * b ≡⟨ left _*_ (comm a (reciprocal (a , a'))) ⟩
-          (reciprocal (a , a') * a) * b ≡⟨ sym (assoc (reciprocal (a , a')) a b)⟩
-          (reciprocal (a , a')) * (a * b) ∎ in
-  let contradiction : b ≡ 0r 
-      contradiction = eqTrans F (eqTrans H G)
-      in b' contradiction
-
-NZMult : {{F : Field A}} → nonZero → nonZero → nonZero
-NZMult (a , a') (b , b') = (a * b) , nonZeroMult (a , a') ((b , b'))
-
+ 1f : nonZero
+ 1f = (multStr .e , oneNotZero)
+ 
+ _/_ : A → nonZero → A
+ a / b = a * reciprocal b
+ 
+ x⁻¹≢0 : (x : nonZero) → reciprocal x ≢ 0r 
+ x⁻¹≢0 (a , p) contra =
+   let H : a * reciprocal (a , p) ≡ a * 0r 
+       H = right _*_ contra in
+   let G : 1r ≡ a * 0r 
+       G = eqTrans (sym (recInv (a , p))) H in
+   let F : 1r ≡ 0r 
+       F = eqTrans G (x*0≡0 a) in oneNotZero F
+ 
+ -- Multiplying two nonzero values gives a nonzero value
+ nonZeroMult : (a b : nonZero) → (pr1 a * pr1 b) ≢ 0r 
+ nonZeroMult (a , a') (b , b') = λ(f : (a * b) ≡ 0r ) →
+   let H : reciprocal (a , a') * (a * b) ≡ reciprocal (a , a') * 0r 
+       H = right _*_ f in
+   let G : (reciprocal (a , a')) * 0r  ≡ 0r 
+       G = x*0≡0 (reciprocal (a , a')) in
+   let F = b       ≡⟨ sym(lIdentity b)⟩
+           1r * b ≡⟨ left _*_ (sym (recInv (a , a')))⟩
+           (a * reciprocal (a , a')) * b ≡⟨ left _*_ (comm a (reciprocal (a , a'))) ⟩
+           (reciprocal (a , a') * a) * b ≡⟨ sym (assoc (reciprocal (a , a')) a b)⟩
+           (reciprocal (a , a')) * (a * b) ∎ in
+   let contradiction : b ≡ 0r 
+       contradiction = eqTrans F (eqTrans H G)
+       in b' contradiction
+ 
+ NZMult : nonZero → nonZero → nonZero
+ NZMult (a , a') (b , b') = (a * b) , nonZeroMult (a , a') ((b , b'))
+ 
+ negOneNotZero : neg 1r ≢ 0r 
+ negOneNotZero =
+   λ(contra : neg 1r ≡ 0r ) → oneNotZero $
+                          grp.invInjective $
+                              neg 1r ≡⟨ contra ⟩
+                              0r     ≡⟨ sym (grp.lemma4) ⟩
+                              neg 0r  ∎
+ 
 distinguishingOutput : (xs : [ A ^ n ]) → {a : A}
                      → ((x : A) → Dec (x ≡ a))
                      → xs ≢ (λ _ → a) → ∃ λ i → xs i ≢ a
@@ -64,14 +74,6 @@ distinguishingOutput {n = S n} xs {a} decide p = decide (head xs)
                      η $ (finS r) , (λ x → p x)
      ; (no y) → ∣ ( Z , n , refl) , (λ x → y x) ∣₁}
  where open import Cubical.HITs.PropositionalTruncation
-
-negOneNotZero : {{F : Field A}} → neg 1r ≢ 0r 
-negOneNotZero =
-  λ(contra : neg 1r ≡ 0r ) → oneNotZero $
-                         grp.invInjective $
-                             neg 1r ≡⟨ contra ⟩
-                             0r     ≡⟨ sym (grp.lemma4) ⟩
-                             neg 0r  ∎
 
 instance
   NZMultComm : {{F : Field A}} → Commutative NZMult
