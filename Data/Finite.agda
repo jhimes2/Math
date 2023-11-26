@@ -34,6 +34,8 @@ finDiscrete = discreteΣ natDiscrete (λ a x y → yes (finSndIsProp a x y))
 finIsSet : isSet (fin n)
 finIsSet = Discrete→isSet finDiscrete
 
+-- Finite vector
+-- `[ Bool ^ n ]` would be a vector of booleans of length `n`.
 [_^_] : Type l → ℕ → Type l
 [_^_] A n = fin n → A
 
