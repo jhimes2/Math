@@ -14,6 +14,7 @@ open import Cubical.HITs.SetQuotients
 open import Cubical.HITs.PropositionalTruncation renaming (rec to recTrunc)
 open import Data.Finite
 open import NumberTheory.Natural
+open import Data.Bool
 
 finDecrInj : (f : fin (S n) → fin (S m)) → ((x y : fin (S n)) → f x ≡ f y → x ≡ y) → Σ λ(g : fin n → fin m) → injective g
 finDecrInj {n} {m} f fInj = {!!}

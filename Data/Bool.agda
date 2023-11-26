@@ -3,8 +3,11 @@
 module Data.Bool where
 
 open import Prelude
-open import Data.Base public
 open import Algebra.Field
+
+data Bool : Type where
+  Yes : Bool
+  No : Bool
 
 not : Bool → Bool
 not Yes = No

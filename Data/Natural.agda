@@ -4,9 +4,14 @@ module Data.Natural where
 
 open import Relations
 open import Prelude
-open import Data.Base public
 open import Algebra.Monoid
 open import Algebra.MultAdd
+open import Cubical.HITs.PropositionalTruncation
+   renaming (rec to recTrunc ; map to mapRec)
+
+data ℕ : Type where
+  Z : ℕ
+  S : ℕ → ℕ
 
 add : ℕ → ℕ → ℕ
 add Z b = b
@@ -155,6 +160,45 @@ multCancel (S a) Z m p = ZNotS (sym p) ~> UNREACHABLE
 multCancel (S a) (S b) m p = cong S
       let p = SInjective p in
       multCancel a b m (natRCancel m (comm (a * S m) m ∙ p ∙ comm m (b * S m)))
+
+private
+    le : ℕ → ℕ → Type
+    le Z _ = ⊤
+    le (S x) (S y) = le x y
+    le _ Z = ⊥
+
+instance
+  preorderNat : Preorder le
+  preorderNat = record
+                 { transitive = λ {a b c} → leTrans a b c
+                 ; reflexive = λ{a} → leRefl a
+                 ; isRelation = ≤isProp }
+    where
+      leTrans : (a b c : ℕ) → le a b → le b c → le a c
+      leTrans Z _ _ _ _ = tt
+      leTrans (S a) (S b) (S c) = leTrans a b c
+      leRefl : (a : ℕ) → le a a
+      leRefl Z = tt
+      leRefl (S a) = leRefl a
+      ≤isProp : (a b : ℕ) → isProp (le a b)
+      ≤isProp Z _ = isPropUnit
+      ≤isProp (S a) Z = isProp⊥
+      ≤isProp (S a) (S b) = ≤isProp a b
+
+  posetNat : Poset le
+  posetNat = record { antiSymmetric = λ {a b} → leAntiSymmetric a b }
+   where
+    leAntiSymmetric : (a b : ℕ) → le a b → le b a → a ≡ b
+    leAntiSymmetric Z Z p q = refl
+    leAntiSymmetric (S a) (S b) p q = cong S (leAntiSymmetric a b p q)
+  totalOrderNat : TotalOrder ℕ
+  totalOrderNat = record { _≤_ = le
+                         ; stronglyConnected = leStronglyConnected }
+   where
+    leStronglyConnected : (a b : ℕ) → ∥ le a b ＋ le b a ∥₁
+    leStronglyConnected Z _ = ∣ inl tt ∣₁
+    leStronglyConnected (S a) Z =  ∣ inr tt ∣₁
+    leStronglyConnected (S a) (S b) = leStronglyConnected a b
 
 leS : {n m : ℕ} → S n ≤ m → n ≤ m
 leS {Z} {S m} p = tt
