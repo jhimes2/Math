@@ -71,3 +71,11 @@ module _{A : Type l}{{R : Rng A}} where
    0r                  ≡⟨ sym (rInverse (x * y))⟩
    (x * y) + neg(x * y) ∎
  
+ x*-y≡-[x*y] : (x y : A) → x * (neg y) ≡ neg(x * y)
+ x*-y≡-[x*y] x y = sym (-x*y≡x*-y x y) ∙ -x*y≡-[x*y] x y
+
+ -x*-y≡x*y : (x y : A) → neg x * neg y ≡ x * y
+ -x*-y≡x*y x y =
+   neg x * neg y  ≡⟨ -x*y≡x*-y x (neg y)⟩
+   x * neg(neg y) ≡⟨ right _*_ (grp.doubleInv y)⟩
+   x * y ∎
