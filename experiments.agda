@@ -107,3 +107,5 @@ GCD a b = findGreatest (commonDivisor a (S b))
               ; (no p) → no (λ(x , _) → p x)}) ((S Z) , (∣ a , (rIdentity a) ∣₁
                          , ∣ S b , cong S (rIdentity b) ∣₁)) (S b)
                            λ m (x , y) → divides.le m b y
+
+

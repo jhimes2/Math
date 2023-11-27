@@ -21,6 +21,16 @@ module ordered{u : Level}{R : Type u}{{_ : Rng R}}{{_ : OrderedRng R}} where
   eqToLe : {a b : R} → a ≡ b → a ≤ b
   eqToLe {a = a} p = transport (λ i → a ≤ p i) reflexive
 
+  subLe : (a b c : R) → (a + c) ≤ (b + c) → a ≤ b
+  subLe a b c p =
+    addLe p (neg c)
+    ~> λ(H : ((a + c) + neg c) ≤ ((b + c) + neg c))
+     → transport (λ i → (assoc a c (neg c) (~ i)) ≤ (assoc b c (neg c) (~ i))) H
+    ~> λ(H : (a + (c + neg c)) ≤ (b + (c + neg c)))
+     → transport (λ i → (a + rInverse c i) ≤ (b + rInverse c i)) H
+    ~>  λ(H : (a + 0r) ≤ (b + 0r))
+     → transport (λ i → rIdentity a i ≤ rIdentity b i) H
+
   lemma1 : {a b : R} → a ≤ b → {c d : R} → c ≤ d → (a + c) ≤ (b + d)
   lemma1 {a = a} {b} p {c} {d} q =
     let H : 0r ≤ (b - a)
@@ -72,7 +82,6 @@ module ordered{u : Level}{R : Type u}{{_ : Rng R}}{{_ : OrderedRng R}} where
                    ; (inr x) → antiSymmetric x (lemma2 x ~> λ(y : neg 0r ≤ neg a) →
                                                  transport (λ i → grp.lemma4 i ≤ p i) y)})
                  (stronglyConnected 0r a)
-
 
   Positive : Type u
   Positive = Σ λ (x : R) → 0r <  x
