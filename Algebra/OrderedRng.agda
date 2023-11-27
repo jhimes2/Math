@@ -6,6 +6,7 @@ open import Prelude
 open import Relations
 open import Algebra.Field
 open import Algebra.Ring
+open import Cubical.Foundations.HLevels
 open import Cubical.HITs.PropositionalTruncation
             renaming (rec to truncRec)
 
@@ -13,7 +14,7 @@ record OrderedRng (A : Type l) {{ordrng : Rng A}} : Type (lsuc l) where
   field
     {{totalOrd}} : TotalOrder A
     addLe : {a b : A} → a ≤ b → (c : A) → (a + c) ≤ (b + c) 
-    multLe : {a b : A} → 0r < a → 0r < b → 0r < (a * b)
+    multLt : {a b : A} → 0r < a → 0r < b → 0r < (a * b)
 open OrderedRng {{...}} public
 
 module ordered{u : Level}{R : Type u}{{_ : Rng R}}{{_ : OrderedRng R}} where
@@ -108,16 +109,66 @@ module _{u : Level}{F : Type u}{{_ : Field F}}{{OF : OrderedRng F}} where
   open import Algebra.Field
   open import Algebra.Ring
 
-  zeroLtOne : 0r < 1r
-  zeroLtOne = let H : ¬(1r ≤ 0r) → 0r < 1r
-                  H = flipNeg in H $
-   λ (contra : 1r ≤ 0r) →
+  1≰0 : ¬(1r ≤ 0r)
+  1≰0 contra =
     let G : 0r ≤ 1r
         G = ordered.lemma2 contra
            ~> transport (λ i → grp.lemma4 i ≤ neg 1r)
            ~> λ(p : 0r ≤ neg 1r) → (λ x → negOneNotZero (sym x))
-           ~> λ(q : 0r ≢ neg 1r) → multLe (p , q) (p , q)
+           ~> λ(q : 0r ≢ neg 1r) → multLt (p , q) (p , q)
            ~> transport (λ i → 0r < x*-1≡-x (neg 1r) i)
            ~> transport (λ i → 0r < grp.doubleInv 1r i)
            ~> λ(p : 0r < 1r) → (fst p)
       in oneNotZero $ antiSymmetric contra $ G
+
+  0≰-1 : ¬(0r ≤ neg 1r)
+  0≰-1 contra = addLe contra 1r ~>
+    λ H → transport (λ i → grpIsMonoid .lIdentity 1r i ≤ lInverse 1r i) H ~> 1≰0
+
+  zeroLtOne : 0r < 1r
+  zeroLtOne = let H : ¬(1r ≤ 0r) → 0r < 1r
+                  H = flipNeg in H 1≰0
+
+  2f : nonZero
+  2f = 1r + 1r , λ(contra : 1r + 1r ≡ 0r)
+   → a<b→b≤c→a≢c zeroLtOne (ordered.lemma3 (reflexive {a = 1r}) (fst zeroLtOne)) (sym contra)
+
+  [a+a]/2≡a : ∀ a → (a + a) / 2f ≡ a
+  [a+a]/2≡a a =
+    (a + a) / 2f ≡⟨⟩
+    (a + a) * reciprocal 2f ≡⟨ left _*_ (sym (cong₂ _+_ (rIdentity a) (rIdentity a)))⟩
+    ((a * 1r) + (a * 1r)) * reciprocal 2f ≡⟨ left _*_ (sym (lDistribute a 1r 1r))⟩
+    (a * (1r + 1r)) * reciprocal 2f ≡⟨⟩
+    (a * 2r) * reciprocal 2f ≡⟨ sym (assoc a 2r (reciprocal 2f))⟩
+    a * (2r * reciprocal 2f) ≡⟨ right _*_ (recInv 2f)⟩
+    a * 1r ≡⟨ rIdentity a ⟩
+    a ∎
+
+  0<2 : 0r < 2r
+  0<2 = ordered.lemma3 (fst zeroLtOne) (fst zeroLtOne) , λ x → snd 2f (sym x)
+  
+  0<x² : (x : nonZero) → 0r < (fst x * fst x)
+  0<x² (x , p) = stronglyConnected 0r x
+    ~> truncRec (isProp< 0r (x * x))
+      λ{ (inl q) → multLt (q , λ z → p (sym z)) (q , (λ z → p (sym z)))
+       ; (inr q) → ordered.lemma2 q ~> λ H →
+          transport (λ i → grp.lemma4 i ≤ neg x) H ~>
+          λ H → let F = H , λ y → p $ x ≡⟨ sym(grp.doubleInv x)⟩ neg (neg x)
+                                        ≡⟨ cong neg (sym y)⟩ neg 0r
+                                        ≡⟨ grp.lemma4 ⟩ 0r ∎ in
+          let G : 0r < (neg x * neg x)
+              G = multLt F F in transport (λ i → 0r < -x*-y≡x*y x x i) G}
+
+  reciprocalLt : {a : F} → (p : 0r < a) → 0r < reciprocal (a , λ x → snd p (sym x))
+  reciprocalLt {a = a} p = let a' = (a , λ x → snd p (sym x)) in flipNeg λ contra
+    → let G : 0r < (a * neg (reciprocal a'))
+          G = multLt p $ (ordered.lemma2 contra ~> transport (λ i → grp.lemma4 i ≤ neg (reciprocal a')))
+                    , λ x → grp.invInjective (grp.lemma4 ∙ x)
+                         ~> λ(F : 0r ≡ reciprocal a') → x⁻¹≢0 a' (sym F) in
+          transport (λ i → 0r ≤ x*-y≡-[x*y] a (reciprocal a') i) (fst G)
+          ~> transport (λ i → 0r ≤ neg(recInv a' i)) ~> 0≰-1
+
+  0≤a+a→0≤a : ∀ {a : F} → 0r < (a + a) → 0r < a
+  0≤a+a→0≤a {a = a} p =
+    let H : 0r < ((a + a) * reciprocal 2f)
+        H = multLt p (reciprocalLt 0<2) in transport (λ i → 0r < [a+a]/2≡a a i) H
