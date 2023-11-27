@@ -21,6 +21,13 @@ open Poset {{...}} public
 _<_ : {A : Type l} → {_≤_ : A → A → Type} → {{Poset _≤_}} → A → A → Type l
 _<_ {_≤_ = _≤_} a b = (a ≤ b) × (a ≢ b)
 
+isProp< : {_≤_ : A → A → Type} → {{P : Poset _≤_}} → (a b : A) → isProp (a < b)
+isProp< a b p q = ≡-× (isRelation a b (fst p) (fst q)) (funExt λ x → snd q x ~> UNREACHABLE)
+
+a<b→b≤c→a≢c : {_≤_ : A → A → Type} {{O : Poset _≤_}} → {a b c : A} → a < b → b ≤ c → a ≢ c 
+a<b→b≤c→a≢c {_≤_ = _≤_} {a = a} {b} {c} (q , p) b<c contra = p
+     $ antiSymmetric q $ transport (λ i → b ≤ contra (~ i)) b<c
+
 record TotalOrder (A : Type l) : Type (lsuc l)
   where field
    _≤_ : A → A → Type
