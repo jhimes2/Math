@@ -168,7 +168,7 @@ module _{u : Level}{F : Type u}{{_ : Field F}}{{OF : OrderedRng F}} where
           transport (λ i → 0r ≤ x*-y≡-[x*y] a (reciprocal a') i) (fst G)
           ~> transport (λ i → 0r ≤ neg(recInv a' i)) ~> 0≰-1
 
-  0≤a+a→0≤a : ∀ {a : F} → 0r < (a + a) → 0r < a
-  0≤a+a→0≤a {a = a} p =
+  0<a+a→0<a : ∀ {a : F} → 0r < (a + a) → 0r < a
+  0<a+a→0<a {a = a} p =
     let H : 0r < ((a + a) * reciprocal 2f)
         H = multLt p (reciprocalLt 0<2) in transport (λ i → 0r < [a+a]/2≡a a i) H
