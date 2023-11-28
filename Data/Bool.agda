@@ -1,4 +1,4 @@
-{-# OPTIONS --overlapping-instances --cubical #-}
+{-# OPTIONS --safe --overlapping-instances --cubical #-}
 
 module Data.Bool where
 
