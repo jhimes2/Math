@@ -84,6 +84,14 @@ module ordered{u : Level}{R : Type u}{{_ : Rng R}}{{_ : OrderedRng R}} where
                                                  transport (λ i → grp.lemma4 i ≤ p i) y)})
                  (stronglyConnected 0r a)
 
+  lemma5 : {a : R} → 0r ≡ a + a → a ≡ 0r
+  lemma5 {a = a} p = lemma4 $ neg a ≡⟨ sym (rIdentity (neg a))⟩
+                              neg a + 0r ≡⟨ right _+_ p ⟩
+                              neg a + (a + a) ≡⟨ assoc (neg a) a a ⟩
+                              (neg a + a) + a ≡⟨ left _+_ (lInverse a)⟩
+                              0r + a ≡⟨ lIdentity a ⟩
+                              a ∎
+
   Positive : Type u
   Positive = Σ λ (x : R) → 0r <  x
 
