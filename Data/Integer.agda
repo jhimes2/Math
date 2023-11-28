@@ -148,9 +148,6 @@ instance
    lInv = elimProp (λ x → ℤisSet (addℤ (negℤ x) x) [ Z , Z ])
       λ (p , n) → eq/ (add n p , add p n) (Z , Z) (addZ (add n p) ∙ comm n p)
 
- ℤAbelianGroup : abelianGroup addℤ
- ℤAbelianGroup = record {}
-
  ℤMultMonoid : monoid multℤ
  ℤMultMonoid = record {
      e = [ S Z , Z ]

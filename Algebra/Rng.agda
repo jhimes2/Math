@@ -3,14 +3,15 @@
 module Algebra.Rng where
 
 open import Prelude
-open import Algebra.AbelianGroup public
+open import Algebra.Group public
 open import Algebra.MultAdd public
 
 -- https://en.wikipedia.org/wiki/Rng_(algebra)
 record Rng (A : Type l) : Type (lsuc l) where
   field
     {{rng*+}} : *+ A
-    {{raddStr}} : abelianGroup _+_
+    {{raddStr}} : group _+_
+    {{comRng}} : Commutative _+_
 open Rng {{...}} public
 
 module _{A : Type l}{{R : Rng A}} where

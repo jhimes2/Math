@@ -10,7 +10,8 @@ open import Algebra.CRing public
 record Module {scalar : Type l} {{R : Ring scalar}} (vector : Type l') : Type (lsuc (l ⊔ l')) where
   field
     _[+]_ : vector → vector → vector
-    addvStr : abelianGroup _[+]_
+    {{addvStr}} : group _[+]_
+    {{comMod}} : Commutative _[+]_
     scale : scalar → vector → vector
     scalarDistribute : (a : scalar) → (u v : vector)
                      → scale a (u [+] v) ≡ (scale a u) [+] (scale a v)
@@ -30,9 +31,6 @@ module _{scalar : Type l}{vector : Type l'}{{R : Ring scalar}}{{V : Module vecto
 
   _[-]_ : vector → vector → vector
   a [-] b = a [+] (negV b)
-
-  vGrp : group _[+]_
-  vGrp = abelianGroup.grp addvStr
 
   -- Vector scaled by 0r is zero vector
   scaleZ : (v : vector) → scale 0r v ≡ Ô

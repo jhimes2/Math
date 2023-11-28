@@ -77,15 +77,11 @@ instance
                      ; IsSet = isSet→ (monoid.IsSet (Ring.multStr R))
                      ; lIdentity = λ v → funExt (λ x → lIdentity (v x)) }
 
- abelianV : {{R : Ring A}} → abelianGroup (addv {B = B})
- abelianV = record {}
-
   -- A function whose codomain is an underlying set for a ring is a vector for a module.
   -- If the codomain is an underlying set for a field, then the function is a vector for a linear space.
  vectMod : {A : Type l}{B : Type l'} → {{R : Ring A}} → Module (B → A)
  vectMod {A = A} {B = B} {{R = R}} = record
             { _[+]_ = addv
-            ; addvStr = abelianV
             ; scale = scaleV
             ; scalarDistribute = scalar-distributivity2
             ; vectorDistribute = λ v a b → scalar-distributivity a b v

@@ -69,8 +69,6 @@ instance
                                    ; Yes No → refl
                                    ; No Yes → refl
                                    ; No No → refl}}
-  xorAbelian : abelianGroup xor
-  xorAbelian = record {}
   bool*+ : *+ Bool
   bool*+ = record { _+_ = xor
                   ; _*_ = and

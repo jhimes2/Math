@@ -57,16 +57,13 @@ module _{scalar : Type l}{{F : Field scalar}}{vector : Type l'}{{V : VectorSpace
 
 instance
     FieldToVectorSpace : {A : Type l} → {{F : Field A}} → VectorSpace A
-    FieldToVectorSpace {A = A} {{F}}  =
+    FieldToVectorSpace {A = A}  =
       record {
               _[+]_ = _+_
-            ; addvStr = record {}
             ; scale = _*_
             ; scalarDistribute = lDistribute
             ; vectorDistribute = rDistribute
-            ; scalarAssoc = λ a b c →
-               let H = Associative.assoc (monoid.mAssoc (Ring.multStr (CRing.crring (Field.fring F))))
-               in assoc b c a
+            ; scalarAssoc = λ a b c → assoc b c a
             ; scaleId = lIdentity
       }
 
@@ -142,15 +139,12 @@ instance
                      }) , ΣPathPProp modHomomorphismIsProp (funExt λ x → lInverse (T x))
           ; lIdentity = λ (T , _) →
                 ΣPathPProp modHomomorphismIsProp (funExt λ x → lIdentity (T x))}
-  LFAGroup : {{F : Field A}}{{VS : VectorSpace B}} → abelianGroup (dualSum VS)
-  LFAGroup = record {}
 
   -- https://en.wikipedia.org/wiki/Dual_space
   dualSpace : {B : Type l} {{F : Field A}}{{VS : VectorSpace B}} → VectorSpace (linearForm VS)
   dualSpace {{VS = VS}} =
    record
        { _[+]_ = dualSum VS
-       ; addvStr = record {}
        ; scale = λ c (T , record {addT = addTT ; multT = multTT}) →
                 (λ b → scale c (T b))
                  , record {
