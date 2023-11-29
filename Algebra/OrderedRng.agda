@@ -18,9 +18,6 @@ open OrderedRng {{...}} public
 
 module ordered{{_ : Rng A}}{{_ : OrderedRng A}} where
 
-  eqToLe : {a b : A} → a ≡ b → a ≤ b
-  eqToLe {a = a} p = transport (λ i → a ≤ p i) reflexive
-
   subLe : (a b c : A) → (a + c) ≤ (b + c) → a ≤ b
   subLe a b c p =
     addLe p (neg c)

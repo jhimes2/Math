@@ -12,6 +12,9 @@ record Preorder {A : Type l} (_≤_ : A → A → Type) : Type (lsuc l)
    isRelation : (a b : A) → isProp(a ≤ b)
 open Preorder {{...}} public
 
+eqToLe : {_≤_ : A → A → Type} → {{_ : Preorder _≤_}} → {a b : A} → a ≡ b → a ≤ b
+eqToLe {_≤_ = _≤_} {a = a} p = transport (λ i → a ≤ p i) reflexive
+
 record Poset {A : Type l}(_≤_ : A → A → Type) : Type (lsuc l)
   where field
    {{partpre}} : Preorder _≤_
