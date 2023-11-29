@@ -274,3 +274,11 @@ instance
     aux : (x y : ℤ) → ∥ le x y ＋ le y x ∥₁
     aux = elimProp2 (λ x y → squash₁)
                    λ (a , b) (c , d) → ∣ stronglyConnected (a + d) (c + b) ∣₁
+
+_ℕ*ℤ_ : ℕ → ℤ → ℤ
+_ℕ*ℤ_ n = QRec ℤisSet (λ(a , b) → [ n * a , n * b ])
+               λ(a , b)(c , d) r → eq/ ((n * a) , (n * b)) ((n * c) , (n * d)) $
+ (n * a) + (n * d) ≡⟨ sym (lDistribute n a d) ⟩
+ n * (a + d)       ≡⟨ cong (n *_) r ⟩
+ n * (c + b)       ≡⟨ lDistribute n c b ⟩
+ (n * c) + (n * b) ∎
