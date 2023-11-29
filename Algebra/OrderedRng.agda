@@ -18,6 +18,11 @@ open OrderedRng {{...}} public
 
 module ordered{{_ : Rng A}}{{_ : OrderedRng A}} where
 
+  -- Absolute value
+  abs : A → ∥ A ∥₁
+  abs a = stronglyConnected a 0r
+        ~> truncRec squash₁ λ{(inl a≤0) → ∣ neg a ∣₁ ; (inr 0≤a) → ∣ a ∣₁}
+
   subLe : (a b c : A) → (a + c) ≤ (b + c) → a ≤ b
   subLe a b c p =
     addLe p (neg c)
