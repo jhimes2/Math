@@ -143,10 +143,10 @@ module _{u : Level}{F : Type u}{{_ : Field F}}{{OF : OrderedRng F}} where
 
   [a+a]/2≡a : ∀ a → (a + a) / 2f ≡ a
   [a+a]/2≡a a =
-    (a + a) / 2f ≡⟨⟩
+    (a + a) / 2f ≡⟨By-Definition⟩
     (a + a) * reciprocal 2f ≡⟨ left _*_ (sym (cong₂ _+_ (rIdentity a) (rIdentity a)))⟩
     ((a * 1r) + (a * 1r)) * reciprocal 2f ≡⟨ left _*_ (sym (lDistribute a 1r 1r))⟩
-    (a * (1r + 1r)) * reciprocal 2f ≡⟨⟩
+    (a * (1r + 1r)) * reciprocal 2f ≡⟨By-Definition⟩
     (a * 2r) * reciprocal 2f ≡⟨ sym (assoc a 2r (reciprocal 2f))⟩
     a * (2r * reciprocal 2f) ≡⟨ right _*_ (recInv 2f)⟩
     a * 1r ≡⟨ rIdentity a ⟩

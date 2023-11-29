@@ -3,7 +3,8 @@
 open import Agda.Primitive public
 open import Cubical.Core.Everything renaming (Σ to Σ'; I to Interval) public
 open import Cubical.Foundations.Prelude
-    hiding (Σ) renaming (I to Interval ; congL to left ; congR to right) public
+    hiding (Σ)
+    renaming (I to Interval ; congL to left ; congR to right ; _≡⟨⟩_ to _≡⟨By-Definition⟩_ ) public
 open import Cubical.Relation.Nullary public
 open import Cubical.Data.Unit renaming (Unit to ⊤) public
 open import Cubical.Data.Empty public

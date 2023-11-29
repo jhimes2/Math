@@ -106,27 +106,27 @@ instance
    record {
      addT = λ u v → funExt λ x →
      MT M (addv u v) x
-       ≡⟨⟩
+       ≡⟨By-Definition⟩
      foldr _+_ 0r (zip _*_ (addv u v) (transpose M x))
-       ≡⟨⟩
+       ≡⟨By-Definition⟩
      foldr _+_ 0r (λ y → (addv u v) y * transpose M x y)
-       ≡⟨⟩
+       ≡⟨By-Definition⟩
      foldr _+_ 0r (λ y → (u y + v y) * transpose M x y)
        ≡⟨ cong (foldr _+_ 0r ) (funExt λ z → rDistribute (transpose M x z) (u z) (v z))⟩
      foldr _+_ 0r (λ y → ((u y * transpose M x y) + (v y * transpose M x y)))
-       ≡⟨⟩
+       ≡⟨By-Definition⟩
      foldr _+_ 0r  (addv (multv u (transpose M x)) (multv v (transpose M x)))
        ≡⟨ foldrMC (multv u (transpose M x)) (multv v (transpose M x))⟩
      foldr _+_ 0r (multv u (transpose M x)) + foldr _+_ 0r  (multv v (transpose M x))
-       ≡⟨⟩
+       ≡⟨By-Definition⟩
      foldr _+_ 0r (zip _*_ u (transpose M x)) + foldr _+_ 0r  (zip _*_ v (transpose M x))
-       ≡⟨⟩
+       ≡⟨By-Definition⟩
      addv (MT M u) (MT M v) x ∎
    ; multT = λ u c → funExt λ x →
-       MT M (scaleV c u) x ≡⟨⟩
+       MT M (scaleV c u) x ≡⟨By-Definition⟩
        foldr _+_ 0r  (λ y → (c * u y) * M y x) ≡⟨ cong (foldr _+_ 0r ) (funExt λ y → sym (assoc c (u y) (M y x))) ⟩
        foldr _+_ 0r  (λ y → c * (u y * M y x)) ≡⟨ Rec M u c x ⟩
-       c * (foldr _+_ 0r  (λ y → u y * M y x)) ≡⟨⟩
+       c * (foldr _+_ 0r  (λ y → u y * M y x)) ≡⟨By-Definition⟩
        scaleV c (MT M u) x ∎
    }
       where
@@ -154,29 +154,29 @@ dotDistribute Z w u v = sym (lIdentity 0r)
 dotDistribute (S n) w u v =
   let v∙w = dot (tail v) (tail w) in
   let u∙w = dot (tail u) (tail w) in
- dot (u [+] v) w ≡⟨⟩
- (head(u [+] v) * head w) + dot (tail(u [+] v)) (tail w) ≡⟨⟩
+ dot (u [+] v) w ≡⟨By-Definition⟩
+ (head(u [+] v) * head w) + dot (tail(u [+] v)) (tail w) ≡⟨By-Definition⟩
  ((head u + head v) * head w) + dot ((tail u [+] tail v)) (tail w)
     ≡⟨ right _+_ (dotDistribute n (tail w) (tail u) (tail v))⟩
  ((head u + head v) * head w) + (u∙w + v∙w) ≡⟨ left _+_ (rDistribute (head w)(head u)(head v))⟩
  ((head u * head w) + (head v * head w)) + (u∙w + v∙w)
     ≡⟨ [ab][cd]≡[ac][bd] (head u * head w) (head v * head w) (u∙w) (v∙w)⟩
- ((head u * head w) + u∙w) + ((head v * head w) + v∙w) ≡⟨⟩
+ ((head u * head w) + u∙w) + ((head v * head w) + v∙w) ≡⟨By-Definition⟩
  dot u w + dot v w ∎
 
 dotScale : {{R : Ring A}} → (c : A) → (u v : [ A ^ n ])
          → dot (scale c u) v ≡ c * dot u v
 dotScale {n = Z} c u v = sym (x*0≡0 c)
 dotScale {n = S n} c u v =
- dot (scale c u) v ≡⟨⟩
+ dot (scale c u) v ≡⟨By-Definition⟩
  (head(scale c u) * head v) + dot (tail(scale c u)) (tail v)
  ≡⟨ right _+_ (dotScale {n = n} c (tail u) (tail v))⟩
- (head(scale c u) * head v) + (c * dot (tail u) (tail v)) ≡⟨⟩
+ (head(scale c u) * head v) + (c * dot (tail u) (tail v)) ≡⟨By-Definition⟩
  ((c * head u) * head v) + (c * dot (tail u) (tail v))
  ≡⟨ left _+_ (sym (assoc c (head u) (head v)))⟩
  (c * (head u * head v)) + (c * dot (tail u) (tail v))
  ≡⟨ sym (lDistribute c (head u * head v) (dot (tail u) (tail v)))⟩
- c * ((head u * head v) + dot (tail u) (tail v)) ≡⟨⟩
+ c * ((head u * head v) + dot (tail u) (tail v)) ≡⟨By-Definition⟩
  c * dot u v ∎
 
 dotZL : {{R : Ring A}}
@@ -207,13 +207,13 @@ dotMatrix : {{R : Ring A}}
            → dot (λ y → dot v (λ x → M x y)) u ≡ dot v (λ x → dot (M x) u)
 dotMatrix n Z u M v = dotZL u
 dotMatrix n (S m) u M v =
- dot (λ n' → dot v (λ m' → M m' n')) u ≡⟨⟩
- dot (λ n' → (head v * (head M) n') + dot (tail v) (tail λ m' → M m' n')) u ≡⟨⟩
+ dot (λ n' → dot v (λ m' → M m' n')) u ≡⟨By-Definition⟩
+ dot (λ n' → (head v * (head M) n') + dot (tail v) (tail λ m' → M m' n')) u ≡⟨By-Definition⟩
  dot ((λ n' → (head v * (head M) n')) [+] (λ n' → dot (tail v) (λ m' → (tail M) m' n'))) u
  ≡⟨ dotDistribute n u (λ n' → (head v * head λ m' → M m' n')) (λ n' → dot (tail v) (λ m' → (tail M) m' n'))⟩
  dot (scale (head v) (head M)) u + dot (λ n' → dot (tail v) (λ m' → (tail M) m' n')) u
  ≡⟨ cong₂ _+_ (dotScale {n = n} (head v) (head M) u) (dotMatrix n m u (tail M) (tail v))⟩
- (head v * dot (head M) u) + dot (tail v) (tail λ m' → dot (M m') u) ≡⟨⟩
+ (head v * dot (head M) u) + dot (tail v) (tail λ m' → dot (M m') u) ≡⟨By-Definition⟩
  dot v (λ m' → dot (M m') u) ∎
 
 instance
@@ -238,9 +238,9 @@ transposeMMult : {{R : CRing A}}
                → (N : B → fin n → A)
                → transpose (mMult M N) ≡ mMult (transpose N) (transpose M)
 transposeMMult {A = A} {n = n} {C = C} {B = B} M N = funExt λ c → funExt λ b →
-    transpose (mMult M N) c b ≡⟨⟩
+    transpose (mMult M N) c b ≡⟨By-Definition⟩
     dot (N b) (λ x → M x c) ≡⟨ comm (N b) (λ x → M x c)⟩
-    dot (λ x → M x c) (N b) ≡⟨⟩
+    dot (λ x → M x c) (N b) ≡⟨By-Definition⟩
     mMult (transpose N) (transpose M) c b ∎
 
 -- infinite identity matrix
@@ -269,10 +269,10 @@ idTranspose = funExt λ{(x , _) → funExt λ{(y , _) → funRed (funRed I∞Tra
 MTID : {{R : Ring A}} → {n : ℕ} → (v : fin n → A) → (a : fin n) → MT I v a ≡ v a 
 MTID {n = Z} v (x , y , p) = ZNotS (sym p) ~> UNREACHABLE
 MTID {n = S n} v (Z , yp) =
-  MT I v (Z , yp) ≡⟨⟩
-  dot v (I (Z , yp)) ≡⟨⟩
+  MT I v (Z , yp) ≡⟨By-Definition⟩
+  dot v (I (Z , yp)) ≡⟨By-Definition⟩
   (head v * 1r) + dot (tail v) (λ _ → 0r) ≡⟨ left _+_ (rIdentity (head v))⟩
-  head v + dot (tail v) (λ _ → 0r) ≡⟨⟩
+  head v + dot (tail v) (λ _ → 0r) ≡⟨By-Definition⟩
   head v + dot (tail v) (λ _ → 0r) ≡⟨ right _+_ (dotZR (tail v))⟩
   head v + 0r ≡⟨ rIdentity (head v)⟩
   head v ≡⟨ cong v (ΣPathPProp (λ a → finSndIsProp a) refl)⟩
@@ -283,14 +283,14 @@ MTID {n = S (S n)} v (S x , y , p) =
           R' = MTID (tail v) (x , y , SInjective p) in
       let R : dot (tail v) (I (x , y , SInjective p)) ≡ tail v (x , y , SInjective p)
           R = cong (λ a → dot (tail v) (a (x , y , SInjective p))) idTranspose ∙ R' in
- MT I v (S x , y , p) ≡⟨⟩
+ MT I v (S x , y , p) ≡⟨By-Definition⟩
  dot v (λ z → I z (S x , y , p)) ≡⟨ cong (λ a → dot v (λ z → a z (S x , y , p))) idTranspose ⟩
- dot v (I (S x , y , p)) ≡⟨⟩
- (head v * head (I (S x , y , p))) + dot (tail v) (tail (I (S x , y , p))) ≡⟨⟩
- (head v * (I (S x , y , p)) (Z , (S n) , refl)) + dot (tail v) (tail (I (S x , y , p))) ≡⟨⟩
+ dot v (I (S x , y , p)) ≡⟨By-Definition⟩
+ (head v * head (I (S x , y , p))) + dot (tail v) (tail (I (S x , y , p))) ≡⟨By-Definition⟩
+ (head v * (I (S x , y , p)) (Z , (S n) , refl)) + dot (tail v) (tail (I (S x , y , p))) ≡⟨By-Definition⟩
  (head v * 0r) + dot (tail v) (tail (I (S x , y , p))) ≡⟨ left _+_ (x*0≡0 (head v))⟩
  0r + dot (tail v) (tail (I (S x , y , p))) ≡⟨ lIdentity (dot (tail v) (tail (I (S x , y , p))))⟩
- dot (tail v) (tail (I (S x , y , p))) ≡⟨⟩
+ dot (tail v) (tail (I (S x , y , p))) ≡⟨By-Definition⟩
  dot (tail v) (I (x , y , SInjective p)) ≡⟨ R ⟩
  tail v (x , y , SInjective p) ≡⟨ cong v (ΣPathPProp (λ a → finSndIsProp a) refl)⟩
  v (S x , y , p) ∎
@@ -305,7 +305,7 @@ IRID {n = S n} M = funExt λ (x , yp) → funExt λ b → aux M (x , yp) b
   aux : {{R : Ring A}} → {n : ℕ} → (M : fin n → B → A) → (a : fin n) → (b : B) → mMult M I a b ≡ M a b
   aux {n = Z} M (x , y , p) b = ZNotS (sym p) ~> UNREACHABLE
   aux {n = S n} M (Z , yp) b =
-    dot (I (Z , yp)) (λ z → M z b) ≡⟨⟩
+    dot (I (Z , yp)) (λ z → M z b) ≡⟨By-Definition⟩
     (1r * head λ z → M z b) + dot (λ _ → 0r) (tail λ z → M z b) ≡⟨ left _+_ (lIdentity (head λ z → M z b))⟩
     head (λ z → M z b) + dot (λ _ → 0r) (tail λ z → M z b) ≡⟨ right _+_ (dotZL (tail λ z → M z b))⟩
     head (λ z → M z b) + 0r ≡⟨ rIdentity (head λ z → M z b)⟩
@@ -315,10 +315,10 @@ IRID {n = S n} M = funExt λ (x , yp) → funExt λ b → aux M (x , yp) b
   aux {n = S (S n)} M (S x , y , p) b =
    let R : dot (I (x , y , SInjective p)) (λ z → tail M z b) ≡ tail M (x , y , SInjective p) b
        R = aux (tail M) (x , y , SInjective p) b in
-   dot (I (S x , y , p)) (λ z → M z b) ≡⟨⟩
+   dot (I (S x , y , p)) (λ z → M z b) ≡⟨By-Definition⟩
    (0r * head λ z → M z b) + dot (tail (I (S x , y , p))) (tail λ z → M z b) ≡⟨ left _+_ (0*x≡0 (head λ z → M z b))⟩
    0r + dot (tail (I (S x , y , p))) (tail λ z → M z b) ≡⟨ lIdentity (dot (tail (I (S x , y , p))) (tail λ z → M z b))⟩
-   dot (tail (I (S x , y , p))) (tail λ z → M z b) ≡⟨⟩
+   dot (tail (I (S x , y , p))) (tail λ z → M z b) ≡⟨By-Definition⟩
    dot (I (x , y , SInjective p)) (tail λ z → M z b) ≡⟨ R ⟩
    tail M (x , y , SInjective p) b ≡⟨ left M (ΣPathPProp (λ a → finSndIsProp a) refl)⟩
    M (S x , y , p) b ∎
