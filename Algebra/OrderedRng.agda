@@ -6,8 +6,6 @@ open import Prelude
 open import Relations
 open import Algebra.Field
 open import Cubical.Foundations.HLevels
-open import Cubical.HITs.PropositionalTruncation
-            renaming (rec to truncRec)
 
 record OrderedRng (A : Type l) {{ordrng : Rng A}} : Type (lsuc l) where
   field
@@ -19,9 +17,9 @@ open OrderedRng {{...}} public
 module ordered{{_ : Rng A}}{{_ : OrderedRng A}} where
 
   -- Absolute value
-  abs : A → ∥ A ∥₁
+  abs : A → A
   abs a = stronglyConnected a 0r
-        ~> truncRec squash₁ λ{(inl a≤0) → ∣ neg a ∣₁ ; (inr 0≤a) → ∣ a ∣₁}
+        ~> λ{(inl a≤0) → neg a ; (inr 0≤a) → a }
 
   subLe : (a b c : A) → (a + c) ≤ (b + c) → a ≤ b
   subLe a b c p =
@@ -78,12 +76,11 @@ module ordered{{_ : Rng A}}{{_ : OrderedRng A}} where
             eqToLe (sym p)
         ~> λ(r : a ≤ neg a) → eqToLe p
         ~> λ(q : neg a ≤ a) →
-        truncRec (IsSet a 0r)
-                 (λ{ (inl x) → antiSymmetric (lemma2 x ~> λ(y : neg a ≤ neg 0r) →
+          stronglyConnected 0r a ~>
+                 λ{ (inl x) → antiSymmetric (lemma2 x ~> λ(y : neg a ≤ neg 0r) →
                                                   transport (λ i → p i ≤ grp.lemma4 i) y) x
-                   ; (inr x) → antiSymmetric x (lemma2 x ~> λ(y : neg 0r ≤ neg a) →
-                                                 transport (λ i → grp.lemma4 i ≤ p i) y)})
-                 (stronglyConnected 0r a)
+                  ; (inr x) → antiSymmetric x (lemma2 x ~> λ(y : neg 0r ≤ neg a) →
+                                                 transport (λ i → grp.lemma4 i ≤ p i) y)}
 
   lemma5 : {a : A} → 0r ≡ a + a → a ≡ 0r
   lemma5 {a = a} p = lemma4 $ neg a ≡⟨ sym (rIdentity (neg a))⟩
@@ -155,8 +152,7 @@ module _{{_ : Field A}}{{OF : OrderedRng A}} where
   
   0<x² : (x : nonZero) → 0r < (fst x * fst x)
   0<x² (x , p) = stronglyConnected 0r x
-    ~> truncRec (isProp< 0r (x * x))
-      λ{ (inl q) → multLt (q , λ z → p (sym z)) (q , (λ z → p (sym z)))
+   ~> λ{ (inl q) → multLt (q , λ z → p (sym z)) (q , (λ z → p (sym z)))
        ; (inr q) → ordered.lemma2 q ~> λ H →
           transport (λ i → grp.lemma4 i ≤ neg x) H ~>
           λ H → let F = H , λ y → p $ x ≡⟨ sym(grp.doubleInv x)⟩ neg (neg x)

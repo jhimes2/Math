@@ -6,7 +6,6 @@ open import Prelude
 open import Relations
 open import Algebra.CRing
 open import Data.Natural
-open import Cubical.Data.Sigma.Properties
 open import Cubical.HITs.SetQuotients renaming (rec to QRec ; elim to QElim)
 open import Cubical.Foundations.HLevels
 
@@ -263,6 +262,15 @@ instance
  intLeTotalOrder : TotalOrder ℤ
  intLeTotalOrder = record {
                      _≤_ = le 
-                  ; stronglyConnected = elimProp2 (λ x y → squash₁)
-                   λ (a , b) (c , d) → stronglyConnected (a + d) (c + b) }
-      where open import Cubical.HITs.PropositionalTruncation
+                  ; stronglyConnected = λ a b → ℤDiscrete a b
+                    ~> λ{(yes p) → inl (eqToLe p)
+                       ; (no p) → transport (propTruncIdempotent
+                            λ{ (inl x) (inl y) → cong inl (isRelation a b x y)
+                             ; (inl x) (inr y) → p (antiSymmetric x y) ~> UNREACHABLE
+                             ; (inr x) (inl y) → p (antiSymmetric y x) ~> UNREACHABLE
+                             ; (inr x) (inr y) → cong inr (isRelation b a x y)}) (aux a b)} }
+   where
+    open import Cubical.HITs.PropositionalTruncation
+    aux : (x y : ℤ) → ∥ le x y ＋ le y x ∥₁
+    aux = elimProp2 (λ x y → squash₁)
+                   λ (a , b) (c , d) → ∣ stronglyConnected (a + d) (c + b) ∣₁

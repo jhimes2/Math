@@ -1,7 +1,6 @@
 {-# OPTIONS --cubical --safe --overlapping-instances #-}
 
 open import Prelude
-open import Cubical.HITs.PropositionalTruncation renaming (rec to recTrunc)
 
 module Relations where
 
@@ -35,14 +34,13 @@ record TotalOrder (A : Type l) : Type (lsuc l)
   where field
    _≤_ : A → A → Type
    {{totpre}} : Poset _≤_
-   stronglyConnected : (a b : A) → ∥(a ≤ b) ＋ (b ≤ a)∥₁
+   stronglyConnected : (a b : A) → (a ≤ b) ＋ (b ≤ a)
 open TotalOrder {{...}} public
 
 flipNeg : {{TO : TotalOrder A}} → {a b : A} → ¬(b ≤ a) → a < b
-flipNeg {{TO}} {a = a} {b} p = recTrunc (isRelation a b)
-                                 (λ{ (inl x) → x
-                                   ; (inr x) → p x ~> UNREACHABLE})
-                                 (stronglyConnected a b) , aux p
+flipNeg {{TO}} {a = a} {b} p = (stronglyConnected a b
+                               ~>  (λ{ (inl x) → x
+                                     ; (inr x) → p x ~> UNREACHABLE})), aux p
   where
    aux : {{TO : TotalOrder A}} → {a b : A} → ¬(b ≤ a) → a ≢ b
    aux {a = a} {b} = modusTollens (λ x → transport (λ i → x i ≤ a) (reflexive {a = a}))

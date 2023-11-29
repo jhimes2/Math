@@ -6,8 +6,6 @@ open import Relations
 open import Prelude
 open import Algebra.Monoid
 open import Algebra.MultAdd
-open import Cubical.HITs.PropositionalTruncation
-   renaming (rec to recTrunc ; map to mapRec)
 
 data ℕ : Type where
   Z : ℕ
@@ -195,9 +193,9 @@ instance
   totalOrderNat = record { _≤_ = le
                          ; stronglyConnected = leStronglyConnected }
    where
-    leStronglyConnected : (a b : ℕ) → ∥ le a b ＋ le b a ∥₁
-    leStronglyConnected Z _ = ∣ inl tt ∣₁
-    leStronglyConnected (S a) Z =  ∣ inr tt ∣₁
+    leStronglyConnected : (a b : ℕ) → le a b ＋ le b a
+    leStronglyConnected Z _ = inl tt
+    leStronglyConnected (S a) Z =  inr tt
     leStronglyConnected (S a) (S b) = leStronglyConnected a b
 
 leS : {n m : ℕ} → S n ≤ m → n ≤ m
