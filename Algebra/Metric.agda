@@ -7,6 +7,7 @@ open import Relations
 open import Algebra.OrderedRng
 open import Algebra.Field
 
+-- https://en.wikipedia.org/wiki/Metric_space
 record Metric {A : Type al}{B : Type bl}
               {{F : Field A}}
               {{OR : OrderedRng A}}
