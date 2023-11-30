@@ -187,6 +187,15 @@ module _{{_ : Rng A}}{{_ : OrderedRng A}} where
  absProperty : (a : A) → (a ≤ 0r → neg a ≡ abs a) × (0r ≤ a → a ≡ abs a)
  absProperty a = snd (ABS a) 
 
+ absHelper : {P : A → Type l}
+         → (a : A)
+         → (a ≤ 0r → P (neg a))
+         → (0r ≤ a → P a)
+         → P (abs a)
+ absHelper {P = P} a f g = let H = absProperty a in
+      stronglyConnected a 0r ~> λ{(inl q) → subst P (fst H q) (f q)
+                                ; (inr q) → subst P (snd H q) (g q)}
+
  absNeg : (a : A) → abs (neg a) ≡ abs a
  absNeg a = let H = absProperty a in
      stronglyConnected a 0r
