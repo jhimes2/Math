@@ -16,10 +16,6 @@ open OrderedRng {{...}} public
 
 module ordered{{_ : Rng A}}{{_ : OrderedRng A}} where
 
-  -- Absolute value
-  abs : A → A
-  abs a = stronglyConnected a 0r
-        ~> λ{(inl a≤0) → neg a ; (inr 0≤a) → a }
 
   subLe : (a b c : A) → (a + c) ≤ (b + c) → a ≤ b
   subLe a b c p =
@@ -174,3 +170,19 @@ module _{{_ : Field A}}{{OF : OrderedRng A}} where
   0<a+a→0<a {a = a} p =
     let H : 0r < ((a + a) * reciprocal 2f)
         H = multLt p (reciprocalLt 0<2) in transport (λ i → 0r < [a+a]/2≡a a i) H
+
+module _{{_ : Rng A}}{{_ : OrderedRng A}} where
+
+ private
+  ABS : (a : A) → Σ λ b → (a ≤ 0r → neg a ≡ b) × (0r ≤ a → a ≡ b)
+  ABS a = stronglyConnected a 0r ~> λ{(inl p) → neg a , ((λ x → refl)
+         , λ x → antiSymmetric x p ~> λ(H : 0r ≡ a) → transport (λ i → H i ≡ neg (H i)) (sym grp.lemma4))
+          ; (inr p) → a , (λ x → antiSymmetric p x ~> λ(H : 0r ≡ a)
+              → transport (λ i → neg (H i) ≡ H i) grp.lemma4) , λ x → refl}
+
+  -- Absolute value function
+ abs : A → A
+ abs a = fst (ABS a)
+
+ absProperty : (a : A) → (a ≤ 0r → neg a ≡ abs a) × (0r ≤ a → a ≡ abs a)
+ absProperty a = snd (ABS a) 
