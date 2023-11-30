@@ -186,3 +186,15 @@ module _{{_ : Rng A}}{{_ : OrderedRng A}} where
 
  absProperty : (a : A) → (a ≤ 0r → neg a ≡ abs a) × (0r ≤ a → a ≡ abs a)
  absProperty a = snd (ABS a) 
+
+ absNeg : (a : A) → abs (neg a) ≡ abs a
+ absNeg a = let H = absProperty a in
+     stronglyConnected a 0r
+     ~> λ{(inl q) → let r : 0r ≤ neg a
+                        r = ordered.lemma2 q ~> transport (λ i → grp.lemma4 i ≤ neg a)
+                     in (snd (absProperty (neg a)) r
+                     ~> (λ G → refl ∙ sym G)) ∙ fst H q
+        ; (inr q) → let r : neg a ≤ 0r
+                        r = ordered.lemma2 q ~> transport (λ i → neg a ≤ grp.lemma4 i)
+                     in ((fst (absProperty (neg a)) r)
+                     ~> (λ G → (refl ∙ sym G) ∙ (grp.doubleInv a))) ∙ snd H q}
