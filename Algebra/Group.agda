@@ -4,7 +4,6 @@ module Algebra.Group where
 
 open import Prelude
 open import Algebra.Monoid public
-open import Cubical.Foundations.HLevels
 
 -- https://en.wikipedia.org/wiki/Group_(mathematics)
 record group {A : Type l}(_∙_ : A → A → A) : Type(lsuc l) where
@@ -60,58 +59,93 @@ instance
 
 open monoid {{...}} public
 
+-- Trivial group properties used to shorten other proofs
+module _{_∙_ : A → A → A} {{G : group _∙_}}(a b : A) where
+
+  [a'a]b≡b : (inv a ∙ a) ∙ b ≡ b
+  [a'a]b≡b =
+    (inv a ∙ a) ∙ b ≡⟨ left _∙_ (lInverse a)⟩
+    e ∙ b           ≡⟨ lIdentity b ⟩
+    b ∎
+
+  a'[ab]≡b : inv a ∙ (a ∙ b) ≡ b
+  a'[ab]≡b =
+    inv a ∙ (a ∙ b) ≡⟨ assoc (inv a) a b ⟩
+    (inv a ∙ a) ∙ b ≡⟨ [a'a]b≡b ⟩
+    b ∎
+
+  [aa']b≡b : (a ∙ inv a) ∙ b ≡ b
+  [aa']b≡b =
+    (a ∙ inv a) ∙ b ≡⟨ left _∙_ (rInverse a)⟩
+    e ∙ b           ≡⟨ lIdentity b ⟩
+    b ∎
+
+  a[a'b]≡b : a ∙ (inv a ∙ b) ≡ b
+  a[a'b]≡b =
+    a ∙ (inv a ∙ b) ≡⟨ assoc a (inv a) b ⟩
+    (a ∙ inv a) ∙ b ≡⟨ [aa']b≡b ⟩
+    b ∎
+
+  a[bb']≡a : a ∙ (b ∙ inv b) ≡ a
+  a[bb']≡a =
+    a ∙ (b ∙ inv b) ≡⟨ right _∙_ (rInverse b) ⟩
+    a ∙ e           ≡⟨ rIdentity a ⟩
+    a ∎
+
+  [ab]b'≡a : (a ∙ b) ∙ inv b ≡ a
+  [ab]b'≡a =
+    (a ∙ b) ∙ inv b ≡⟨ sym (assoc a b (inv b))⟩
+    a ∙ (b ∙ inv b) ≡⟨ a[bb']≡a ⟩
+    a ∎
+
+  a[b'b]≡a : a ∙ (inv b ∙ b) ≡ a
+  a[b'b]≡a =
+    a ∙ (inv b ∙ b) ≡⟨ right _∙_ (lInverse b)⟩
+    a ∙ e           ≡⟨ rIdentity a ⟩
+    a ∎
+
+  [ab']b≡a : (a ∙ inv b) ∙ b ≡ a
+  [ab']b≡a =
+    (a ∙ inv b) ∙ b ≡⟨ sym (assoc a (inv b) b)⟩
+    a ∙ (inv b ∙ b) ≡⟨ a[b'b]≡a ⟩
+    a ∎
+
 module grp {_∙_ : A → A → A} {{G : group _∙_}} where
 
   cancel : (a : A) → {x y : A} → a ∙ x ≡ a ∙ y → x ≡ y
   cancel a {x}{y} =
     λ(p : a ∙ x ≡ a ∙ y) →
-      x               ≡⟨ sym (lIdentity x)⟩
-      e ∙ x           ≡⟨ left _∙_ (sym (lInverse a))⟩
-      (inv a ∙ a) ∙ x ≡⟨ sym (assoc (inv a) a x)⟩
+      x               ≡⟨ sym (a'[ab]≡b a x)⟩
       inv a ∙ (a ∙ x) ≡⟨ right _∙_ p ⟩
-      inv a ∙ (a ∙ y) ≡⟨ assoc (inv a) a y ⟩
-      (inv a ∙ a) ∙ y ≡⟨ left _∙_ (lInverse a)⟩
-      e ∙ y           ≡⟨ lIdentity y ⟩
+      inv a ∙ (a ∙ y) ≡⟨ a'[ab]≡b a y ⟩
       y ∎
 
   lcancel : (a : A) → {x y : A} → x ∙ a ≡ y ∙ a → x ≡ y
   lcancel a {x}{y} =
     λ(p : x ∙ a ≡ y ∙ a) →
-      x               ≡⟨ sym (rIdentity x)⟩
-      x ∙ e           ≡⟨ right _∙_ (sym (rInverse a))⟩
-      x ∙ (a ∙ inv a) ≡⟨ assoc x a (inv a)⟩
+      x               ≡⟨ sym ([ab]b'≡a x a)⟩
       (x ∙ a) ∙ inv a ≡⟨ left _∙_ p ⟩
-      (y ∙ a) ∙ inv a ≡⟨ sym (assoc y a (inv a))⟩
-      y ∙ (a ∙ inv a) ≡⟨ right _∙_ (rInverse a)⟩
-      y ∙ e           ≡⟨ rIdentity y ⟩
-      y ∎
-
-  invInjective : {x y : A} → inv x ≡ inv y → x ≡ y
-  invInjective {x}{y} =
-    λ(p : inv x ≡ inv y) →
-      x               ≡⟨ sym (rIdentity x)⟩
-      x ∙ e           ≡⟨ right _∙_ (sym (lInverse y))⟩
-      x ∙ (inv y ∙ y) ≡⟨ right _∙_ (left _∙_ (sym p))⟩
-      x ∙ (inv x ∙ y) ≡⟨ assoc x (inv x) y ⟩
-      (x ∙ inv x) ∙ y ≡⟨ left _∙_ (rInverse x)⟩
-      e ∙ y           ≡⟨ lIdentity y ⟩
+      (y ∙ a) ∙ inv a ≡⟨ [ab]b'≡a y a ⟩
       y ∎
 
   doubleInv : (x : A) → inv (inv x) ≡ x
   doubleInv x = 
-    inv(inv x)               ≡⟨ sym (rIdentity (inv (inv x)))⟩
-    inv(inv x) ∙ e           ≡⟨ right _∙_ (sym (lInverse x))⟩
-    inv(inv x) ∙ (inv x ∙ x) ≡⟨ assoc (inv(inv x)) (inv x) x ⟩
-    (inv(inv x) ∙ inv x) ∙ x ≡⟨ left _∙_ (lInverse (inv x))⟩
-    e ∙ x                    ≡⟨ lIdentity x ⟩
+    inv(inv x)                ≡⟨ sym (a[b'b]≡a (inv(inv x)) x)⟩
+    inv(inv x) ∙ (inv x ∙ x)  ≡⟨ a'[ab]≡b (inv x) x ⟩
     x ∎
+
+  invInjective : {x y : A} → inv x ≡ inv y → x ≡ y
+  invInjective {x}{y} =
+    λ(p : inv x ≡ inv y) →
+      x          ≡⟨ sym (doubleInv x)⟩
+      inv(inv x) ≡⟨ cong inv p ⟩
+      inv(inv y) ≡⟨ doubleInv y ⟩
+      y ∎
 
   uniqueInv : {x y : A} → x ∙ (inv y) ≡ e → x ≡ y
   uniqueInv {x}{y} =
     λ(p : x ∙ inv y ≡ e) →
-      x               ≡⟨ sym (rIdentity x)⟩
-      x ∙ e           ≡⟨ right _∙_ (sym (lInverse y))⟩
-      x ∙ (inv y ∙ y) ≡⟨ assoc x (inv y) y ⟩
+      x               ≡⟨ sym([ab']b≡a x y)⟩
       (x ∙ inv y) ∙ y ≡⟨ left _∙_ p ⟩
       e ∙ y           ≡⟨ lIdentity y ⟩
       y ∎
@@ -123,9 +157,7 @@ module grp {_∙_ : A → A → A} {{G : group _∙_}} where
         H = uniqueInv in H $
     (inv b ∙ inv a) ∙ inv(inv(a ∙ b)) ≡⟨ right _∙_ (doubleInv (a ∙ b))⟩
     (inv b ∙ inv a) ∙ (a ∙ b)         ≡⟨ sym (assoc (inv b) (inv a) (a ∙ b))⟩
-    inv b ∙ (inv a ∙ (a ∙ b))         ≡⟨ right _∙_ (assoc (inv a) a b)⟩
-    inv b ∙ ((inv a ∙ a) ∙ b)         ≡⟨ right _∙_ (left _∙_ (lInverse a))⟩
-    inv b ∙ (e ∙ b)                   ≡⟨ right _∙_ (lIdentity b)⟩
+    inv b ∙ (inv a ∙ (a ∙ b))         ≡⟨ right _∙_ (a'[ab]≡b a b)⟩
     inv b ∙ b                         ≡⟨ lInverse b ⟩
     e ∎
   
@@ -133,9 +165,7 @@ module grp {_∙_ : A → A → A} {{G : group _∙_}} where
   lemma2 {a}{b}{c} =
     λ(p : c ≡ a ∙ b) →
       inv a ∙ c       ≡⟨ right _∙_ p ⟩
-      inv a ∙ (a ∙ b) ≡⟨ assoc (inv a) a b ⟩
-      (inv a ∙ a) ∙ b ≡⟨ left _∙_ (lInverse a)⟩
-      e ∙ b           ≡⟨ lIdentity b ⟩
+      inv a ∙ (a ∙ b) ≡⟨ a'[ab]≡b a b ⟩
       b ∎
 
   lemma3 : {a : A} → a ≡ a ∙ a → a ≡ e
@@ -177,7 +207,9 @@ groupIsProp {A = A} _∙_ G1 G2 i =
            in F i
    ; gAssoc = record { assoc = λ a b c → set {p = G1 .gAssoc .assoc a b c} {G2 .gAssoc .assoc a b c} i }
   }
-   where open group
+   where
+    open group
+    open import Cubical.Foundations.HLevels
 
 record grpHomomorphism {A : Type l}
                        {B : Type l'} 
@@ -185,4 +217,4 @@ record grpHomomorphism {A : Type l}
                        (_*_ : B → B → B) {{H : group _*_}} : Type(l ⊔ l') 
   where field
     h : A → B
-    homomophism : (u v : A) → h (u ∙ v) ≡ h u * h v
+    homomorphism : (u v : A) → h (u ∙ v) ≡ h u * h v
