@@ -86,6 +86,9 @@ module ordered{{_ : Rng A}}{{_ : OrderedRng A}} where
                               0r + a ≡⟨ lIdentity a ⟩
                               a ∎
 
+  lemma6 : {a b : A} → neg a ≤ neg b → b ≤ a
+  lemma6 {a = a} {b} p = transport (cong₂ _≤_ (grp.doubleInv b) (grp.doubleInv a)) (lemma2 p)
+
   Positive : Type _
   Positive = Σ λ (x : A) → 0r <  x
 
