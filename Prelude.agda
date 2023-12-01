@@ -285,6 +285,25 @@ module _{_∙_ : A → A → A}{{ASSOC : Associative _∙_}}{{COMM : Commutative
                      c ∙ (a ∙ b) ≡⟨ a[bc]≡c[ab] c a b ⟩
                      b ∙ (c ∙ a) ∎
 
+ [ab]c≡[bc]a : (a b c : A) → (a ∙ b) ∙ c ≡ (b ∙ c) ∙ a
+ [ab]c≡[bc]a a b c = (a ∙ b) ∙ c  ≡⟨ sym (assoc a b c)⟩
+                      a ∙ (b ∙ c) ≡⟨ comm a (b ∙ c)⟩
+                     (b ∙ c) ∙ a ∎
+
+ a[bc]≡[ac]b : (a b c : A) → a ∙ (b ∙ c) ≡ (a ∙ c) ∙ b
+ a[bc]≡[ac]b a b c = sym ([ab]c≡a[cb] a c b)
+
+ a[bc]≡[cb]a : (a b c : A) → a ∙ (b ∙ c) ≡ (c ∙ b) ∙ a
+ a[bc]≡[cb]a a b c = a ∙ (b ∙ c) ≡⟨ a[bc]≡c[ba] a b c ⟩
+                     c ∙ (b ∙ a) ≡⟨ assoc c b a ⟩
+                     (c ∙ b) ∙ a ∎
+
+
+ [ab]c≡[cb]a : (a b c : A) → (a ∙ b) ∙ c ≡ (c ∙ b) ∙ a
+ [ab]c≡[cb]a a b c = (a ∙ b) ∙ c ≡⟨ comm (a ∙ b) c ⟩
+                     c ∙ (a ∙ b) ≡⟨ a[bc]≡[ac]b c a b ⟩
+                     (c ∙ b) ∙ a ∎
+
  [ab][cd]≡[ac][bd] : (a b c d : A) → (a ∙ b) ∙ (c ∙ d) ≡ (a ∙ c) ∙ (b ∙ d)
  [ab][cd]≡[ac][bd] a b c d = (a ∙ b) ∙ (c ∙ d) ≡⟨ assoc (_∙_ a b) c d ⟩
                              ((a ∙ b) ∙ c) ∙ d ≡⟨ left _∙_ (sym(assoc a b c))⟩
