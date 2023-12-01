@@ -196,6 +196,16 @@ module _{{_ : Rng A}}{{_ : OrderedRng A}} where
       stronglyConnected a 0r ~> λ{(inl q) → subst P (fst H q) (f q)
                                 ; (inr q) → subst P (snd H q) (g q)}
 
+ absDiffHelper : {P : A → Type l}
+         → (a b : A)
+         → (a ≤ b → P (b - a))
+         → (b ≤ a → P (a - b))
+         → P (abs (a - b))
+ absDiffHelper {P = P} a b f g = absHelper {P = P} (a - b)
+     (λ x → subst P (grp.lemma1 a (neg b)) $ subst P (left _+_ (sym (grp.doubleInv b)))
+             $ f (addLe x b ~> transport (cong₂ _≤_ ([ab']b≡a a b) (lIdentity b))))
+     λ x → g (addLe x b ~> transport (cong₂ _≤_ (lIdentity b) ([ab']b≡a a b)))
+
  absNeg : (a : A) → abs (neg a) ≡ abs a
  absNeg a = let H = absProperty a in
      stronglyConnected a 0r
