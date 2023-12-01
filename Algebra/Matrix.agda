@@ -217,10 +217,10 @@ dotMatrix n (S m) u M v =
  dot v (λ m' → dot (M m') u) ∎
 
 instance
- dotComm : {{R : Rng A}} {{Comm : Commutative (R .rng*+ ._*_)}} → Commutative (dot {n = n})
+ dotComm : {{R : Rng A}} {{Comm : Commutative (_*_ {{R .rng*+}})}} → Commutative (dot {n = n})
  dotComm = record { comm = aux }
   where
-   aux : {{R : Rng A}} → {{Comm : Commutative (R .rng*+ ._*_)}}
+   aux : {{R : Rng A}} → {{Comm : Commutative (_*_ {{R .rng*+}})}}
        → (u v : [ A ^ n ])
        → dot u v ≡ dot v u
    aux {n = Z} u v = refl
