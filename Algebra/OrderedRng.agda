@@ -17,8 +17,8 @@ open OrderedRng {{...}} public
 module ordered{{_ : Rng A}}{{_ : OrderedRng A}} where
 
 
-  subLe : (a b c : A) → (a + c) ≤ (b + c) → a ≤ b
-  subLe a b c p =
+  subLe : {a b : A} → (c : A) → (a + c) ≤ (b + c) → a ≤ b
+  subLe {a} {b} c p =
     addLe p (neg c)
     ~> λ(H : ((a + c) + neg c) ≤ ((b + c) + neg c))
      → transport (λ i → (assoc a c (neg c) (~ i)) ≤ (assoc b c (neg c) (~ i))) H
