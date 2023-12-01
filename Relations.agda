@@ -35,7 +35,12 @@ record TotalOrder (A : Type l) : Type (lsuc l)
    _≤_ : A → A → Type
    {{totpre}} : Poset _≤_
    stronglyConnected : (a b : A) → (a ≤ b) ＋ (b ≤ a)
-open TotalOrder {{...}} public
+
+-- This will make goals more readable
+_≤_ : {{TO : TotalOrder A}} → A → A → Type
+_≤_ {{TO = TO}} = TotalOrder._≤_ TO
+
+open TotalOrder {{...}} hiding (_≤_) public
 
 flipNeg : {{TO : TotalOrder A}} → {a b : A} → ¬(b ≤ a) → a < b
 flipNeg {{TO}} {a = a} {b} p = (stronglyConnected a b
