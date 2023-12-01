@@ -243,71 +243,68 @@ record Commutative {A : Type l}{B : Type l'}(_∙_ : A → A → B) : Type(lsuc 
     comm : (a b : A) → _∙_ a b ≡ _∙_ b a
 open Commutative {{...}} public
 
-module _{_∙_ : A → A → A}{{ASSOC : Associative _∙_}}{{COMM : Commutative _∙_}} where
+-- Trivial associative and commutative proofs
+module _{_∙_ : A → A → A}{{_ : Commutative _∙_}}(a b c : A) where
 
- a[bc]≡[ba]c : (a b c : A) → a ∙ (b ∙ c) ≡ (b ∙ a) ∙ c
- a[bc]≡[ba]c a b c = a ∙ (b ∙ c) ≡⟨ assoc a b c ⟩
-                     (a ∙ b) ∙ c ≡⟨ left _∙_ (comm a b)⟩
-                     (b ∙ a) ∙ c ∎
+
+ a[bc]≡[cb]a = a ∙ (b ∙ c) ≡⟨ comm a (b ∙ c) ⟩
+               (b ∙ c) ∙ a ≡⟨ left _∙_ (comm b c) ⟩
+               (c ∙ b) ∙ a ∎
+
+ [ab]c≡c[ba] = (a ∙ b) ∙ c ≡⟨ comm (a ∙ b) c ⟩
+               c ∙ (a ∙ b) ≡⟨ right _∙_ (comm a b)⟩
+               c ∙ (b ∙ a) ∎
+
+ module _{{_ : Associative _∙_}} where
  
- [ab]c≡a[cb] : (a b c : A) → (a ∙ b) ∙ c ≡ a ∙ (c ∙ b)
- [ab]c≡a[cb] a b c = (a ∙ b) ∙ c ≡⟨ sym(assoc a b c)⟩
-                     a ∙ (b ∙ c) ≡⟨ right _∙_ (comm b c)⟩
-                     a ∙ (c ∙ b) ∎
+  a[bc]≡[ba]c = a ∙ (b ∙ c) ≡⟨ assoc a b c ⟩
+                (a ∙ b) ∙ c ≡⟨ left _∙_ (comm a b)⟩
+                (b ∙ a) ∙ c ∎
+  
+  [ab]c≡a[cb] = (a ∙ b) ∙ c ≡⟨ sym(assoc a b c)⟩
+                a ∙ (b ∙ c) ≡⟨ right _∙_ (comm b c)⟩
+                a ∙ (c ∙ b) ∎
+  
+  a[bc]≡b[ac] = a ∙ (b ∙ c) ≡⟨ a[bc]≡[ba]c ⟩
+                (b ∙ a) ∙ c ≡⟨ sym (assoc b a c) ⟩
+                b ∙ (a ∙ c) ∎
+  
+  [ab]c≡[ac]b = (a ∙ b) ∙ c ≡⟨ [ab]c≡a[cb] ⟩
+                a ∙ (c ∙ b) ≡⟨ assoc a c b ⟩
+                (a ∙ c) ∙ b ∎
+  
+  a[bc]≡c[ba] = a ∙ (b ∙ c) ≡⟨ a[bc]≡[ba]c ⟩
+                (b ∙ a) ∙ c ≡⟨ comm (b ∙ a) c ⟩
+                c ∙ (b ∙ a) ∎
  
- a[bc]≡b[ac] : (a b c : A) → a ∙ (b ∙ c) ≡ b ∙ (a ∙ c)
- a[bc]≡b[ac] a b c = a ∙ (b ∙ c) ≡⟨ a[bc]≡[ba]c a b c ⟩
-                     (b ∙ a) ∙ c ≡⟨ sym (assoc b a c) ⟩
-                     b ∙ (a ∙ c) ∎
+  [ab]c≡b[ac] = (a ∙ b) ∙ c ≡⟨ sym (assoc a b c)⟩
+                a ∙ (b ∙ c) ≡⟨ a[bc]≡b[ac] ⟩
+                b ∙ (a ∙ c) ∎
  
- [ab]c≡[ac]b : (a b c : A) → (a ∙ b) ∙ c ≡ (a ∙ c) ∙ b
- [ab]c≡[ac]b a b c = (a ∙ b) ∙ c ≡⟨ [ab]c≡a[cb] a b c ⟩
-                     a ∙ (c ∙ b) ≡⟨ assoc a c b ⟩
-                     (a ∙ c) ∙ b ∎
+  a[bc]≡c[ab] = a ∙ (b ∙ c) ≡⟨ assoc a b c ⟩
+                (a ∙ b) ∙ c ≡⟨ comm (a ∙ b) c ⟩
+                c ∙ (a ∙ b) ∎
  
- a[bc]≡c[ba] : (a b c : A) → a ∙ (b ∙ c) ≡ c ∙ (b ∙ a)
- a[bc]≡c[ba] a b c = a ∙ (b ∙ c) ≡⟨ a[bc]≡[ba]c a b c ⟩
-                     (b ∙ a) ∙ c ≡⟨ comm (b ∙ a) c ⟩
-                     c ∙ (b ∙ a) ∎
-
- [ab]c≡b[ac] : (a b c : A) → (a ∙ b) ∙ c ≡ b ∙ (a ∙ c)
- [ab]c≡b[ac] a b c = (a ∙ b) ∙ c ≡⟨ sym (assoc a b c)⟩
-                     a ∙ (b ∙ c) ≡⟨ a[bc]≡b[ac] a b c ⟩
-                     b ∙ (a ∙ c) ∎
-
- a[bc]≡c[ab] : (a b c : A) → a ∙ (b ∙ c) ≡ c ∙ (a ∙ b)
- a[bc]≡c[ab] a b c = a ∙ (b ∙ c) ≡⟨ assoc a b c ⟩
-                     (a ∙ b) ∙ c ≡⟨ comm (a ∙ b) c ⟩
-                     c ∙ (a ∙ b) ∎
-
- [ab]c≡b[ca] : (a b c : A) → (a ∙ b) ∙ c ≡ b ∙ (c ∙ a)
- [ab]c≡b[ca] a b c = (a ∙ b) ∙ c ≡⟨ comm (a ∙ b) c ⟩
-                     c ∙ (a ∙ b) ≡⟨ a[bc]≡c[ab] c a b ⟩
-                     b ∙ (c ∙ a) ∎
-
- [ab]c≡[bc]a : (a b c : A) → (a ∙ b) ∙ c ≡ (b ∙ c) ∙ a
- [ab]c≡[bc]a a b c = (a ∙ b) ∙ c  ≡⟨ sym (assoc a b c)⟩
-                      a ∙ (b ∙ c) ≡⟨ comm a (b ∙ c)⟩
-                     (b ∙ c) ∙ a ∎
-
- a[bc]≡[ac]b : (a b c : A) → a ∙ (b ∙ c) ≡ (a ∙ c) ∙ b
- a[bc]≡[ac]b a b c = sym ([ab]c≡a[cb] a c b)
-
- a[bc]≡[cb]a : (a b c : A) → a ∙ (b ∙ c) ≡ (c ∙ b) ∙ a
- a[bc]≡[cb]a a b c = a ∙ (b ∙ c) ≡⟨ a[bc]≡c[ba] a b c ⟩
-                     c ∙ (b ∙ a) ≡⟨ assoc c b a ⟩
-                     (c ∙ b) ∙ a ∎
-
-
- [ab]c≡[cb]a : (a b c : A) → (a ∙ b) ∙ c ≡ (c ∙ b) ∙ a
- [ab]c≡[cb]a a b c = (a ∙ b) ∙ c ≡⟨ comm (a ∙ b) c ⟩
-                     c ∙ (a ∙ b) ≡⟨ a[bc]≡[ac]b c a b ⟩
-                     (c ∙ b) ∙ a ∎
-
- [ab][cd]≡[ac][bd] : (a b c d : A) → (a ∙ b) ∙ (c ∙ d) ≡ (a ∙ c) ∙ (b ∙ d)
- [ab][cd]≡[ac][bd] a b c d = (a ∙ b) ∙ (c ∙ d) ≡⟨ assoc (_∙_ a b) c d ⟩
-                             ((a ∙ b) ∙ c) ∙ d ≡⟨ left _∙_ (sym(assoc a b c))⟩
-                             (a ∙ (b ∙ c)) ∙ d ≡⟨ left _∙_ (right _∙_ (comm b c))⟩
-                             (a ∙ (c ∙ b)) ∙ d ≡⟨ left _∙_ (assoc a c b)⟩
-                             ((a ∙ c) ∙ b) ∙ d ≡⟨ sym (assoc (_∙_ a c) b d)⟩
-                             (a ∙ c) ∙ (b ∙ d) ∎
+  [ab]c≡b[ca] = (a ∙ b) ∙ c ≡⟨ [ab]c≡b[ac] ⟩
+                b ∙ (a ∙ c) ≡⟨ right _∙_ (comm a c)⟩
+                b ∙ (c ∙ a) ∎
+ 
+  [ab]c≡[bc]a = (a ∙ b) ∙ c  ≡⟨ sym (assoc a b c)⟩
+                a ∙ (b ∙ c) ≡⟨ comm a (b ∙ c)⟩
+                (b ∙ c) ∙ a ∎
+ 
+  a[bc]≡[ac]b = a ∙ (b ∙ c) ≡⟨ right _∙_ (comm b c)⟩
+                a ∙ (c ∙ b) ≡⟨ assoc a c b ⟩
+                (a ∙ c) ∙ b ∎
+ 
+  [ab]c≡[cb]a = (a ∙ b) ∙ c ≡⟨ [ab]c≡c[ba] ⟩
+                c ∙ (b ∙ a) ≡⟨ assoc c b a ⟩
+                (c ∙ b) ∙ a ∎
+ 
+  [ab][cd]≡[ac][bd] = λ(d : A)
+                    → (a ∙ b) ∙ (c ∙ d) ≡⟨ assoc (_∙_ a b) c d ⟩
+                      ((a ∙ b) ∙ c) ∙ d ≡⟨ left _∙_ (sym(assoc a b c))⟩
+                      (a ∙ (b ∙ c)) ∙ d ≡⟨ left _∙_ (right _∙_ (comm b c))⟩
+                      (a ∙ (c ∙ b)) ∙ d ≡⟨ left _∙_ (assoc a c b)⟩
+                      ((a ∙ c) ∙ b) ∙ d ≡⟨ sym (assoc (_∙_ a c) b d)⟩
+                      (a ∙ c) ∙ (b ∙ d) ∎

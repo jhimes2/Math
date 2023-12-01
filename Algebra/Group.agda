@@ -62,53 +62,37 @@ open monoid {{...}} public
 -- Trivial group properties used to shorten other proofs
 module _{_∙_ : A → A → A} {{G : group _∙_}}(a b : A) where
 
-  [a'a]b≡b : (inv a ∙ a) ∙ b ≡ b
-  [a'a]b≡b =
-    (inv a ∙ a) ∙ b ≡⟨ left _∙_ (lInverse a)⟩
-    e ∙ b           ≡⟨ lIdentity b ⟩
-    b ∎
+  [a'a]b≡b = (inv a ∙ a) ∙ b ≡⟨ left _∙_ (lInverse a)⟩
+             e ∙ b           ≡⟨ lIdentity b ⟩
+             b ∎
 
-  a'[ab]≡b : inv a ∙ (a ∙ b) ≡ b
-  a'[ab]≡b =
-    inv a ∙ (a ∙ b) ≡⟨ assoc (inv a) a b ⟩
-    (inv a ∙ a) ∙ b ≡⟨ [a'a]b≡b ⟩
-    b ∎
+  a'[ab]≡b = inv a ∙ (a ∙ b) ≡⟨ assoc (inv a) a b ⟩
+             (inv a ∙ a) ∙ b ≡⟨ [a'a]b≡b ⟩
+             b ∎
 
-  [aa']b≡b : (a ∙ inv a) ∙ b ≡ b
-  [aa']b≡b =
-    (a ∙ inv a) ∙ b ≡⟨ left _∙_ (rInverse a)⟩
-    e ∙ b           ≡⟨ lIdentity b ⟩
-    b ∎
+  [aa']b≡b = (a ∙ inv a) ∙ b ≡⟨ left _∙_ (rInverse a)⟩
+             e ∙ b           ≡⟨ lIdentity b ⟩
+             b ∎
 
-  a[a'b]≡b : a ∙ (inv a ∙ b) ≡ b
-  a[a'b]≡b =
-    a ∙ (inv a ∙ b) ≡⟨ assoc a (inv a) b ⟩
-    (a ∙ inv a) ∙ b ≡⟨ [aa']b≡b ⟩
-    b ∎
+  a[a'b]≡b = a ∙ (inv a ∙ b) ≡⟨ assoc a (inv a) b ⟩
+             (a ∙ inv a) ∙ b ≡⟨ [aa']b≡b ⟩
+             b ∎
 
-  a[bb']≡a : a ∙ (b ∙ inv b) ≡ a
-  a[bb']≡a =
-    a ∙ (b ∙ inv b) ≡⟨ right _∙_ (rInverse b) ⟩
-    a ∙ e           ≡⟨ rIdentity a ⟩
-    a ∎
+  a[bb']≡a = a ∙ (b ∙ inv b) ≡⟨ right _∙_ (rInverse b) ⟩
+             a ∙ e           ≡⟨ rIdentity a ⟩
+             a ∎
 
-  [ab]b'≡a : (a ∙ b) ∙ inv b ≡ a
-  [ab]b'≡a =
-    (a ∙ b) ∙ inv b ≡⟨ sym (assoc a b (inv b))⟩
-    a ∙ (b ∙ inv b) ≡⟨ a[bb']≡a ⟩
-    a ∎
+  [ab]b'≡a = (a ∙ b) ∙ inv b ≡⟨ sym (assoc a b (inv b))⟩
+             a ∙ (b ∙ inv b) ≡⟨ a[bb']≡a ⟩
+             a ∎
 
-  a[b'b]≡a : a ∙ (inv b ∙ b) ≡ a
-  a[b'b]≡a =
-    a ∙ (inv b ∙ b) ≡⟨ right _∙_ (lInverse b)⟩
-    a ∙ e           ≡⟨ rIdentity a ⟩
-    a ∎
+  a[b'b]≡a = a ∙ (inv b ∙ b) ≡⟨ right _∙_ (lInverse b)⟩
+             a ∙ e           ≡⟨ rIdentity a ⟩
+             a ∎
 
-  [ab']b≡a : (a ∙ inv b) ∙ b ≡ a
-  [ab']b≡a =
-    (a ∙ inv b) ∙ b ≡⟨ sym (assoc a (inv b) b)⟩
-    a ∙ (inv b ∙ b) ≡⟨ a[b'b]≡a ⟩
-    a ∎
+  [ab']b≡a = (a ∙ inv b) ∙ b ≡⟨ sym (assoc a (inv b) b)⟩
+             a ∙ (inv b ∙ b) ≡⟨ a[b'b]≡a ⟩
+             a ∎
 
 module grp {_∙_ : A → A → A} {{G : group _∙_}} where
 
