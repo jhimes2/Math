@@ -71,8 +71,7 @@ module trig(sinAngleAdd : ∀ x y → sin(x + y) ≡ (sin x * cos y)+(cos x * si
    (sin θ * cos(neg π/2)) + (cos θ * sin(neg π/2)) ≡⟨ right _+_ (right _*_ sin-π/2≡-1)⟩
    (sin θ * cos(neg π/2)) + (cos θ * neg 1r)       ≡⟨ right _+_ (x*-1≡-x (cos θ))⟩
    (sin θ * cos(neg π/2)) + neg(cos θ)             ≡⟨ left _+_ (right _*_ cos-π/2≡0)⟩
-   (sin θ * 0r) + neg(cos θ)                       ≡⟨ left _+_ (x*0≡0 (sin θ))⟩
-   0r + neg(cos θ)                                 ≡⟨ lIdentity (neg(cos θ))⟩
+   (sin θ * 0r) + neg(cos θ)                       ≡⟨ x0+y≡y (sin θ) (neg(cos θ)) ⟩
    neg(cos θ) ∎
 
  sinπ/2-θ≡cosθ : ∀ θ → sin(π/2 - θ) ≡ cos θ
@@ -128,14 +127,12 @@ module trig(sinAngleAdd : ∀ x y → sin(x + y) ≡ (sin x * cos y)+(cos x * si
 
  cosπ≡-1 : cos π ≡ neg 1r
  cosπ≡-1 =
-   cos π                                     ≡⟨By-Definition⟩
-   cos(π/2 + π/2)                            ≡⟨ cosAngleAdd π/2 π/2 ⟩
-   (cos π/2 * cos π/2) - (sin π/2 * sin π/2) ≡⟨ left _-_ (left _*_ cosπ/2≡0)⟩
-   (0r * cos π/2) - (sin π/2 * sin π/2)      ≡⟨ left _-_ (0*x≡0 (cos π/2))⟩
-   0r - (sin π/2 * sin π/2)                  ≡⟨By-Definition⟩
-   0r + neg(sin π/2 * sin π/2)               ≡⟨ lIdentity (neg(sin π/2 * sin π/2))⟩
-   neg(sin π/2 * sin π/2)                    ≡⟨ cong neg(cong₂ _*_ evaluation evaluation)⟩
-   neg(1r * 1r)                              ≡⟨ cong neg(lIdentity 1r)⟩
+   cos π                                ≡⟨By-Definition⟩
+   cos(π/2 + π/2)                       ≡⟨ cosAngleAdd π/2 π/2 ⟩
+   (cos² π/2) - (sin² π/2)              ≡⟨ left _-_ (left _*_ cosπ/2≡0)⟩
+   (0r * cos π/2) - (sin π/2 * sin π/2) ≡⟨ 0x+y≡y (cos π/2) (neg (sin² π/2)) ⟩
+   neg(sin π/2 * sin π/2)               ≡⟨ cong neg(cong₂ _*_ evaluation evaluation)⟩
+   neg(1r * 1r)                         ≡⟨ cong neg(lIdentity 1r)⟩
    neg 1r ∎
 
  sinπ≡0 : sin π ≡ 0r
@@ -143,8 +140,7 @@ module trig(sinAngleAdd : ∀ x y → sin(x + y) ≡ (sin x * cos y)+(cos x * si
    sin π                                     ≡⟨By-Definition⟩
    sin(π/2 + π/2)                            ≡⟨ sinAngleAdd π/2 π/2 ⟩
    (sin π/2 * cos π/2) + (cos π/2 * sin π/2) ≡⟨ left _+_ (right _*_ cosπ/2≡0)⟩
-   (sin π/2 * 0r) + (cos π/2 * sin π/2)      ≡⟨ left _+_ (x*0≡0 (sin π/2))⟩
-   0r + (cos π/2 * sin π/2)                  ≡⟨ lIdentity (cos π/2 * sin π/2)⟩
+   (sin π/2 * 0r) + (cos π/2 * sin π/2)      ≡⟨ x0+y≡y (sin π/2) (cos π/2 * sin π/2) ⟩
    cos π/2 * sin π/2                         ≡⟨ left _*_ cosπ/2≡0 ⟩
    0r * sin π/2                              ≡⟨ 0*x≡0 (sin π/2)⟩
    0r ∎
@@ -153,8 +149,7 @@ module trig(sinAngleAdd : ∀ x y → sin(x + y) ≡ (sin x * cos y)+(cos x * si
  sinθ+π≡-sinθ θ =
    sin(θ + π)                        ≡⟨ sinAngleAdd θ π ⟩
    (sin θ * cos π) + (cos θ * sin π) ≡⟨ right _+_ (right _*_ sinπ≡0)⟩
-   (sin θ * cos π) + (cos θ * 0r)    ≡⟨ right _+_ (x*0≡0 (cos θ))⟩
-   (sin θ * cos π) + 0r              ≡⟨ rIdentity (sin θ * cos π)⟩
+   (sin θ * cos π) + (cos θ * 0r)    ≡⟨ x+y0≡x (sin θ * cos π) (cos θ) ⟩
    sin θ * cos π                     ≡⟨ right _*_ cosπ≡-1 ⟩
    sin θ * neg 1r                    ≡⟨ x*-1≡-x (sin θ)⟩
    neg(sin θ) ∎
@@ -176,8 +171,7 @@ module trig(sinAngleAdd : ∀ x y → sin(x + y) ≡ (sin x * cos y)+(cos x * si
    sin(θ + (π + π))                            ≡⟨ cong sin(assoc θ π π)⟩
    sin((θ + π) + π)                            ≡⟨ sinAngleAdd (θ + π) π ⟩
    (sin(θ + π) * cos π) + (cos(θ + π) * sin π) ≡⟨ right _+_ (right _*_ sinπ≡0)⟩
-   (sin(θ + π) * cos π) + (cos(θ + π) * 0r)    ≡⟨ right _+_ (x*0≡0 (cos(θ + π)))⟩
-   (sin(θ + π) * cos π) + 0r                   ≡⟨ rIdentity (sin(θ + π) * cos π)⟩
+   (sin(θ + π) * cos π) + (cos(θ + π) * 0r)    ≡⟨ x+y0≡x (sin(θ + π) * cos π) (cos(θ + π))⟩
    sin(θ + π) * cos π                          ≡⟨ cong₂ _*_ (sinθ+π≡-sinθ θ) cosπ≡-1 ⟩
    neg(sin θ) * neg 1r                         ≡⟨ x*-1≡-x (neg(sin θ))⟩
    neg(neg(sin θ))                             ≡⟨ grp.doubleInv (sin θ)⟩
