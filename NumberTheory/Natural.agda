@@ -206,3 +206,9 @@ cutZ a = let H = cutLemma a Z in
    copy Z (cut a Z) + Z ≡⟨ right _+_ (sym (pasteZ a))⟩
    copy Z (cut a Z) + paste a Z ≡⟨ sym H ⟩
    a ∎
+
+isPrime : ℕ → Type
+isPrime n = ∀ x → S(S x) ∣ n → n ≡ S(S x)
+
+Prime : Type
+Prime = Σ isPrime
