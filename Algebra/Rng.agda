@@ -46,17 +46,45 @@ module _{A : Type l}{{R : Rng A}} where
    ((0r + 0r) * x)     ≡⟨ rDistribute x 0r 0r ⟩
    (0r * x) + (0r * x) ∎
  
+ x0+y≡y : (x y : A) → (x * 0r) + y ≡ y
+ x0+y≡y x y = (x * 0r) + y ≡⟨ left _+_ (x*0≡0 x)⟩
+              0r + y       ≡⟨ lIdentity y ⟩
+              y ∎
+
+ y+x0≡y : (x y : A) → y + (x * 0r) ≡ y
+ y+x0≡y x y = y + (x * 0r) ≡⟨ right _+_ (x*0≡0 x)⟩
+              y + 0r       ≡⟨ rIdentity y ⟩
+              y ∎
+
+ y+0x≡y : (x y : A) → y + (0r * x) ≡ y
+ y+0x≡y x y = y + (0r * x) ≡⟨ right _+_ (0*x≡0 x)⟩
+              y + 0r       ≡⟨ rIdentity y ⟩
+              y ∎
+
+ 0x+y≡y : (x y : A) → (0r * x) + y ≡ y
+ 0x+y≡y x y = (0r * x) + y ≡⟨ left _+_ (0*x≡0 x)⟩
+              0r + y       ≡⟨ lIdentity y ⟩
+              y ∎
+
+ [x-x]y≡0 : (x y : A) →  (x - x) * y ≡ 0r
+ [x-x]y≡0 x y = (x - x) * y ≡⟨ left _*_ (rInverse x)⟩
+                0r * y      ≡⟨ 0*x≡0 y ⟩
+                0r ∎
+
+ y[x-x]≡0 : (x y : A) →  y * (x - x) ≡ 0r
+ y[x-x]≡0 x y = y * (x - x) ≡⟨ right _*_ (rInverse x)⟩
+                y * 0r      ≡⟨ x*0≡0 y ⟩
+                0r ∎
+
  -x*y≡x*-y : (x y : A) → neg x * y ≡ x * neg y
  -x*y≡x*-y x y =
    let H : (x * y)+(neg x * y) ≡ (x * y)+(x * neg y)
                    → neg x * y ≡ x * neg y
        H = grp.cancel (x * y) in H $
-   (x * y)+(neg x * y)   ≡⟨ sym(rDistribute y x (neg x))⟩
-   (x + neg x) * y       ≡⟨ left _*_ (rInverse x)⟩
-   0r * y                ≡⟨ 0*x≡0 y ⟩
-   0r                    ≡⟨ sym (x*0≡0 x)⟩
-   x * 0r                ≡⟨ right _*_ (sym (rInverse y))⟩
-   x * (y + neg y)       ≡⟨ lDistribute x y (neg y)⟩
+   (x * y)+(neg x * y) ≡⟨ sym(rDistribute y x (neg x))⟩
+   (x - x) * y         ≡⟨ [x-x]y≡0 x y ⟩
+   0r                  ≡⟨ sym (y[x-x]≡0 y x)⟩
+   x * (y - y)         ≡⟨ lDistribute x y (neg y)⟩
    (x * y)+(x * neg y) ∎
  
  -x*y≡-[x*y] : (x y : A) → (neg x) * y ≡ neg(x * y)
@@ -65,8 +93,7 @@ module _{A : Type l}{{R : Rng A}} where
                    → neg x * y ≡ neg(x * y)
        H = grp.cancel (x * y) in H $
    (x * y)+(neg x * y) ≡⟨ sym(rDistribute y x (neg x))⟩
-   (x + neg x) * y     ≡⟨ left _*_ (rInverse x)⟩
-   0r * y              ≡⟨ 0*x≡0 y ⟩
+   (x - x) * y         ≡⟨ [x-x]y≡0 x y ⟩
    0r                  ≡⟨ sym (rInverse (x * y))⟩
    (x * y) + neg(x * y) ∎
  
