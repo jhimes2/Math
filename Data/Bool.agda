@@ -4,6 +4,7 @@ module Data.Bool where
 
 open import Prelude
 open import Algebra.Field
+open import Relations
 
 data Bool : Type where
   Yes : Bool
@@ -92,3 +93,41 @@ instance
       ; recInv = λ{ (Yes , x) → refl
                   ; (No , x) → x refl ~> UNREACHABLE }
       ; GFP = λ {n = n} xs x y → distinguishingOutput {n = n} xs (λ z → boolDiscrete z 0r) x}
+
+private
+ le : Bool → Bool → Type
+ le No _ = ⊤
+ le Yes No = ⊥
+ le Yes Yes = ⊤
+
+instance
+  boolPreorder : Preorder le
+  boolPreorder = record {
+         transitive = λ{a = a}{b}{c} → auxTrans a b c
+       ; reflexive = λ{a} → auxRefl a
+       ; isRelation = auxRel }
+   where
+    auxTrans : (a b c : Bool) → le a b → le b c → le a c
+    auxTrans Yes Yes c _ z = z
+    auxTrans Yes No _ absurd = absurd ~> UNREACHABLE
+    auxTrans No _ _ _ _ = tt
+    auxRefl : (a : Bool) → le a a
+    auxRefl Yes = tt
+    auxRefl No = tt
+    auxRel : (a b : Bool) → isProp (le a b)
+    auxRel Yes Yes tt tt = refl
+    auxRel Yes No = isProp⊥
+    auxRel No _ tt tt = refl
+
+  boolPoset : Poset le
+  boolPoset = record { antiSymmetric = λ {a b} → auxAS a b }
+   where
+    auxAS : ∀ a b → le a b → le b a → a ≡ b
+    auxAS Yes Yes p q = refl
+    auxAS Yes No p q = p ~> UNREACHABLE
+    auxAS No Yes p q = q ~> UNREACHABLE
+    auxAS No No p q = refl
+
+  boolTotalOrder : TotalOrder Bool
+  boolTotalOrder = record { _≤_ = le
+        ; stronglyConnected = λ{ Yes Yes → inl tt ; Yes No → inr tt ; No b → inl tt}}
