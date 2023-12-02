@@ -89,18 +89,10 @@ module trig(sinAngleAdd : ∀ x y → sin(x + y) ≡ (sin x * cos y)+(cos x * si
 
  cosπ/2-θ≡sinθ : ∀ θ → cos(π/2 - θ) ≡ sin θ
  cosπ/2-θ≡sinθ θ =
-  cos(π/2 - θ)         ≡⟨ sym (sinπ/2-θ≡cosθ (π/2 - θ))⟩
-  sin(π/2 - (π/2 - θ)) ≡⟨ cong sin H ⟩
+  cos(π/2 - θ)             ≡⟨ sym (sinπ/2-θ≡cosθ (π/2 - θ))⟩
+  sin(π/2 - (π/2 - θ))     ≡⟨ cong sin (right _-_ (comm π/2 (neg θ))) ⟩
+  sin(π/2 - (neg θ + π/2)) ≡⟨ cong sin (a[b'a]'≡b π/2 θ) ⟩
   sin θ ∎
-  where
-   H = π/2 - (π/2 - θ)              ≡⟨By-Definition⟩
-       π/2 + neg(π/2 + neg θ)       ≡⟨ right _+_ (sym (grp.lemma1 π/2 (neg θ)))⟩
-       π/2 + (neg(neg θ) + neg π/2) ≡⟨ right _+_ (left _+_ (grp.doubleInv θ))⟩
-       π/2 + (θ + neg π/2)          ≡⟨ comm π/2 (θ + neg π/2)⟩
-       (θ + neg π/2) + π/2          ≡⟨ sym (assoc θ (neg π/2) π/2)⟩
-       θ + (neg π/2 + π/2)          ≡⟨ right _+_ (lInverse π/2)⟩
-       θ + 0r                       ≡⟨ rIdentity θ ⟩
-       θ ∎
 
  evenFunction : ∀ θ → cos(neg θ) ≡ cos θ
  evenFunction θ =
