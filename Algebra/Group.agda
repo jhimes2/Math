@@ -202,3 +202,10 @@ record grpHomomorphism {A : Type l}
   where field
     h : A → B
     homomorphism : (u v : A) → h (u ∙ v) ≡ h u * h v
+
+module _{_∙_ : A → A → A} {{G : group _∙_}} (a b : A) where
+
+ a[b'a]'≡b = a ∙ inv (inv b ∙ a)        ≡⟨ right _∙_ (sym(grp.lemma1 (inv b) a))⟩
+             a ∙ (inv a ∙ (inv(inv b))) ≡⟨ a[a'b]≡b a (inv(inv b)) ⟩
+             inv(inv b)                 ≡⟨ grp.doubleInv b ⟩
+             b ∎
