@@ -148,21 +148,35 @@ instance
 mMult : {{R : Rng A}} → (fin n → B → A) → (C → fin n → A) → C → B → A
 mMult M N c = MT M (N c)
 
-dotDistribute : {{R : Ring A}} → ∀ n → (w u v : [ A ^ n ])
+dotDistribute : {{R : Ring A}} → (w u v : [ A ^ n ])
               → dot (u [+] v) w ≡ dot u w + dot v w
-dotDistribute Z w u v = sym (lIdentity 0r)
-dotDistribute (S n) w u v =
+dotDistribute {n = Z} w u v = sym (lIdentity 0r)
+dotDistribute {n = S n} w u v =
   let v∙w = dot (tail v) (tail w) in
   let u∙w = dot (tail u) (tail w) in
  dot (u [+] v) w ≡⟨By-Definition⟩
  (head(u [+] v) * head w) + dot (tail(u [+] v)) (tail w) ≡⟨By-Definition⟩
  ((head u + head v) * head w) + dot ((tail u [+] tail v)) (tail w)
-    ≡⟨ right _+_ (dotDistribute n (tail w) (tail u) (tail v))⟩
+    ≡⟨ right _+_ (dotDistribute (tail w) (tail u) (tail v))⟩
  ((head u + head v) * head w) + (u∙w + v∙w) ≡⟨ left _+_ (rDistribute (head w)(head u)(head v))⟩
  ((head u * head w) + (head v * head w)) + (u∙w + v∙w)
     ≡⟨ [ab][cd]≡[ac][bd] (head u * head w) (head v * head w) (u∙w) (v∙w)⟩
  ((head u * head w) + u∙w) + ((head v * head w) + v∙w) ≡⟨By-Definition⟩
  dot u w + dot v w ∎
+
+dotlDistribute : {{R : Ring A}} → (w u v : [ A ^ n ])
+              → dot w (u [+] v) ≡ dot w u + dot w v
+dotlDistribute {n = Z} w u v = sym (rIdentity 0r)
+dotlDistribute {n = S n} w u v =
+  let w∙v = dot (tail w) (tail v) in
+  let w∙u = dot (tail w) (tail u) in
+ (head w * head(u [+] v)) + dot (tail w) (tail(u [+] v))
+  ≡⟨ right _+_ (dotlDistribute (tail w) (tail u) (tail v))⟩
+ (head w * head(u [+] v)) + (dot (tail w) (tail u) + dot (tail w) (tail v))
+  ≡⟨ left _+_ (lDistribute (head w) (head u) (head v)) ⟩
+ ((head w * head u) + (head w * head v)) + (dot (tail w) (tail u) + dot (tail w) (tail v))
+  ≡⟨ [ab][cd]≡[ac][bd] (head w * head u) (head w * head v) w∙u w∙v ⟩
+ dot w u + dot w v ∎
 
 dotScale : {{R : Ring A}} → (c : A) → (u v : [ A ^ n ])
          → dot (scale c u) v ≡ c * dot u v
@@ -210,7 +224,7 @@ dotMatrix n (S m) u M v =
  dot (λ n' → dot v (λ m' → M m' n')) u ≡⟨By-Definition⟩
  dot (λ n' → (head v * (head M) n') + dot (tail v) (tail λ m' → M m' n')) u ≡⟨By-Definition⟩
  dot ((λ n' → (head v * (head M) n')) [+] (λ n' → dot (tail v) (λ m' → (tail M) m' n'))) u
- ≡⟨ dotDistribute n u (λ n' → (head v * head λ m' → M m' n')) (λ n' → dot (tail v) (λ m' → (tail M) m' n'))⟩
+ ≡⟨ dotDistribute u (λ n' → (head v * head λ m' → M m' n')) (λ n' → dot (tail v) (λ m' → (tail M) m' n'))⟩
  dot (scale (head v) (head M)) u + dot (λ n' → dot (tail v) (λ m' → (tail M) m' n')) u
  ≡⟨ cong₂ _+_ (dotScale {n = n} (head v) (head M) u) (dotMatrix n m u (tail M) (tail v))⟩
  (head v * dot (head M) u) + dot (tail v) (tail λ m' → dot (M m') u) ≡⟨By-Definition⟩
@@ -323,12 +337,55 @@ IRID {n = S n} M = funExt λ (x , yp) → funExt λ b → aux M (x , yp) b
    tail M (x , y , SInjective p) b ≡⟨ left M (ΣPathPProp (λ a → finSndIsProp a) refl)⟩
    M (S x , y , p) b ∎
 
--- Square matrix multiplication is a monoid
+mAdd : {{R : Ring C}} → (A → B → C) → (A → B → C) → (A → B → C)
+mAdd = λ M N → λ x → M x [+] N x
+
+-- left Matrix distribution
+lMatrixDistr : {{R : Ring A}}
+                  → (M : fin n → B → A)
+                  → (N O : C → fin n → A)
+                  → mMult M (mAdd N O) ≡ mAdd (mMult M N) (mMult M O)
+lMatrixDistr a b c = funExt λ x → funExt λ y → dotDistribute (λ z → a z y) (b x) (c x)
+
+-- right Matrix distribution
+rMatrixDistr : {{R : Ring A}}
+                  → (M : B → fin n → A)
+                  → (N O : fin n → C → A)
+                  → mMult (mAdd N O) M ≡ mAdd (mMult N M) (mMult O M)
+rMatrixDistr a b c = funExt λ x → funExt λ y → dotlDistribute (a x) (λ z → b z y) λ z → c z y
+
+-- Square matrix Ring
 instance
+ mAddAssoc : {{R : Ring C}} → Associative (mAdd {A = A}{B = B})
+ mAddAssoc = record { assoc = λ a b c → funExt λ x → funExt λ y → assoc (a x y) (b x y) (c x y) }
  sqrMMultAssoc : {{R : Ring A}} → Associative (mMult {n = n}{B = fin n} {C = fin n})
  sqrMMultAssoc = record { assoc = mMultAssoc }
  sqrMMultMonoid : {{R : Ring A}} → monoid (mMult {B = fin n} {C = fin n})
- sqrMMultMonoid {{R}} = record { e = I
-                         ; IsSet = isSet→ (isSet→ (R .multStr .IsSet))
-                         ; lIdentity = ILID
-                         ; rIdentity = IRID }
+ sqrMMultMonoid {{R}} = record
+                      { e = I
+                      ; IsSet = isSet→ (isSet→ (R .multStr .IsSet))
+                      ; lIdentity = ILID
+                      ; rIdentity = IRID
+                      }
+ sqrMatrix*+ : {{R : Ring A}} → *+ (Matrix A n n)
+ sqrMatrix*+ {n = n} = record
+   { _+_ = mAdd
+   ; _*_ = mMult
+    -- 'lMatrixDistr' and 'rMatrixDistr' are more general than 'lDistribution'
+    -- and 'rDistribution' since we're now requiring matrices to be square.
+   ; lDistribute = lMatrixDistr
+   ; rDistribute = rMatrixDistr
+   }
+ matrixAddComm : {{R : Ring C}} → Commutative (mAdd {A = A} {B = B} {{R}})
+ matrixAddComm = record { comm = λ M N → funExt λ x → funExt λ y → comm (M x y) (N x y) }
+ sqrMatrixAddGroup : {{R : Ring A}} → group (mAdd {A = fin n}{B = fin n})
+ sqrMatrixAddGroup = record
+    { e = λ _ _ → 0r
+    ; IsSet = isSet→ IsSet
+    ; inverse = λ a → (λ x y → neg(a x y)) , funExt λ x → funExt λ y → lInverse (a x y)
+    ; lIdentity = λ a → funExt λ x → funExt λ y → lIdentity (a x y)
+    }
+ sqrMatrixRng : {{R : Ring A}} → Rng (Matrix A n n)
+ sqrMatrixRng = record {}
+ sqrMatrixRing : {{R : Ring A}} → Ring (Matrix A n n)
+ sqrMatrixRing = record {}
