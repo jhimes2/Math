@@ -11,6 +11,9 @@ open import Cubical.HITs.PropositionalTruncation renaming (rec to recTrunc ; map
 
 open monoid {{...}}
 
+-- This is the only 'unsafe' function in this file. For now I'll wave my hands and say it's
+-- obvious that the function terminates. Earlier I defined an equivalent function that was
+-- accepted by Agda's termination checker, but I found it too difficult to prove 'cutS' and 'addPaste'.
 {-# TERMINATING #-}
 jumpInductionAux : (P : ℕ → Type l) → (a n : ℕ)
                   → (n ≤ a) ＋ (Σ λ(z : ℕ) → n ≡ S (z + a))
@@ -100,8 +103,11 @@ division b =
                   (divBase b)
                   (divJump b)
 
+cutPaste : ℕ → ℕ → ℕ × ℕ
+cutPaste a b = fst $ division b a
+
 cut : ℕ → ℕ → ℕ
-cut a b = fst $ fst $ division b a
+cut a b = fst $ cutPaste a b
 
 propExt2 : {A B : Type lzero} → isProp A → isProp B → (A → B) → (B → A) → A ≡ B
 propExt2 pA pB ab ba = isoToPath (iso ab ba (λ b → pB (ab (ba b)) b) λ a → pA (ba (ab a)) a)
@@ -109,7 +115,7 @@ propExt2 pA pB ab ba = isoToPath (iso ab ba (λ b → pB (ab (ba b)) b) λ a →
 
 -- I don't know what else to call this function
 paste : ℕ → ℕ → ℕ
-paste a b = snd $ fst (division b a)
+paste a b = snd $ cutPaste a b
 
 -- div a (b+1) ≡ cut a b
 div : ℕ → nonZ → ℕ
@@ -273,6 +279,27 @@ cutS a b = isLe (S b + a) b
          S (fst (fst (jumpInductionAux (divProp b) b a (isLe a b) (divBase b) (divJump b)))) ∎
          }
 
+pasteAdd : (a b : ℕ) → paste (S b + a) b ≡ paste a b
+pasteAdd a b = isLe (S b + a) b
+ ~> λ{(inl r) → leAddN a b r ~> UNREACHABLE
+    ; (inr (r , p)) →
+ SInjective p ~> λ q → 
+ let D : a ≡ r
+     D = natLCancel b (q ∙ comm r b) in
+ let F : inr (r , p) ≡ (isLe (S b + a) b)
+     F = ＋≡ (λ (x , p) (y , q) → ΣPathPProp (λ t u v → ℕAddMonoid .IsSet (S (add b a)) (S (add t b)) u v)
+             let u = SInjective(sym p ∙ q) in natRCancel b u)
+             (leAddN a b) (r , p) (isLe (S (add b a)) b) in
+ let G : inr (a , cong S (comm b a)) ≡ inr (r , p)
+     G = cong inr (ΣPathPProp (λ c → ℕAddMonoid .IsSet (S (add b a)) (S(add c b))) D) in
+  let E = G ∙ F in
+         snd (fst (jumpInductionAux (divProp b) b (S b + a) (isLe (S b + a) b)(divBase b) (divJump b) ))
+        ≡⟨ cong (λ x → snd (fst (jumpInductionAux (divProp b) b (S b + a) x (divBase b) (divJump b) ))) (sym E)  ⟩
+         snd (fst (jumpInductionAux (divProp b) b (S b + a) (inr (a , cong S (comm b a))) (divBase b) (divJump b)))
+        ≡⟨ refl ⟩
+         (snd (fst (jumpInductionAux (divProp b) b a (isLe a b) (divBase b) (divJump b)))) ∎
+         }
+
 ZCut : ∀ a → cut Z a ≡ Z
 ZCut a = let H = cutLemma Z a in
    notAnySIsZ (cut Z a) λ b contra
@@ -294,3 +321,62 @@ cutCopy a (S b) =
  cut (S a + copy a b) a     ≡⟨ cutS (copy a b) a ⟩
  S (cut (copy a b) a)       ≡⟨ cong S (cutCopy a b)⟩
  S b ∎          
+
+pasteCopy : (b r : ℕ) → paste (copy b r) b ≡ Z
+pasteCopy b Z = left paste (multZ (S b)) ∙ ZPaste b
+pasteCopy b (S r) =
+ paste (copy b (S r)) b       ≡⟨ cong (λ x → paste x b) (comm (S b) (S r)) ⟩
+ paste (S b + mult r (S b)) b ≡⟨ pasteAdd (mult r (S b)) b ⟩
+ paste (mult r (S b)) b       ≡⟨ cong (λ x → paste x b) (comm r (S b))⟩
+ paste (copy b r) b           ≡⟨ pasteCopy b r ⟩
+ Z ∎
+
+pasteAB≡0→SB∣A : (a b : ℕ) → paste a b ≡ Z → S b ∣ a
+pasteAB≡0→SB∣A a b p = let H = cutLemma a b in
+    transport (λ i → a ≡ copy b (cut a b) + p i) H ~> λ H →
+  ∣ (cut a b) , (cut a b * S b        ≡⟨ comm (cut a b) (S b)⟩
+                 copy b (cut a b)     ≡⟨ sym (rIdentity (copy b (cut a b)))⟩
+                 copy b (cut a b) + Z ≡⟨ sym H ⟩
+                 a ∎) ∣₁
+
+SB∣A→pasteAB≡0 : (a b : ℕ) → S b ∣ a → paste a b ≡ Z
+SB∣A→pasteAB≡0 a b = recTrunc (ℕAddMonoid .IsSet (paste a b) Z)
+  λ(x , p) → let H = cutLemma a b in
+    let G =
+          cut a b              ≡⟨ cong (λ x → cut x b) (sym p)⟩
+          cut (mult x (S b)) b ≡⟨ left cut (comm x (S b))⟩
+          cut (copy b x) b     ≡⟨ cutCopy b x ⟩
+          x ∎
+    in
+    paste a b              ≡⟨ left paste (sym p)⟩
+    paste (mult x (S b)) b ≡⟨ left paste (comm x (S b))⟩
+    paste (copy b x) b     ≡⟨ pasteCopy b x ⟩
+    Z ∎
+
+pasteAB≢0→SB∤A : (a b : ℕ) → paste a b ≢ Z → ¬(S b ∣ a)
+pasteAB≢0→SB∤A a b = modusTollens (SB∣A→pasteAB≡0 a b)
+
+dividesDec : (a b : ℕ) → Dec (a ∣ b)
+dividesDec Z Z = yes ∣ Z , refl ∣₁
+dividesDec Z (S b) = no (λ x → recTrunc (λ x → x ~> UNREACHABLE)
+    (λ(x , p) → ZNotS (sym (multZ x) ∙ p)) x)
+dividesDec (S a) b = let H = cutLemma b a in
+       natDiscrete (paste b a) Z
+ ~> λ{ (yes p) → yes $ ∣_∣₁ $ cut b a
+   , (cut b a * S a ≡⟨ comm (cut b a) (S a)⟩
+      copy a (cut b a) ≡⟨ sym (rIdentity (copy a (cut b a)))⟩
+      copy a (cut b a) + Z ≡⟨ right _+_ (sym p) ⟩
+      (copy a (cut b a)) + paste b a ≡⟨ sym H ⟩
+      b ∎)
+     ; (no p) → no $ pasteAB≢0→SB∤A b a p
+     }
+
+GCD : (a b : ℕ) → greatest (commonDivisor a (S b))
+GCD a b = findGreatest (commonDivisor a (S b))
+     (λ n → dividesDec n a
+          ~> λ{ (yes p) → dividesDec n (S b)
+                     ~> λ{(yes q) → yes (p , q)
+                         ; (no q) → no (λ(_ , y) → q y)}
+              ; (no p) → no (λ(x , _) → p x)}) ((S Z) , (∣ a , (rIdentity a) ∣₁
+                         , ∣ S b , cong S (rIdentity b) ∣₁)) (S b)
+                           λ m (x , y) → divides.le m b y
