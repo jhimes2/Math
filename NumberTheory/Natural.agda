@@ -272,3 +272,8 @@ cutS a b = isLe (S b + a) b
         ≡⟨ refl ⟩
          S (fst (fst (jumpInductionAux (divProp b) b a (isLe a b) (divBase b) (divJump b)))) ∎
          }
+
+ZCut : ∀ a → cut Z a ≡ Z
+ZCut a = let H = cutLemma Z a in
+   notAnySIsZ (cut Z a) λ b contra
+     → transport (λ i → Z ≡ copy a (contra i) + paste Z a) H ~> λ G → ZNotS G
