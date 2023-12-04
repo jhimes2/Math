@@ -320,3 +320,7 @@ findGreatest P decide (x , Px) (S n) f = decide (S n)
 open import Cubical.Foundations.Pointed.Homogeneous
 NatHomogeneous : isHomogeneous (ℕ , Z)
 NatHomogeneous = isHomogeneousDiscrete natDiscrete
+
+notAnySIsZ : ∀ a → (∀ b → a ≢ S b) → a ≡ Z
+notAnySIsZ Z _ = refl
+notAnySIsZ (S a) p = p a refl ~> UNREACHABLE
