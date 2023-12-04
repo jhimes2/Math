@@ -1,4 +1,4 @@
-{-# OPTIONS --cubical --safe --overlapping-instances #-}
+{-# OPTIONS --cubical --overlapping-instances #-}
 
 module NumberTheory.Natural where
 
@@ -11,66 +11,101 @@ open import Cubical.HITs.PropositionalTruncation renaming (rec to recTrunc ; map
 
 open monoid {{...}}
 
+{-# TERMINATING #-}
+jumpInductionAux : (P : ℕ → Type l) → (a n : ℕ)
+                  → (n ≤ a) ＋ (Σ λ(z : ℕ) → n ≡ S (z + a))
+                  → ((b : ℕ) → b ≤ a → P b)
+                  → ((x : ℕ) → P x → P (S(x + a)))
+                  → P n
+jumpInductionAux P a n (inl w) Base jump  = Base n w
+jumpInductionAux P a n (inr (x , p)) Base jump = 
+                       subst P (sym p) $ jump x
+                         let H : (x + a) ≤ n
+                             H = (transport (λ i → (x + a) ≤ p (~ i)) (leS2 (add x a) (add x a) (reflexive {a = (x + a)}))) in
+                         jumpInductionAux P a x (isLe x a) Base jump
+
+jumpInduction : (P : ℕ → Type l)
+                → (a : ℕ)
+                → ((b : ℕ) → b ≤ a → P b)
+                → ((x : ℕ) → P x → P (S(x + a)))
+                → (n : ℕ) → P n
+jumpInduction P a Base jump n = jumpInductionAux P a n  (isLe n a) Base jump
+
 copy : ℕ → ℕ → ℕ
 copy a b = (S a) * b
 
+divProp : ℕ → ℕ → Type
+divProp b a = ∃! λ((q , r) : ℕ × ℕ) → (a ≡ copy b q + r) × (r ≤ b)
+
+private
+ divBase : (b a : ℕ) → a ≤ b → divProp b a
+ divBase b a p = (Z , a) , (left _+_ (sym (multZ (S b))) , p) ,
+                    λ (q , r) (x' , y') →
+                     natDiscrete q Z ~> λ{
+                       (yes x) → ≡-× (sym x)
+                        let H : copy b q ≡ Z
+                            H = (copy b q ≡⟨ cong (copy b) x ⟩
+                                 copy b Z ≡⟨ multZ b ⟩
+                                 Z ∎) in (x' ∙ left add H)
+                     ; (no x) → NEqZ x ~> λ(h , f) →
+                                let x' = a ≡⟨ x' ∙ left _+_ (comm (S b) q) ⟩
+                                         mult q (S b) + r ≡⟨ left _+_ (left _*_ f) ⟩
+                                         (S b + mult h (S b)) + r ≡⟨ sym (assoc (S b) (h * S b) r) ⟩
+                                         S b + (mult h (S b) + r) ∎ in
+                                     leSNEq a (b + (mult h (S b) + r)) (leAdd2 a b (mult h (S b) + r) p) x' ~> UNREACHABLE}
+ 
+ 
+ divJump : (b x : ℕ) → divProp b x → divProp b (S(x + b))
+ divJump b = λ a ((q , r) , (a≡q+b*q+r , r≤b) , y)
+                       → (S q , r ) , (( (cong S $
+                a + b ≡⟨ left _+_ a≡q+b*q+r ⟩
+                ((q + (b * q)) + r) + b ≡⟨ [ab]c≡[ac]b (q + (b * q)) r b ⟩
+                ((q + (b * q)) + b) + r
+                  ≡⟨ left _+_ $ (q + (b * q)) + b ≡⟨ sym (assoc q (b * q) b)⟩
+                        q + ((b * q) + b) ≡⟨ cong (add q) (comm (b * q) b)⟩
+                        q + (b + (b * q)) ≡⟨ right _+_ (sym (addOut b q))⟩
+                        q + (b * S q) ∎ ⟩
+                (q + (b * S q)) + r ∎)) , r≤b) , λ{(Z , r')
+                 (t , u) → let t = S (a + b) ≡⟨ t ⟩
+                                   (b * Z) + r' ≡⟨ left _+_ (multZ b) ⟩
+                                   r' ∎ in
+                           let u : S(a + b) ≤ b
+                               u = transport (λ i → t (~ i) ≤ b) u in
+                           let u : S(b + a) ≤ b
+                               u = transport (λ i → S (AddCom .comm a b i) ≤ b) u in
+                           let u : S(b + a) ≤ (b + a)
+                               u = leAdd2 (S (add b a)) b a u in
+                           let u : S(b + a) ≢ S(b + a)
+                               u = leSNEq (S (add b a)) (add b a) u in u refl ~> UNREACHABLE
+                 ; (S q' , r') (t , u) →
+                 let G = b + a ≡⟨ comm b a ⟩
+                         a + b ≡⟨ SInjective t ⟩
+                         (q' + (mult b (S q'))) + r' ≡⟨ left _+_ (comm q' (mult b (S q')))⟩
+                         ((mult b (S q')) + q') + r' ≡⟨ left _+_ (left _+_ (comm b (S q')))⟩
+                         ((mult (S q') b) + q') + r' ≡⟨ sym (assoc (mult (S q') b) q' r') ⟩
+                         (b + mult q' b) + (q' + r') ≡⟨ sym (assoc b (mult q' b) (q' + r')) ⟩
+                         b + (mult q' b + (q' + r')) ∎
+                 in
+                 let H = y (q' , r')
+                      ((a ≡⟨ natLCancel b G ⟩
+                      mult q' b + (q' + r') ≡⟨ left _+_ (comm q' b) ⟩
+                      mult  b q' + (q' + r') ≡⟨ a[bc]≡[ba]c (mult b q') q' r' ⟩
+                        (q' + mult b q') + r' ∎) , u) in
+                  ≡-× (cong S (λ i → fst(H i))) λ i → snd (H i) }
+
 division : (b a : ℕ) → ∃! λ(q , r) → (a ≡ copy b q + r) × (r ≤ b)
 division b =
-    jumpInduction (λ a → ∃! λ(q , r) → (a ≡ copy b q + r) × (r ≤ b))
+    jumpInduction (divProp b)
                   b
-                  (λ a p → (Z , a) , (left _+_ (sym (multZ (S b))) , p) ,
-                   λ (q , r) (x' , y') →
-                    natDiscrete q Z ~> λ{
-                      (yes x) → ≡-× (sym x)
-                       let H : copy b q ≡ Z
-                           H = (copy b q ≡⟨ cong (copy b) x ⟩
-                                copy b Z ≡⟨ multZ b ⟩
-                                Z ∎) in (x' ∙ left add H)
-                    ; (no x) → NEqZ x ~> λ(h , f) →
-                               let x' = a ≡⟨ x' ∙ left _+_ (comm (S b) q) ⟩
-                                        mult q (S b) + r ≡⟨ left _+_ (left _*_ f) ⟩
-                                        (S b + mult h (S b)) + r ≡⟨ sym (assoc (S b) (h * S b) r) ⟩
-                                        S b + (mult h (S b) + r) ∎ in
-                                    leSNEq a (b + (mult h (S b) + r)) (leAdd2 a b (mult h (S b) + r) p) x' ~> UNREACHABLE})
-                   λ a ((q , r) , (a≡q+b*q+r , r≤b) , y)
-                      → (S q , r ) , (( (cong S $
-               a + b ≡⟨ left _+_ a≡q+b*q+r ⟩
-               ((q + (b * q)) + r) + b ≡⟨ [ab]c≡[ac]b (q + (b * q)) r b ⟩
-               ((q + (b * q)) + b) + r
-                 ≡⟨ left _+_ $ (q + (b * q)) + b ≡⟨ sym (assoc q (b * q) b)⟩
-                       q + ((b * q) + b) ≡⟨ cong (add q) (comm (b * q) b)⟩
-                       q + (b + (b * q)) ≡⟨ right _+_ (sym (addOut b q))⟩
-                       q + (b * S q) ∎ ⟩
-               (q + (b * S q)) + r ∎)) , r≤b) , λ{(Z , r')
-                (t , u) → let t = S (a + b) ≡⟨ t ⟩
-                                  (b * Z) + r' ≡⟨ left _+_ (multZ b) ⟩
-                                  r' ∎ in
-                          let u : S(a + b) ≤ b
-                              u = transport (λ i → t (~ i) ≤ b) u in
-                          let u : S(b + a) ≤ b
-                              u = transport (λ i → S (AddCom .comm a b i) ≤ b) u in
-                          let u : S(b + a) ≤ (b + a)
-                              u = leAdd2 (S (add b a)) b a u in
-                          let u : S(b + a) ≢ S(b + a)
-                              u = leSNEq (S (add b a)) (add b a) u in u refl ~> UNREACHABLE
-                ; (S q' , r') (t , u) →
-                let G = b + a ≡⟨ comm b a ⟩
-                        a + b ≡⟨ SInjective t ⟩
-                        (q' + (mult b (S q'))) + r' ≡⟨ left _+_ (comm q' (mult b (S q')))⟩
-                        ((mult b (S q')) + q') + r' ≡⟨ left _+_ (left _+_ (comm b (S q')))⟩
-                        ((mult (S q') b) + q') + r' ≡⟨ sym (assoc (mult (S q') b) q' r') ⟩
-                        (b + mult q' b) + (q' + r') ≡⟨ sym (assoc b (mult q' b) (q' + r')) ⟩
-                        b + (mult q' b + (q' + r')) ∎
-                in
-                let H = y (q' , r')
-                     ((a ≡⟨ natLCancel b G ⟩
-                     mult q' b + (q' + r') ≡⟨ left _+_ (comm q' b) ⟩
-                     mult  b q' + (q' + r') ≡⟨ a[bc]≡[ba]c (mult b q') q' r' ⟩
-                       (q' + mult b q') + r' ∎) , u) in
-                 ≡-× (cong S (λ i → fst(H i))) λ i → snd (H i) }
+                  (divBase b)
+                  (divJump b)
 
 cut : ℕ → ℕ → ℕ
 cut a b = fst $ fst $ division b a
+
+propExt2 : {A B : Type lzero} → isProp A → isProp B → (A → B) → (B → A) → A ≡ B
+propExt2 pA pB ab ba = isoToPath (iso ab ba (λ b → pB (ab (ba b)) b) λ a → pA (ba (ab a)) a)
+  where open import Cubical.Foundations.Isomorphism
 
 -- I don't know what else to call this function
 paste : ℕ → ℕ → ℕ
@@ -212,3 +247,28 @@ isPrime n = ∀ x → S(S x) ∣ n → n ≡ S(S x)
 
 Prime : Type
 Prime = Σ isPrime
+
+＋≡ : isProp B → ¬ A → (b : B) → (x : A ＋ B) → inr b ≡ x
+＋≡ prop nA b (inl x) = nA x ~> UNREACHABLE
+＋≡ prop nA b (inr x) = cong inr (prop b x)
+
+cutS : (a b : ℕ) → cut (S b + a) b ≡ S (cut a b)
+cutS a b = isLe (S b + a) b
+ ~> λ{(inl r) → leAddN a b r ~> UNREACHABLE
+    ; (inr (r , p)) →
+ SInjective p ~> λ q → 
+ let D : a ≡ r
+     D = natLCancel b (q ∙ comm r b) in
+ let F : inr (r , p) ≡ (isLe (S b + a) b)
+     F = ＋≡ (λ (x , p) (y , q) → ΣPathPProp (λ t u v → ℕAddMonoid .IsSet (S (add b a)) (S (add t b)) u v)
+             let u = SInjective(sym p ∙ q) in natRCancel b u)
+             (leAddN a b) (r , p) (isLe (S (add b a)) b) in
+ let G : inr (a , cong S (comm b a)) ≡ inr (r , p)
+     G = cong inr (ΣPathPProp (λ c → ℕAddMonoid .IsSet (S (add b a)) (S(add c b))) D) in
+  let E = G ∙ F in
+         fst (fst (jumpInductionAux (divProp b) b (S b + a) (isLe (S b + a) b)(divBase b) (divJump b) ))
+        ≡⟨ cong (λ x → fst (fst (jumpInductionAux (divProp b) b (S b + a) x (divBase b) (divJump b) ))) (sym E)  ⟩
+         fst (fst (jumpInductionAux (divProp b) b (S b + a) (inr (a , cong S (comm b a))) (divBase b) (divJump b)))
+        ≡⟨ refl ⟩
+         S (fst (fst (jumpInductionAux (divProp b) b a (isLe a b) (divBase b) (divJump b)))) ∎
+         }

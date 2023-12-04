@@ -216,6 +216,13 @@ leAdd2 : (a b c : ℕ) → a ≤ b → a ≤ (b + c)
 leAdd2 Z _ _ _ = tt
 leAdd2 (S a) (S b) c p = leAdd2 a b c p
 
+leAdd3 : (a b : ℕ) → a ≤ (b + a)
+leAdd3 a Z = reflexive {a = a}
+leAdd3 a (S b) = leS2 a (add b a) (leAdd3 a b)
+
+leAddN : (a b : ℕ) → ¬((S b + a) ≤ b)
+leAddN a (S b) = leAddN a b
+
 leSlide : (a b c : ℕ) → (c + a) ≤ (c + b) → a ≤ b 
 leSlide a b Z p = p
 leSlide a b (S x) p = leSlide a b x p
@@ -297,26 +304,6 @@ nonZ = Σ λ x → Σ λ y → x ≡ S y
 
 greatest : (ℕ → Type l) → Type l
 greatest P = Σ λ n → P n × (∀ x → P x → n ≤ x → n ≡ x)
-
-jumpInduction : (P : ℕ → Type l)
-                → (a : ℕ)
-                → ((b : ℕ) → b ≤ a → P b)
-                → ((x : ℕ) → P x → P (S(x + a)))
-                → (n : ℕ) → P n
-jumpInduction P a Base jump n = aux P a Base jump n n (reflexive {a = n})
- where
-  aux : (P : ℕ → Type l) → (a : ℕ) → ((b : ℕ) → b ≤ a → P b)
-                    → ((x : ℕ) → P x → P (S(x + a)))
-                    → (n iter : ℕ) → n ≤ iter → P n
-  aux P a Base jump Z _ _ = Base Z tt
-  aux P a Base jump (S n) Z q = q ~> UNREACHABLE
-  aux P a Base jump (S n) (S iter) q =
-     isLe (S n) a ~> λ{ (inl w) → Base (S n) w
-                      ; (inr (x , p)) →
-                         subst P (sym p) $ jump x
-                           let H : S(x + a) ≤ S n
-                               H = transport (λ i → SInjective p i ≤ n) (reflexive {a = n}) in
-                           aux P a Base jump x iter (transitive {a = x} (leAdd x a n H) q) }
 
 findGreatest : (P : ℕ → Type l) → (∀ n → Dec (P n))
              → Σ P → (n : ℕ) → (∀ m → P m → m ≤ n) → greatest P
