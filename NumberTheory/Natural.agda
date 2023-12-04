@@ -279,9 +279,18 @@ ZCut a = let H = cutLemma Z a in
      → transport (λ i → Z ≡ copy a (contra i) + paste Z a) H ~> λ G → ZNotS G
 
 ZPaste : ∀ a → paste Z a ≡ Z
-ZPaste a = let G = cutLemma Z a in
-  paste Z a ≡⟨ sym (ℕAddMonoid .lIdentity (paste Z a))⟩
-  Z + paste Z a ≡⟨ left _+_ (sym (multZ (S a)))⟩
-  (copy a Z) + paste Z a ≡⟨ cong (λ x → copy a x + paste Z a) (sym (ZCut a))⟩
-  (copy a (cut Z a)) + (paste Z a) ≡⟨ sym G ⟩
+ZPaste a =
+  paste Z a                    ≡⟨ sym (ℕAddMonoid .lIdentity (paste Z a))⟩
+  Z + paste Z a                ≡⟨ left _+_ (sym (multZ (S a)))⟩
+  copy a Z + paste Z a         ≡⟨ cong (λ x → copy a x + paste Z a) (sym (ZCut a))⟩
+  copy a (cut Z a) + paste Z a ≡⟨ sym (cutLemma Z a) ⟩
   Z ∎
+
+cutCopy : ∀ a b → cut (copy a b) a ≡ b
+cutCopy a Z = left cut (multZ (S a)) ∙ ZCut a
+cutCopy a (S b) =
+ cut (copy a (S b)) a       ≡⟨ cong (λ x → cut x a) (comm (S a) (S b))⟩
+ cut (S a + mult b (S a)) a ≡⟨ cong (λ x → cut (S a + x) a) (comm b (S a))⟩
+ cut (S a + copy a b) a     ≡⟨ cutS (copy a b) a ⟩
+ S (cut (copy a b) a)       ≡⟨ cong S (cutCopy a b)⟩
+ S b ∎          

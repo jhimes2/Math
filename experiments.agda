@@ -63,14 +63,9 @@ retNo' = transport (λ i → flipPath i) Yes
 
 reflLoopF : ((λ i → base) ≡ loop) → Yes ≡ No
 reflLoopF contra = λ i → endPtOfYes (contra i)
+
 pasteCopy : (b r : ℕ) → paste (copy b r) b ≡ Z
 pasteCopy b r = {!!}
-
-cutCopy : (b r : ℕ) → cut (copy b r) b ≡ r
-cutCopy b r = let H = cutLemma r (copy b r) in
-  (cut (copy b r) b ≡⟨ {!!} ⟩
-  copy (copy b r) (cut r (copy b r)) ≡⟨ {!!} ⟩
-  copy (copy b r) (cut r (copy b r)) + paste r (copy b r) ∎) ∙ sym H
 
 cutUniq : (a b r : ℕ) → copy b r ≡ a → r ≡ cut a b
 cutUniq a b r p = {!!}
