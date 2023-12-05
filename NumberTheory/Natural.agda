@@ -248,15 +248,20 @@ cutZ a = let H = cutLemma a Z in
    copy Z (cut a Z) + paste a Z ≡⟨ sym H ⟩
    a ∎
 
-isPrime : ℕ → Type
-isPrime n = ∀ x → S(S x) ∣ n → n ≡ S(S x)
+record IsPrime (n : ℕ) : Type where
+ field
+  isPrime : ∀ x → S(S x) ∣ n → n ≡ S(S x)
 
 Prime : Type
-Prime = Σ isPrime
+Prime = Σ IsPrime
 
 ＋≡ : isProp B → ¬ A → (b : B) → (x : A ＋ B) → inr b ≡ x
 ＋≡ prop nA b (inl x) = nA x ~> UNREACHABLE
 ＋≡ prop nA b (inr x) = cong inr (prop b x)
+
+≡＋ : isProp A → ¬ B → (a : A) → (x : A ＋ B) → inl a ≡ x
+≡＋ prop nA b (inr x) = nA x ~> UNREACHABLE
+≡＋ prop nA b (inl x) = cong inl (prop b x)
 
 cutS : (a b : ℕ) → cut (S b + a) b ≡ S (cut a b)
 cutS a b = isLe (S b + a) b
@@ -299,6 +304,9 @@ pasteAdd a b = isLe (S b + a) b
         ≡⟨ refl ⟩
          (snd (fst (jumpInductionAux (divProp b) b a (isLe a b) (divBase b) (divJump b)))) ∎
          }
+
+pasteAdd2 : (a b : ℕ) → paste (S a + b) b ≡ paste a b
+pasteAdd2 a b = cong (λ x → paste (S x) b) (comm a b) ∙ pasteAdd a b
 
 ZCut : ∀ a → cut Z a ≡ Z
 ZCut a = let H = cutLemma Z a in
@@ -380,3 +388,38 @@ GCD a b = findGreatest (commonDivisor a (S b))
               ; (no p) → no (λ(x , _) → p x)}) ((S Z) , (∣ a , (rIdentity a) ∣₁
                          , ∣ S b , cong S (rIdentity b) ∣₁)) (S b)
                            λ m (x , y) → divides.le m b y
+
+pasteLeId : {a b : ℕ} → a ≤ b → paste a b ≡ a
+pasteLeId {a} {b} p =
+    let H : isLe a b ≡ inl p
+        H = sym (≡＋ (isRelation a b) (λ(x , q) → leAddNLe x q p) p (isLe a b)) in
+   snd(fst (jumpInductionAux (divProp b) b a (isLe a b) (divBase b) (divJump b)))
+    ≡⟨ cong (λ x → snd(fst (jumpInductionAux (divProp b) b a x (divBase b) (divJump b)))) H ⟩
+   a ∎
+
+cutLe : (a b : ℕ) → a ≤ b → cut a b ≡ Z
+cutLe a b p =
+    let H : isLe a b ≡ inl p
+        H = sym (≡＋ (isRelation a b) (λ(x , q) → leAddNLe x q p) p (isLe a b)) in
+   fst(fst (jumpInductionAux (divProp b) b a (isLe a b) (divBase b) (divJump b)))
+    ≡⟨ cong (λ x → fst(fst (jumpInductionAux (divProp b) b a x (divBase b) (divJump b)))) H ⟩
+   Z ∎
+
+module _{a b n : ℕ}(congr : paste a n ≡ paste b n) where
+
+   -- compatibility with translation
+   translation : (k : ℕ) → paste (a + k) n ≡ paste (b + k) n
+   translation Z = cong (λ x → paste x n) (addZ a) ∙ sym (cong (λ x → paste x n) (addZ b) ∙ sym congr)
+   translation (S k) = transport (λ i → paste (Sout a k (~ i)) n ≡ paste (Sout b k (~ i)) n)
+                       $ (aux (a + k) (b + k) (translation k))
+    where
+     aux : (a b : ℕ) → paste a n ≡ paste b n → paste (S a) n ≡ paste (S b) n
+     aux a b = jumpInduction (λ x → paste x n ≡ paste b n → paste (S x) n ≡ paste (S b) n)
+       n (λ k p → jumpInduction (λ y → paste k n ≡ paste y n → paste (S k) n ≡ paste (S y) n)
+         n (λ c q r → let H : k ≡ c
+                          H = sym(pasteLeId {k} p) ∙ r ∙ pasteLeId {c} q in
+                      cong (λ x → paste x n) (cong S H))
+                      (λ x y q → paste (S k) n  ≡⟨ y (q ∙ pasteAdd2 x n)⟩
+                                 paste (S x) n  ≡⟨ sym (pasteAdd2 (S x) n)⟩
+                                 paste (S(S(x + n))) n ∎)
+                   b) (λ x y p → pasteAdd2 (S x) n ∙ y (sym (pasteAdd2 x n) ∙ p)) a

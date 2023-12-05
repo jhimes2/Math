@@ -262,6 +262,10 @@ leContra : (a b : ℕ) → ¬(a ≤ b × S b ≤ a)
 leContra Z b (p , q) = q
 leContra (S a) (S b) = leContra a b
 
+leAddNLe : {a b : ℕ} → (c : ℕ) → a ≡ S (add c b) → ¬(a ≤ b)
+leAddNLe {a = a} {b} c p q = let H = transport (λ i → p i ≤ b) q
+  in leAddN c b $ transport (λ i → S (AddCom .comm c b i) ≤ b) H
+
 leNEq : (a b : ℕ) → a ≤ b → a ≢ b → S a ≤ b
 leNEq Z Z p q = q refl
 leNEq Z (S b) p q = tt
