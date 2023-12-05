@@ -18,13 +18,17 @@ variable
 fin : (n : ℕ) → Type
 fin n = Σ (λ m → Σ λ s → add (S m) s ≡ n)
 
-finSndIsProp : (a : ℕ) → isProp(Σ λ s → add (S a) s ≡ n)
+finSndIsProp : (a : ℕ) → isProp(Σ λ s → S a + s ≡ n)
 finSndIsProp {n = n} a (x , x') (y , y') =
    let H = natLCancel (S a) (y' ∙ sym x') in ΣPathPProp (λ b → ℕAddMonoid .IsSet (S (a + b)) n) (sym H)
 
 Fin : (n : ℕ) → Type
 Fin n = Σ (λ m → S m ≤ n)
 
+finZ : fin (S n)
+finZ {n = n} = Z , n , refl
+
+-- increments the value inside
 finS : {n : ℕ} → fin n → fin (S n)
 finS (x , y , p) = S x , y , cong S p
 
