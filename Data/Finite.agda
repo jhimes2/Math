@@ -22,9 +22,6 @@ finSndIsProp : (a : ℕ) → isProp(Σ λ s → S a + s ≡ n)
 finSndIsProp {n = n} a (x , x') (y , y') =
    let H = natLCancel (S a) (y' ∙ sym x') in ΣPathPProp (λ b → ℕAddMonoid .IsSet (S (a + b)) n) (sym H)
 
-Fin : (n : ℕ) → Type
-Fin n = Σ (λ m → S m ≤ n)
-
 finZ : fin (S n)
 finZ {n = n} = Z , n , refl
 
@@ -44,7 +41,7 @@ finIsSet = Discrete→isSet finDiscrete
 [_^_] A n = fin n → A
 
 head : [ A ^ S n ] → A
-head {n = n} v = v (Z , n , refl)
+head {n = n} v = v finZ
 
 tail : [ A ^ S n ] → [ A ^ n ]
 tail {n = n} v x = v (finS x)
