@@ -131,3 +131,7 @@ instance
   boolTotalOrder : TotalOrder Bool
   boolTotalOrder = record { _≤_ = le
         ; stronglyConnected = λ{ Yes Yes → inl tt ; Yes No → inr tt ; No b → inl tt}}
+
+isYes : Bool → Type
+isYes Yes = ⊤
+isYes No = ⊥
