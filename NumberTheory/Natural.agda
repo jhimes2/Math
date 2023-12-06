@@ -405,21 +405,79 @@ cutLe a b p =
     ≡⟨ cong (λ x → fst(fst (jumpInductionAux (divProp b) b a x (divBase b) (divJump b)))) H ⟩
    Z ∎
 
-module _{a b n : ℕ}(congr : paste a n ≡ paste b n) where
+pasteSaa : (a : ℕ) → paste (S a) a ≡ Z
+pasteSaa a = paste (S a) a     ≡⟨ cong (λ x → paste x a) (sym (addZ (S a)))⟩
+             paste (S a + Z) a ≡⟨ pasteAdd Z a ⟩
+             paste Z a         ≡⟨ ZPaste a ⟩
+             Z ∎
 
-   -- compatibility with translation
-   translation : (k : ℕ) → paste (a + k) n ≡ paste (b + k) n
-   translation Z = cong (λ x → paste x n) (addZ a) ∙ sym (cong (λ x → paste x n) (addZ b) ∙ sym congr)
-   translation (S k) = transport (λ i → paste (Sout a k (~ i)) n ≡ paste (Sout b k (~ i)) n)
-                       $ (aux (a + k) (b + k) (translation k))
-    where
-     aux : (a b : ℕ) → paste a n ≡ paste b n → paste (S a) n ≡ paste (S b) n
-     aux a b = jumpInduction (λ x → paste x n ≡ paste b n → paste (S x) n ≡ paste (S b) n)
-       n (λ k p → jumpInduction (λ y → paste k n ≡ paste y n → paste (S k) n ≡ paste (S y) n)
-         n (λ c q r → let H : k ≡ c
-                          H = sym(pasteLeId {k} p) ∙ r ∙ pasteLeId {c} q in
-                      cong (λ x → paste x n) (cong S H))
-                      (λ x y q → paste (S k) n  ≡⟨ y (q ∙ pasteAdd2 x n)⟩
-                                 paste (S x) n  ≡⟨ sym (pasteAdd2 (S x) n)⟩
-                                 paste (S(S(x + n))) n ∎)
-                   b) (λ x y p → pasteAdd2 (S x) n ∙ y (sym (pasteAdd2 x n) ∙ p)) a
+pasteLemma : {n : ℕ} → (a : ℕ) → paste (S a) n ≡ Z → paste a n ≡ n
+pasteLemma {n = n} = jumpInduction (λ x → paste (S x) n ≡ Z → paste x n ≡ n) n
+  (λ a a≤n p → pasteLeId {a} a≤n ∙ (pasteAB≡0→SB∣A (S a) n p ~> recTrunc (ℕAddMonoid .IsSet a n)
+    λ{ (Z , q) → ZNotS q ~> UNREACHABLE
+    ; (S Z , q) → SInjective (sym q ∙ cong S (lIdentity n))
+    ; (S (S x) , q) → SInjective q ~> λ q → transport (λ i → q (~ i) ≤ n) a≤n
+      ~> transport (λ i → Sout n (n + (x * S n)) i ≤ n)
+      ~> λ r → leAddN (add n (mult x (S n))) n r ~> UNREACHABLE}))
+      λ a jump p → pasteAdd2 a n ∙ jump (sym (pasteAdd2 (S a) n) ∙ p)
+
+pasteLemma2 : {n : ℕ} → (a b : ℕ) → paste (S a) n ≡ S b → paste a n ≡ b
+pasteLemma2 {n} a b = jumpInduction (λ x → paste (S x) n ≡ S b → paste x n ≡ b) n
+     (λ a a≤n p → pasteLeId {a} a≤n ∙ (natDiscrete a n
+       ~> λ{(yes q) → ZNotS (sym (pasteSaa a) ∙ cong (λ x → paste (S a) x) q ∙ p) ~> UNREACHABLE
+          ; (no q) → ltS a n (a≤n , q) ~> λ r → SInjective (sym (pasteLeId {S a} {n} r) ∙ p)}))
+     (λ a jump p →  pasteAdd2 a n ∙ jump (sym (pasteAdd2 (S a) n) ∙ p)) a
+
+pasteS : {n : ℕ} → (a b : ℕ) → paste a n ≡ paste b n → paste (S a) n ≡ paste (S b) n
+pasteS {n = n} a b = jumpInduction (λ x → paste x n ≡ paste b n → paste (S x) n ≡ paste (S b) n)
+  n (λ k p → jumpInduction (λ y → paste k n ≡ paste y n → paste (S k) n ≡ paste (S y) n)
+    n (λ c q r → let H : k ≡ c
+                     H = sym(pasteLeId {k} p) ∙ r ∙ pasteLeId {c} q in
+                 cong (λ x → paste x n) (cong S H))
+                 (λ x y q → paste (S k) n  ≡⟨ y (q ∙ pasteAdd2 x n)⟩
+                            paste (S x) n  ≡⟨ sym (pasteAdd2 (S x) n)⟩
+                            paste (S(S(x + n))) n ∎) b)
+                 (λ x y p → pasteAdd2 (S x) n ∙ y (sym (pasteAdd2 x n) ∙ p)) a
+
+pasteS2 : {n : ℕ} → (a b : ℕ) → paste (S a) n ≡ paste (S b) n → paste a n ≡ paste b n
+pasteS2 {n} = jumpInduction
+               (λ a → ∀ b → paste (S a) n ≡ paste (S b) n → paste a n ≡ paste b n)
+               n (λ a a≤n b p → natDiscrete a n
+                 ~> λ{(yes q) → cong (paste a) (sym q) ∙ pasteLeId {a} (reflexive {a = a})
+                          ∙ let H = paste (S b) a ≡⟨ cong (paste (S b)) q ⟩
+                                    paste (S b) n ≡⟨ sym p ⟩
+                                    paste (S a) n ≡⟨ cong (paste (S a)) (sym q)⟩
+                                    paste (S a) a ≡⟨ pasteSaa a ⟩
+                                    Z ∎ in
+                            let G : paste b a ≡ a
+                                G = pasteLemma b H in sym G ∙ cong (paste b) q
+                    ; (no q) → ltS a n (a≤n , q)
+                      ~> λ r → let H = paste (S b) n ≡⟨ sym p ⟩
+                                       paste (S a) n ≡⟨ pasteLeId {S a} {n} r ⟩
+                                       S a ∎ in
+                               let G = pasteLemma2 {n} b a H
+                               in pasteLeId a≤n ∙ sym G})
+                 λ a jump b p → pasteAdd2 a n ∙ jump b (sym (pasteAdd2 (S a) n) ∙ p)
+
+-- compatibility with translation
+translation : {a b n : ℕ} → paste a n ≡ paste b n → (k : ℕ) → paste (k + a) n ≡ paste (k + b) n
+translation congr Z = congr
+translation {a}{b}{n} congr (S k) = pasteS (k + a) (k + b) (translation congr k)
+
+-- compatibility with scaling
+scaling : {a b n : ℕ} → paste a n ≡ paste b n → (k : ℕ) → paste (a * k) n ≡ paste (b * k) n
+scaling  {Z} {Z} {n} congr k = ZPaste n ∙ sym (ZPaste n)
+scaling {Z} {S b} {n} congr k = pasteAB≡0→SB∣A (S b) n (sym(sym(ZPaste n) ∙ congr))
+   ~> recTrunc (ℕAddMonoid .IsSet (paste Z n) (paste (copy b k) n))
+    λ(r , q) → ZPaste n ∙ sym (SB∣A→pasteAB≡0 (copy b k) n ∣ (r * k) ,
+                             ((r * k) * S n ≡⟨ [ab]c≡[ac]b r k (S n)⟩
+                              (r * S n) * k ≡⟨ left _*_ q ⟩
+                              copy b k ∎) ∣₁)
+
+scaling {S a} {Z} {n} congr k = pasteAB≡0→SB∣A (S a) n (congr ∙ ZPaste n)
+     ~> recTrunc (ℕAddMonoid .IsSet (paste (add k (mult a k)) n) (paste Z n))
+       λ(x , q) → SB∣A→pasteAB≡0 (copy a k) n ∣ (x * k) ,
+                  ((x * k) * S n ≡⟨ [ab]c≡[ac]b x k (S n) ⟩
+                   (x * S n) * k ≡⟨ left _*_ q ⟩
+                   copy a k ∎) ∣₁ ∙ sym (ZPaste n)
+scaling {S a} {S b} {n} congr k = translation (scaling {a} {b} {n} (pasteS2 {n = n} a b congr) k) k
