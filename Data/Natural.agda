@@ -323,3 +323,8 @@ NatHomogeneous = isHomogeneousDiscrete natDiscrete
 notAnySIsZ : ∀ a → (∀ b → a ≢ S b) → a ≡ Z
 notAnySIsZ Z _ = refl
 notAnySIsZ (S a) p = p a refl ~> UNREACHABLE
+
+-- 0^0 is defined as 1
+pow : ℕ → ℕ → ℕ
+pow _ Z = S Z
+pow a (S b) = mult a (pow a b)
