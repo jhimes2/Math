@@ -302,19 +302,17 @@ nonZ : Type
 nonZ = Σ λ x → Σ λ y → x ≡ S y
 
 greatest : (ℕ → Type l) → Type l
-greatest P = Σ λ n → P n × (∀ x → P x → n ≤ x → n ≡ x)
+greatest P = Σ λ(g : ℕ) → P g × (∀ x → P x → x ≤ g)
 
 findGreatest : (P : ℕ → Type l) → (∀ n → Dec (P n))
              → Σ P → (n : ℕ) → (∀ m → P m → m ≤ n) → greatest P
-findGreatest P decide (Z , Px) Z f = Z , Px , λ{ Z y _ → refl ;
-                                                (S x) y _ → f (S x) y ~> UNREACHABLE}
+findGreatest P decide (Z , Px) Z f = Z , (Px , f)
 findGreatest P decide (S x , Px) Z f = f (S x) Px ~> UNREACHABLE
-findGreatest P decide (x , Px) (S n) f = decide (S n)
-      ~> λ{ (yes y) → S n , y , (λ a b c → antiSymmetric c (f a b))
-          ; (no y) → findGreatest P decide (x , Px)
-                        n (λ a b → let H = f a b in
-                          natDiscrete a (S n) ~> λ{ (yes p) → y (subst P p b) ~> UNREACHABLE
-                                                  ; (no p) → ltS a (S n) (H , p)})}
+findGreatest P decide X (S n) f = decide (S n)
+     ~> λ{(yes p) → (S n) , (p , f)
+        ; (no p) → findGreatest P decide X n λ m Pm → let H = f m Pm in
+           natDiscrete m (S n) ~> (λ { (yes q) → p (subst P q Pm) ~> UNREACHABLE
+                                     ; (no q) → leNEq m (S n) H q })}
 
 open import Cubical.Foundations.Pointed.Homogeneous
 NatHomogeneous : isHomogeneous (ℕ , Z)
