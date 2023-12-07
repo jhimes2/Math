@@ -109,10 +109,6 @@ cutPaste a b = fst $ division b a
 cut : ℕ → ℕ → ℕ
 cut a b = fst $ cutPaste a b
 
-propExt2 : {A B : Type lzero} → isProp A → isProp B → (A → B) → (B → A) → A ≡ B
-propExt2 pA pB ab ba = isoToPath (iso ab ba (λ b → pB (ab (ba b)) b) λ a → pA (ba (ab a)) a)
-  where open import Cubical.Foundations.Isomorphism
-
 -- I don't know what else to call this function
 paste : ℕ → ℕ → ℕ
 paste a b = snd $ cutPaste a b
