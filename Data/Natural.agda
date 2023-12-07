@@ -253,11 +253,6 @@ natSC Z _ = inl tt
 natSC (S a) Z = inr tt
 natSC (S a) (S b) = natSC a b
 
-natSC2 : (a b : ℕ) → a ≤ b ＋ b ≤ a
-natSC2 Z _ = inl tt
-natSC2 (S a) Z = inr tt
-natSC2 (S a) (S b) = natSC2 a b
-
 leContra : (a b : ℕ) → ¬(a ≤ b × S b ≤ a)
 leContra Z b (p , q) = q
 leContra (S a) (S b) = leContra a b
