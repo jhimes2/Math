@@ -469,7 +469,6 @@ scaling {Z} {S b} {n} congr k = pasteAB≡0→SB∣A (S b) n (sym(sym(ZPaste n) 
                              ((r * k) * S n ≡⟨ [ab]c≡[ac]b r k (S n)⟩
                               (r * S n) * k ≡⟨ left _*_ q ⟩
                               copy b k ∎) ∣₁)
-
 scaling {S a} {Z} {n} congr k = pasteAB≡0→SB∣A (S a) n (congr ∙ ZPaste n)
      ~> recTrunc (ℕAddMonoid .IsSet (paste (add k (mult a k)) n) (paste Z n))
        λ(x , q) → SB∣A→pasteAB≡0 (copy a k) n ∣ (x * k) ,
@@ -477,3 +476,38 @@ scaling {S a} {Z} {n} congr k = pasteAB≡0→SB∣A (S a) n (congr ∙ ZPaste n
                    (x * S n) * k ≡⟨ left _*_ q ⟩
                    copy a k ∎) ∣₁ ∙ sym (ZPaste n)
 scaling {S a} {S b} {n} congr k = translation (scaling {a} {b} {n} (pasteS2 {n = n} a b congr) k) k
+
+pasteSideAdd : (a b c : ℕ) → paste (a + paste b c) c ≡ paste (a + b) c
+pasteSideAdd a b c = jumpInduction (λ b → paste (a + paste b c) c ≡ paste (a + b) c)
+  c (λ b b≤c → sym(paste (a + b) c ≡⟨ cong (λ x → paste (a + x) c) (sym (pasteLeId b≤c))⟩
+                   paste (a + paste b c) c ∎))
+        (λ b jump → sym(paste (a + S (b + c)) c ≡⟨ cong (λ x → paste x c) (Sout a (b + c))⟩
+                    paste (S a + (b + c)) c ≡⟨ cong (λ x → paste (S x) c) (assoc a b c)⟩
+                    paste (S (a + b) + c) c ≡⟨ pasteAdd2 (a + b) c ⟩
+                    paste (a + b) c         ≡⟨ sym jump ⟩
+                    paste (a + paste b c) c ≡⟨ cong (λ x → paste (a + x) c) (sym (pasteAdd2 b c))⟩
+                    paste (a + paste (S (b + c)) c) c ∎)) b
+
+pasteIdempotent : (a b : ℕ) → paste (paste a b) b ≡ paste a b
+pasteIdempotent a b = pasteSideAdd Z a b
+
+pasteSideMult : (a b c : ℕ) → paste (paste b c * a) c ≡ paste (b * a) c
+pasteSideMult a b c = let G : paste (paste b c) c ≡ paste b c
+                          G = pasteIdempotent b c
+                      in scaling {paste b c} {b} (pasteIdempotent b c) a
+
+pasteAddBoth : (a b c : ℕ) → paste (paste a c + paste b c) c ≡ paste (a + b) c
+pasteAddBoth a b c =
+  paste (paste a c + paste b c) c ≡⟨ pasteSideAdd (paste a c) b c ⟩
+  paste (paste a c + b) c ≡⟨ cong (λ x → paste x c) (comm (paste a c) b)⟩
+  paste (b + paste a c) c ≡⟨ pasteSideAdd b a c ⟩
+  paste (b + a) c ≡⟨ cong (λ x → paste x c) (comm b a)⟩
+  paste (a + b) c ∎
+
+pasteMultBoth : (a b c : ℕ) → paste (paste a c * paste b c) c ≡ paste (a * b) c
+pasteMultBoth a b c =
+  paste (paste a c * paste b c) c ≡⟨ pasteSideMult (paste b c) a c ⟩
+  paste (a * paste b c) c ≡⟨ cong (λ x → paste x c) (comm a (paste b c))⟩
+  paste (paste b c * a) c ≡⟨ pasteSideMult a b c ⟩
+  paste (b * a) c ≡⟨ cong (λ x → paste x c) (comm b a)⟩
+  paste (a * b) c ∎
