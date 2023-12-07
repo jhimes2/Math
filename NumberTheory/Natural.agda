@@ -375,6 +375,8 @@ dividesDec (S a) b = let H = cutLemma b a in
      ; (no p) → no $ pasteAB≢0→SB∤A b a p
      }
 
+-- 'b' is one less than it should be.
+-- This is to avoid the case where both 'a' and 'b' are zero.
 GCD : (a b : ℕ) → greatest (commonDivisor a (S b))
 GCD a b = findGreatest (commonDivisor a (S b))
      (λ n → dividesDec n a
@@ -384,6 +386,9 @@ GCD a b = findGreatest (commonDivisor a (S b))
               ; (no p) → no (λ(x , _) → p x)}) ((S Z) , (∣ a , (rIdentity a) ∣₁
                          , ∣ S b , cong S (rIdentity b) ∣₁)) (S b)
                            λ m (x , y) → divides.le m b y
+
+gcd : ℕ → ℕ → ℕ
+gcd a b = fst (GCD a b)
 
 pasteLeId : {a b : ℕ} → a ≤ b → paste a b ≡ a
 pasteLeId {a} {b} p =
