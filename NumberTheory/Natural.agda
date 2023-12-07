@@ -244,12 +244,12 @@ cutZ a = let H = cutLemma a Z in
    copy Z (cut a Z) + paste a Z ≡⟨ sym H ⟩
    a ∎
 
-record IsPrime (n : ℕ) : Type where
+-- Numbers two less than a prime number:
+-- {0, 1, 3, 5, 9, 11, 15, 17, 21, 27, ...}
+record TwoLessP (n : ℕ) : Type where
  field
-  isPrime : ∀ x → S(S x) ∣ n → n ≡ S(S x)
-
-Prime : Type
-Prime = Σ IsPrime
+  twoLessP : ∀ x → S(S x) ∣ S(S n) → n ≡ x
+open TwoLessP {{...}} public
 
 ＋≡ : isProp B → ¬ A → (b : B) → (x : A ＋ B) → inr b ≡ x
 ＋≡ prop nA b (inl x) = nA x ~> UNREACHABLE
@@ -477,8 +477,8 @@ scaling {S a} {Z} {n} congr k = pasteAB≡0→SB∣A (S a) n (congr ∙ ZPaste n
                    copy a k ∎) ∣₁ ∙ sym (ZPaste n)
 scaling {S a} {S b} {n} congr k = translation (scaling {a} {b} {n} (pasteS2 {n = n} a b congr) k) k
 
-pasteSideAdd : (a b c : ℕ) → paste (a + paste b c) c ≡ paste (a + b) c
-pasteSideAdd a b c = jumpInduction (λ b → paste (a + paste b c) c ≡ paste (a + b) c)
+pasteSideAdd2 : (a b c : ℕ) → paste (a + paste b c) c ≡ paste (a + b) c
+pasteSideAdd2 a b c = jumpInduction (λ b → paste (a + paste b c) c ≡ paste (a + b) c)
   c (λ b b≤c → sym(paste (a + b) c ≡⟨ cong (λ x → paste (a + x) c) (sym (pasteLeId b≤c))⟩
                    paste (a + paste b c) c ∎))
         (λ b jump → sym(paste (a + S (b + c)) c ≡⟨ cong (λ x → paste x c) (Sout a (b + c))⟩
@@ -488,26 +488,42 @@ pasteSideAdd a b c = jumpInduction (λ b → paste (a + paste b c) c ≡ paste (
                     paste (a + paste b c) c ≡⟨ cong (λ x → paste (a + x) c) (sym (pasteAdd2 b c))⟩
                     paste (a + paste (S (b + c)) c) c ∎)) b
 
+pasteSideAdd : (a b c : ℕ) → paste (paste b c + a) c ≡ paste (b + a) c
+pasteSideAdd a b c = cong (λ x → paste x c) (comm (paste b c) a)
+                    ∙ pasteSideAdd2 a b c ∙ cong (λ x → paste x c) (comm a b) 
+
 pasteIdempotent : (a b : ℕ) → paste (paste a b) b ≡ paste a b
-pasteIdempotent a b = pasteSideAdd Z a b
+pasteIdempotent a b = pasteSideAdd2 Z a b
 
 pasteSideMult : (a b c : ℕ) → paste (paste b c * a) c ≡ paste (b * a) c
-pasteSideMult a b c = let G : paste (paste b c) c ≡ paste b c
-                          G = pasteIdempotent b c
-                      in scaling {paste b c} {b} (pasteIdempotent b c) a
+pasteSideMult a b c =
+  let G : paste (paste b c) c ≡ paste b c
+      G = pasteIdempotent b c
+  in scaling {paste b c} {b} (pasteIdempotent b c) a
+
+pasteSideMult2 : (a b c : ℕ) → paste (a * paste b c) c ≡ paste (a * b) c
+pasteSideMult2 a b c =
+    transport (λ i → paste (multCom .comm (paste b c) a i) c
+                   ≡ paste (multCom .comm b a i) c) (pasteSideMult a b c)
 
 pasteAddBoth : (a b c : ℕ) → paste (paste a c + paste b c) c ≡ paste (a + b) c
 pasteAddBoth a b c =
-  paste (paste a c + paste b c) c ≡⟨ pasteSideAdd (paste a c) b c ⟩
-  paste (paste a c + b) c ≡⟨ cong (λ x → paste x c) (comm (paste a c) b)⟩
-  paste (b + paste a c) c ≡⟨ pasteSideAdd b a c ⟩
-  paste (b + a) c ≡⟨ cong (λ x → paste x c) (comm b a)⟩
+  paste (paste a c + paste b c) c ≡⟨ pasteSideAdd (paste b c) a c ⟩
+  paste (a + paste b c) c ≡⟨ pasteSideAdd2 a b c ⟩
   paste (a + b) c ∎
 
 pasteMultBoth : (a b c : ℕ) → paste (paste a c * paste b c) c ≡ paste (a * b) c
 pasteMultBoth a b c =
   paste (paste a c * paste b c) c ≡⟨ pasteSideMult (paste b c) a c ⟩
-  paste (a * paste b c) c ≡⟨ cong (λ x → paste x c) (comm a (paste b c))⟩
-  paste (paste b c * a) c ≡⟨ pasteSideMult a b c ⟩
-  paste (b * a) c ≡⟨ cong (λ x → paste x c) (comm b a)⟩
+  paste (a * paste b c) c ≡⟨ pasteSideMult2 a b c ⟩
   paste (a * b) c ∎
+
+-- compatibility with exponentiation
+exponentiation : {a b n : ℕ} → paste a n ≡ paste b n → (c : ℕ) → paste (pow a c) n ≡ paste (pow b c) n
+exponentiation {a} {b} {n} p Z = refl
+exponentiation {a} {b} {n} p (S c) =
+  paste (a * pow a c) n                   ≡⟨ sym(pasteMultBoth a (pow a c) n) ⟩
+  paste (paste a n * paste (pow a c) n) n
+    ≡⟨ cong (λ x → paste x n) (cong₂ _*_ p (exponentiation p c)) ⟩
+  paste (paste b n * paste (pow b c) n) n ≡⟨ pasteMultBoth b (pow b c) n ⟩
+  paste (b * pow b c) n ∎
