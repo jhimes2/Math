@@ -64,15 +64,6 @@ retNo' = transport (λ i → flipPath i) Yes
 reflLoopF : ((λ i → base) ≡ loop) → Yes ≡ No
 reflLoopF contra = λ i → endPtOfYes (contra i)
 
-
-gcdLemma : (a b : ℕ) → commonDivisor a (S b) (gcd a b)
-gcdLemma a b = {!let Gcd!}
-
-gcdLemma2 : (a b : ℕ) → (x : ℕ) → commonDivisor a (S b) x → gcd a b ≤ x → gcd a b ≡ x
-gcdLemma2 a b = ?
-  -- Why won't this work?
-  -- snd $ snd $ GCD a b
-
 fermat'sLittleTheorem : {p : ℕ} → {{_ : TwoLessP p}}
                       → (a : ℕ) → paste (pow a (S(S p))) (S p) ≡ paste a (S p)
 fermat'sLittleTheorem {p} a =

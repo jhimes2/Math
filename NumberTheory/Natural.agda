@@ -390,6 +390,12 @@ GCD a b = findGreatest (commonDivisor a (S b))
 gcd : ℕ → ℕ → ℕ
 gcd a b = fst (GCD a b)
 
+gcdLemma : (a b : ℕ) → commonDivisor a (S b) (gcd a b)
+gcdLemma a b = fst $ snd (GCD a b)
+
+gcdLemma2 : (a b : ℕ) → (x : ℕ) → commonDivisor a (S b) x → x ≤ gcd a b
+gcdLemma2 a b = snd $ snd (GCD a b)
+
 pasteLeId : {a b : ℕ} → a ≤ b → paste a b ≡ a
 pasteLeId {a} {b} p =
     let H : isLe a b ≡ inl p
