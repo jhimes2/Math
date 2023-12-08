@@ -142,6 +142,9 @@ modLe a (b , b' , p) = transport (λ i → S(paste a b') ≤ p (~ i)) (pasteLe a
 _∣_ : ℕ → ℕ → Type
 _∣_ a b = ∃ λ x → x * a ≡ b
 
+_∤_ : ℕ → ℕ → Type
+_∤_ a b = ¬(a ∣ b)
+
 commonDivisor : ℕ → ℕ → ℕ → Type
 commonDivisor a b c = (c ∣ a) × (c ∣ b)
 
@@ -357,7 +360,7 @@ SB∣A→pasteAB≡0 a b = recTrunc (ℕAddMonoid .IsSet (paste a b) Z)
     paste (copy b x) b     ≡⟨ pasteCopy b x ⟩
     Z ∎
 
-pasteAB≢0→SB∤A : (a b : ℕ) → paste a b ≢ Z → ¬(S b ∣ a)
+pasteAB≢0→SB∤A : (a b : ℕ) → paste a b ≢ Z → S b ∤ a
 pasteAB≢0→SB∤A a b = modusTollens (SB∣A→pasteAB≡0 a b)
 
 dividesDec : (a b : ℕ) → Dec (a ∣ b)
@@ -538,3 +541,6 @@ exponentiation {a} {b} {n} p (S c) =
     ≡⟨ cong (λ x → paste x n) (cong₂ _*_ p (exponentiation p c)) ⟩
   paste (paste b n * paste (pow b c) n) n ≡⟨ pasteMultBoth b (pow b c) n ⟩
   paste (b * pow b c) n ∎
+
+--Euclid's-Lemma : (a b c : ℕ) → gcd a b ≡ S Z → a ∣ copy b c → a ∣ c
+--Euclid's-Lemma a b c coprime p = p >>= λ(x , p) → ∣ {!!} , {!!} ∣₁
