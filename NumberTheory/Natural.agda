@@ -5,6 +5,7 @@ module NumberTheory.Natural where
 open import Prelude
 open import Relations
 open import Data.Natural
+open import NumberTheory.Overloads public
 open import Algebra.Monoid
 open import Algebra.MultAdd
 open import Cubical.HITs.PropositionalTruncation renaming (rec to recTrunc ; map to mapTrunc)
@@ -34,11 +35,8 @@ jumpInduction : (P : ℕ → Type l)
                 → (n : ℕ) → P n
 jumpInduction P a Base jump n = jumpInductionAux P a n  (isLe n a) Base jump
 
-copy : ℕ → ℕ → ℕ
-copy a b = (S a) * b
-
 divProp : ℕ → ℕ → Type
-divProp b a = ∃! λ((q , r) : ℕ × ℕ) → (a ≡ copy b q + r) × (r ≤ b)
+divProp b a = ∃! λ((q , r) : ℕ × ℕ) → (a ≡ (S b * q) + r) × (r ≤ b)
 
 private
  divBase : (b a : ℕ) → a ≤ b → divProp b a
@@ -46,9 +44,9 @@ private
                     λ (q , r) (x' , y') →
                      natDiscrete q Z ~> λ{
                        (yes x) → ≡-× (sym x)
-                        let H : copy b q ≡ Z
-                            H = (copy b q ≡⟨ cong (copy b) x ⟩
-                                 copy b Z ≡⟨ multZ b ⟩
+                        let H : S b * q ≡ Z
+                            H = (S b * q ≡⟨ cong (S b *_) x ⟩
+                                 S b * Z ≡⟨ multZ b ⟩
                                  Z ∎) in (x' ∙ left add H)
                      ; (no x) → NEqZ x ~> λ(h , f) →
                                 let x' = a ≡⟨ x' ∙ left _+_ (comm (S b) q) ⟩
@@ -96,7 +94,7 @@ private
                         (q' + mult b q') + r' ∎) , u) in
                   ≡-× (cong S (λ i → fst(H i))) λ i → snd (H i) }
 
-division : (b a : ℕ) → ∃! λ(q , r) → (a ≡ copy b q + r) × (r ≤ b)
+division : (b a : ℕ) → ∃! λ(q , r) → (a ≡ (S b * q) + r) × (r ≤ b)
 division b =
     jumpInduction (divProp b)
                   b
@@ -106,22 +104,15 @@ division b =
 cutPaste : ℕ → ℕ → ℕ × ℕ
 cutPaste a b = fst $ division b a
 
-cut : ℕ → ℕ → ℕ
-cut a b = fst $ cutPaste a b
-
--- I don't know what else to call this function
-paste : ℕ → ℕ → ℕ
-paste a b = snd $ cutPaste a b
-
--- div a (b+1) ≡ cut a b
-div : ℕ → nonZ → ℕ
-div a (_ , b , _) = cut a b
-
--- mod a (b+1) ≡ paste a b
-mod : ℕ → nonZ → ℕ
-mod a (_ , b , _) = paste a b
-
--- '_*_', 'div' and 'mod' corresponds to 'copy', 'cut' and 'paste', respectively
+instance
+    ℕNT : NTOperators ℕ
+    ℕNT = record
+           { _∣_ = λ a b → ∃ λ x → x * a ≡ b
+           ; cut = λ a b →  fst $ fst (division b a)
+           ; copy = λ a b → S a * b
+           ; paste =  λ a b → snd $ cutPaste a b
+           ; pasteLe = λ a b → snd(fst(snd(division b a)))
+           }
 
 cutLemma : (a b : ℕ) → a ≡ copy b (cut a b) + paste a b
 cutLemma a b = fst(fst(snd(division b a)))
@@ -132,18 +123,6 @@ divLemma a (b , c , p) =
     (S c * (cut a c)) + paste a c  ≡⟨ left _+_ (left _*_ (sym p))⟩
     (b * cut a c) + paste a c  ≡⟨By-Definition⟩
     (b * div a (b , c , p)) + mod a (b , c , p) ∎
-
-pasteLe : (a b : ℕ) → paste a b ≤ b
-pasteLe a b = snd(fst(snd(division b a)))
-
-modLe : (a : ℕ) → (b : nonZ) → S(mod a b) ≤ (fst b)
-modLe a (b , b' , p) = transport (λ i → S(paste a b') ≤ p (~ i)) (pasteLe a b')
-
-_∣_ : ℕ → ℕ → Type
-_∣_ a b = ∃ λ x → x * a ≡ b
-
-_∤_ : ℕ → ℕ → Type
-_∤_ a b = ¬(a ∣ b)
 
 commonDivisor : ℕ → ℕ → ℕ → Type
 commonDivisor a b c = (c ∣ a) × (c ∣ b)
@@ -320,7 +299,7 @@ ZPaste a =
   copy a (cut Z a) + paste Z a ≡⟨ sym (cutLemma Z a) ⟩
   Z ∎
 
-cutCopy : ∀ a b → cut (copy a b) a ≡ b
+cutCopy : (a b : ℕ) → cut (copy a b) a ≡ b
 cutCopy a Z = left cut (multZ (S a)) ∙ ZCut a
 cutCopy a (S b) =
  cut (copy a (S b)) a       ≡⟨ cong (λ x → cut x a) (comm (S a) (S b))⟩
@@ -332,9 +311,9 @@ cutCopy a (S b) =
 pasteCopy : (b r : ℕ) → paste (copy b r) b ≡ Z
 pasteCopy b Z = left paste (multZ (S b)) ∙ ZPaste b
 pasteCopy b (S r) =
- paste (copy b (S r)) b       ≡⟨ cong (λ x → paste x b) (comm (S b) (S r)) ⟩
+ paste (copy b (S r)) b       ≡⟨ cong (λ(x : ℕ) → paste x b) (comm (S b) (S r)) ⟩
  paste (S b + mult r (S b)) b ≡⟨ pasteAdd (mult r (S b)) b ⟩
- paste (mult r (S b)) b       ≡⟨ cong (λ x → paste x b) (comm r (S b))⟩
+ paste (mult r (S b)) b       ≡⟨ cong (λ(x : ℕ) → paste x b) (comm r (S b))⟩
  paste (copy b r) b           ≡⟨ pasteCopy b r ⟩
  Z ∎
 
@@ -503,8 +482,8 @@ pasteSideAdd2 a b c = jumpInduction (λ b → paste (a + paste b c) c ≡ paste 
                     paste (a + paste (S (b + c)) c) c ∎)) b
 
 pasteSideAdd : (a b c : ℕ) → paste (paste b c + a) c ≡ paste (b + a) c
-pasteSideAdd a b c = cong (λ x → paste x c) (comm (paste b c) a)
-                    ∙ pasteSideAdd2 a b c ∙ cong (λ x → paste x c) (comm a b) 
+pasteSideAdd a b c = cong (λ(x : ℕ) → paste x c) (comm (paste b c) a)
+                    ∙ pasteSideAdd2 a b c ∙ cong (λ(x : ℕ) → paste x c) (comm a b) 
 
 pasteIdempotent : (a b : ℕ) → paste (paste a b) b ≡ paste a b
 pasteIdempotent a b = pasteSideAdd2 Z a b
@@ -541,6 +520,3 @@ exponentiation {a} {b} {n} p (S c) =
     ≡⟨ cong (λ x → paste x n) (cong₂ _*_ p (exponentiation p c)) ⟩
   paste (paste b n * paste (pow b c) n) n ≡⟨ pasteMultBoth b (pow b c) n ⟩
   paste (b * pow b c) n ∎
-
---Euclid's-Lemma : (a b c : ℕ) → gcd a b ≡ S Z → a ∣ copy b c → a ∣ c
---Euclid's-Lemma a b c coprime p = p >>= λ(x , p) → ∣ {!!} , {!!} ∣₁
