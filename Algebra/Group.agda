@@ -202,9 +202,15 @@ record grpHomomorphism {A : Type l}
     h : A → B
     homomorphism : (u v : A) → h (u ∙ v) ≡ h u * h v
 
-module _{_∙_ : A → A → A} {{G : group _∙_}} (a b : A) where
+module _{A : Type l}{_∙_ : A → A → A} {{G : group _∙_}} where
 
- a[b'a]'≡b = a ∙ inv (inv b ∙ a)        ≡⟨ right _∙_ (sym(grp.lemma1 (inv b) a))⟩
-             a ∙ (inv a ∙ (inv(inv b))) ≡⟨ a[a'b]≡b a (inv(inv b)) ⟩
-             inv(inv b)                 ≡⟨ grp.doubleInv b ⟩
-             b ∎
+ a[b'a]'≡b : ∀ a b → a ∙ inv (inv b ∙ a) ≡ b
+ a[b'a]'≡b a b = a ∙ inv (inv b ∙ a)        ≡⟨ right _∙_ (sym(grp.lemma1 (inv b) a))⟩
+                 a ∙ (inv a ∙ (inv(inv b))) ≡⟨ a[a'b]≡b a (inv(inv b))⟩
+                 inv(inv b)                 ≡⟨ grp.doubleInv b ⟩
+                 b ∎
+
+ data cyclic (x : A) : A → Type l where
+  cycIntro : cyclic x x
+  cycInv : ∀ y → cyclic x y → cyclic x (inv y)
+  cycOp : ∀ {y z : A} → cyclic x y → cyclic x z → cyclic x (y ∙ z)
