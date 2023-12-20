@@ -4,7 +4,7 @@ module NumberTheory.Natural where
 
 open import Prelude
 open import Relations
-open import Data.Natural
+open import Data.Natural public
 open import NumberTheory.Overloads public
 open import Algebra.Monoid
 open import Algebra.MultAdd
@@ -35,10 +35,10 @@ jumpInduction : (P : ℕ → Type l)
                 → (n : ℕ) → P n
 jumpInduction P a Base jump n = jumpInductionAux P a n  (isLe n a) Base jump
 
-divProp : ℕ → ℕ → Type
-divProp b a = ∃! λ((q , r) : ℕ × ℕ) → (a ≡ (S b * q) + r) × (r ≤ b)
-
 private
+ divProp : ℕ → ℕ → Type
+ divProp b a = ∃! λ((q , r) : ℕ × ℕ) → (a ≡ (S b * q) + r) × (r ≤ b)
+
  divBase : (b a : ℕ) → a ≤ b → divProp b a
  divBase b a p = (Z , a) , (left _+_ (sym (multZ (S b))) , p) ,
                     λ (q , r) (x' , y') →
@@ -94,35 +94,46 @@ private
                         (q' + mult b q') + r' ∎) , u) in
                   ≡-× (cong S (λ i → fst(H i))) λ i → snd (H i) }
 
-division : (b a : ℕ) → ∃! λ(q , r) → (a ≡ (S b * q) + r) × (r ≤ b)
-division b =
-    jumpInduction (divProp b)
-                  b
-                  (divBase b)
-                  (divJump b)
+ division : (b a : ℕ) → ∃! λ(q , r) → (a ≡ (S b * q) + r) × (r ≤ b)
+ division b =
+     jumpInduction (divProp b)
+                   b
+                   (divBase b)
+                   (divJump b)
 
-cutPaste : ℕ → ℕ → ℕ × ℕ
-cutPaste a b = fst $ division b a
+cut : ℕ → ℕ → ℕ
+cut = λ a b →  fst $ fst (division b a)
 
+-- div a (b+1) ≡ cut a b
+div : ℕ → nonZ → ℕ
+div a (_ , b , _) = cut a b
+
+paste : ℕ → ℕ → ℕ -- I don't know what else to call this function
+paste = λ a b → snd $ fst (division b a)
+
+-- mod a (b+1) ≡ paste a b
+Mod : ℕ → nonZ → ℕ
+Mod a (_ , b , _) = paste a b
+
+pasteLe : (a : ℕ) → (b : ℕ) → paste a b ≤ b
+pasteLe = λ a b → snd(fst(snd(division b a)))
 instance
+
     ℕNT : NTOperators ℕ
     ℕNT = record
            { _∣_ = λ a b → ∃ λ x → x * a ≡ b
-           ; cut = λ a b →  fst $ fst (division b a)
            ; copy = λ a b → S a * b
-           ; paste =  λ a b → snd $ cutPaste a b
-           ; pasteLe = λ a b → snd(fst(snd(division b a)))
            }
 
 cutLemma : (a b : ℕ) → a ≡ copy b (cut a b) + paste a b
 cutLemma a b = fst(fst(snd(division b a)))
 
-divLemma : (a : ℕ) → (b : nonZ) → a ≡ (fst b * div a b) + mod a b
+divLemma : (a : ℕ) → (b : nonZ) → a ≡ (fst b * div a b) + Mod a b
 divLemma a (b , c , p) =
     a ≡⟨ cutLemma a c ⟩
     (S c * (cut a c)) + paste a c  ≡⟨ left _+_ (left _*_ (sym p))⟩
     (b * cut a c) + paste a c  ≡⟨By-Definition⟩
-    (b * div a (b , c , p)) + mod a (b , c , p) ∎
+    (b * div a (b , c , p)) + Mod a (b , c , p) ∎
 
 commonDivisor : ℕ → ℕ → ℕ → Type
 commonDivisor a b c = (c ∣ a) × (c ∣ b)
@@ -198,14 +209,14 @@ instance
   dividesPoset = record { antiSymmetric = λ{a b} → antisymmetric a b }
    where
     antisymmetric : (a b : ℕ) → a ∣ b → b ∣ a → a ≡ b
-    antisymmetric Z b x y = recTrunc (natIsSet Z b)
-        (λ((x , p) : Σ λ x → x * Z ≡ b) → recTrunc (natIsSet Z b)
+    antisymmetric Z b x y = recTrunc (IsSet Z b)
+        (λ((x , p) : Σ λ x → x * Z ≡ b) → recTrunc (IsSet Z b)
         (λ((y , q) : Σ λ y → y * b ≡ Z) → sym (multZ x) ∙ p) y) x
-    antisymmetric (S a) Z x y = recTrunc (natIsSet (S a) Z)
-        (λ((x , p) : Σ λ x → x * S a ≡ Z) → recTrunc (natIsSet (S a) Z)
+    antisymmetric (S a) Z x y = recTrunc (IsSet (S a) Z)
+        (λ((x , p) : Σ λ x → x * S a ≡ Z) → recTrunc (IsSet (S a) Z)
         (λ((y , q) : Σ λ y → y * Z ≡ S a) → ZNotS (sym (multZ y) ∙ q) ~> UNREACHABLE) y) x
-    antisymmetric (S a) (S b) x' y' = recTrunc (natIsSet (S a) (S b))
-        (λ((x , p) : Σ λ x → x * S a ≡ S b) → recTrunc (natIsSet (S a) (S b))
+    antisymmetric (S a) (S b) x' y' = recTrunc (IsSet (S a) (S b))
+        (λ((x , p) : Σ λ x → x * S a ≡ S b) → recTrunc (IsSet (S a) (S b))
         (λ((y , q) : Σ λ y → y * S b ≡ S a) →
             let H : b ≤ a
                 H = divides.le (S b) a y' in
@@ -249,11 +260,11 @@ cutS a b = isLe (S b + a) b
  let D : a ≡ r
      D = natLCancel b (q ∙ comm r b) in
  let F : inr (r , p) ≡ (isLe (S b + a) b)
-     F = ＋≡ (λ (x , p) (y , q) → ΣPathPProp (λ t u v → ℕAddMonoid .IsSet (S (add b a)) (S (add t b)) u v)
+     F = ＋≡ (λ (x , p) (y , q) → ΣPathPProp (λ t u v → IsSet (S (add b a)) (S (add t b)) u v)
              let u = SInjective(sym p ∙ q) in natRCancel b u)
              (leAddN a b) (r , p) (isLe (S (add b a)) b) in
  let G : inr (a , cong S (comm b a)) ≡ inr (r , p)
-     G = cong inr (ΣPathPProp (λ c → ℕAddMonoid .IsSet (S (add b a)) (S(add c b))) D) in
+     G = cong inr (ΣPathPProp (λ c → IsSet (S (add b a)) (S(add c b))) D) in
   let E = G ∙ F in
          fst (fst (jumpInductionAux (divProp b) b (S b + a) (isLe (S b + a) b)(divBase b) (divJump b) ))
         ≡⟨ cong (λ x → fst (fst (jumpInductionAux (divProp b) b (S b + a) x (divBase b) (divJump b) ))) (sym E)  ⟩
@@ -270,11 +281,11 @@ pasteAdd a b = isLe (S b + a) b
  let D : a ≡ r
      D = natLCancel b (q ∙ comm r b) in
  let F : inr (r , p) ≡ (isLe (S b + a) b)
-     F = ＋≡ (λ (x , p) (y , q) → ΣPathPProp (λ t u v → ℕAddMonoid .IsSet (S (add b a)) (S (add t b)) u v)
+     F = ＋≡ (λ (x , p) (y , q) → ΣPathPProp (λ t u v → IsSet (S (add b a)) (S (add t b)) u v)
              let u = SInjective(sym p ∙ q) in natRCancel b u)
              (leAddN a b) (r , p) (isLe (S (add b a)) b) in
  let G : inr (a , cong S (comm b a)) ≡ inr (r , p)
-     G = cong inr (ΣPathPProp (λ c → ℕAddMonoid .IsSet (S (add b a)) (S(add c b))) D) in
+     G = cong inr (ΣPathPProp (λ c → IsSet (S (add b a)) (S(add c b))) D) in
   let E = G ∙ F in
          snd (fst (jumpInductionAux (divProp b) b (S b + a) (isLe (S b + a) b)(divBase b) (divJump b) ))
         ≡⟨ cong (λ x → snd (fst (jumpInductionAux (divProp b) b (S b + a) x (divBase b) (divJump b) ))) (sym E)  ⟩
@@ -311,7 +322,7 @@ cutCopy a (S b) =
 pasteCopy : (b r : ℕ) → paste (copy b r) b ≡ Z
 pasteCopy b Z = left paste (multZ (S b)) ∙ ZPaste b
 pasteCopy b (S r) =
- paste (copy b (S r)) b       ≡⟨ cong (λ(x : ℕ) → paste x b) (comm (S b) (S r)) ⟩
+ paste (copy b (S r)) b       ≡⟨ cong (λ(x : ℕ) → paste x b) (comm (S b) (S r))⟩
  paste (S b + mult r (S b)) b ≡⟨ pasteAdd (mult r (S b)) b ⟩
  paste (mult r (S b)) b       ≡⟨ cong (λ(x : ℕ) → paste x b) (comm r (S b))⟩
  paste (copy b r) b           ≡⟨ pasteCopy b r ⟩
@@ -320,13 +331,13 @@ pasteCopy b (S r) =
 pasteAB≡0→SB∣A : (a b : ℕ) → paste a b ≡ Z → S b ∣ a
 pasteAB≡0→SB∣A a b p = let H = cutLemma a b in
     transport (λ i → a ≡ copy b (cut a b) + p i) H ~> λ H →
-  ∣ (cut a b) , (cut a b * S b        ≡⟨ comm (cut a b) (S b)⟩
+  ∣ (cut a b) , (cut a b * S b       ≡⟨ comm (cut a b) (S b)⟩
                  copy b (cut a b)     ≡⟨ sym (rIdentity (copy b (cut a b)))⟩
                  copy b (cut a b) + Z ≡⟨ sym H ⟩
                  a ∎) ∣₁
 
 SB∣A→pasteAB≡0 : (a b : ℕ) → S b ∣ a → paste a b ≡ Z
-SB∣A→pasteAB≡0 a b = recTrunc (ℕAddMonoid .IsSet (paste a b) Z)
+SB∣A→pasteAB≡0 a b = recTrunc (IsSet (paste a b) Z)
   λ(x , p) → let H = cutLemma a b in
     let G =
           cut a b              ≡⟨ cong (λ x → cut x b) (sym p)⟩
@@ -402,7 +413,7 @@ pasteSaa a = paste (S a) a     ≡⟨ cong (λ x → paste x a) (sym (addZ (S a)
 
 pasteLemma : {n : ℕ} → (a : ℕ) → paste (S a) n ≡ Z → paste a n ≡ n
 pasteLemma {n = n} = jumpInduction (λ x → paste (S x) n ≡ Z → paste x n ≡ n) n
-  (λ a a≤n p → pasteLeId {a} a≤n ∙ (pasteAB≡0→SB∣A (S a) n p ~> recTrunc (ℕAddMonoid .IsSet a n)
+  (λ a a≤n p → pasteLeId {a} a≤n ∙ (pasteAB≡0→SB∣A (S a) n p ~> recTrunc (IsSet a n)
     λ{ (Z , q) → ZNotS q ~> UNREACHABLE
     ; (S Z , q) → SInjective (sym q ∙ cong S (lIdentity n))
     ; (S (S x) , q) → SInjective q ~> λ q → transport (λ i → q (~ i) ≤ n) a≤n
@@ -453,17 +464,21 @@ translation : {a b n : ℕ} → paste a n ≡ paste b n → (k : ℕ) → paste 
 translation congr Z = congr
 translation {a}{b}{n} congr (S k) = pasteS (k + a) (k + b) (translation congr k)
 
+translation2 : {a b n : ℕ} → (k : ℕ) → paste (k + a) n ≡ paste (k + b) n → paste a n ≡ paste b n
+translation2 Z congr = congr
+translation2 {a}{b}{n} (S k) congr = translation2 k (pasteS2 (k + a) (k + b) congr)
+
 -- compatibility with scaling
 scaling : {a b n : ℕ} → paste a n ≡ paste b n → (k : ℕ) → paste (a * k) n ≡ paste (b * k) n
 scaling  {Z} {Z} {n} congr k = ZPaste n ∙ sym (ZPaste n)
 scaling {Z} {S b} {n} congr k = pasteAB≡0→SB∣A (S b) n (sym(sym(ZPaste n) ∙ congr))
-   ~> recTrunc (ℕAddMonoid .IsSet (paste Z n) (paste (copy b k) n))
+   ~> recTrunc (IsSet (paste Z n) (paste (copy b k) n))
     λ(r , q) → ZPaste n ∙ sym (SB∣A→pasteAB≡0 (copy b k) n ∣ (r * k) ,
                              ((r * k) * S n ≡⟨ [ab]c≡[ac]b r k (S n)⟩
                               (r * S n) * k ≡⟨ left _*_ q ⟩
                               copy b k ∎) ∣₁)
 scaling {S a} {Z} {n} congr k = pasteAB≡0→SB∣A (S a) n (congr ∙ ZPaste n)
-     ~> recTrunc (ℕAddMonoid .IsSet (paste (add k (mult a k)) n) (paste Z n))
+     ~> recTrunc (IsSet (paste (add k (mult a k)) n) (paste Z n))
        λ(x , q) → SB∣A→pasteAB≡0 (copy a k) n ∣ (x * k) ,
                   ((x * k) * S n ≡⟨ [ab]c≡[ac]b x k (S n) ⟩
                    (x * S n) * k ≡⟨ left _*_ q ⟩
@@ -520,3 +535,6 @@ exponentiation {a} {b} {n} p (S c) =
     ≡⟨ cong (λ x → paste x n) (cong₂ _*_ p (exponentiation p c)) ⟩
   paste (paste b n * paste (pow b c) n) n ≡⟨ pasteMultBoth b (pow b c) n ⟩
   paste (b * pow b c) n ∎
+
+-- Euclid's-Lemma : (a b n : ℕ) → gcd a b ≡ S Z → a ∣ copy b n → a ∣ n
+-- Euclid's-Lemma a b n coprime p = p >>= λ(x , p) → ∣ {!!} , {!!} ∣₁

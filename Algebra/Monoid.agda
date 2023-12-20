@@ -5,13 +5,18 @@ module Algebra.Monoid where
 open import Prelude
 open import Cubical.Foundations.HLevels
 
+record isset (A : Type l) : Type l
+  where field
+   IsSet : isSet A
+open isset {{...}} public
+
 -- https://en.wikipedia.org/wiki/Monoid
 record monoid {A : Type l}(_∙_ : A → A → A) : Type(lsuc l) where
   field
       e : A
-      IsSet : isSet A
       lIdentity : (a : A) → e ∙ a ≡ a
       rIdentity : (a : A) → a ∙ e ≡ a
+      overlap {{IsSetm}} : isset A
       {{mAssoc}} : Associative _∙_
 open monoid {{...}}
 
@@ -33,11 +38,11 @@ idUnique2 {A = A} {_∙_ = _∙_} {a} =
 -- Every operator can only be part of at most one monoid
 monoidIsProp : (_∙_ : A → A → A) → isProp (monoid _∙_)
 monoidIsProp {A = A} _∙_ M1 M2 i =
-       let set = λ{a b : A}{p q : a ≡ b} → M1 .IsSet a b p q in
+       let set = λ{a b : A}{p q : a ≡ b} → M1 .IsSetm .IsSet a b p q in
        let E = idUnique ⦃ M2 ⦄ (M1 .lIdentity) in
   record {
        e = E i
-     ; IsSet = isPropIsSet (M1 .IsSet) (M2 .IsSet) i
+     ; IsSetm = record { IsSet = isPropIsSet (M1 .IsSetm .IsSet) (M2 .IsSetm .IsSet) i }
      ; lIdentity = λ a →
           let F : PathP (λ j → E j ∙ a ≡ a) (M1 .lIdentity a) (M2 .lIdentity a)
               F = toPathP set

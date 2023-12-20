@@ -64,17 +64,30 @@ scalar-distributivity2 : ∀ {{R : Rng A}} (s : A) (x y : B → A)
                        → scaleV s (addv x y) ≡ addv (scaleV s x) (scaleV s y)
 scalar-distributivity2 s x y = funExt λ z → lDistribute s (x z) (y z)
 
+pointwise : (_∙_ : A → A → A)
+          → (B : Type bl)
+          → (B → A) → (B → A) → (B → A)
+pointwise _∙_ B f g b = f b ∙ g b
+
 instance
- comv : {{R : Rng A}} → Commutative (addv {B = B})
- comv {{R}} = record { comm = λ u v → funExt λ x → comm (u x) (v x) }
 
- assocv : {{R : Rng A}} → Associative (addv {B = B})
- assocv = record { assoc = λ u v w → funExt λ x → assoc (u x) (v x) (w x) }
+ comf : {_∙_ : A → A → A} → {{_ : Commutative _∙_}} → Commutative (pointwise _∙_ B)
+ comf = record { comm = λ u v → funExt λ x → comm (u x) (v x) }
 
- grpV : {{R : Ring A}} → group (addv {B = B})
- grpV {{R}} = record { e = λ _ → 0r
-                     ; inverse = λ v → map neg v , funExt λ x → lInverse (v x)
-                     ; IsSet = isSet→ (monoid.IsSet (Ring.multStr R))
+ assocf : {_∙_ : A → A → A} → {{_ : Associative _∙_}} → Associative (pointwise _∙_ B)
+ assocf = record { assoc = λ u v w → funExt λ x → assoc (u x) (v x) (w x) }
+
+ IsSet→ : {{_ : isset B}} → isset (A → B)
+ IsSet→ = record { IsSet = isSet→ IsSet }
+
+ monoidf : {_∙_ : A → A → A} → {{R : monoid _∙_}} → monoid (pointwise _∙_ B)
+ monoidf = record { e = λ _ → e
+                     ; lIdentity = λ v → funExt (λ x → lIdentity (v x))
+                     ; rIdentity = λ v → funExt (λ x → rIdentity (v x)) }
+
+ groupf : {_∙_ : A → A → A} → {{R : group _∙_}} → group (pointwise _∙_ B)
+ groupf = record { e = λ _ → e
+                     ; inverse = λ v → map inv v , funExt λ x → lInverse (v x)
                      ; lIdentity = λ v → funExt (λ x → lIdentity (v x)) }
 
   -- A function whose codomain is an underlying set for a ring is a vector for a module.
@@ -361,12 +374,11 @@ instance
  sqrMMultAssoc : {{R : Ring A}} → Associative (mMult {n = n}{B = fin n} {C = fin n})
  sqrMMultAssoc = record { assoc = mMultAssoc }
  sqrMMultMonoid : {{R : Ring A}} → monoid (mMult {B = fin n} {C = fin n})
- sqrMMultMonoid {{R}} = record
-                      { e = I
-                      ; IsSet = isSet→ (isSet→ (R .multStr .IsSet))
-                      ; lIdentity = ILID
-                      ; rIdentity = IRID
-                      }
+ sqrMMultMonoid = record
+                { e = I
+                ; lIdentity = ILID
+                ; rIdentity = IRID
+                }
  sqrMatrix*+ : {{R : Ring A}} → *+ (Matrix A n n)
  sqrMatrix*+ {n = n} = record
    { _+_ = mAdd
@@ -381,7 +393,6 @@ instance
  sqrMatrixAddGroup : {{R : Ring A}} → group (mAdd {A = fin n}{B = fin n})
  sqrMatrixAddGroup = record
     { e = λ _ _ → 0r
-    ; IsSet = isSet→ IsSet
     ; inverse = λ a → (λ x y → neg(a x y)) , funExt λ x → funExt λ y → lInverse (a x y)
     ; lIdentity = λ a → funExt λ x → funExt λ y → lIdentity (a x y)
     }

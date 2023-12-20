@@ -28,14 +28,15 @@ open import Cubical.Foundations.HLevels
     }) λ{(p1 , n1) (p2 , n2) → natDiscrete (add p1 n2) (add p2 n1)}
   where open import Cubical.Relation.Binary
 
-ℤisSet : isSet ℤ
-ℤisSet = Discrete→isSet ℤDiscrete
+instance
+ ℤisSet : isset ℤ
+ ℤisSet = record { IsSet = Discrete→isSet ℤDiscrete }
 
 addℤaux : ℕ × ℕ → ℕ × ℕ → ℤ
 addℤaux (p1 , n1) (p2 , n2) = [ add p1 p2 , add n1 n2 ]
 
 addℤ : ℤ → ℤ → ℤ
-addℤ = rec2 ℤisSet
+addℤ = rec2 IsSet
             (λ(p1 , n1) (p2 , n2) → [ add p1 p2 , add n1 n2 ])
             (λ{(p1 , n1) (p2 , n2) (p3 , n3) p →
    eq/ ((add p1 p3 , add n1 n3)) (add p2 p3 , add n2 n3) $
@@ -51,7 +52,7 @@ addℤ = rec2 ℤisSet
     }
 
 multℤ : ℤ → ℤ → ℤ
-multℤ = rec2 (ℤisSet)
+multℤ = rec2 (IsSet)
              (λ(a , b) (c , d) → [ add (mult a c) (mult b d) , add (mult a d) (mult b c) ])
              (λ (p1 , n1) (p2 , n2) (p3 , n3) H → eq/ (add (mult p1 p3) (mult n1 n3) , add (mult p1 n3) (mult n1 p3))
                                                       (add (mult p2 p3) (mult n2 n3) , add (mult p2 n3) (mult n2 p3)) $
@@ -91,25 +92,25 @@ multℤ = rec2 (ℤisSet)
  add (add (mult p1 p3) (mult n1 n3)) (add (mult p1 n2) (mult n1 p2)) ∎
 
 negℤ : ℤ → ℤ
-negℤ = QRec ℤisSet (λ(p , n) → [ n , p ])
+negℤ = QRec IsSet (λ(p , n) → [ n , p ])
        λ (p1 , n1) (p2 , n2) r → eq/ (n1 , p1) (n2 , p2) ((comm n1 p2 ∙ sym r) ∙ comm p1 n2)
 
 instance
  ℤComm : Commutative addℤ
- ℤComm = record { comm = elimProp2 (λ x y → ℤisSet (addℤ x y) (addℤ y x))
+ ℤComm = record { comm = elimProp2 (λ x y → IsSet (addℤ x y) (addℤ y x))
        λ (p1 , n1) (p2 , n2) → cong [_] ( (≡-× (comm p1 p2) (comm n1 n2))) }
 
  ℤAssoc : Associative addℤ
- ℤAssoc = record { assoc = elimProp3 (λ x y z → ℤisSet (addℤ x (addℤ y z))(addℤ (addℤ x y) z))
+ ℤAssoc = record { assoc = elimProp3 (λ x y z → IsSet (addℤ x (addℤ y z))(addℤ (addℤ x y) z))
           λ (p1 , n1) (p2 , n2) (p3 , n3) → cong [_] (≡-× (assoc p1 p2 p3) (assoc n1 n2 n3)) }
 
  ℤMultComm : Commutative multℤ
- ℤMultComm = record { comm = elimProp2 (λ x y → ℤisSet (multℤ x y) (multℤ y x))
+ ℤMultComm = record { comm = elimProp2 (λ x y → IsSet (multℤ x y) (multℤ y x))
     λ (p1 , n1) (p2 , n2) → cong [_] (≡-× (cong₂ add (comm p1 p2) (comm n1 n2))
        ( comm (mult p1 n2) (mult n1 p2) ∙ cong₂ add (comm n1 p2) (comm p1 n2))) }
 
  ℤMultAssoc : Associative multℤ
- ℤMultAssoc = record { assoc = elimProp3 (λ x y z → ℤisSet (multℤ x (multℤ y z)) (multℤ (multℤ x y) z))
+ ℤMultAssoc = record { assoc = elimProp3 (λ x y z → IsSet (multℤ x (multℤ y z)) (multℤ (multℤ x y) z))
    λ (p1 , n1)(p2 , n2)(p3 , n3) → cong [_] (≡-× (aux p1 p2 p3 n1 n2 n3) (aux p1 p2 n3 n1 n2 p3))}
   where
    aux : (p1 p2 p3 n1 n2 n3 : ℕ) → (p1 * ((p2 * p3) + (n2 * n3))) + (n1 * ((p2 * n3) + (n2 * p3)))
@@ -139,23 +140,21 @@ instance
 
  ℤAddGroup : group addℤ
  ℤAddGroup = record { e = [ Z , Z ]
-           ; IsSet = ℤisSet
            ; inverse = λ a → (negℤ a) , lInv a
-           ; lIdentity = elimProp (λ x → ℤisSet (addℤ [ Z , Z ] x) x)(λ a → refl) }
+           ; lIdentity = elimProp (λ x → IsSet (addℤ [ Z , Z ] x) x)(λ a → refl) }
   where
    lInv : (a : ℤ) → addℤ (negℤ a) a ≡ [ Z , Z ]
-   lInv = elimProp (λ x → ℤisSet (addℤ (negℤ x) x) [ Z , Z ])
+   lInv = elimProp (λ x → IsSet (addℤ (negℤ x) x) [ Z , Z ])
       λ (p , n) → eq/ (add n p , add p n) (Z , Z) (addZ (add n p) ∙ comm n p)
 
  ℤMultMonoid : monoid multℤ
  ℤMultMonoid = record {
      e = [ S Z , Z ]
-   ; IsSet = ℤisSet
    ; lIdentity = lId
    ; rIdentity = λ a → comm a [ S Z , Z ] ∙ lId a }
   where
    lId : (a : ℤ) → multℤ [ S Z , Z ] a ≡ a
-   lId = elimProp (λ x → ℤisSet (multℤ [ S Z , Z ] x) x)
+   lId = elimProp (λ x → IsSet (multℤ [ S Z , Z ] x) x)
        λ (p , n) → cong [_] $ ≡-× (addZ (add p Z) ∙ addZ p)
                                   (addZ (add n Z) ∙ addZ n)
 
@@ -175,7 +174,7 @@ instance
        ((p1 * p2) + (p1 * p3)) + ((n1 * n2) + (n1 * n3)) ≡⟨ [ab][cd]≡[ac][bd] (p1 * p2) (p1 * p3) (n1 * n2) (n1 * n3)⟩
        ((p1 * p2) + (n1 * n2)) + ((p1 * p3) + (n1 * n3)) ∎
     aux2 : (a b c : ℤ) → multℤ a (addℤ b c) ≡ addℤ (multℤ a b) (multℤ a c)
-    aux2 = elimProp3 (λ x y z → ℤisSet (multℤ x (addℤ y z))
+    aux2 = elimProp3 (λ x y z → IsSet (multℤ x (addℤ y z))
                      (addℤ(multℤ x y)(multℤ x z)))
                      λ(p1 , n1) (p2 , n2) (p3 , n3) → cong [_] $ ≡-×
                         (aux p1 p2 p3 n1 n2 n3)
@@ -255,7 +254,7 @@ instance
  intLePoset = record { antiSymmetric = λ{a b : ℤ} → aux a b }
   where
    aux : (a b : ℤ) → le a b → le b a → a ≡ b
-   aux = elimProp2 (λ x y → isProp→ (isProp→ (ℤisSet x y)))
+   aux = elimProp2 (λ x y → isProp→ (isProp→ (IsSet x y)))
            λ (a , b) (c , d) p q → eq/ (a , b) (c , d) (antiSymmetric {a = a + d} p q)
  
  -- Integer ≤ relation is a total order
@@ -275,10 +274,25 @@ instance
     aux = elimProp2 (λ x y → squash₁)
                    λ (a , b) (c , d) → ∣ stronglyConnected (a + d) (c + b) ∣₁
 
+_ℤ+ℕ_ : ℤ → ℕ → ℤ
+_ℤ+ℕ_ a b = flip b a
+ where
+  flip : ℕ → ℤ → ℤ
+  flip n = QRec IsSet (λ (a , b) → [ (n + a) , b ])
+    λ (a , b) (c , d) r → eq/ ((n + a) , b) ((n + c) , d)
+    $ (n + a) + d ≡⟨ sym(assoc n a d) ⟩
+      n + (a + d) ≡⟨ cong (n +_) r ⟩
+      n + (c + b) ≡⟨ assoc n c b ⟩
+      (n + c) + b ∎
+
 _ℕ*ℤ_ : ℕ → ℤ → ℤ
-_ℕ*ℤ_ n = QRec ℤisSet (λ(a , b) → [ n * a , n * b ])
-               λ(a , b)(c , d) r → eq/ ((n * a) , (n * b)) ((n * c) , (n * d)) $
- (n * a) + (n * d) ≡⟨ sym (lDistribute n a d) ⟩
- n * (a + d)       ≡⟨ cong (n *_) r ⟩
- n * (c + b)       ≡⟨ lDistribute n c b ⟩
- (n * c) + (n * b) ∎
+_ℕ*ℤ_ n = QRec IsSet (λ(a , b) → [ n * a , n * b ])
+ λ(a , b)(c , d) H → eq/ ((n * a) , (n * b)) ((n * c) , (n * d))
+ $  (n * a) + (n * d) ≡⟨ sym (lDistribute n a d) ⟩
+    n * (a + d) ≡⟨ cong (n *_) H ⟩
+    n * (c + b) ≡⟨ lDistribute n c b ⟩
+    (n * c) + (n * b) ∎
+
+ℕ*ℤNeg : ∀ (n : ℕ)(a : ℤ) → n ℕ*ℤ neg a ≡ neg (n ℕ*ℤ a)
+ℕ*ℤNeg n = elimProp (λ x → IsSet (n ℕ*ℤ neg x) (neg (n ℕ*ℤ x))) λ a → refl
+

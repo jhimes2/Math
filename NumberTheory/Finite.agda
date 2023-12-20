@@ -22,17 +22,18 @@ FinDiscrete {n = n} = discreteSetQuotients
  (BinaryRelation.equivRel (λ a → refl) (λ a b x → refl ∙ (sym x))
    λ a b c x y → x ∙ y) λ a b → natDiscrete (paste a n) (paste b n)
 
-FinIsSet : isSet (Fin n)
-FinIsSet = Discrete→isSet FinDiscrete
+instance
+ FinIsSet : isset (Fin n)
+ FinIsSet = record { IsSet = Discrete→isSet FinDiscrete }
 
 FinAdd : Fin n → Fin n → Fin n
-FinAdd {n = n} = rec2 FinIsSet (λ x y → [ x + y ])
+FinAdd {n = n} = rec2 IsSet (λ x y → [ x + y ])
   (λ a b c x → eq/ (a + c) (b + c) $ transport (λ i → paste (AddCom .comm c a i) n ≡ paste (AddCom .comm c b i) n)
    $ translation x c)
    λ a b c x → eq/ (a + b) (a + c) (translation x a)
 
 FinMult : Fin n → Fin n → Fin n
-FinMult {n = n} = rec2 FinIsSet (λ x y → [ x * y ])
+FinMult {n = n} = rec2 IsSet (λ x y → [ x * y ])
    (λ a b c x → eq/ (a * c) (b * c) (scaling {a} {b} x c))
   λ a b c x → eq/ (a * b) (a * c) $ transport
                           (λ i →
@@ -46,11 +47,11 @@ instance
      { _+_ = FinAdd
      ; _*_ = FinMult
      ; lDistribute =
-          elimProp3 (λ x y z → FinIsSet (FinMult x (FinAdd y z))
+          elimProp3 (λ x y z → IsSet (FinMult x (FinAdd y z))
                                         (FinAdd (FinMult x y) (FinMult x z)))
                      λ a b c → cong [_] (lDistribute a b c)
      ; rDistribute = 
-          elimProp3 (λ x y z → FinIsSet (FinMult (FinAdd y z) x)
+          elimProp3 (λ x y z → IsSet (FinMult (FinAdd y z) x)
                                         (FinAdd (FinMult y x) (FinMult z x)))
          λ a b c → cong [_] (rDistribute a b c) }
       where
@@ -61,26 +62,25 @@ instance
                  paste (paste (a * b) n + paste (a * c) n) n ∎
 
   FinAddAssoc : Associative (FinAdd {n = n})
-  FinAddAssoc {n} = record { assoc = elimProp3 (λ x y z → FinIsSet (x + (y + z)) ((x + y) + z))
+  FinAddAssoc {n} = record { assoc = elimProp3 (λ x y z → IsSet (x + (y + z)) ((x + y) + z))
      λ a b c → cong [_] (assoc a b c) }
 
   FinMultAssoc : Associative (FinMult {n = n})
-  FinMultAssoc {n} = record { assoc = elimProp3 (λ x y z → FinIsSet (x * (y * z)) ((x * y) * z))
+  FinMultAssoc {n} = record { assoc = elimProp3 (λ x y z → IsSet (x * (y * z)) ((x * y) * z))
      λ a b c → cong [_] (assoc a b c) }
 
   FinAddComm : Commutative (FinAdd {n = n})
-  FinAddComm = record { comm = elimProp2 (λ x y → FinIsSet (x + y) (y + x))
+  FinAddComm = record { comm = elimProp2 (λ x y → IsSet (x + y) (y + x))
                  (λ a b → cong [_] (comm a b)) }
 
   FinMultComm : Commutative (FinMult {n = n})
-  FinMultComm = record { comm = elimProp2 (λ x y → FinIsSet (x * y) (y * x))
+  FinMultComm = record { comm = elimProp2 (λ x y → IsSet (x * y) (y * x))
                  (λ a b → cong [_] (comm a b)) }
 
   FinAddGroup : group (FinAdd {n = n})
   FinAddGroup {n} = record
     { e = [ Z ]
-    ; IsSet = FinIsSet
-    ; inverse = elimProp (λ a (x , p) (y , q) → ΣPathPProp (λ z → FinIsSet (z + a) [ Z ])
+    ; inverse = elimProp (λ a (x , p) (y , q) → ΣPathPProp (λ z → IsSet (z + a) [ Z ])
          $ x ≡⟨ sym (lIdAux x)⟩
            [ Z ] + x ≡⟨ left _+_ (sym q)⟩
            (y + a) + x ≡⟨ sym (assoc y a x)⟩
@@ -94,7 +94,7 @@ instance
     }
    where
     lIdAux : (a : Fin n) → [ Z ] + a ≡ a
-    lIdAux = elimProp (λ x → FinIsSet ([ Z ] + x) x)
+    lIdAux = elimProp (λ x → IsSet ([ Z ] + x) x)
       λ a → cong [_] refl
     invAux : (a : ℕ) → Σ λ(b : ℕ) → paste (b + a) n ≡ Z
     invAux Z = Z , ZPaste n
@@ -105,10 +105,9 @@ instance
   FinMultMonoid : monoid (FinMult {n = n})
   FinMultMonoid {n = n} =
     record { e = [ S Z ]
-           ; IsSet = FinIsSet
-           ; lIdentity = elimProp (λ a → FinIsSet ([ S Z ] * a) a)
+           ; lIdentity = elimProp (λ a → IsSet ([ S Z ] * a) a)
              λ a → cong [_] (addZ a)
-           ; rIdentity = elimProp (λ a → FinIsSet (a * [ S Z ]) a)
+           ; rIdentity = elimProp (λ a → IsSet (a * [ S Z ]) a)
                    λ a → cong [_] (NatMultMonoid .rIdentity a)
            }
 

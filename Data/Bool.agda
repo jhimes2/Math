@@ -40,6 +40,10 @@ boolDiscrete No Yes = no (λ x → YesNEqNo (sym x))
 boolDiscrete No No = yes refl
 
 instance
+
+  BoolIsSet : isset Bool
+  BoolIsSet = record { IsSet = Discrete→isSet boolDiscrete }
+
   andAssoc : Associative and
   andAssoc = record { assoc = λ{ Yes _ _ → refl
                                ; No _ _ → refl} }
@@ -50,7 +54,6 @@ instance
                                    ; No No → refl}}
   andMonoid : monoid and
   andMonoid = record { e = Yes
-                     ; IsSet = Discrete→isSet boolDiscrete
                      ; lIdentity = λ _ → refl
                      ; rIdentity = λ{ Yes → refl
                                     ; No → refl} }
@@ -61,7 +64,6 @@ instance
                                ; No _ _ → refl}}
   xorGroup : group xor
   xorGroup = record { e = No
-                    ; IsSet = Discrete→isSet boolDiscrete
                     ; inverse = λ{ Yes → Yes , refl
                                  ; No → No , refl}
                     ; lIdentity = λ _ → refl }

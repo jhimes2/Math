@@ -120,11 +120,13 @@ instance
                         (Q , record {addT = addTQ ; multT = multTQ})
                            → ΣPathPProp modHomomorphismIsProp
                                        (funExt λ x → assoc (T x) (R x) (Q x))}}
+
+  LFIsSet : {{F : Field A}}{{VS : VectorSpace B}} → isset (linearForm VS)
+  LFIsSet = record { IsSet = isSetΣSndProp (isSet→ IsSet) modHomomorphismIsProp }
+
   LFGroup : {{F : Field A}}{{VS : VectorSpace B}} → group (dualSum VS)
   LFGroup {{F}} {{VS = VS}} =
    record { e = dualZero VS
-          ; IsSet = isSetΣSndProp (isSet→ (F .fring .crring .multStr .IsSet))
-                                  modHomomorphismIsProp
           ; inverse = λ (T , record {addT = addTT ; multT = multTT}) → ((λ x → neg(T x)) ,
              record { addT = λ u v →
                          neg(T(u [+] v))       ≡⟨ cong neg (addTT u v)⟩

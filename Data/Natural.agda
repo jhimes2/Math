@@ -78,18 +78,18 @@ natDiscrete Z (S b) = no (λ x → ZNotS x)
 natDiscrete (S a) Z = no (λ x → ZNotS (sym x))
 natDiscrete (S a) (S b) = natDiscrete a b ~> λ{ (yes x) → yes (cong S x) ; (no x) → no (λ y → x (SInjective y))}
 
-natIsSet : isSet ℕ
-natIsSet = Discrete→isSet natDiscrete
-
 -- Addition on natural numbers is a comm monoid
 instance
+
+  natIsSet : isset ℕ
+  natIsSet = record { IsSet = Discrete→isSet natDiscrete }
+
   AddCom : Commutative add
   AddCom = record { comm = addCom }
   AddAssoc : Associative add
   AddAssoc = record { assoc = addAssoc }
   ℕAddMonoid : monoid add
   ℕAddMonoid = record { e = Z
-                        ; IsSet = natIsSet
                         ; lIdentity = λ a → refl
                         ; rIdentity = addZ }
 
@@ -111,6 +111,7 @@ NatMultDist (S a) b c =
   add (add c (mult a c)) (mult b c) ≡⟨ sym (assoc c (mult a c) (mult b c))⟩
   add c (add (mult a c) (mult b c)) ≡⟨ cong (add c) (NatMultDist a b c)⟩
   add c (mult (add a b) c) ∎
+
 -- Multiplication on natural numbers is a commutative monoid
 instance
   multCom : Commutative mult
@@ -127,9 +128,10 @@ instance
     multAssocAux (S a) b c = eqTrans (cong (add (mult b c)) (multAssocAux a b c))
                                      (NatMultDist b (mult a b) c)
   NatMultMonoid : monoid mult
-  NatMultMonoid = record { e = (S Z) ; IsSet = natIsSet ; lIdentity = addZ
-                         ; rIdentity = λ a → eqTrans (comm a (S Z)) (addZ a) }
-
+  NatMultMonoid = record { e = (S Z)
+                         ; lIdentity = addZ
+                         ; rIdentity = λ a → eqTrans (comm a (S Z)) (addZ a)
+                         }
 
 natRId : (n : ℕ) → mult n (S Z) ≡ n
 natRId n = (comm n (S Z)) ∙ (addZ n)

@@ -9,7 +9,7 @@ open import Algebra.Monoid public
 record group {A : Type l}(_∙_ : A → A → A) : Type(lsuc l) where
   field
       e : A
-      IsSet : isSet A
+      overlap {{IsSetGrp}} : isset A
       inverse : (a : A) → Σ λ(b : A) → b ∙ a ≡ e
       lIdentity : (a : A) → e ∙ a ≡ a
       {{gAssoc}} : Associative _∙_
@@ -40,11 +40,10 @@ module _{_∙_ : A → A → A} {{G : group _∙_}} where
 
 instance
   grpIsMonoid : {_∙_ : A → A → A}{{G : group _∙_}} → monoid _∙_
-  grpIsMonoid {_∙_ = _∙_} =
+  grpIsMonoid {_∙_ = _∙_} {{G}} =
    record {
           e = e
         ; lIdentity = lIdentity
-        ; IsSet = IsSet
         -- Proof that a group has right identity property
         ; rIdentity =
            λ a →
@@ -168,14 +167,14 @@ module grp {_∙_ : A → A → A} {{G : group _∙_}} where
 -- Every operator can only be part of at most one group
 groupIsProp : (_∙_ : A → A → A) → isProp (group _∙_)
 groupIsProp {A = A} _∙_ G1 G2 i =
-  let set = λ{a b : A}{p q : a ≡ b} → G1 .IsSet a b p q in
+  let set = λ{a b : A}{p q : a ≡ b} → IsSet a b p q in
   let E : G1 .e ≡ G2 .e
       E = G1 .e                 ≡⟨ idUnique {{grpIsMonoid {{G2}}}} (G1 .lIdentity)⟩
           grpIsMonoid {{G2}} .e ≡⟨ sym (idUnique {{grpIsMonoid {{G2}}}} (G2 .lIdentity))⟩
           G2 .e ∎ in
   record {
      e = E i
-   ; IsSet = isPropIsSet (G1 .IsSet) (G2 .IsSet) i
+   ; IsSetGrp = record { IsSet = isPropIsSet (G1 .IsSetGrp .IsSet) (G2 .IsSetGrp .IsSet) i }
    ; lIdentity = λ a →
        let F : PathP (λ j → E j ∙ a ≡ a) (G1 .lIdentity a) (G2 .lIdentity a)
            F = toPathP set

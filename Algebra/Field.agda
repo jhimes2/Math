@@ -82,12 +82,15 @@ instance
   NZMultAssoc : {{F : Field A}} → Associative NZMult
   NZMultAssoc = record { assoc = λ a b c → ΣPathPProp (λ w x y → funExt λ p → y p ~> UNREACHABLE)
                                                       (assoc (fst a) (fst b) (fst c)) }
+
+  NZIsSet : {{R : Rng A}} → isset nonZero
+  NZIsSet = record { IsSet = isSetΣSndProp IsSet λ w x y → funExt λ p → y p ~> UNREACHABLE }
+   where open import Cubical.Foundations.HLevels
+
   -- Non-zero multiplication is a group
   NZMultGroup : {{F : Field A}} → group NZMult
   NZMultGroup {{F}} =
     record { e = 1r , oneNotZero
-           ; IsSet = isSetΣSndProp (F .fring .crring .multStr .IsSet)
-                                   λ w x y → funExt λ p → y p ~> UNREACHABLE
            ; inverse = λ a → ((reciprocal a) , x⁻¹≢0 a)
                                , ΣPathPProp (λ w x y → funExt λ p → y p ~> UNREACHABLE)
                                (reciprocal a * fst a ≡⟨ comm (reciprocal a) (fst a)⟩
@@ -95,4 +98,3 @@ instance
                                1r ∎)
            ; lIdentity = λ a → ΣPathPProp (λ w x y → funExt (λ p → y p ~> UNREACHABLE))
                                           (lIdentity (fst a)) }
-   where open import Cubical.Foundations.HLevels
