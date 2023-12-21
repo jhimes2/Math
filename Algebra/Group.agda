@@ -194,23 +194,30 @@ groupIsProp {A = A} _∙_ G1 G2 i =
     open group
     open import Cubical.Foundations.HLevels
 
-record grpHomomorphism {A : Type l}
-                       {B : Type l'} 
-                       (_∙_ : A → A → A) {{G : group _∙_}}
-                       (_*_ : B → B → B) {{H : group _*_}} : Type(l ⊔ l') 
-  where field
-    h : A → B
-    homomorphism : (u v : A) → h (u ∙ v) ≡ h u * h v
 
 module _{A : Type l}{_∙_ : A → A → A} {{G : group _∙_}} where
+
+ -- https://en.wikipedia.org/wiki/Group_homomorphism
+ grpHomomorphism : {B : Type l'} 
+                   {_*_ : B → B → B}{{H : group _*_}}
+                 → (h : A → B) → Type(l ⊔ l') 
+ grpHomomorphism {_*_ = _*_} h = (u v : A) → h (u ∙ v) ≡ h u * h v
+
+ -- https://en.wikipedia.org/wiki/Cyclic_group
+ data cyclic (x : A) : A → Type l where
+  cycIntro : cyclic x x
+  cycInv : ∀ y → cyclic x y → cyclic x (inv y)
+  cycOp : ∀ {y z : A} → cyclic x y → cyclic x z → cyclic x (y ∙ z)
+
+ -- https://en.wikipedia.org/wiki/Subgroup
+ record subgroup (H : ℙ A) : Type l where
+   field
+     id-closed  : (e ∈ H)
+     op-closed  : {x y : A} → x ∈ H → y ∈ H → x ∙ y ∈ H
+     inv-closed : {x : A} → x ∈ H → inv x ∈ H
 
  a[b'a]'≡b : ∀ a b → a ∙ inv (inv b ∙ a) ≡ b
  a[b'a]'≡b a b = a ∙ inv (inv b ∙ a)        ≡⟨ right _∙_ (sym(grp.lemma1 (inv b) a))⟩
                  a ∙ (inv a ∙ (inv(inv b))) ≡⟨ a[a'b]≡b a (inv(inv b))⟩
                  inv(inv b)                 ≡⟨ grp.doubleInv b ⟩
                  b ∎
-
- data cyclic (x : A) : A → Type l where
-  cycIntro : cyclic x x
-  cycInv : ∀ y → cyclic x y → cyclic x (inv y)
-  cycOp : ∀ {y z : A} → cyclic x y → cyclic x z → cyclic x (y ∙ z)
