@@ -78,35 +78,39 @@ module _{scalar : Type l}{vector : Type l'}{{R : Ring scalar}}{{V : Module vecto
                  scale c  (scale (neg 1r) v) ≡⟨ right scale (scaleNegOneInv v)⟩
                  scale c (negV v) ∎
 
--- Not necessarily a linear span since we're using a module instead of a vector space
+  -- This is a more general definition that uses a module instead of a vector space
   data Span (X : vector → Type al) : vector → Type (l ⊔ l' ⊔ al) where
     intro : {v : vector} → v ∈' X → v ∈' Span X
     spanAdd : {v : vector} → v ∈' Span X → {u : vector} → u ∈' Span X → v [+] u ∈' Span X
     spanScale : {v : vector} → v ∈' Span X → (c : scalar) → scale c v ∈' Span X
+    spanSet : {v : vector} → isProp (v ∈' Span X)
 
-{- Here's how I wish I can define 'Span'
+  spanIdempotent : (Span ∘ Span) ≡ Span {l}
+  spanIdempotent = funExt λ X → funExt λ x → propExt spanSet spanSet (aux X x) intro
+   where
+    aux : (X : vector → Type l) → (x : vector) → x ∈' (Span ∘ Span) X → x ∈' Span X
+    aux X x (intro p) = p
+    aux X x (spanAdd {v} p {u} q) = spanAdd (aux X v p) (aux X u q)
+    aux X x (spanScale {v} p c) = spanScale (aux X v p) c
+    aux X x (spanSet {v} p q H) = spanSet (aux X v p) (aux X v q) H
 
-  data Span (X : ℙ vector) : ℙ vector where
-    intro : {v : vector} → v ∈ X → v ∈ Span X
-    spanAdd : {v : vector} → v ∈ Span X → {u : vector} → u ∈ Span X → v [+] u ∈ Span X
-    spanScale : {v : vector} → v ∈ Span X → (c : scalar) → scale c v ∈ Span X
-
--- Unfortunately, the 'final codomain' of a data definition should be a sort
--}
-
-  spanJoin : (X : vector → Type l) → (x : vector) → x ∈' (Span ∘ Span) X → x ∈' Span X
-  spanJoin X x (intro p) = p
-  spanJoin X x (spanAdd {v} p {u} q) =
-      let H = spanJoin X v p in
-      let G = spanJoin X u q in spanAdd H G
-  spanJoin X x (spanScale {v} p c) = spanScale (spanJoin X v p) c
-
-  -- Not necessarily a linear subspace.
+  -- This is a more general definition that uses a module instead of a vector space
   record Subspace (X : vector → Type al) : Type (lsuc (al ⊔ l ⊔ l'))
     where field
         ssZero : X Ô 
         ssAdd : {v u : vector} → v ∈' X → u ∈' X → v [+] u ∈' X
         ssScale : {v : vector} → v ∈' X → (c : scalar) → scale c v ∈' X
+        ssSet : {v : vector} → isProp (v ∈' X)
+
+  -- The span of a non-empty set of vectors is a subspace.
+  NonEmptySpanIsSubspace :{X : vector → Type l}
+                        → Σ X
+                        → Subspace (Span X)
+  NonEmptySpanIsSubspace {X = X} (v , v') =
+      record { ssZero = scaleZ v ~> λ p → subst (Span X) p (spanScale (intro v') 0r)
+             ; ssAdd = λ x y → spanAdd x y
+             ; ssScale = λ x c → spanScale x c
+             ; ssSet = λ {v} → spanSet }
 
 -- https://en.wikipedia.org/wiki/Module_homomorphism
 record moduleHomomorphism {A : Type l}
@@ -157,6 +161,7 @@ module _ {scalar : Type l}{{R : Ring scalar}}
      record { addT = λ u v → eqTrans (cong R (addT u v)) (addT (T u) (T v))
             ; multT = λ u c → eqTrans (cong R (multT u c)) (multT (T u) c) }
 
+-- Bad name. I don't know what else to call this theorem.
 week7 : {{CR : CRing A}} → {{V : Module B}}
       → (T : B → B) → {{TLT : moduleHomomorphism T}}
       → (c : A) → Subspace (λ x → T x ≡ scale c x)
@@ -176,7 +181,9 @@ week7 T c = record
                    scale (d * c) v     ≡⟨ left scale (comm d c)⟩
                    scale (c * d) v     ≡⟨ sym (scalarAssoc v c d)⟩
                    scale c (scale d v) ∎
+    ; ssSet = λ {v} → IsSet (T v) (scale c v)
     }
+
 module _ {A : Type l}  {{CR : CRing A}}
          {V : Type al} {{V' : Module V}}
          {W : Type bl} {{W' : Module W}}

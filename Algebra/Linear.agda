@@ -34,16 +34,6 @@ module _{scalar : Type l}{{F : Field scalar}}{vector : Type l'}{{V : VectorSpace
     spanEq : Span X ≡ pr1 H
   open Basis_for_ {{...}} hiding (bfLI) public
 
-  -- The span of a non-empty set of vectors is a subspace.
-  NonEmptySpanIsSubspace :{X : vector → Type l}
-                        → Σ X
-                        → Subspace (Span X)
-  NonEmptySpanIsSubspace {X = X} (v , v') =
-      record { ssZero = scaleZ v ~> λ{p → transport (λ i → Span X (p i))
-                                                    (spanScale (intro v') 0r)}
-             ; ssAdd = λ x y → spanAdd x y
-             ; ssScale = λ x c → spanScale x c }
-
   module _{vector' : Type al}{{U : VectorSpace vector'}} where
 
     -- https://en.wikipedia.org/wiki/Linear_map
