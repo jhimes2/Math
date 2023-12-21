@@ -93,7 +93,7 @@ module _{_∙_ : A → A → A} {{G : group _∙_}}(a b : A) where
              a ∙ (inv b ∙ b) ≡⟨ a[b'b]≡a ⟩
              a ∎
 
-module grp {_∙_ : A → A → A} {{G : group _∙_}} where
+module grp {_∙_ : A → A → A}{{G : group _∙_}} where
 
   cancel : (a : A) → {x y : A} → a ∙ x ≡ a ∙ y → x ≡ y
   cancel a {x}{y} =
@@ -194,30 +194,54 @@ groupIsProp {A = A} _∙_ G1 G2 i =
     open group
     open import Cubical.Foundations.HLevels
 
-
-module _{A : Type l}{_∙_ : A → A → A} {{G : group _∙_}} where
-
- -- https://en.wikipedia.org/wiki/Group_homomorphism
- grpHomomorphism : {B : Type l'} 
-                   {_*_ : B → B → B}{{H : group _*_}}
-                 → (h : A → B) → Type(l ⊔ l') 
- grpHomomorphism {_*_ = _*_} h = (u v : A) → h (u ∙ v) ≡ h u * h v
-
- -- https://en.wikipedia.org/wiki/Cyclic_group
- data cyclic (x : A) : A → Type l where
-  cycIntro : cyclic x x
-  cycInv : ∀ y → cyclic x y → cyclic x (inv y)
-  cycOp : ∀ {y z : A} → cyclic x y → cyclic x z → cyclic x (y ∙ z)
+module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
 
  -- https://en.wikipedia.org/wiki/Subgroup
- record subgroup (H : ℙ A) : Type l where
+ record subgroup (H : ℙ A) : Type al where
    field
      id-closed  : (e ∈ H)
      op-closed  : {x y : A} → x ∈ H → y ∈ H → x ∙ y ∈ H
      inv-closed : {x : A} → x ∈ H → inv x ∈ H
+  
+
+ -- https://en.wikipedia.org/wiki/Cyclic_group
+ data cyclic (x : A) : A → Type al where
+  cycIntro : cyclic x x
+  cycInv : ∀ y → cyclic x y → cyclic x (inv y)
+  cycOp : ∀ {y z : A} → cyclic x y → cyclic x z → cyclic x (y ∙ z)
 
  a[b'a]'≡b : ∀ a b → a ∙ inv (inv b ∙ a) ≡ b
  a[b'a]'≡b a b = a ∙ inv (inv b ∙ a)        ≡⟨ right _∙_ (sym(grp.lemma1 (inv b) a))⟩
                  a ∙ (inv a ∙ (inv(inv b))) ≡⟨ a[a'b]≡b a (inv(inv b))⟩
                  inv(inv b)                 ≡⟨ grp.doubleInv b ⟩
                  b ∎
+
+ module _{B : Type bl}{_*_ : B → B → B}{{H : group _*_}}
+         (h : A → B) where
+
+  -- https://en.wikipedia.org/wiki/Group_homomorphism
+  record Homo : Type (lsuc(al ⊔ bl))
+    where field
+     morphism : (u v : A) → h (u ∙ v) ≡ h u * h v
+ 
+  record Mono : Type (lsuc(al ⊔ bl))
+    where field
+     {{x}} : Homo
+     inject : injective h
+
+  record Epi : Type (lsuc(al ⊔ bl))
+    where field
+     {{x}} : Homo
+     surject : surjective h
+
+  record Iso : Type (lsuc(al ⊔ bl))
+    where field
+     {{x}} : Mono
+     {{y}} : Epi
+
+  kernel : A → Type bl
+  kernel u = h u ≡ e
+
+
+  image : B → Type (al ⊔ bl)
+  image u = ∃ λ x → u ≡ h x 
