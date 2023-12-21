@@ -241,8 +241,8 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
 
   -- A group homomorphism maps identity elements to identity elements
   idToId : {{X : Homo}} → h e ≡ e
-  idToId {{X}} = let H : h e ≡ h e * h e → h e ≡ e
-                     H = grp.lemma3 in H $
+  idToId {{X}} = let P : h e ≡ h e * h e → h e ≡ e
+                     P = grp.lemma3 in P $
            h e       ≡⟨ cong h (sym (lIdentity e))⟩
            h (e ∙ e) ≡⟨ Homo.morphism X e e ⟩
            h e * h e ∎
@@ -250,8 +250,8 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
   -- A group homomorphism maps inverse elements to inverse elements
   inverseToInverse : {{X : Homo}} → ∀ a → h (inv a) ≡ inv (h a)
   inverseToInverse {{X}} a =
-      let H : h (inv a) * h a ≡ inv (h a) * h a → h (inv a) ≡ inv (h a)
-          H = grp.lcancel (h a) in H $
+      let P : h (inv a) * h a ≡ inv (h a) * h a → h (inv a) ≡ inv (h a)
+          P = grp.lcancel (h a) in P $
       h (inv a) * h a ≡⟨ sym (Homo.morphism X (inv a) a)⟩
       h (inv a ∙ a)   ≡⟨ cong h (lInverse a)⟩
       h e             ≡⟨ idToId ⟩
@@ -260,3 +260,17 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
 
   kernel : A → Type bl
   kernel u = h u ≡ e
+
+  -- If the kernel only contains the identity element, then the homomorphism is injective
+  kerOnlyId1-1 : {{X : Homo}} → (∀ x → kernel x → x ≡ e) → injective h
+  kerOnlyId1-1 {{X}} =
+         λ(p : ∀ x → h x ≡ e → x ≡ e)
+          {x} {y}
+          (q : h x ≡ h y)
+         → let P = h (x ∙ inv y)   ≡⟨ Homo.morphism X x (inv y)⟩
+                   h x * h (inv y) ≡⟨ right _*_ (inverseToInverse y)⟩
+                   h x * inv (h y) ≡⟨ right _*_ (cong inv (sym q))⟩
+                   h x * inv (h x) ≡⟨ rInverse (h x)⟩
+                   e ∎ in
+           let Q : x ∙ inv y ≡ e
+               Q = p (x ∙ inv y) P in grp.uniqueInv Q
