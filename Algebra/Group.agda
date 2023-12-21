@@ -206,9 +206,10 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
   
  -- https://en.wikipedia.org/wiki/Cyclic_group
  data cyclic (x : A) : A → Type al where
-  cycIntro : cyclic x x
-  cycInv : ∀ y → cyclic x y → cyclic x (inv y)
-  cycOp : ∀ {y z : A} → cyclic x y → cyclic x z → cyclic x (y ∙ z)
+  cycIntro : x ∈ cyclic x
+  cycInv : ∀{y} → y ∈ cyclic x → inv y ∈ cyclic x
+  cycOp : ∀{y z} → y ∈ cyclic x → z ∈ cyclic x →  y ∙ z ∈ cyclic x
+  cycSet : ∀ y → isProp (y ∈ cyclic x)
 
  a[b'a]'≡b : ∀ a b → a ∙ inv (inv b ∙ a) ≡ b
  a[b'a]'≡b a b = a ∙ inv (inv b ∙ a)        ≡⟨ right _∙_ (sym(grp.lemma1 (inv b) a))⟩
@@ -258,7 +259,7 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
       e               ≡⟨ sym (lInverse (h a))⟩
       inv (h a) * h a ∎
 
-  kernel : A → Type bl
+  kernel : {{_ : Homo}} → A → Type bl
   kernel u = h u ≡ e
 
   -- If the kernel only contains the identity element, then the homomorphism is injective
@@ -274,3 +275,18 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
                    e ∎ in
            let Q : x ∙ inv y ≡ e
                Q = p (x ∙ inv y) P in grp.uniqueInv Q
+
+  -- A kernel is a subgroup
+  kerSubgroup : {{X : Homo}} → subgroup kernel
+  kerSubgroup {{X}} = record
+     { id-closed = idToId
+     ; op-closed = λ{x y} (p : h x ≡ e) (q : h y ≡ e) → h (x ∙ y) ≡⟨ Homo.morphism X x y ⟩
+                                                        h x * h y ≡⟨ cong₂ _*_ p q ⟩
+                                                        e * e     ≡⟨ lIdentity e ⟩
+                                                        e ∎
+     ; inv-closed = λ {x} (p : h x ≡ e) → h (inv x) ≡⟨ inverseToInverse x ⟩
+                                          inv (h x) ≡⟨ cong inv p ⟩
+                                          inv e ≡⟨ grp.lemma4 ⟩
+                                          e ∎
+     ; subgroup-set = λ x → IsSet (h x) e
+     }
