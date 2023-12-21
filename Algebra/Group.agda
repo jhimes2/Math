@@ -247,5 +247,16 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
            h (e ∙ e) ≡⟨ Homo.morphism X e e ⟩
            h e * h e ∎
 
+  -- A group homomorphism maps inverse elements to inverse elements
+  inverseToInverse : {{X : Homo}} → ∀ a → h (inv a) ≡ inv (h a)
+  inverseToInverse {{X}} a =
+      let H : h (inv a) * h a ≡ inv (h a) * h a → h (inv a) ≡ inv (h a)
+          H = grp.lcancel (h a) in H $
+      h (inv a) * h a ≡⟨ sym (Homo.morphism X (inv a) a)⟩
+      h (inv a ∙ a)   ≡⟨ cong h (lInverse a)⟩
+      h e             ≡⟨ idToId ⟩
+      e               ≡⟨ sym (lInverse (h a))⟩
+      inv (h a) * h a ∎
+
   kernel : A → Type bl
   kernel u = h u ≡ e
