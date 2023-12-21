@@ -62,7 +62,7 @@ infixr 5 _∈_
 
 instance
  -- https://en.wikipedia.org/wiki/Multiset
- -- Multisets are just functions that returns types
+ -- Multisets are just functions that return types
  multiset : setMembership A (Type bl)
  multiset = record { _∈_ = _~>_ }
 
@@ -163,12 +163,9 @@ UNREACHABLE : ⊥ → {A : Type l} → A
 UNREACHABLE ()
 
 DNOut : (A → implicit B) → implicit (A → B)
-DNOut {A = A} {B = B} f = implicitLEM (A × (B ＋ ¬ B))
-         >>= λ{ (yes (a , b)) → let b' = f a in b ~> λ{ (inl b) → η (λ _ → b)
-                                                      ; (inr b) → b' b ~> UNREACHABLE}
-              ; (no x) → let H = demorgan4 <*> η x in
-                 H >>= λ{ (inl x) → η (λ a → x a ~> UNREACHABLE)
-                        ; (inr x) → demorgan3 x ~> λ{(b , b') → b' b ~> UNREACHABLE}}}
+DNOut {A = A} {B = B} f = implicitLEM A
+         ¬¬= λ{ (yes a) → f a ¬¬= λ b → η λ _ → b
+              ; (no x) → λ y → y (λ a → x a ~> UNREACHABLE) }
 
 demorgan5 : {P : A → Type l} → ¬(Σ P) → (x : A) → ¬ (P x)
 demorgan5 p x q = p (x , q)
