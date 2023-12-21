@@ -190,6 +190,24 @@ surjective {A = A} {B} f = (b : B) → ∃ λ(a : A) → f a ≡ b
 bijective : {A : Type l}{B : Type l'} → (A → B) → Type(l ⊔ l')
 bijective f = injective f × surjective f
 
+injectiveComp : (Σ λ(f : A → B) → injective f)
+              → (Σ λ(g : B → C) → injective g)
+              → Σ λ(h : A → C) → injective h
+injectiveComp (f , f') (g , g') = g ∘ f , λ z → f' (g' z)
+
+surjectiveComp : (Σ λ(f : A → B) → surjective f)
+               → (Σ λ(g : B → C) → surjective g)
+               → (Σ λ(h : A → C) → surjective h)
+surjectiveComp (f , f') (g , g') = g ∘ f , λ b → g' b ~> truncRec squash₁ λ(x , x')
+                  → f' x ~> truncRec squash₁ λ(y , y') → η $ y , (cong g y' ∙ x')
+ where open import Cubical.HITs.PropositionalTruncation renaming (rec to truncRec)
+
+bijectiveComp : (Σ λ(f : A → B) → bijective f)
+              → (Σ λ(g : B → C) → bijective g)
+              → Σ λ(h : A → C) → bijective h
+bijectiveComp (f , Finj , Fsurj) (g , Ginj , Gsurj) = g ∘ f , (λ z → Finj (Ginj z))
+                                       , (snd (surjectiveComp (f , Fsurj) (g , Gsurj)))
+
 -- https://en.wikipedia.org/wiki/Inverse_function#Left_and_right_inverses
 
 leftInverse : {A : Type l}{B : Type l'} → (A → B) → Type(l ⊔ l')

@@ -206,10 +206,10 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
   
  -- https://en.wikipedia.org/wiki/Cyclic_group
  data cyclic (x : A) : A → Type al where
-  cycIntro : x ∈ cyclic x
-  cycInv : ∀{y} → y ∈ cyclic x → inv y ∈ cyclic x
-  cycOp : ∀{y z} → y ∈ cyclic x → z ∈ cyclic x →  y ∙ z ∈ cyclic x
-  cycSet : ∀ y → isProp (y ∈ cyclic x)
+  intro : x ∈ cyclic x
+  inverse : ∀{y} → y ∈ cyclic x → inv y ∈ cyclic x
+  op : ∀{y z} → y ∈ cyclic x → z ∈ cyclic x →  y ∙ z ∈ cyclic x
+  set : ∀ y → isProp (y ∈ cyclic x)
 
  a[b'a]'≡b : ∀ a b → a ∙ inv (inv b ∙ a) ≡ b
  a[b'a]'≡b a b = a ∙ inv (inv b ∙ a)        ≡⟨ right _∙_ (sym(grp.lemma1 (inv b) a))⟩
