@@ -230,8 +230,13 @@ propExt pA pB ab ba = isoToPath (iso ab ba (λ b → pB (ab (ba b)) b) λ a → 
 propTruncExt : (A → B) → (B → A) → ∥ A ∥₁ ≡ ∥ B ∥₁
 propTruncExt ab ba = propExt squash₁ squash₁ (map ab) (map ba)
 
+-- Function reduction - The converse of function extensionality
 funRed : {f g : A → B} → f ≡ g → (x : A) → f x ≡ g x
 funRed p x i = p i x
+
+-- https://en.wikipedia.org/wiki/Image_(mathematics)
+image : {A : Type al}{B : Type bl} → (A → B) → B → Type (al ⊔ bl)
+image f b = ∃ λ a → b ≡ f a
 
 record Associative {A : Type l}(f : A → A → A) : Type(lsuc l) where
   field
