@@ -241,7 +241,3 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
 
   kernel : A → Type bl
   kernel u = h u ≡ e
-
-
-  image : B → Type (al ⊔ bl)
-  image u = ∃ λ x → u ≡ h x 
