@@ -239,5 +239,13 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
      {{x}} : Mono
      {{y}} : Epi
 
+  -- A group homomorphism maps identity elements to identity elements
+  idToId : {{X : Homo}} → h e ≡ e
+  idToId {{X}} = let H : h e ≡ h e * h e → h e ≡ e
+                     H = grp.lemma3 in H $
+           h e       ≡⟨ cong h (sym (lIdentity e))⟩
+           h (e ∙ e) ≡⟨ Homo.morphism X e e ⟩
+           h e * h e ∎
+
   kernel : A → Type bl
   kernel u = h u ≡ e
