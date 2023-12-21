@@ -266,7 +266,7 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
   kerOnlyId1-1 : {{X : Homo}} → (∀ x → kernel x → x ≡ e) → injective h
   kerOnlyId1-1 {{X}} =
          λ(p : ∀ x → h x ≡ e → x ≡ e)
-          {x} {y}
+          x y
           (q : h x ≡ h y)
          → let P = h (x ∙ inv y)   ≡⟨ Homo.morphism X x (inv y)⟩
                    h x * h (inv y) ≡⟨ right _*_ (inverseToInverse y)⟩

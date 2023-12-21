@@ -180,7 +180,7 @@ demorgan7 g f = g λ x → λ z → f (x , z)
 
 -- https://en.wikipedia.org/wiki/Injective_function
 injective : {A : Type l} {B : Type l'} (f : A → B) → Type(l ⊔ l')
-injective {A = A} f = {x y : A} → f x ≡ f y → x ≡ y
+injective {A = A} f = (x y : A) → f x ≡ f y → x ≡ y
 
 -- https://en.wikipedia.org/wiki/Surjective_function
 surjective : {A : Type l}{B : Type l'} → (A → B) → Type(l ⊔ l')
@@ -193,7 +193,7 @@ bijective f = injective f × surjective f
 injectiveComp : (Σ λ(f : A → B) → injective f)
               → (Σ λ(g : B → C) → injective g)
               → Σ λ(h : A → C) → injective h
-injectiveComp (f , f') (g , g') = g ∘ f , λ z → f' (g' z)
+injectiveComp (f , f') (g , g') = g ∘ f , λ x y z → f' x y (g' (f x) (f y) z)
 
 surjectiveComp : (Σ λ(f : A → B) → surjective f)
                → (Σ λ(g : B → C) → surjective g)
@@ -205,7 +205,7 @@ surjectiveComp (f , f') (g , g') = g ∘ f , λ b → g' b ~> truncRec squash₁
 bijectiveComp : (Σ λ(f : A → B) → bijective f)
               → (Σ λ(g : B → C) → bijective g)
               → Σ λ(h : A → C) → bijective h
-bijectiveComp (f , Finj , Fsurj) (g , Ginj , Gsurj) = g ∘ f , (λ z → Finj (Ginj z))
+bijectiveComp (f , Finj , Fsurj) (g , Ginj , Gsurj) = g ∘ f , (λ x y z → Finj x y (Ginj (f x) (f y) z))
                                        , (snd (surjectiveComp (f , Fsurj) (g , Gsurj)))
 
 -- https://en.wikipedia.org/wiki/Inverse_function#Left_and_right_inverses
@@ -218,7 +218,7 @@ rightInverse {A = A} {B} f = Σ λ (h : B → A) → (x : B) → f (h x) ≡ x
 
 -- If a function has a left inverse, then it is injective
 lInvToInjective : {f : A → B} → leftInverse f → injective f
-lInvToInjective (g , g') {x} {y} p = eqTrans (sym (g' x)) (eqTrans (cong g p) (g' y))
+lInvToInjective (g , g') x y p = eqTrans (sym (g' x)) (eqTrans (cong g p) (g' y))
   
 -- If a function has a right inverse, then it is surjective
 rInvToSurjective : {f : A → B} → rightInverse f → surjective f
@@ -344,3 +344,18 @@ module _{_∙_ : A → A → A}{{_ : Commutative _∙_}}(a b c : A) where
                       (a ∙ (c ∙ b)) ∙ d ≡⟨ left _∙_ (assoc a c b)⟩
                       ((a ∙ c) ∙ b) ∙ d ≡⟨ sym (assoc (_∙_ a c) b d)⟩
                       (a ∙ c) ∙ (b ∙ d) ∎
+
+record isset (A : Type l) : Type l
+  where field
+   IsSet : isSet A
+open isset {{...}} public
+
+instance
+ -- Bijective composition is associative so long as the underlying type is a set
+ bijectiveCompAssoc : {{_ : isset A}} → Associative (bijectiveComp {A = A})
+ bijectiveCompAssoc = record { assoc =
+   λ{(f , Finj , Fsurj) (g , Ginj , Gsurj) (h , Hinj , Hsurj)
+   → ΣPathPProp (λ a → isPropΣ (λ f g → funExt λ x
+                                      → funExt λ y
+                                      → funExt λ p → IsSet x y (f x y p) (g x y p))
+                               λ x y z → funExt λ w → squash₁ (y w) (z w)) refl} }

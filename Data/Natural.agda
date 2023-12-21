@@ -53,7 +53,7 @@ natSetoidToEq : {a b : ℕ} → natSetoid a b → a ≡ b
 natSetoidToEq {Z} {Z} p = refl
 natSetoidToEq {S a} {S b} p = cong S (natSetoidToEq p)
 
-SInjective : injective S
+SInjective : ∀{x y} → S x ≡ S y → x ≡ y
 SInjective p = natSetoidToEq (eqToNatSetoid p)
 
 natLCancel : {a b : ℕ} → (c : ℕ) → add c a ≡ add c b → a ≡ b

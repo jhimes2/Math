@@ -5,11 +5,6 @@ module Algebra.Monoid where
 open import Prelude
 open import Cubical.Foundations.HLevels
 
-record isset (A : Type l) : Type l
-  where field
-   IsSet : isSet A
-open isset {{...}} public
-
 -- https://en.wikipedia.org/wiki/Monoid
 record monoid {A : Type l}(_∙_ : A → A → A) : Type(lsuc l) where
   field
