@@ -80,15 +80,15 @@ module _{scalar : Type l}{vector : Type l'}{{R : Ring scalar}}{{V : Module vecto
 
   -- This is a more general definition that uses a module instead of a vector space
   data Span (X : vector → Type al) : vector → Type (l ⊔ l' ⊔ al) where
-    intro : {v : vector} → v ∈' X → v ∈' Span X
-    spanAdd : {v : vector} → v ∈' Span X → {u : vector} → u ∈' Span X → v [+] u ∈' Span X
-    spanScale : {v : vector} → v ∈' Span X → (c : scalar) → scale c v ∈' Span X
-    spanSet : {v : vector} → isProp (v ∈' Span X)
+    intro : {v : vector} → v ∈ X → v ∈ Span X
+    spanAdd : {v : vector} → v ∈ Span X → {u : vector} → u ∈ Span X → v [+] u ∈ Span X
+    spanScale : {v : vector} → v ∈ Span X → (c : scalar) → scale c v ∈ Span X
+    spanSet : {v : vector} → isProp (v ∈ Span X)
 
   spanIdempotent : (Span ∘ Span) ≡ Span {l}
   spanIdempotent = funExt λ X → funExt λ x → propExt spanSet spanSet (aux X x) intro
    where
-    aux : (X : vector → Type l) → (x : vector) → x ∈' (Span ∘ Span) X → x ∈' Span X
+    aux : (X : vector → Type l) → (x : vector) → x ∈ (Span ∘ Span) X → x ∈ Span X
     aux X x (intro p) = p
     aux X x (spanAdd {v} p {u} q) = spanAdd (aux X v p) (aux X u q)
     aux X x (spanScale {v} p c) = spanScale (aux X v p) c
@@ -98,9 +98,9 @@ module _{scalar : Type l}{vector : Type l'}{{R : Ring scalar}}{{V : Module vecto
   record Subspace (X : vector → Type al) : Type (lsuc (al ⊔ l ⊔ l'))
     where field
         ssZero : X Ô 
-        ssAdd : {v u : vector} → v ∈' X → u ∈' X → v [+] u ∈' X
-        ssScale : {v : vector} → v ∈' X → (c : scalar) → scale c v ∈' X
-        ssSet : {v : vector} → isProp (v ∈' X)
+        ssAdd : {v u : vector} → v ∈ X → u ∈ X → v [+] u ∈ X
+        ssScale : {v : vector} → v ∈ X → (c : scalar) → scale c v ∈ X
+        ssSet : {v : vector} → isProp (v ∈ X)
 
   -- The span of a non-empty set of vectors is a subspace.
   NonEmptySpanIsSubspace :{X : vector → Type l}

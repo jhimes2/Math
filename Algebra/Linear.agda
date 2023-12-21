@@ -17,7 +17,7 @@ module _{scalar : Type l}{{F : Field scalar}}{vector : Type l'}{{V : VectorSpace
   record LinearlyIndependent (X : vector → Type l) : Type (lsuc (l ⊔ l'))
     where field
         -- ∀ v ∈ V, Span(V) ≠ Span(X - {v})
-        linInd : {v : vector} → v ∈' X → Span X ≢ Span (λ(x : vector) → (x ∈' X) × (v ≢ x))
+        linInd : {v : vector} → v ∈ X → Span X ≢ Span (λ(x : vector) → (x ∈ X) × (v ≢ x))
         noZero : ¬ (X Ô)
   open LinearlyIndependent {{...}} public
 
@@ -25,7 +25,7 @@ module _{scalar : Type l}{{F : Field scalar}}{vector : Type l'}{{V : VectorSpace
   record Basis (X : vector → Type l) : Type (lsuc l ⊔ lsuc l')
     where field
     overlap {{bLI}} : LinearlyIndependent X
-    maxLinInd : (x : vector) → x ∈' Span X
+    maxLinInd : (x : vector) → x ∈ Span X
   open Basis {{...}} hiding (bLI) public
 
   record Basis_for_ (X : vector → Type l) (H : Σ Subspace) : Type (lsuc (l ⊔ l'))

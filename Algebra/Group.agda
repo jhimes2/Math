@@ -197,13 +197,13 @@ groupIsProp {A = A} _∙_ G1 G2 i =
 module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
 
  -- https://en.wikipedia.org/wiki/Subgroup
- record subgroup (H : ℙ A) : Type al where
+ record subgroup (H : A → Type bl) : Type (al ⊔ bl) where
    field
      id-closed  : (e ∈ H)
-     op-closed  : {x y : A} → x ∈ H → y ∈ H → x ∙ y ∈ H
+     op-closed  : {x y : A} → x ∈ H → y ∈ H → (x ∙ y) ∈ H
      inv-closed : {x : A} → x ∈ H → inv x ∈ H
+     subgroup-set : (x : A) → isProp (H x)
   
-
  -- https://en.wikipedia.org/wiki/Cyclic_group
  data cyclic (x : A) : A → Type al where
   cycIntro : cyclic x x

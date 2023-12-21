@@ -11,9 +11,15 @@ open import Cubical.Data.Empty public
 open import Cubical.Data.Sigma renaming (∃ to ∃') hiding (Σ ; I ; ∃!) public
 open import Cubical.HITs.PropositionalTruncation
                     renaming (map to map' ; rec to truncRec ; elim to truncElim)
-open import Cubical.Foundations.Powerset public
+open import Cubical.Foundations.Powerset renaming (_∈_ to _∈'_) public
 open import Cubical.Data.Sum hiding (elim ; rec ; map) renaming (_⊎_ to infix 2 _＋_) public
 open import Cubical.Foundations.HLevels
+
+
+{- Renamed the interval 'I' to 'Interval' because 'I' will be used for identity matrices. -}
+{- Renamed existential quantifiers so I don't have to explicitly state the type of the existing
+   term. '∃[ a ∈ A ] ...' will become '∃ λ a → ...' -}
+{- Renamed '∈' so I can overload the name to include multisets. -}
 
 variable
     l l' al bl cl : Level
@@ -36,22 +42,6 @@ _~>_ : A → (A → B) → B
 a ~> f = f a
 infixl 0 _~>_
 
-ℙ' : Type l → Type (lsuc l)
-ℙ' {l} A = A → Type l
-
-_∈'_ : A → (A → Type l) → Type l
-_∈'_ = _~>_
-infixr 5 _∈'_
-
-modusTollens : (A → B) → ¬ B → ¬ A
-modusTollens f Bn a = Bn (f a)
-
--- Function application operator
--- Equivalent to `$` in Haskell
-_$_ : (A → B) → A → B
-_$_ f a = f a
-infixr 0 _$_
-
 -- Explicitly exists
 Σ : {A : Type l} → (P : A → Type l') → Type(l ⊔ l')
 Σ {A = A} = Σ' A
@@ -62,6 +52,32 @@ infixr 0 _$_
 
 ∃! : {A : Type l} → (P : A → Type l') → Type(l ⊔ l')
 ∃! {A = A} P = Σ λ x → P x × ∀ y → P y → x ≡ y
+
+record setMembership (A : Type al)(B : Type (lsuc bl)) : Type (al ⊔ lsuc bl) where
+  field
+   _∈_ : A → (A → B) → Type bl
+_∈_ : {B : Type (lsuc bl)} {{X : setMembership A B}} → A → (A → B) → Type bl
+_∈_ {{X}} = setMembership._∈_ X
+infixr 5 _∈_
+
+instance
+ -- https://en.wikipedia.org/wiki/Multiset
+ -- Multisets are just functions that returns types
+ multiset : setMembership A (Type bl)
+ multiset = record { _∈_ = _~>_ }
+
+ -- Sets where every element within are unique
+ uniset : {A : Type al} → setMembership A (hProp al)
+ uniset = record { _∈_ = _∈'_ }
+
+modusTollens : (A → B) → ¬ B → ¬ A
+modusTollens f Bn a = Bn (f a)
+
+-- Function application operator
+-- Equivalent to `$` in Haskell
+_$_ : (A → B) → A → B
+_$_ f a = f a
+infixr 0 _$_
 
 -- https://en.wikipedia.org/wiki/De_Morgan's_laws
 demorgan : (¬ A) ＋ (¬ B) → ¬(A × B)
