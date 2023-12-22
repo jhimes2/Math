@@ -194,6 +194,20 @@ groupIsProp {A = A} _∙_ G1 G2 i =
     open group
     open import Cubical.Foundations.HLevels
 
+-- https://en.wikipedia.org/wiki/Symmetric_group
+-- Compiling 'Module.agda' seems to take forever whenever I instantiate a symmetric group
+symmetricGroup : {{_ : isset A}} → group (bijectiveComp {A = A})
+symmetricGroup =
+ record { e = id , ((λ x y p → p) , λ b → b , refl)
+        ; inverse = λ (f , Finj , Fsurj) → ((λ a → fst (Fsurj a)) ,
+        (λ x y (z : fst (Fsurj x) ≡ fst (Fsurj y)) →
+          x                 ≡⟨ sym (snd (Fsurj x)) ⟩
+          f (fst (Fsurj x)) ≡⟨ cong f z ⟩
+          f (fst (Fsurj y)) ≡⟨ snd (Fsurj y) ⟩
+          y ∎) , λ b → f b , Finj (fst (Fsurj (f b))) b (snd (Fsurj (f b)))) ,
+          ΣPathPProp bijectiveProp (funExt λ x → snd (Fsurj x))
+        ; lIdentity = λ a → ΣPathPProp bijectiveProp refl }
+
 module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
 
  -- https://en.wikipedia.org/wiki/Subgroup

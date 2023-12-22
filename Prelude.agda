@@ -184,7 +184,7 @@ injective {A = A} f = (x y : A) → f x ≡ f y → x ≡ y
 
 -- https://en.wikipedia.org/wiki/Surjective_function
 surjective : {A : Type l}{B : Type l'} → (A → B) → Type(l ⊔ l')
-surjective {A = A} {B} f = (b : B) → ∃ λ(a : A) → f a ≡ b
+surjective {A = A} {B} f = (b : B) → Σ λ(a : A) → f a ≡ b
 
 -- https://en.wikipedia.org/wiki/Bijection
 bijective : {A : Type l}{B : Type l'} → (A → B) → Type(l ⊔ l')
@@ -198,10 +198,10 @@ injectiveComp (f , f') (g , g') = g ∘ f , λ x y z → f' x y (g' (f x) (f y) 
 surjectiveComp : (Σ λ(f : A → B) → surjective f)
                → (Σ λ(g : B → C) → surjective g)
                → (Σ λ(h : A → C) → surjective h)
-surjectiveComp (f , f') (g , g') = g ∘ f , λ b → g' b ~> truncRec squash₁ λ(x , x')
-                  → f' x ~> truncRec squash₁ λ(y , y') → η $ y , (cong g y' ∙ x')
- where open import Cubical.HITs.PropositionalTruncation renaming (rec to truncRec)
+surjectiveComp (f , f') (g , g') = g ∘ f , λ b → g' b ~> λ(x , x')
+                  → f' x ~> λ(y , y') → y , (cong g y' ∙ x')
 
+-- This is used to define symmetric groups
 bijectiveComp : (Σ λ(f : A → B) → bijective f)
               → (Σ λ(g : B → C) → bijective g)
               → Σ λ(h : A → C) → bijective h
@@ -222,7 +222,7 @@ lInvToInjective (g , g') x y p = eqTrans (sym (g' x)) (eqTrans (cong g p) (g' y)
   
 -- If a function has a right inverse, then it is surjective
 rInvToSurjective : {f : A → B} → rightInverse f → surjective f
-rInvToSurjective (rInv , r') = λ b → η ((rInv b) , (r' b))
+rInvToSurjective (rInv , r') = λ b → rInv b , r' b
 
 equiv : (A : Type l)(B : Type l') → Type (l ⊔ l')
 equiv A B = Σ λ (f : A → B) → injective f × surjective f
@@ -350,12 +350,25 @@ record isset (A : Type l) : Type l
    IsSet : isSet A
 open isset {{...}} public
 
+compAssoc : (f g h : A → A) → f ∘ (g ∘ h) ≡ (f ∘ g) ∘ h
+compAssoc f g h = funExt λ x → refl
+
+bijectiveProp : {{_ : isset A}}{{_ : isset B}} → (f : A → B) → isProp (bijective f)
+bijectiveProp f = λ (Finj1 , Fsurj1) (Finj2 , Fsurj2)
+  → let H : Finj1 ≡ Finj2
+        H = funExt λ x → funExt λ y → funExt λ z → IsSet x y (Finj1 x y z) (Finj2 x y z) in
+    let G : Fsurj1 ≡ Fsurj2
+        G = funExt λ x →
+            let F : fst (Fsurj1 x) ≡ fst (Fsurj2 x)
+                F = Finj1 (fst (Fsurj1 x)) (fst (Fsurj2 x)) (snd (Fsurj1 x) ∙ sym (snd (Fsurj2 x))) in
+                 ΣPathPProp (λ a → IsSet (f a) x) F in λ i → H i , G i
+
 instance
- -- Bijective composition is associative so long as the underlying type is a set
+ -- Bijective composition is associative if the underlying type is a set
  bijectiveCompAssoc : {{_ : isset A}} → Associative (bijectiveComp {A = A})
  bijectiveCompAssoc = record { assoc =
    λ{(f , Finj , Fsurj) (g , Ginj , Gsurj) (h , Hinj , Hsurj)
-   → ΣPathPProp (λ a → isPropΣ (λ f g → funExt λ x
-                                      → funExt λ y
-                                      → funExt λ p → IsSet x y (f x y p) (g x y p))
-                               λ x y z → funExt λ w → squash₁ (y w) (z w)) refl} }
+   → ΣPathPProp bijectiveProp refl} }
+
+ bijectiveSet : {{_ : isset A}}{{_ : isset B}} → isset (Σ λ(f : A → B) → bijective f)
+ bijectiveSet = record { IsSet = isSetΣ (isSet→ IsSet) λ x → isProp→isSet (bijectiveProp x) }
