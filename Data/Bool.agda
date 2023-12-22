@@ -91,7 +91,7 @@ instance
   boolField : Field Bool
   boolField = record
       { oneNotZero = YesNEqNo
-      ; reciprocal = pr1
+      ; reciprocal = fst
       ; recInv = λ{ (Yes , x) → refl
                   ; (No , x) → x refl ~> UNREACHABLE }
       ; GFP = λ {n = n} xs x y → distinguishingOutput {n = n} xs (λ z → boolDiscrete z 0r) x}

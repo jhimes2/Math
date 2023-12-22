@@ -20,11 +20,11 @@ module _{_∙_ : A → A → A} {{G : group _∙_}} where
 
   -- Extracting an inverse function from 'inverse'
   inv : A → A
-  inv a = pr1(inverse a)
+  inv a = fst(inverse a)
 
   -- Extracting left-inverse property from inverse
   lInverse : (a : A) → (inv a) ∙ a ≡ e
-  lInverse a = pr2(inverse a)
+  lInverse a = snd(inverse a)
 
   -- Proof that a group has right inverse property
   rInverse : (a : A) → a ∙ (inv a) ≡ e

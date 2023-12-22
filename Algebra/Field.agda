@@ -13,7 +13,7 @@ record Field (A : Type l) : Type (lsuc l) where
     {{fring}} : CRing A
     oneNotZero : 1r ≢ 0r
     reciprocal : nonZero → A
-    recInv : (a : nonZero) → pr1 a * reciprocal a ≡ 1r
+    recInv : (a : nonZero) → fst a * reciprocal a ≡ 1r
     GFP : (xs : [ A ^ n ]) → xs ≢ (λ _ → 0r) → (x : A) → ∃ λ i → xs i ≢ 0r
 open Field {{...}} public
 
@@ -35,7 +35,7 @@ module _{{F : Field A}} where
        F = eqTrans G (x*0≡0 a) in oneNotZero F
  
  -- Multiplying two nonzero values gives a nonzero value
- nonZeroMult : (a b : nonZero) → (pr1 a * pr1 b) ≢ 0r 
+ nonZeroMult : (a b : nonZero) → (fst a * fst b) ≢ 0r 
  nonZeroMult (a , a') (b , b') = λ(f : (a * b) ≡ 0r ) →
    let H : reciprocal (a , a') * (a * b) ≡ reciprocal (a , a') * 0r 
        H = right _*_ f in

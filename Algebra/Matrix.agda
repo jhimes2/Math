@@ -288,7 +288,7 @@ I∞Transpose = funExt λ x → funExt λ y → Rec x y
 
 -- Identity Matrix
 I : {{R : Ring A}} → Matrix A n n
-I x y = I∞ (pr1 x) (pr1 y)
+I x y = I∞ (fst x) (fst y)
 
 idTranspose : {{R : Ring A}} → I {n = n} ≡ transpose I
 idTranspose = funExt λ{(x , _) → funExt λ{(y , _) → funRed (funRed I∞Transpose x) y}}

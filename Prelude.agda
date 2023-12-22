@@ -228,13 +228,6 @@ equiv : (A : Type l)(B : Type l') → Type (l ⊔ l')
 equiv A B = Σ λ (f : A → B) → injective f × surjective f
 
 -- Left side of a dependent pair.
-pr1 : {P : A → Type l} → Σ P → A
-pr1 (a , _) = a
-
--- Right side of a dependent pair.
-pr2 : {P : A → Type l} → (x : Σ P) → P (pr1 x)
-pr2 (_ , b) = b
-
 transpose : (B → C → A) → (C → B → A)
 transpose f x y = f y x
 

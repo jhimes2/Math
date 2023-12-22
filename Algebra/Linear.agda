@@ -31,7 +31,7 @@ module _{scalar : Type l}{{F : Field scalar}}{vector : Type l'}{{V : VectorSpace
   record Basis_for_ (X : vector → Type l) (H : Σ Subspace) : Type (lsuc (l ⊔ l'))
     where field
     overlap {{bfLI}} : LinearlyIndependent X
-    spanEq : Span X ≡ pr1 H
+    spanEq : Span X ≡ fst H
   open Basis_for_ {{...}} hiding (bfLI) public
 
   module _{vector' : Type al}{{U : VectorSpace vector'}} where
