@@ -27,7 +27,7 @@ module _{A : Type l}{{R : Rng A}} where
  
  _-_ : A → A → A
  a - b = a + (neg b)
- 
+
  x*0≡0 : (x : A) → x * 0r ≡ 0r
  x*0≡0 x =
    let H : (x * 0r) ≡ (x * 0r) + (x * 0r)
@@ -46,62 +46,96 @@ module _{A : Type l}{{R : Rng A}} where
    ((0r + 0r) * x)     ≡⟨ rDistribute x 0r 0r ⟩
    (0r * x) + (0r * x) ∎
  
- x0+y≡y : (x y : A) → (x * 0r) + y ≡ y
- x0+y≡y x y = (x * 0r) + y ≡⟨ left _+_ (x*0≡0 x)⟩
-              0r + y       ≡⟨ lIdentity y ⟩
-              y ∎
+ module _(x y : A) where
 
- x+y0≡x : (x y : A) → x + (y * 0r) ≡ x
- x+y0≡x x y = x + (y * 0r) ≡⟨ right _+_ (x*0≡0 y)⟩
-              x + 0r       ≡⟨ rIdentity x ⟩
-              x ∎
-
- x+0y≡x : (x y : A) → x + (0r * y) ≡ x
- x+0y≡x x y = x + (0r * y) ≡⟨ right _+_ (0*x≡0 y)⟩
-              x + 0r       ≡⟨ rIdentity x ⟩
-              x ∎
-
- 0x+y≡y : (x y : A) → (0r * x) + y ≡ y
- 0x+y≡y x y = (0r * x) + y ≡⟨ left _+_ (0*x≡0 x)⟩
-              0r + y       ≡⟨ lIdentity y ⟩
-              y ∎
-
- [x-x]y≡0 : (x y : A) →  (x - x) * y ≡ 0r
- [x-x]y≡0 x y = (x - x) * y ≡⟨ left _*_ (rInverse x)⟩
-                0r * y      ≡⟨ 0*x≡0 y ⟩
-                0r ∎
-
- x[y-y]≡0 : (x y : A) →  x * (y - y) ≡ 0r
- x[y-y]≡0 x y = x * (y - y) ≡⟨ right _*_ (rInverse y)⟩
-                x * 0r      ≡⟨ x*0≡0 x ⟩
-                0r ∎
-
- -x*y≡x*-y : (x y : A) → neg x * y ≡ x * neg y
- -x*y≡x*-y x y =
-   let H : (x * y)+(neg x * y) ≡ (x * y)+(x * neg y)
-                   → neg x * y ≡ x * neg y
-       H = grp.cancel (x * y) in H $
-   (x * y)+(neg x * y) ≡⟨ sym(rDistribute y x (neg x))⟩
-   (x - x) * y         ≡⟨ [x-x]y≡0 x y ⟩
-   0r                  ≡⟨ sym (x[y-y]≡0 x y)⟩
-   x * (y - y)         ≡⟨ lDistribute x y (neg y)⟩
-   (x * y)+(x * neg y) ∎
+  x0+y≡y = (x * 0r) + y ≡⟨ left _+_ (x*0≡0 x)⟩
+           0r + y       ≡⟨ lIdentity y ⟩
+           y ∎
  
- -x*y≡-[x*y] : (x y : A) → (neg x) * y ≡ neg(x * y)
- -x*y≡-[x*y] x y =
-   let H : (x * y)+(neg x * y) ≡ (x * y) + neg(x * y)
-                   → neg x * y ≡ neg(x * y)
-       H = grp.cancel (x * y) in H $
-   (x * y)+(neg x * y) ≡⟨ sym(rDistribute y x (neg x))⟩
-   (x - x) * y         ≡⟨ [x-x]y≡0 x y ⟩
-   0r                  ≡⟨ sym (rInverse (x * y))⟩
-   (x * y) + neg(x * y) ∎
+  x+y0≡x = x + (y * 0r) ≡⟨ right _+_ (x*0≡0 y)⟩
+           x + 0r       ≡⟨ rIdentity x ⟩
+           x ∎
  
- x*-y≡-[x*y] : (x y : A) → x * (neg y) ≡ neg(x * y)
- x*-y≡-[x*y] x y = sym (-x*y≡x*-y x y) ∙ -x*y≡-[x*y] x y
-
- -x*-y≡x*y : (x y : A) → neg x * neg y ≡ x * y
- -x*-y≡x*y x y =
+  x+0y≡x = x + (0r * y) ≡⟨ right _+_ (0*x≡0 y)⟩
+           x + 0r       ≡⟨ rIdentity x ⟩
+           x ∎
+ 
+  0x+y≡y = (0r * x) + y ≡⟨ left _+_ (0*x≡0 x)⟩
+           0r + y       ≡⟨ lIdentity y ⟩
+           y ∎
+ 
+  [x-x]y≡0 = (x - x) * y ≡⟨ left _*_ (rInverse x)⟩
+             0r * y      ≡⟨ 0*x≡0 y ⟩
+             0r ∎
+ 
+  x[y-y]≡0 = x * (y - y) ≡⟨ right _*_ (rInverse y)⟩
+             x * 0r      ≡⟨ x*0≡0 x ⟩
+             0r ∎
+ 
+  -x*y≡x*-y =
+    let H : (x * y)+(neg x * y) ≡ (x * y)+(x * neg y)
+                    → neg x * y ≡ x * neg y
+        H = grp.cancel (x * y) in H $
+    (x * y)+(neg x * y) ≡⟨ sym(rDistribute y x (neg x))⟩
+    (x - x) * y         ≡⟨ [x-x]y≡0 ⟩
+    0r                  ≡⟨ sym x[y-y]≡0 ⟩
+    x * (y - y)         ≡⟨ lDistribute x y (neg y)⟩
+    (x * y)+(x * neg y) ∎
+  
+  -x*y≡-[x*y] =
+    let H : (x * y)+(neg x * y) ≡ (x * y) + neg(x * y)
+                    → neg x * y ≡ neg(x * y)
+        H = grp.cancel (x * y) in H $
+    (x * y)+(neg x * y) ≡⟨ sym(rDistribute y x (neg x))⟩
+    (x - x) * y         ≡⟨ [x-x]y≡0 ⟩
+    0r                  ≡⟨ sym (rInverse (x * y))⟩
+    (x * y) + neg(x * y) ∎
+  
+  x*-y≡-[x*y] = sym -x*y≡x*-y ∙ -x*y≡-[x*y]
+ 
+ -x*-y≡x*y = λ(x y : A) →
    neg x * neg y  ≡⟨ -x*y≡x*-y x (neg y)⟩
    x * neg(neg y) ≡⟨ right _*_ (grp.doubleInv y)⟩
    x * y ∎
+
+ x[y0]≡0 = λ(x y : A) →
+   x * (y * 0r) ≡⟨ right _*_ (x*0≡0 y) ⟩
+   x * 0r       ≡⟨ x*0≡0 x ⟩
+   0r ∎
+
+ x[0y]≡0 = λ(x y : A) →
+   x * (0r * y) ≡⟨ right _*_ (0*x≡0 y)⟩
+   x * 0r       ≡⟨ x*0≡0 x ⟩
+   0r ∎
+
+ [0x]y≡0 = λ(x y : A) →
+   (0r * x) * y ≡⟨ left _*_ (0*x≡0 x)⟩
+   0r * y       ≡⟨ 0*x≡0 y ⟩
+   0r ∎
+
+ [x0]y≡0 = λ(x y : A) →
+   (x * 0r) * y ≡⟨ left _*_ (x*0≡0 x)⟩
+   0r * y       ≡⟨ 0*x≡0 y ⟩
+   0r ∎
+
+ x0-y≡-y = λ(x y : A) →
+   (x * 0r) - y ≡⟨ left _-_ (x*0≡0 x)⟩
+   0r - y       ≡⟨ lIdentity (neg y)⟩
+   neg y ∎
+
+ 0x-y≡-y = λ(x y : A) →
+   (x * 0r) - y ≡⟨ left _-_ (x*0≡0 x)⟩
+   0r - y       ≡⟨ lIdentity (neg y)⟩
+   neg y ∎
+
+ x-y0≡x = λ(x y : A) →
+   x - (y * 0r) ≡⟨ right _-_ (x*0≡0 y)⟩
+   x - 0r       ≡⟨ right _+_ grp.lemma4 ⟩
+   x + 0r       ≡⟨ rIdentity x ⟩
+   x ∎
+
+ x-0y≡x = λ(x y : A) →
+   x - (0r * y) ≡⟨ right _-_ (0*x≡0 y)⟩
+   x - 0r       ≡⟨ right _+_ grp.lemma4 ⟩
+   x + 0r       ≡⟨ rIdentity x ⟩
+   x ∎
