@@ -9,10 +9,10 @@ open import Algebra.Monoid public
 record group {A : Type l}(_∙_ : A → A → A) : Type(lsuc l) where
   field
       e : A
-      overlap {{IsSetGrp}} : is-set A
       inverse : (a : A) → Σ λ(b : A) → b ∙ a ≡ e
       lIdentity : (a : A) → e ∙ a ≡ a
       {{gAssoc}} : Associative _∙_
+      overlap {{IsSetGrp}} : is-set A
 
 module _{_∙_ : A → A → A} {{G : group _∙_}} where
 
@@ -41,18 +41,17 @@ module _{_∙_ : A → A → A} {{G : group _∙_}} where
 instance
   grpIsMonoid : {_∙_ : A → A → A}{{G : group _∙_}} → monoid _∙_
   grpIsMonoid {_∙_ = _∙_} {{G}} =
-   record {
-          e = e
-        ; lIdentity = lIdentity
-        -- Proof that a group has right identity property
-        ; rIdentity =
-           λ a →
-           a ∙ e           ≡⟨ right _∙_ (sym (lInverse a))⟩
-           a ∙ (inv a ∙ a) ≡⟨ assoc a (inv a) a ⟩
-           (a ∙ inv a) ∙ a ≡⟨ left _∙_ (rInverse a)⟩
-           e ∙ a           ≡⟨ lIdentity a ⟩
-           a ∎
-   }
+   record
+    { e = e
+    ; lIdentity = lIdentity
+      -- Proof that a group has right identity property
+    ; rIdentity = λ a →
+        a ∙ e           ≡⟨ right _∙_ (sym (lInverse a))⟩
+        a ∙ (inv a ∙ a) ≡⟨ assoc a (inv a) a ⟩
+        (a ∙ inv a) ∙ a ≡⟨ left _∙_ (rInverse a)⟩
+        e ∙ a           ≡⟨ lIdentity a ⟩
+        a ∎
+    }
    where
      open group {{...}}
 
@@ -172,7 +171,8 @@ groupIsProp {A = A} _∙_ G1 G2 i =
       E = G1 .e                 ≡⟨ idUnique {{grpIsMonoid {{G2}}}} (G1 .lIdentity)⟩
           grpIsMonoid {{G2}} .e ≡⟨ sym (idUnique {{grpIsMonoid {{G2}}}} (G2 .lIdentity))⟩
           G2 .e ∎ in
-  record {
+  record
+   {
      e = E i
    ; IsSetGrp = record { IsSet = isPropIsSet (G1 .IsSetGrp .IsSet) (G2 .IsSetGrp .IsSet) i }
    ; lIdentity = λ a →
@@ -189,32 +189,35 @@ groupIsProp {A = A} _∙_ G1 G2 i =
                    G = toPathP set in ΣPathP (H , G)
            in F i
    ; gAssoc = record { assoc = λ a b c → set {p = G1 .gAssoc .assoc a b c} {G2 .gAssoc .assoc a b c} i }
-  }
-   where
-    open group
-    open import Cubical.Foundations.HLevels
+   }
+ where
+  open group
+  open import Cubical.Foundations.HLevels
 
 -- https://en.wikipedia.org/wiki/Symmetric_group
 -- Compiling 'Module.agda' seems to take forever whenever I instantiate a symmetric group
 symmetricGroup : {{_ : is-set A}} → group (bijectiveComp {A = A})
 symmetricGroup =
- record { e = id , ((λ x y p → p) , λ b → b , refl)
-        ; inverse = λ (f , Finj , Fsurj) → ((λ a → fst (Fsurj a)) ,
-        (λ x y (z : fst (Fsurj x) ≡ fst (Fsurj y)) →
-          x                 ≡⟨ sym (snd (Fsurj x)) ⟩
-          f (fst (Fsurj x)) ≡⟨ cong f z ⟩
-          f (fst (Fsurj y)) ≡⟨ snd (Fsurj y) ⟩
-          y ∎) , λ b → f b , Finj (fst (Fsurj (f b))) b (snd (Fsurj (f b)))) ,
-          ΣPathPProp bijectiveProp (funExt λ x → snd (Fsurj x))
-        ; lIdentity = λ a → ΣPathPProp bijectiveProp refl }
+ record
+  { e = id , ((λ x y p → p) , λ b → b , refl)
+  ; inverse = λ (f , Finj , Fsurj) → ((λ a → fst (Fsurj a)) ,
+       (λ x y (z : fst (Fsurj x) ≡ fst (Fsurj y)) →
+        x                 ≡⟨ sym (snd (Fsurj x))⟩
+        f (fst (Fsurj x)) ≡⟨ cong f z ⟩
+        f (fst (Fsurj y)) ≡⟨ snd (Fsurj y)⟩
+        y ∎)
+        , λ b → f b , Finj (fst (Fsurj (f b))) b (snd (Fsurj (f b)))) ,
+                ΣPathPProp bijectiveProp (funExt λ x → snd (Fsurj x))
+  ; lIdentity = λ a → ΣPathPProp bijectiveProp refl
+  }
 
 module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
 
  -- https://en.wikipedia.org/wiki/Subgroup
  record subgroup (H : A → Type bl) : Type (al ⊔ bl) where
    field
-     id-closed  : (e ∈ H)
-     op-closed  : {x y : A} → x ∈ H → y ∈ H → (x ∙ y) ∈ H
+     id-closed  : e ∈ H
+     op-closed  : {x y : A} → x ∈ H → y ∈ H → x ∙ y ∈ H
      inv-closed : {x : A} → x ∈ H → inv x ∈ H
      subgroup-set : (x : A) → isProp (H x)
   
@@ -235,7 +238,7 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
    }
 
  a[b'a]'≡b : ∀ a b → a ∙ inv (inv b ∙ a) ≡ b
- a[b'a]'≡b a b = a ∙ inv (inv b ∙ a)      ≡⟨ right _∙_ (sym(grp.lemma1 (inv b) a))⟩
+ a[b'a]'≡b a b = a ∙ inv(inv b ∙ a)       ≡⟨ right _∙_ (sym(grp.lemma1 (inv b) a))⟩
                  a ∙ (inv a ∙ inv(inv b)) ≡⟨ a[a'b]≡b a (inv(inv b))⟩
                  inv(inv b)               ≡⟨ grp.doubleInv b ⟩
                  b ∎
