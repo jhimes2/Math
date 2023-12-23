@@ -41,7 +41,7 @@ boolDiscrete No No = yes refl
 
 instance
 
-  BoolIsSet : isset Bool
+  BoolIsSet : is-set Bool
   BoolIsSet = record { IsSet = Discrete→isSet boolDiscrete }
 
   andAssoc : Associative and

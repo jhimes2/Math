@@ -83,7 +83,7 @@ instance
   NZMultAssoc = record { assoc = λ a b c → ΣPathPProp (λ w x y → funExt λ p → y p ~> UNREACHABLE)
                                                       (assoc (fst a) (fst b) (fst c)) }
 
-  NZIsSet : {{R : Rng A}} → isset nonZero
+  NZIsSet : {{R : Rng A}} → is-set nonZero
   NZIsSet = record { IsSet = isSetΣSndProp IsSet λ w x y → funExt λ p → y p ~> UNREACHABLE }
    where open import Cubical.Foundations.HLevels
 

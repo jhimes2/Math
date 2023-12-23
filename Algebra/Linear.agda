@@ -111,7 +111,7 @@ instance
                            → ΣPathPProp modHomomorphismIsProp
                                        (funExt λ x → assoc (T x) (R x) (Q x))}}
 
-  LFIsSet : {{F : Field A}}{{VS : VectorSpace B}} → isset (linearForm VS)
+  LFIsSet : {{F : Field A}}{{VS : VectorSpace B}} → is-set (linearForm VS)
   LFIsSet = record { IsSet = isSetΣSndProp (isSet→ IsSet) modHomomorphismIsProp }
 
   LFGroup : {{F : Field A}}{{VS : VectorSpace B}} → group (dualSum VS)

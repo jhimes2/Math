@@ -81,7 +81,7 @@ natDiscrete (S a) (S b) = natDiscrete a b ~> λ{ (yes x) → yes (cong S x) ; (n
 -- Addition on natural numbers is a comm monoid
 instance
 
-  natIsSet : isset ℕ
+  natIsSet : is-set ℕ
   natIsSet = record { IsSet = Discrete→isSet natDiscrete }
 
   AddCom : Commutative add

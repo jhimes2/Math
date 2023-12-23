@@ -77,7 +77,7 @@ instance
  assocf : {_∙_ : A → A → A} → {{_ : Associative _∙_}} → Associative (pointwise _∙_ B)
  assocf = record { assoc = λ u v w → funExt λ x → assoc (u x) (v x) (w x) }
 
- IsSet→ : {{_ : isset B}} → isset (A → B)
+ IsSet→ : {{_ : is-set B}} → is-set (A → B)
  IsSet→ = record { IsSet = isSet→ IsSet }
 
  monoidf : {_∙_ : A → A → A} → {{R : monoid _∙_}} → monoid (pointwise _∙_ B)

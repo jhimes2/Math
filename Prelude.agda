@@ -338,15 +338,15 @@ module _{_∙_ : A → A → A}{{_ : Commutative _∙_}}(a b c : A) where
                       ((a ∙ c) ∙ b) ∙ d ≡⟨ sym (assoc (_∙_ a c) b d)⟩
                       (a ∙ c) ∙ (b ∙ d) ∎
 
-record isset (A : Type l) : Type l
+record is-set (A : Type l) : Type l
   where field
    IsSet : isSet A
-open isset {{...}} public
+open is-set {{...}} public
 
 compAssoc : (f g h : A → A) → f ∘ (g ∘ h) ≡ (f ∘ g) ∘ h
 compAssoc f g h = funExt λ x → refl
 
-bijectiveProp : {{_ : isset A}}{{_ : isset B}} → (f : A → B) → isProp (bijective f)
+bijectiveProp : {{_ : is-set A}}{{_ : is-set B}} → (f : A → B) → isProp (bijective f)
 bijectiveProp f = λ (Finj1 , Fsurj1) (Finj2 , Fsurj2)
   → let H : Finj1 ≡ Finj2
         H = funExt λ x → funExt λ y → funExt λ z → IsSet x y (Finj1 x y z) (Finj2 x y z) in
@@ -358,10 +358,10 @@ bijectiveProp f = λ (Finj1 , Fsurj1) (Finj2 , Fsurj2)
 
 instance
  -- Bijective composition is associative if the underlying type is a set
- bijectiveCompAssoc : {{_ : isset A}} → Associative (bijectiveComp {A = A})
+ bijectiveCompAssoc : {{_ : is-set A}} → Associative (bijectiveComp {A = A})
  bijectiveCompAssoc = record { assoc =
    λ{(f , Finj , Fsurj) (g , Ginj , Gsurj) (h , Hinj , Hsurj)
    → ΣPathPProp bijectiveProp refl} }
 
- bijectiveSet : {{_ : isset A}}{{_ : isset B}} → isset (Σ λ(f : A → B) → bijective f)
+ bijectiveSet : {{_ : is-set A}}{{_ : is-set B}} → is-set (Σ λ(f : A → B) → bijective f)
  bijectiveSet = record { IsSet = isSetΣ (isSet→ IsSet) λ x → isProp→isSet (bijectiveProp x) }

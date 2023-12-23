@@ -11,7 +11,7 @@ record monoid {A : Type l}(_∙_ : A → A → A) : Type(lsuc l) where
       e : A
       lIdentity : (a : A) → e ∙ a ≡ a
       rIdentity : (a : A) → a ∙ e ≡ a
-      overlap {{IsSetm}} : isset A
+      overlap {{IsSetm}} : is-set A
       {{mAssoc}} : Associative _∙_
 open monoid {{...}}
 

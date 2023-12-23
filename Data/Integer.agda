@@ -29,7 +29,7 @@ open import Cubical.Foundations.HLevels
   where open import Cubical.Relation.Binary
 
 instance
- ℤisSet : isset ℤ
+ ℤisSet : is-set ℤ
  ℤisSet = record { IsSet = Discrete→isSet ℤDiscrete }
 
 addℤaux : ℕ × ℕ → ℕ × ℕ → ℤ

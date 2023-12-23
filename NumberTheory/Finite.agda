@@ -23,7 +23,7 @@ FinDiscrete {n = n} = discreteSetQuotients
    λ a b c x y → x ∙ y) λ a b → natDiscrete (paste a n) (paste b n)
 
 instance
- FinIsSet : isset (Fin n)
+ FinIsSet : is-set (Fin n)
  FinIsSet = record { IsSet = Discrete→isSet FinDiscrete }
 
 FinAdd : Fin n → Fin n → Fin n

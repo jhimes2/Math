@@ -9,7 +9,7 @@ open import Algebra.Monoid public
 record group {A : Type l}(_∙_ : A → A → A) : Type(lsuc l) where
   field
       e : A
-      overlap {{IsSetGrp}} : isset A
+      overlap {{IsSetGrp}} : is-set A
       inverse : (a : A) → Σ λ(b : A) → b ∙ a ≡ e
       lIdentity : (a : A) → e ∙ a ≡ a
       {{gAssoc}} : Associative _∙_
@@ -196,7 +196,7 @@ groupIsProp {A = A} _∙_ G1 G2 i =
 
 -- https://en.wikipedia.org/wiki/Symmetric_group
 -- Compiling 'Module.agda' seems to take forever whenever I instantiate a symmetric group
-symmetricGroup : {{_ : isset A}} → group (bijectiveComp {A = A})
+symmetricGroup : {{_ : is-set A}} → group (bijectiveComp {A = A})
 symmetricGroup =
  record { e = id , ((λ x y p → p) , λ b → b , refl)
         ; inverse = λ (f , Finj , Fsurj) → ((λ a → fst (Fsurj a)) ,
