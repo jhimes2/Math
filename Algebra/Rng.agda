@@ -118,16 +118,6 @@ module _{A : Type l}{{R : Rng A}} where
    0r * y       ≡⟨ 0*x≡0 y ⟩
    0r ∎
 
- x0-y≡-y = λ(x y : A) →
-   (x * 0r) - y ≡⟨ left _-_ (x*0≡0 x)⟩
-   0r - y       ≡⟨ lIdentity (neg y)⟩
-   neg y ∎
-
- 0x-y≡-y = λ(x y : A) →
-   (x * 0r) - y ≡⟨ left _-_ (x*0≡0 x)⟩
-   0r - y       ≡⟨ lIdentity (neg y)⟩
-   neg y ∎
-
  x-y0≡x = λ(x y : A) →
    x - (y * 0r) ≡⟨ right _-_ (x*0≡0 y)⟩
    x - 0r       ≡⟨ right _+_ grp.lemma4 ⟩
