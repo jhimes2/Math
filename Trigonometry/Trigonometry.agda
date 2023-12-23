@@ -2,23 +2,13 @@
 
 open import Prelude
 open import Algebra.Field
-open import Algebra.OrderedRng
 
 module Trigonometry.Trigonometry
     {{F : Field A}}
-    {{OR : OrderedRng A}}
     (π/2 : A)
     (sin : A → A)
     (oddFunction : ∀ θ → neg(sin θ) ≡ sin(neg θ))
     (evaluation : sin(π/2) ≡ 1r) where
-
-sin0≡0 : sin 0r ≡ 0r
-sin0≡0 = let H : neg(sin 0r) ≡ sin 0r
-                    → sin 0r ≡ 0r
-             H = ordered.lemma4 in H $
-         neg(sin 0r)  ≡⟨ oddFunction 0r ⟩
-         sin(neg 0r)  ≡⟨ cong sin grp.lemma4 ⟩
-         sin 0r ∎
 
 cos = λ(θ : A) → sin(θ + π/2)
 
@@ -40,8 +30,27 @@ sin-θ≡sinθ θ =
 module trig(sinAngleAdd : ∀ x y → sin(x + y) ≡ (sin x * cos y)+(cos x * sin y))
            (pythagorean : ∀ θ → sin² θ + cos² θ ≡ 1r) where
 
+ sin0≡0 : sin 0r ≡ 0r
+ sin0≡0 =
+   -- We can prove sin(0)=0 by proving sin(0)=sin(0)+sin(0)
+   let H : sin 0r ≡ sin 0r + sin 0r
+         → sin 0r ≡ 0r
+       H = grp.lemma3 in H $
+  sin 0r        ≡⟨ cong sin (sym (lIdentity 0r))⟩
+  sin (0r + 0r) ≡⟨ sinAngleAdd 0r 0r ⟩
+  (sin 0r * cos 0r) + (cos 0r * sin 0r)         ≡⟨By-Definition⟩
+  (sin 0r * sin (0r + π/2)) + (cos 0r * sin 0r) ≡⟨ left _+_ (right _*_ (cong sin (lIdentity π/2)))⟩
+  (sin 0r * sin π/2) + (cos 0r * sin 0r)        ≡⟨ left _+_ (right _*_ evaluation)⟩
+  (sin 0r * 1r) + (cos 0r * sin 0r)             ≡⟨ left _+_ (rIdentity (sin 0r))⟩
+  sin 0r + (cos 0r * sin 0r)                    ≡⟨By-Definition⟩
+  sin 0r + (sin (0r + π/2) * sin 0r)            ≡⟨ right _+_ (left _*_ (cong sin (lIdentity π/2)))⟩
+  sin 0r + (sin π/2 * sin 0r)                   ≡⟨ right _+_ (left _*_ evaluation)⟩
+  sin 0r + (1r * sin 0r)                        ≡⟨ right _+_ (lIdentity (sin 0r))⟩
+  sin 0r + sin 0r ∎
+
  cosπ/2≡0 : cos π/2 ≡ 0r
  cosπ/2≡0 =
+   -- We can prove cos(π/2)=0 by proving cos(π/2)=cos(π/2)+cos(π/2)
    let H : cos π/2 ≡ cos π/2 + cos π/2
          → cos π/2 ≡ 0r
        H = grp.lemma3 in H $
