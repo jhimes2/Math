@@ -20,6 +20,9 @@ module _{{R : Ring A}} where
  2r : A
  2r = 1r + 1r
  
+ 2* : A → A
+ 2* x = x + x
+
  -1*x≡-x : (x : A) → neg 1r * x ≡ neg x
  -1*x≡-x x =
    neg 1r * x ≡⟨ -x*y≡x*-y 1r x ⟩

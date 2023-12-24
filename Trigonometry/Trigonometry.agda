@@ -17,9 +17,8 @@ module Trigonometry.Trigonometry
 cos = λ(θ : A) → sin(π/2 + θ)
 sin² = λ(θ : A) → sin θ * sin θ
 cos² = λ(θ : A) → cos θ * cos θ
-2* = λ(x : A) → x + x
-π = 2* π/2
-2π = 2* π
+π = π/2 + π/2
+2π = π + π
 
 -- Final two trigonometric axioms
 module _(sinAngleAdd : ∀ x y → sin(x + y) ≡ (sin x * cos y)+(sin y * cos x))
