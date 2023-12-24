@@ -213,6 +213,17 @@ symmetricGroup =
 
 module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
 
+ a[b'a]'≡b : ∀ a b → a ∙ inv (inv b ∙ a) ≡ b
+ a[b'a]'≡b a b = a ∙ inv(inv b ∙ a)       ≡⟨ right _∙_ (sym(grp.lemma1 (inv b) a))⟩
+                 a ∙ (inv a ∙ inv(inv b)) ≡⟨ a[a'b]≡b a (inv(inv b))⟩
+                 inv(inv b)               ≡⟨ grp.doubleInv b ⟩
+                 b ∎
+
+ a[ba]'≡b' : ∀ a b → a ∙ inv (b ∙ a) ≡ inv b
+ a[ba]'≡b' a b = a ∙ inv (b ∙ a)     ≡⟨ right _∙_ (sym (grp.lemma1 b a))⟩
+                 a ∙ (inv a ∙ inv b) ≡⟨ a[a'b]≡b a (inv b)⟩
+                 inv b ∎
+
  -- https://en.wikipedia.org/wiki/Subgroup
  record subgroup (H : A → Type bl) : Type (al ⊔ bl) where
    field
@@ -236,12 +247,6 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
    ; inv-closed = cyc-inv
    ; subgroup-set = cyc-set
    }
-
- a[b'a]'≡b : ∀ a b → a ∙ inv (inv b ∙ a) ≡ b
- a[b'a]'≡b a b = a ∙ inv(inv b ∙ a)       ≡⟨ right _∙_ (sym(grp.lemma1 (inv b) a))⟩
-                 a ∙ (inv a ∙ inv(inv b)) ≡⟨ a[a'b]≡b a (inv(inv b))⟩
-                 inv(inv b)               ≡⟨ grp.doubleInv b ⟩
-                 b ∎
 
  module _{B : Type bl}{_*_ : B → B → B}{{H : group _*_}}
          (h : A → B) where
@@ -312,7 +317,7 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
                                                         e ∎
      ; inv-closed = λ {x} (p : h x ≡ e) → h (inv x) ≡⟨ inverseToInverse x ⟩
                                           inv (h x) ≡⟨ cong inv p ⟩
-                                          inv e ≡⟨ grp.lemma4 ⟩
+                                          inv e     ≡⟨ grp.lemma4 ⟩
                                           e ∎
      ; subgroup-set = λ x → IsSet (h x) e
      }
