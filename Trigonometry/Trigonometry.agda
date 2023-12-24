@@ -146,12 +146,8 @@ module trig(sinAngleAdd : ∀ x y → sin(x + y) ≡ (sin x * cos y)+(cos x * si
 
  sinπ≡0 : sin π ≡ 0r
  sinπ≡0 =
-   sin π                                     ≡⟨By-Definition⟩
-   sin(π/2 + π/2)                            ≡⟨ sinAngleAdd π/2 π/2 ⟩
-   (sin π/2 * cos π/2) + (cos π/2 * sin π/2) ≡⟨ left _+_ (right _*_ cosπ/2≡0)⟩
-   (sin π/2 * 0r) + (cos π/2 * sin π/2)      ≡⟨ x0+y≡y (sin π/2) (cos π/2 * sin π/2)⟩
-   cos π/2 * sin π/2                         ≡⟨ left _*_ cosπ/2≡0 ⟩
-   0r * sin π/2                              ≡⟨ 0*x≡0 (sin π/2)⟩
+   sin π   ≡⟨By-Definition⟩
+   cos π/2 ≡⟨ cosπ/2≡0  ⟩
    0r ∎
 
  sinθ+π≡-sinθ : ∀ θ → sin(θ + π) ≡ neg(sin θ)
