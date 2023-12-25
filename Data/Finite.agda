@@ -60,3 +60,9 @@ headTail≡ {n = n} u v headEq tailEq = funExt λ{ (Z , p) →
  where
   aux : (u v : A → B) → {x y : A} → u x ≡ v x → x ≡ y → u y ≡ v y
   aux u v p x≡y = transport (λ i → u (x≡y i) ≡ v (x≡y i)) p
+
+is-finite : Type l → Type l
+is-finite A = Σ λ n → Σ λ(f : A → fin n) → bijective f
+
+is-∞ : Type l → Type l
+is-∞ A = ¬ (is-finite A)
