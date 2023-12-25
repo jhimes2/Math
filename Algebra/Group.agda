@@ -14,6 +14,12 @@ record group {A : Type l}(_∙_ : A → A → A) : Type(lsuc l) where
       {{gAssoc}} : Associative _∙_
       overlap {{IsSetGrp}} : is-set A
 
+record Group (l : Level) : Type(lsuc l) where
+  field
+      carrier : Type l
+      op : carrier → carrier → carrier
+      grp : group op
+
 module _{_∙_ : A → A → A} {{G : group _∙_}} where
 
   open group {{...}}
@@ -211,6 +217,28 @@ symmetricGroup =
   ; lIdentity = λ a → ΣPathPProp bijectiveProp refl
   }
 
+-- Product of an arbitrary family of groups
+module directProduct(VG : A → Group l) where
+
+ open import Cubical.Foundations.HLevels
+ open group {{...}}
+
+ op = λ(f g : ∀ a → VG a .Group.carrier) (a : A) → VG a .Group.op (f a) (g a)
+
+ instance
+  -- https://en.wikipedia.org/wiki/Direct_product_of_groups
+  DirectProduct : group op
+  DirectProduct = record
+     { e = λ(a : A) → VG a .grp .group.e
+     ; inverse = λ(a : (x : A) → VG x .carrier) → (λ(b : A) →
+           fst(VG b .grp .inverse (a b))) , funExt λ b →  snd(VG b .grp .inverse (a b))
+     ; lIdentity = λ(a : (x : A) → VG x .carrier) → funExt λ(b : A) →
+                 let dpGrp : group (VG b .Group.op)
+                     dpGrp = VG b .grp in group.lIdentity dpGrp (a b)
+     ; IsSetGrp = record { IsSet = isSetΠ λ x → ((VG x .grp)) .IsSetGrp .IsSet }
+     ; gAssoc = record { assoc =  λ a b c → funExt λ x → group.gAssoc (VG x .grp) .assoc (a x) (b x) (c x) }
+     }
+    where open Group {{...}}
 module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
 
  a[b'a]'≡b : ∀ a b → a ∙ inv (inv b ∙ a) ≡ b
