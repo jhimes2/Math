@@ -274,7 +274,7 @@ NEqZ {a = S a} _ = a , refl
 
 instance
   WellOrderNat : WellOrder ℕ
-  WellOrderNat = record { leastTerm = λ{P} PDec → map (aux PDec) }
+  WellOrderNat = record { leastTerm = λ{P} PDec → aux PDec }
    where
     aux : {P : ℕ → Type} → (∀ n → P n ＋ ¬ P n) → Σ P → Σ λ x → P x × ∀ y → P y → x ≤ y
     aux {P = P} PDec (p , p') = aux2 p p p' (reflexive {a = p})

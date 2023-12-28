@@ -53,4 +53,5 @@ flipNeg {{TO}} {a = a} {b} p = (stronglyConnected a b
 record WellOrder (A : Type l) : Type (lsuc l)
   where field
    {{welltotal}} : TotalOrder A
-   leastTerm : {P : A → Type} → (∀ a → P a ＋ ¬ P a) → ∃ P → ∃ λ x → P x × ∀ y → P y → x ≤ y
+   leastTerm : {P : A → Type} → (∀ a → P a ＋ ¬ P a) → Σ P → Σ λ x → P x × ∀ y → P y → x ≤ y
+open WellOrder {{...}} public
