@@ -273,26 +273,3 @@ instance
     aux : (x y : ℤ) → ∥ le x y ＋ le y x ∥₁
     aux = elimProp2 (λ x y → squash₁)
                    λ (a , b) (c , d) → ∣ stronglyConnected (a + d) (c + b) ∣₁
-
-_ℤ+ℕ_ : ℤ → ℕ → ℤ
-_ℤ+ℕ_ a b = flip b a
- where
-  flip : ℕ → ℤ → ℤ
-  flip n = QRec IsSet (λ (a , b) → [ (n + a) , b ])
-    λ (a , b) (c , d) r → eq/ ((n + a) , b) ((n + c) , d)
-    $ (n + a) + d ≡⟨ sym(assoc n a d) ⟩
-      n + (a + d) ≡⟨ cong (n +_) r ⟩
-      n + (c + b) ≡⟨ assoc n c b ⟩
-      (n + c) + b ∎
-
-_ℕ*ℤ_ : ℕ → ℤ → ℤ
-_ℕ*ℤ_ n = QRec IsSet (λ(a , b) → [ n * a , n * b ])
- λ(a , b)(c , d) H → eq/ ((n * a) , (n * b)) ((n * c) , (n * d))
- $  (n * a) + (n * d) ≡⟨ sym (lDistribute n a d) ⟩
-    n * (a + d) ≡⟨ cong (n *_) H ⟩
-    n * (c + b) ≡⟨ lDistribute n c b ⟩
-    (n * c) + (n * b) ∎
-
-ℕ*ℤNeg : ∀ (n : ℕ)(a : ℤ) → n ℕ*ℤ neg a ≡ neg (n ℕ*ℤ a)
-ℕ*ℤNeg n = elimProp (λ x → IsSet (n ℕ*ℤ neg x) (neg (n ℕ*ℤ x))) λ a → refl
-
