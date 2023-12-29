@@ -14,11 +14,15 @@ module Trigonometry.Trigonometry
     (oddFunction : ∀ θ → neg(sin θ) ≡ sin(neg θ))
     (evaluation : sin(π/2) ≡ 1r) where
 
+π = π/2 + π/2
+2π = π + π
 cos = λ(θ : A) → sin(π/2 + θ)
 sin² = λ(θ : A) → sin θ * sin θ
 cos² = λ(θ : A) → cos θ * cos θ
-π = π/2 + π/2
-2π = π + π
+tan = λ((θ , cosθ≢0) : Σ λ θ → cos θ ≢ 0r) → sin θ / (cos θ , cosθ≢0)
+cot = λ((θ , sinθ≢0) : Σ λ θ → sin θ ≢ 0r) → cos θ / (sin θ , sinθ≢0)
+csc = λ((θ , sinθ≢0) : Σ λ θ → sin θ ≢ 0r) → reciprocal (sin θ , sinθ≢0)
+sec = λ((θ , cosθ≢0) : Σ λ θ → cos θ ≢ 0r) → reciprocal (cos θ , cosθ≢0)
 
 -- Final two trigonometric axioms
 module _(sinAngleAdd : ∀ x y → sin(x + y) ≡ (sin x * cos y)+(sin y * cos x))
@@ -293,15 +297,3 @@ module _(sinAngleAdd : ∀ x y → sin(x + y) ≡ (sin x * cos y)+(sin y * cos x
    (cos² θ + sin² θ) - (2*(sin² θ))           ≡⟨ left _-_ (sym(sin²θ+cos²θ≡cos²θ+sin²θ θ))⟩
    (sin² θ + cos² θ) - (2*(sin² θ))           ≡⟨ left _-_ (pythagorean θ)⟩
    1r - (2*(sin² θ)) ∎
-
- tan : (Σ λ θ → cos θ ≢ 0r) → A
- tan (θ , cosθ≢0) = sin θ / (cos θ , cosθ≢0)
-
- cot : (Σ λ θ → sin θ ≢ 0r) → A
- cot (θ , sinθ≢0) = cos θ / (sin θ , sinθ≢0)
-
- csc : (Σ λ θ → sin θ ≢ 0r) → A
- csc (θ , sinθ≢0) = reciprocal (sin θ , sinθ≢0)
- 
- sec : (Σ λ θ → cos θ ≢ 0r) → A
- sec (θ , cosθ≢0) = reciprocal (cos θ , cosθ≢0)
