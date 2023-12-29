@@ -274,7 +274,13 @@ instance
     aux = elimProp2 (λ x y → squash₁)
                    λ (a , b) (c , d) → ∣ stronglyConnected (a + d) (c + b) ∣₁
 
--- Constructing an integer from two natural numbers
-_−_ : ℕ → ℕ → ℤ
-_−_ a b = [ a , b ]
+instance
+ -- Constructing an integer from two natural numbers
+ natSub : Subtract ℕ ℤ
+ natSub = record { _-_ = λ a b → [ a , b ] }
 
+ℤℕMultNeg : (a b : ℕ) → (a - Z) * (Z - b) ≡ Z - (a * b)
+ℤℕMultNeg a b = (a - Z) * (Z - b) ≡⟨By-Definition⟩
+               ((a * Z) + Z) - ((a * b) + Z) ≡⟨ cong (λ x → (x + Z) - ((a * b) + Z)) (multZ a)⟩
+               Z - ((a * b) + Z) ≡⟨ cong (λ x → Z - x ) (rIdentity (a * b))⟩
+               Z - (a * b) ∎
