@@ -273,3 +273,8 @@ instance
     aux : (x y : ℤ) → ∥ le x y ＋ le y x ∥₁
     aux = elimProp2 (λ x y → squash₁)
                    λ (a , b) (c , d) → ∣ stronglyConnected (a + d) (c + b) ∣₁
+
+-- Constructing an integer from two natural numbers
+_−_ : ℕ → ℕ → ℤ
+_−_ a b = [ a , b ]
+

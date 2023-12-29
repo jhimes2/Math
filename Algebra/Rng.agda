@@ -14,6 +14,13 @@ record Rng (A : Type l) : Type (lsuc l) where
     {{comRng}} : Commutative _+_
 open Rng {{...}} public
 
+{- We overload subtraction so we can also define the operator for subtracting
+   two natural numbers and returning an integer -}
+record Subtract (A : Type al)(B : Type bl) : Type (al ⊔ bl) where
+ field
+  _-_ : A → A → B
+open Subtract {{...}} public
+
 module _{A : Type l}{{R : Rng A}} where
 
  0r : A
@@ -25,8 +32,9 @@ module _{A : Type l}{{R : Rng A}} where
  neg : A → A
  neg = inv
  
- _-_ : A → A → A
- a - b = a + (neg b)
+ instance
+  rngSub : Subtract A A
+  rngSub = record { _-_ = λ a b → a + neg b }
 
  x*0≡0 : (x : A) → x * 0r ≡ 0r
  x*0≡0 x =
