@@ -260,7 +260,13 @@ module _{A : Type al}{_∙_ : A → A → A} where
       inv-closed : {x : A} → x ∈ H → inv x ∈ H
       subgroup-set : (x : A) → isProp (H x)
   open _≥_ {{...}} public
-  
+
+  -- https://en.wikipedia.org/wiki/Normal_subgroup
+  record _⊵_(N : A → Type bl) : Type (al ⊔ bl) where
+    field
+      {{NisSubgroup}} : _≥_ N
+      gng' : ∀ {n} → n ∈ N → ∀ g → (g ∙ n) ∙ inv g ∈ N
+
  cyclicIsSubgroup : ∀(G : group _∙_)(x : A) → G ≥ (cyclic G x)
  cyclicIsSubgroup G x = let instance _ = G in
   record
