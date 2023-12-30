@@ -239,6 +239,37 @@ module directProduct(VG : A → Group l) where
      ; gAssoc = record { assoc =  λ a b c → funExt λ x → group.gAssoc (VG x .grp) .assoc (a x) (b x) (c x) }
      }
     where open Group {{...}}
+
+module _{A : Type al}{_∙_ : A → A → A} where
+
+ module _(G : group _∙_) where
+  instance _ = G
+
+  -- https://en.wikipedia.org/wiki/Cyclic_group
+  data cyclic (x : A) : A → Type al where
+   cyc-intro : x ∈ cyclic x
+   cyc-inv : ∀{y} → y ∈ cyclic x → inv y ∈ cyclic x
+   cyc-op : ∀{y z} → y ∈ cyclic x → z ∈ cyclic x → y ∙ z ∈ cyclic x
+   cyc-set : ∀ y → isProp (y ∈ cyclic x)
+  
+  -- https://en.wikipedia.org/wiki/Subgroup
+  record _≥_(H : A → Type bl) : Type (al ⊔ bl) where
+    field
+      id-closed  : e ∈ H
+      op-closed  : {x y : A} → x ∈ H → y ∈ H → x ∙ y ∈ H
+      inv-closed : {x : A} → x ∈ H → inv x ∈ H
+      subgroup-set : (x : A) → isProp (H x)
+  open _≥_ {{...}} public
+  
+ cyclicIsSubgroup : ∀(G : group _∙_)(x : A) → G ≥ (cyclic G x)
+ cyclicIsSubgroup G x = let instance _ = G in
+  record
+   { id-closed = subst (cyclic G x) (lInverse x) (cyc-op (cyc-inv cyc-intro) cyc-intro)
+   ; op-closed = cyc-op
+   ; inv-closed = cyc-inv
+   ; subgroup-set = cyc-set
+   }
+
 module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
 
  a[b'a]'≡b : ∀ a b → a ∙ inv (inv b ∙ a) ≡ b
@@ -251,30 +282,6 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
  a[ba]'≡b' a b = a ∙ inv (b ∙ a)     ≡⟨ right _∙_ (sym (grp.lemma1 b a))⟩
                  a ∙ (inv a ∙ inv b) ≡⟨ a[a'b]≡b a (inv b)⟩
                  inv b ∎
-
- -- https://en.wikipedia.org/wiki/Subgroup
- record subgroup (H : A → Type bl) : Type (al ⊔ bl) where
-   field
-     id-closed  : e ∈ H
-     op-closed  : {x y : A} → x ∈ H → y ∈ H → x ∙ y ∈ H
-     inv-closed : {x : A} → x ∈ H → inv x ∈ H
-     subgroup-set : (x : A) → isProp (H x)
-  
- -- https://en.wikipedia.org/wiki/Cyclic_group
- data cyclic (x : A) : A → Type al where
-  cyc-intro : x ∈ cyclic x
-  cyc-inv : ∀{y} → y ∈ cyclic x → inv y ∈ cyclic x
-  cyc-op : ∀{y z} → y ∈ cyclic x → z ∈ cyclic x →  y ∙ z ∈ cyclic x
-  cyc-set : ∀ y → isProp (y ∈ cyclic x)
-
- cyclicIsSubgroup : (x : A) → subgroup (cyclic x)
- cyclicIsSubgroup x =
-  record
-   { id-closed = subst (cyclic x) (lInverse x) (cyc-op (cyc-inv cyc-intro) cyc-intro)
-   ; op-closed = cyc-op
-   ; inv-closed = cyc-inv
-   ; subgroup-set = cyc-set
-   }
 
  module _{B : Type bl}{_*_ : B → B → B}{{H : group _*_}}
          (h : A → B) where
@@ -322,7 +329,7 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
   kernel u = h u ≡ e
 
   -- If the kernel only contains the identity element, then the homomorphism is injective
-  kerOnlyId1-1 : {{X : Homo}} → (∀ x → kernel x → x ≡ e) → injective h
+  kerOnlyId1-1 : {{X : Homo}} → (∀ x → x ∈ kernel → x ≡ e) → injective h
   kerOnlyId1-1 {{X}} =
          λ(p : ∀ x → h x ≡ e → x ≡ e)
           x y
@@ -336,7 +343,7 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
                Q = p (x ∙ inv y) P in grp.uniqueInv Q
 
   -- A kernel is a subgroup
-  kerSubgroup : {{X : Homo}} → subgroup kernel
+  kerSubgroup : {{X : Homo}} → G ≥ kernel
   kerSubgroup {{X}} = record
      { id-closed = idToId
      ; op-closed = λ{x y} (p : h x ≡ e) (q : h y ≡ e) → h (x ∙ y) ≡⟨ Homo.morphism X x y ⟩
