@@ -140,8 +140,9 @@ module grp {_∙_ : A → A → A}{{G : group _∙_}} where
 
   lemma1 : (a b : A) → inv b ∙ inv a ≡ inv (a ∙ b)
   lemma1 a b =
-    let H : (inv b ∙ inv a) ∙ inv(inv(a ∙ b)) ≡ e
-                              → inv b ∙ inv a ≡ inv (a ∙ b)
+    {- We can prove `inv b ∙ inv a ≡ inv (a ∙ b)`
+       by proving `(inv b ∙ inv a) ∙ inv(inv(a ∙ b))` -}
+    let H : (inv b ∙ inv a) ∙ inv(inv(a ∙ b)) ≡ e → inv b ∙ inv a ≡ inv (a ∙ b)
         H = uniqueInv in H $
     (inv b ∙ inv a) ∙ inv(inv(a ∙ b)) ≡⟨ right _∙_ (doubleInv (a ∙ b))⟩
     (inv b ∙ inv a) ∙ (a ∙ b)         ≡⟨ sym (assoc (inv b) (inv a) (a ∙ b))⟩
@@ -267,7 +268,7 @@ module _{A : Type al}{_∙_ : A → A → A} where
       {{NisSubgroup}} : _≥_ N
       gng' : ∀ {n} → n ∈ N → ∀ g → (g ∙ n) ∙ inv g ∈ N
 
- cyclicIsSubgroup : ∀(G : group _∙_)(x : A) → G ≥ (cyclic G x)
+ cyclicIsSubgroup : ∀(G : group _∙_)(x : A) → G ≥ cyclic G x
  cyclicIsSubgroup G x = let instance _ = G in
   record
    { id-closed = subst (cyclic G x) (lInverse x) (cyc-op (cyc-inv cyc-intro) cyc-intro)

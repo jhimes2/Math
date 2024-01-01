@@ -12,7 +12,7 @@ module Trigonometry.Trigonometry
     (sin : A → A)
     -- First two trigonometric axioms
     (oddFunction : ∀ θ → neg(sin θ) ≡ sin(neg θ))
-    (evaluation : sin(π/2) ≡ 1r) where
+    (evaluation : sin π/2 ≡ 1r) where
 
 π = π/2 + π/2
 2π = π + π
@@ -31,8 +31,7 @@ module _(sinAngleAdd : ∀ x y → sin(x + y) ≡ (sin x * cos y)+(sin y * cos x
  sin0≡0 : sin 0r ≡ 0r
  sin0≡0 =
    -- We can prove sin(0)=0 by proving sin(0)=sin(0)+sin(0)
-   let H : sin 0r ≡ sin 0r + sin 0r
-         → sin 0r ≡ 0r
+   let H : sin 0r ≡ sin 0r + sin 0r → sin 0r ≡ 0r
        H = grp.lemma3 in H $
   sin 0r                                       ≡⟨ cong sin(sym (lIdentity 0r))⟩
   sin(0r + 0r)                                 ≡⟨ sinAngleAdd 0r 0r ⟩
@@ -49,8 +48,7 @@ module _(sinAngleAdd : ∀ x y → sin(x + y) ≡ (sin x * cos y)+(sin y * cos x
  cosπ/2≡0 : cos π/2 ≡ 0r
  cosπ/2≡0 =
    -- We can prove cos(π/2)=0 by proving cos(π/2)=cos(π/2)+cos(π/2)
-   let H : cos π/2 ≡ cos π/2 + cos π/2
-         → cos π/2 ≡ 0r
+   let H : cos π/2 ≡ cos π/2 + cos π/2 → cos π/2 ≡ 0r
        H = grp.lemma3 in H $
    cos π/2                                 ≡⟨By-Definition⟩
    sin(π/2 + π/2)                          ≡⟨ sinAngleAdd π/2 π/2 ⟩
@@ -78,13 +76,13 @@ module _(sinAngleAdd : ∀ x y → sin(x + y) ≡ (sin x * cos y)+(sin y * cos x
    (sin θ * cos(neg π/2)) + (sin(neg π/2) * cos θ) ≡⟨ right _+_ (left _*_ sin-π/2≡-1)⟩
    (sin θ * cos(neg π/2)) + (neg 1r * cos θ)       ≡⟨ right _+_ (-1*x≡-x (cos θ))⟩
    (sin θ * cos(neg π/2)) + neg(cos θ)             ≡⟨ left _+_ (right _*_ cos-π/2≡0)⟩
-   (sin θ * 0r) + neg(cos θ)                       ≡⟨ x0+y≡y (sin θ) (neg(cos θ)) ⟩
+   (sin θ * 0r) + neg(cos θ)                       ≡⟨ x0+y≡y (sin θ) (neg(cos θ))⟩
    neg(cos θ) ∎
 
  sinπ/2-θ≡cosθ : ∀ θ → sin(π/2 - θ) ≡ cos θ
  sinπ/2-θ≡cosθ θ =
-    let H : neg(sin(π/2 - θ)) ≡ neg(cos θ)
-              → sin(π/2 - θ)  ≡     cos θ
+    -- -a ≡ -b → a ≡ b
+    let H : neg(sin(π/2 - θ)) ≡ neg(cos θ) → sin(π/2 - θ) ≡ cos θ
         H = grp.invInjective in H $
     neg(sin(π/2 - θ))           ≡⟨ oddFunction (π/2 - θ)⟩
     sin(neg(π/2 - θ))           ≡⟨By-Definition⟩
@@ -267,8 +265,7 @@ module _(sinAngleAdd : ∀ x y → sin(x + y) ≡ (sin x * cos y)+(sin y * cos x
    (cos² θ + 0r) - sin² θ                ≡⟨ left _-_ (right _+_ (sym (rInverse (cos² θ))))⟩
    (cos² θ + (cos² θ - cos² θ)) - sin² θ ≡⟨ left _-_ (assoc (cos² θ) (cos² θ) (neg(cos² θ)))⟩
    ((cos² θ + cos² θ) - cos² θ) - sin² θ ≡⟨By-Definition⟩
-   (2*(cos² θ) - cos² θ) - sin² θ        ≡⟨ sym
-                                          $ assoc (2*(cos² θ)) (neg(cos² θ)) (neg(sin² θ))⟩
+   (2*(cos² θ) - cos² θ) - sin² θ        ≡⟨ sym (assoc (2*(cos² θ)) (neg(cos² θ)) (neg(sin² θ)))⟩
    2*(cos² θ) + (neg(cos² θ) - sin² θ)   ≡⟨ right _+_ (grp.lemma1 (sin² θ) (cos² θ))⟩
    2*(cos² θ) - (sin² θ + cos² θ)        ≡⟨ right _-_ (pythagorean θ)⟩
    2*(cos² θ) - 1r ∎
