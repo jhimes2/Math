@@ -70,6 +70,11 @@ instance
  uniset : {A : Type al} → setMembership A (hProp al)
  uniset = record { _∈_ = _∈'_ }
 
+-- The support of a multiset 'X' is the underlying set of the multiset
+data Support{A : Type al}(X : A → Type l) : A → Type(al ⊔ l) where
+  supportIntro : ∀ x → x ∈ X → x ∈ Support X 
+  supportSet : ∀ x → isProp (x ∈ Support X)
+
 modusTollens : (A → B) → ¬ B → ¬ A
 modusTollens f Bn a = Bn (f a)
 
