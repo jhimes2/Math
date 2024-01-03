@@ -27,28 +27,33 @@ instance
   mvect = record { μ = λ f a → f a a
                  ; η = λ x _ → x }
 
-addv : {{R : Rng A}} → (B → A) → (B → A) → (B → A)
-addv = zip _+_
-
-negv : {{Rng A}} → (B → A) → (B → A)
-negv v x = neg (v x)
-
-multv : {{R : Rng A}} → (B → A) → (B → A) → (B → A)
-multv = zip _*_
-
-scaleV : {{Rng A}} → A → (B → A) → (B → A)
-scaleV a v x = a * (v x)
-
 foldr : (A → B → B) → B → {n : ℕ} → (fin n → A) → B
 foldr f b {Z} _ = b
 foldr f b {S n} v = f (head v) (foldr f b (tail v))
 
-dot : {{R : Rng A}} → [ A ^ n ] → [ A ^ n ] → A
-dot u v = foldr _+_ 0r (zip _*_ u v)
+module _{A : Type al}{{R : Rng A}} where
 
--- Matrix Transformation
-MT : {{R : Rng A}} → (fin n → B → A) → [ A ^ n ] → (B → A)
-MT M v x =  dot v (λ y → M y x) 
+ addv : (B → A) → (B → A) → (B → A)
+ addv = zip _+_
+ 
+ negv : (B → A) → (B → A)
+ negv v x = neg (v x)
+ 
+ multv : (B → A) → (B → A) → (B → A)
+ multv = zip _*_
+ 
+ scaleV : A → (B → A) → (B → A)
+ scaleV a v x = a * (v x)
+ 
+ dot : [ A ^ n ] → [ A ^ n ] → A
+ dot u v = foldr _+_ 0r (zip _*_ u v)
+ 
+ orthogonal : [ A ^ n ] → [ A ^ n ] → Type al
+ orthogonal u v = dot u v ≡ 0r
+
+ -- Matrix Transformation
+ MT : {{R : Rng A}} → (fin n → B → A) → [ A ^ n ] → (B → A)
+ MT M v x =  dot v (λ y → M y x) 
 
 columnSpace : {A : Type l} → {B : Type l'} → {{F : Field A}} → (fin n → B → A) → (B → A) → Type (l ⊔ l')
 columnSpace {n = n} M x = ∃ λ y → MT M y ≡ x

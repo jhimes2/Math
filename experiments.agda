@@ -35,7 +35,10 @@ data circle : Type where
   loop : base ≡ base
 
 flipPath : Bool ≡ Bool
-flipPath = isoToPath (iso (λ{ Yes → No ; No → Yes}) (λ{ Yes → No ; No → Yes}) (λ{ Yes → refl ; No → refl}) λ{ Yes → refl ; No → refl})
+flipPath = isoToPath (iso (λ{ Yes → No ; No → Yes})
+                     (λ{ Yes → No ; No → Yes})
+                     (λ{ Yes → refl ; No → refl})
+                     λ{ Yes → refl ; No → refl})
 
 doubleCover : circle → Type
 doubleCover base = Bool
@@ -47,13 +50,13 @@ endPtOfYes p = transport (λ i → doubleCover (p i)) Yes
 retYes : doubleCover base
 retYes = transport (λ i → doubleCover base) Yes
 
-retYes' : doubleCover base
+retYes' : Bool
 retYes' = transport (λ i → Bool) Yes
 
 retNo : doubleCover base
 retNo = transport (λ i → doubleCover (loop i)) Yes
 
-retNo' : doubleCover base
+retNo' : Bool
 retNo' = transport (λ i → flipPath i) Yes
 
 reflLoopF : ((λ i → base) ≡ loop) → Yes ≡ No
@@ -68,3 +71,21 @@ fermat'sLittleTheorem {p} a =
 
 Euclid's-Lemma : (a b c : ℕ) → gcd a b ≡ S Z → a ∣ copy b c → a ∣ c
 Euclid's-Lemma a b c coprime p = p >>= λ(x , p) → ∣ {!!} , {!!} ∣₁
+
+-- Proof irrelevant implication
+_⇒_ : Type al → Type bl → Type(al ⊔ bl)
+A ⇒ B = A → ∥ B ∥₁
+infixr 0 _⇒_
+
+Schröder–Bernstein : {A : Type al}
+                   → {B : Type bl}
+                   → (f : A → B) → leftInverse f
+                   → (g : B → A) → leftInverse g → Σ λ(h : A → B) → bijective h
+Schröder–Bernstein f (f' , finv) g (g' , ginv) = {!!}
+  where
+    LEM : (A : Type al) → A ＋ (¬ A)
+    LEM A = {!!}
+
+
+S1Equiv : Interval → Interval → Type
+S1Equiv i j = ?
