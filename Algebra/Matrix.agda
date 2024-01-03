@@ -162,6 +162,10 @@ instance
   LTMT : {{F : Field A}} → {M : fin n → B → A} → LinearMap (MT M)
   LTMT {{F}} {M = M} = MHMT 
 
+_orthogonal-to_ : {A : Type al} {{R : Ring A}}
+                → [ A ^ n ] → (W : [ A ^ n ] → Type l) → {{Subspace W}} → Type(l ⊔ al)
+_orthogonal-to_ z W = ∀ v → v ∈ W → orthogonal z v
+
 -- Matrix Multiplication
 mMult : {{R : Rng A}} → (fin n → B → A) → (C → fin n → A) → C → B → A
 mMult M N c = MT M (N c)
