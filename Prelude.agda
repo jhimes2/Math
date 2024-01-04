@@ -60,6 +60,10 @@ _∈_ : {B : Type (lsuc bl)} {{X : setMembership A B}} → A → (A → B) → T
 _∈_ {{X}} = setMembership._∈_ X
 infixr 5 _∈_
 
+_∉_ : {B : Type (lsuc bl)} {{_ : setMembership A B}} → A → (A → B) → Type bl
+_∉_ a X = ¬(a ∈ X)
+infixr 5 _∉_
+
 instance
  -- https://en.wikipedia.org/wiki/Multiset
  -- Multisets are just functions that return types

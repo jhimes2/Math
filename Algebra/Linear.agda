@@ -17,7 +17,7 @@ module _{scalar : Type l}{{F : Field scalar}}{vector : Type l'}{{V : VectorSpace
   record LinearlyIndependent (X : vector → Type l) : Type (lsuc (l ⊔ l'))
     where field
         -- ∀ v, v ∉ Span(X - {v})
-        linInd : (v : vector) → ¬(v ∈ Span (λ(x : vector) → (x ∈ X) × (v ≢ x)))
+        linInd : (v : vector) → v ∉ Span (λ(x : vector) → (x ∈ X) × (v ≢ x))
         -- This is needed for the case that 'X' only contains the zero vector
         noZero : ¬ (Ô ∈ X)
   open LinearlyIndependent {{...}} public
