@@ -43,7 +43,7 @@ dividesDecℤ n = elimProp {!!} {!!}
 
   Consider the subset of natural numbers:
 
-    T := λ(n : ℕ) → ∃ m:ℤ, a = (1+b)*m + n
+    T := { n : ℕ | ∃ m:ℤ, a = (1+b)*m + n }
 
   {* 'T' is non-empty
 
@@ -52,7 +52,7 @@ dividesDecℤ n = elimProp {!!} {!!}
       For any integer 'z', there exists two natural numbers 'x' and 'y' that can construct 'z' by 'z = x - y'
       where '_-_ : ℕ → ℕ → ℤ'. We apply this to 'a' and rewrite 'T' as:
 
-         T := λ(n : ℕ) → ∃ m:ℤ, x - y = (1+b)*m + n
+         T := { n : ℕ | ∃ m:ℤ, x - y = (1+b)*m + n }
 
      We set 'n' to 'x + b*y'.
      {* x + b*y ∈ T
@@ -102,8 +102,8 @@ dividesDecℤ n = elimProp {!!} {!!}
      *}    
      
      Applying the proof of 'z ∈ T' to '[2]' gives us 'z ≤ r', but since '1+b+z = r', we can prove the absurd
-     statement 'z ≤ 1+b+z'. Due to the principle of explosion, every statement is now provable.
-     Thus we have proven our goal 'r ≤ b'.
+     statement 'z ≤ 1+b+z'. Due to the principle of explosion, every statement is now provable. Thus, we have
+     proven our goal 'r ≤ b'.
 
   QED
 
