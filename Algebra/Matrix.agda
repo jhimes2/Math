@@ -51,6 +51,9 @@ module _{A : Type al}{{R : Rng A}} where
  orthogonal : [ A ^ n ] → [ A ^ n ] → Type al
  orthogonal u v = dot u v ≡ 0r
 
+ orthogonal-set : ([ A ^ n ] → Type al) → Type al
+ orthogonal-set X = ∀ u v → u ∈ X → v ∈ X → u ≢ v → orthogonal u v
+
  -- Matrix Transformation
  MT : {{R : Rng A}} → (fin n → B → A) → [ A ^ n ] → (B → A)
  MT M v x =  dot v (λ y → M y x) 
