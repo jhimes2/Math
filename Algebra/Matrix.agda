@@ -162,64 +162,7 @@ instance
   LTMT : {{F : Field A}} → {M : fin n → B → A} → LinearMap (MT M)
   LTMT {{F}} {M = M} = MHMT 
 
-module _{A : Type al} {{R : Ring A}} where
-
- _orthogonal-to_ : [ A ^ n ] → (W : [ A ^ n ] → Type l) → {{Subspace W}} → Type(l ⊔ al)
- z orthogonal-to W = ∀ v → v ∈ W → orthogonal z v
- 
- orthogonal-complement : (W : [ A ^ n ] → Type l) → {{Subspace W}} → [ A ^ n ] → Type(l ⊔ al)
- orthogonal-complement W z = z orthogonal-to W
-
--- Matrix Multiplication
-mMult : {{R : Rng A}} → (fin n → B → A) → (C → fin n → A) → C → B → A
-mMult M N c = MT M (N c)
-
-dotDistribute : {{R : Ring A}} → (w u v : [ A ^ n ])
-              → dot (u [+] v) w ≡ dot u w + dot v w
-dotDistribute {n = Z} w u v = sym (lIdentity 0r)
-dotDistribute {n = S n} w u v =
-  let v∙w = dot (tail v) (tail w) in
-  let u∙w = dot (tail u) (tail w) in
- dot (u [+] v) w ≡⟨By-Definition⟩
- (head(u [+] v) * head w) + dot (tail(u [+] v)) (tail w) ≡⟨By-Definition⟩
- ((head u + head v) * head w) + dot ((tail u [+] tail v)) (tail w)
-    ≡⟨ right _+_ (dotDistribute (tail w) (tail u) (tail v))⟩
- ((head u + head v) * head w) + (u∙w + v∙w) ≡⟨ left _+_ (rDistribute (head w)(head u)(head v))⟩
- ((head u * head w) + (head v * head w)) + (u∙w + v∙w)
-    ≡⟨ [ab][cd]≡[ac][bd] (head u * head w) (head v * head w) (u∙w) (v∙w)⟩
- ((head u * head w) + u∙w) + ((head v * head w) + v∙w) ≡⟨By-Definition⟩
- dot u w + dot v w ∎
-
-dotlDistribute : {{R : Ring A}} → (w u v : [ A ^ n ])
-              → dot w (u [+] v) ≡ dot w u + dot w v
-dotlDistribute {n = Z} w u v = sym (rIdentity 0r)
-dotlDistribute {n = S n} w u v =
-  let w∙v = dot (tail w) (tail v) in
-  let w∙u = dot (tail w) (tail u) in
- (head w * head(u [+] v)) + dot (tail w) (tail(u [+] v))
-  ≡⟨ right _+_ (dotlDistribute (tail w) (tail u) (tail v))⟩
- (head w * head(u [+] v)) + (dot (tail w) (tail u) + dot (tail w) (tail v))
-  ≡⟨ left _+_ (lDistribute (head w) (head u) (head v)) ⟩
- ((head w * head u) + (head w * head v)) + (dot (tail w) (tail u) + dot (tail w) (tail v))
-  ≡⟨ [ab][cd]≡[ac][bd] (head w * head u) (head w * head v) w∙u w∙v ⟩
- dot w u + dot w v ∎
-
-dotScale : {{R : Ring A}} → (c : A) → (u v : [ A ^ n ])
-         → dot (scale c u) v ≡ c * dot u v
-dotScale {n = Z} c u v = sym (x*0≡0 c)
-dotScale {n = S n} c u v =
- dot (scale c u) v ≡⟨By-Definition⟩
- (head(scale c u) * head v) + dot (tail(scale c u)) (tail v)
- ≡⟨ right _+_ (dotScale {n = n} c (tail u) (tail v))⟩
- (head(scale c u) * head v) + (c * dot (tail u) (tail v)) ≡⟨By-Definition⟩
- ((c * head u) * head v) + (c * dot (tail u) (tail v))
- ≡⟨ left _+_ (sym (assoc c (head u) (head v)))⟩
- (c * (head u * head v)) + (c * dot (tail u) (tail v))
- ≡⟨ sym (lDistribute c (head u * head v) (dot (tail u) (tail v)))⟩
- c * ((head u * head v) + dot (tail u) (tail v)) ≡⟨By-Definition⟩
- c * dot u v ∎
-
-dotZL : {{R : Ring A}}
+dotZL : {{R : Rng A}}
        → (V : fin n → A)
        → dot (λ _ → 0r) V ≡ 0r
 dotZL {n = Z} V = refl
@@ -229,7 +172,7 @@ dotZL {n = S n} V =
  dot ((λ (_ : fin n) → 0r)) (tail V) ≡⟨ dotZL (tail V)⟩
  0r ∎
 
-dotZR : {{R : Ring A}}
+dotZR : {{R : Rng A}}
        → (V : fin n → A)
        → dot V (λ _ → 0r) ≡ 0r
 dotZR {n = Z} V = refl
@@ -239,22 +182,92 @@ dotZR {n = S n} V =
  dot (tail V) (λ (_ : fin n) → 0r) ≡⟨ dotZR (tail V)⟩
  0r ∎
 
-dotMatrix : {{R : Ring A}}
-           → ∀ n m
-           → (u : fin n → A)
-           → (M : Matrix A n m)
-           → (v : fin m → A)
-           → dot (λ y → dot v (λ x → M x y)) u ≡ dot v (λ x → dot (M x) u)
-dotMatrix n Z u M v = dotZL u
-dotMatrix n (S m) u M v =
- dot (λ n' → dot v (λ m' → M m' n')) u ≡⟨By-Definition⟩
- dot (λ n' → (head v * (head M) n') + dot (tail v) (tail λ m' → M m' n')) u ≡⟨By-Definition⟩
- dot ((λ n' → (head v * (head M) n')) [+] (λ n' → dot (tail v) (λ m' → (tail M) m' n'))) u
- ≡⟨ dotDistribute u (λ n' → (head v * head λ m' → M m' n')) (λ n' → dot (tail v) (λ m' → (tail M) m' n'))⟩
- dot (scale (head v) (head M)) u + dot (λ n' → dot (tail v) (λ m' → (tail M) m' n')) u
- ≡⟨ cong₂ _+_ (dotScale {n = n} (head v) (head M) u) (dotMatrix n m u (tail M) (tail v))⟩
- (head v * dot (head M) u) + dot (tail v) (tail λ m' → dot (M m') u) ≡⟨By-Definition⟩
- dot v (λ m' → dot (M m') u) ∎
+module _{A : Type al} {{R : Ring A}} where
+
+ dotDistribute : (w u v : [ A ^ n ]) → dot (u [+] v) w ≡ dot u w + dot v w
+ dotDistribute {n = Z} w u v = sym (lIdentity 0r)
+ dotDistribute {n = S n} w u v =
+   let v∙w = dot (tail v) (tail w) in
+   let u∙w = dot (tail u) (tail w) in
+  dot (u [+] v) w ≡⟨By-Definition⟩
+  (head(u [+] v) * head w) + dot (tail(u [+] v)) (tail w) ≡⟨By-Definition⟩
+  ((head u + head v) * head w) + dot ((tail u [+] tail v)) (tail w)
+     ≡⟨ right _+_ (dotDistribute (tail w) (tail u) (tail v))⟩
+  ((head u + head v) * head w) + (u∙w + v∙w) ≡⟨ left _+_ (rDistribute (head w)(head u)(head v))⟩
+  ((head u * head w) + (head v * head w)) + (u∙w + v∙w)
+     ≡⟨ [ab][cd]≡[ac][bd] (head u * head w) (head v * head w) (u∙w) (v∙w)⟩
+  ((head u * head w) + u∙w) + ((head v * head w) + v∙w) ≡⟨By-Definition⟩
+  dot u w + dot v w ∎
+ 
+ dotlDistribute : (w u v : [ A ^ n ]) → dot w (u [+] v) ≡ dot w u + dot w v
+ dotlDistribute {n = Z} w u v = sym (rIdentity 0r)
+ dotlDistribute {n = S n} w u v =
+   let w∙v = dot (tail w) (tail v) in
+   let w∙u = dot (tail w) (tail u) in
+  (head w * head(u [+] v)) + dot (tail w) (tail(u [+] v))
+   ≡⟨ right _+_ (dotlDistribute (tail w) (tail u) (tail v))⟩
+  (head w * head(u [+] v)) + (dot (tail w) (tail u) + dot (tail w) (tail v))
+   ≡⟨ left _+_ (lDistribute (head w) (head u) (head v)) ⟩
+  ((head w * head u) + (head w * head v)) + (dot (tail w) (tail u) + dot (tail w) (tail v))
+   ≡⟨ [ab][cd]≡[ac][bd] (head w * head u) (head w * head v) w∙u w∙v ⟩
+  dot w u + dot w v ∎
+ 
+ dotScale : (c : A) → (u v : [ A ^ n ]) → dot (scale c u) v ≡ c * dot u v
+ dotScale {n = Z} c u v = sym (x*0≡0 c)
+ dotScale {n = S n} c u v =
+  dot (scale c u) v ≡⟨By-Definition⟩
+  (head(scale c u) * head v) + dot (tail(scale c u)) (tail v)
+  ≡⟨ right _+_ (dotScale {n = n} c (tail u) (tail v))⟩
+  (head(scale c u) * head v) + (c * dot (tail u) (tail v)) ≡⟨By-Definition⟩
+  ((c * head u) * head v) + (c * dot (tail u) (tail v))
+  ≡⟨ left _+_ (sym (assoc c (head u) (head v)))⟩
+  (c * (head u * head v)) + (c * dot (tail u) (tail v))
+  ≡⟨ sym (lDistribute c (head u * head v) (dot (tail u) (tail v)))⟩
+  c * ((head u * head v) + dot (tail u) (tail v)) ≡⟨By-Definition⟩
+  c * dot u v ∎
+ 
+ dotMatrix : ∀ n m
+            → (u : fin n → A)
+            → (M : Matrix A n m)
+            → (v : fin m → A)
+            → dot (λ y → dot v (λ x → M x y)) u ≡ dot v (λ x → dot (M x) u)
+ dotMatrix n Z u M v = dotZL u
+ dotMatrix n (S m) u M v =
+  dot (λ n' → dot v (λ m' → M m' n')) u ≡⟨By-Definition⟩
+  dot (λ n' → (head v * (head M) n') + dot (tail v) (tail λ m' → M m' n')) u ≡⟨By-Definition⟩
+  dot ((λ n' → (head v * (head M) n')) [+] (λ n' → dot (tail v) (λ m' → (tail M) m' n'))) u
+  ≡⟨ dotDistribute u (λ n' → (head v * head λ m' → M m' n')) (λ n' → dot (tail v) (λ m' → (tail M) m' n'))⟩
+  dot (scale (head v) (head M)) u + dot (λ n' → dot (tail v) (λ m' → (tail M) m' n')) u
+  ≡⟨ cong₂ _+_ (dotScale {n = n} (head v) (head M) u) (dotMatrix n m u (tail M) (tail v))⟩
+  (head v * dot (head M) u) + dot (tail v) (tail λ m' → dot (M m') u) ≡⟨By-Definition⟩
+  dot v (λ m' → dot (M m') u) ∎
+
+ _orthogonal-to_ : [ A ^ n ] → (W : [ A ^ n ] → Type l) → {{Subspace W}} → Type(l ⊔ al)
+ z orthogonal-to W = ∀ v → v ∈ W → orthogonal z v
+ 
+ orthogonal-complement : (W : [ A ^ n ] → Type l) → {{Subspace W}} → [ A ^ n ] → Type(l ⊔ al)
+ orthogonal-complement W z = z orthogonal-to W
+
+ -- The orthogonal complement of a subspace is a subspace
+ OC-subspace : (W : [ A ^ n ] → Type l) → {{SS : Subspace W}}
+             → Subspace (orthogonal-complement W)
+ OC-subspace {n = n} W = record
+    { ssZero = let H : ∀ v → v ∈ W → orthogonal Ô v
+                   H = λ v p → dotZL v in H
+    ; ssAdd = λ{u v} uPerp vPerp y yW →
+         dot (u [+] v) y   ≡⟨ dotDistribute y u v ⟩
+         dot u y + dot v y ≡⟨ left _+_ (uPerp y yW)⟩
+         0r + dot v y      ≡⟨ lIdentity (dot v y)⟩
+         dot v y           ≡⟨ vPerp y yW ⟩
+         0r ∎
+    ; ssScale = λ {v} x c u uW →
+       dot (scale c v) u ≡⟨ dotScale c v u ⟩
+       c * dot v u       ≡⟨ right _*_ (x u uW)⟩
+       c * 0r            ≡⟨ x*0≡0 c ⟩
+       0r ∎
+    ; ssSet = λ{v} (p q : ∀ u → u ∈ W → dot v u ≡ 0r)
+       → funExt λ u → funExt λ uW → IsSet (dot v u) 0r (p u uW) (q u uW)
+    }
 
 instance
  dotComm : {{R : Rng A}} {{Comm : Commutative (_*_ {{R .rng*+}})}} → Commutative (dot {n = n})
@@ -265,6 +278,10 @@ instance
        → dot u v ≡ dot v u
    aux {n = Z} u v = refl
    aux {n = S n} u v = cong₂ _+_ (comm (head u) (head v)) (aux (tail u) (tail v))
+
+-- Matrix Multiplication
+mMult : {{R : Rng A}} → (fin n → B → A) → (C → fin n → A) → C → B → A
+mMult M N c = MT M (N c)
 
 mMultAssoc : {{R : Ring A}}
            → (M : fin n → B → A)

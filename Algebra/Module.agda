@@ -47,7 +47,7 @@ module _{scalar : Type l}{vector : Type l'}{{R : Ring scalar}}{{V : Module vecto
   scaleVZ : (c : scalar) → scale c Ô ≡ Ô
   scaleVZ c =
     let H : scale c Ô [+] scale c Ô ≡ scale c Ô [+] Ô
-                            → scale c Ô ≡ Ô
+                        → scale c Ô ≡ Ô
         H = grp.cancel (scale c Ô) in H $
     scale c Ô [+] scale c Ô ≡⟨ sym (scalarDistribute c Ô Ô)⟩
     scale c (Ô [+] Ô)       ≡⟨ right scale (lIdentity Ô)⟩
@@ -97,12 +97,13 @@ module _{scalar : Type l}{vector : Type l'}{{R : Ring scalar}}{{V : Module vecto
   -- This is a more general definition that uses a module instead of a vector space
   record Subspace (X : vector → Type al) : Type (lsuc (al ⊔ l ⊔ l'))
     where field
-        ssZero : X Ô 
+        ssZero : Ô ∈ X 
         ssAdd : {v u : vector} → v ∈ X → u ∈ X → v [+] u ∈ X
         ssScale : {v : vector} → v ∈ X → (c : scalar) → scale c v ∈ X
         ssSet : {v : vector} → isProp (v ∈ X)
+  open Subspace {{...}} public
 
-  -- The span of a non-empty set of vectors is a subspace.
+  -- The span of a non-empty set of vectors is a subspace
   NonEmptySpanIsSubspace :{X : vector → Type l}
                         → Σ X
                         → Subspace (Span X)
