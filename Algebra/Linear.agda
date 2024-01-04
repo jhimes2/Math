@@ -45,6 +45,24 @@ module _{scalar : Type l}{{F : Field scalar}}{vector : Type l'}{{V : VectorSpace
     nullSpace : (T : vector' → vector) → {{TLM : LinearMap T}} → vector' → Type l'
     nullSpace T x = T x ≡ Ô
 
+    -- The null space is a subspace
+    nullSubspace : (T : vector' → vector) → {{TLM : LinearMap T}} → Subspace (nullSpace T)
+    nullSubspace T = record
+      { ssZero = modHomomorphismZ T
+      ; ssAdd = λ{v u} vNull uNull →
+        T (v [+] u) ≡⟨ addT v u ⟩
+        T v [+] T u ≡⟨ left _[+]_ vNull ⟩
+        Ô [+] T u   ≡⟨ lIdentity (T u)⟩
+        T u         ≡⟨ uNull ⟩
+        Ô ∎
+      ; ssScale = λ{v} vNull c →
+          T (scale c v) ≡⟨ multT v c ⟩
+          scale c (T v) ≡⟨ cong (scale c) vNull ⟩
+          scale c Ô     ≡⟨ scaleVZ c ⟩
+          Ô ∎
+      ; ssSet = λ{v} p q → IsSet (T v) Ô p q
+      }
+
 instance
     FieldToVectorSpace : {A : Type l} → {{F : Field A}} → VectorSpace A
     FieldToVectorSpace {A = A}  =
