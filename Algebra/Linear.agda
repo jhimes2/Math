@@ -16,8 +16,8 @@ module _{scalar : Type l}{{F : Field scalar}}{vector : Type l'}{{V : VectorSpace
   -- https://en.wikipedia.org/wiki/Linear_independence
   record LinearlyIndependent (X : vector → Type l) : Type (lsuc (l ⊔ l'))
     where field
-        -- ∀ v, v ∉ Span(X - {v})
-        linInd : (v : vector) → v ∉ Span (λ(x : vector) → (x ∈ X) × (v ≢ x))
+        -- ∀ v ∈ X, v ∉ Span(X - {v})
+        linInd : {v : vector} → v ∈ X → v ∉ Span (λ(x : vector) → (x ∈ X) × (v ≢ x))
         -- This is needed for the case that 'X' only contains the zero vector
         noZero : ¬ (Ô ∈ X)
   open LinearlyIndependent {{...}} public
@@ -64,8 +64,9 @@ module _{scalar : Type l}{{F : Field scalar}}{vector : Type l'}{{V : VectorSpace
       ; ssSet = λ{v} p q → IsSet (T v) Ô p q
       }
 
---    Col : 
---    nullSpace : (T : vector' → vector) → {{TLM : LinearMap T}} → vector' → Type l'
+    Col : (T : vector' → vector) → {{TLM : LinearMap T}} → vector → Type (al ⊔ l')
+    Col T v = ¬(¬ Σ λ u → T u ≡ v)
+
 instance
     FieldToVectorSpace : {A : Type l} → {{F : Field A}} → VectorSpace A
     FieldToVectorSpace {A = A}  =
