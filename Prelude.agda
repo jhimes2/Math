@@ -11,7 +11,7 @@ open import Cubical.Data.Empty public
 open import Cubical.Data.Sigma renaming (∃ to ∃') hiding (Σ ; I ; ∃!) public
 open import Cubical.HITs.PropositionalTruncation
                     renaming (map to map' ; rec to truncRec ; elim to truncElim)
-open import Cubical.Foundations.Powerset renaming (_∈_ to _∈'_) public
+open import Cubical.Foundations.Powerset renaming (_∈_ to _∈'_ ; _⊆_ to _⊆'_) public
 open import Cubical.Data.Sum hiding (elim ; rec ; map) renaming (_⊎_ to infix 2 _＋_) public
 open import Cubical.Foundations.HLevels
 
@@ -42,17 +42,6 @@ _~>_ : A → (A → B) → B
 a ~> f = f a
 infixl 0 _~>_
 
--- Explicitly exists
-Σ : {A : Type l} → (P : A → Type l') → Type(l ⊔ l')
-Σ {A = A} = Σ' A
-
--- Merely exists
-∃ : {A : Type l} → (P : A → Type l') → Type(l ⊔ l')
-∃ {A = A} = ∃' A
-
-∃! : {A : Type l} → (P : A → Type l') → Type(l ⊔ l')
-∃! {A = A} P = Σ λ x → P x × ∀ y → P y → x ≡ y
-
 record setMembership (A : Type al)(B : Type (lsuc bl)) : Type (al ⊔ lsuc bl) where
   field
    _∈_ : A → (A → B) → Type bl
@@ -71,13 +60,24 @@ instance
  multiset = record { _∈_ = _~>_ }
 
  -- Sets where every element within are unique
- uniset : {A : Type al} → setMembership A (hProp al)
- uniset = record { _∈_ = _∈'_ }
+ unisetSM : {A : Type al} → setMembership A (hProp al)
+ unisetSM = record { _∈_ = _∈'_ }
 
--- The support of a multiset 'X' is the underlying set of the multiset
-data Support{A : Type al}(X : A → Type l) : A → Type(al ⊔ l) where
-  supportIntro : ∀ x → x ∈ X → x ∈ Support X 
-  supportSet : ∀ x → isProp (x ∈ Support X)
+record Uniset {A : Type al} (P : A → Type l) : Type(al ⊔ l) where
+ field
+  uniset : ∀ x → isProp (P x)
+open Uniset {{...}} public
+
+-- Explicitly exists
+Σ : {A : Type l} → (P : A → Type l') → Type(l ⊔ l')
+Σ {A = A} = Σ' A
+
+-- Merely exists
+∃ : {A : Type l} → (P : A → Type l') → Type(l ⊔ l')
+∃ {A = A} = ∃' A
+
+∃! : {A : Type l} → (P : A → Type l') → Type(l ⊔ l')
+∃! {A = A} P = Σ λ x → P x × ∀ y → P y → x ≡ y
 
 modusTollens : (A → B) → ¬ B → ¬ A
 modusTollens f Bn a = Bn (f a)
@@ -242,19 +242,6 @@ transpose f x y = f y x
 
 transposeInvolution : (f : B → C → A) → transpose (transpose f) ≡ f
 transposeInvolution M = funExt λ x → funExt λ y → refl
-
-_∪_ : (A → hProp l) → (A → hProp l') → A → hProp (l ⊔ l')
-_∪_ f g = λ x → ∥ fst(f x) ＋ fst(g x) ∥₁ , squash₁
-infix 6 _∪_
-
-_∩_ : (A → hProp l) → (A → hProp l') → A → hProp (l ⊔ l')
-_∩_ f g = λ x → fst(f x) × fst(g x) , λ{(y , y') (z , z')
-              → cong₂ _,_ (snd (f x) y z) (snd (g x) y' z')}
-infix 7 _∩_
-
-_ᶜ : (A → hProp l) → (A → hProp l)
-f ᶜ = λ x → (¬ fst(f x)) , λ y z → funExt λ w → isProp⊥ (y w) (z w)
-infix 20 _ᶜ
 
 propExt : isProp A → isProp B → (A → B) → (B → A) → A ≡ B
 propExt pA pB ab ba = isoToPath (iso ab ba (λ b → pB (ab (ba b)) b) λ a → pA (ba (ab a)) a)

@@ -10,8 +10,8 @@ open import Algebra.Field
 -- https://en.wikipedia.org/wiki/Metric_space
 record Metric {A : Type al}{B : Type bl}
               {{F : Field A}}
-              {{OR : OrderedRng A}}
-              (d : B → B → A) : Type (lsuc (al ⊔ bl))
+              {{OR : OrderedRng l A}}
+              (d : B → B → A) : Type (lsuc (al ⊔ bl ⊔ l))
  where field
    dxy≡0→x≡y : ∀ {x} {y} → d x y ≡ 0r → x ≡ y
    x≡y→dxy≡0 : ∀ {x} {y} → x ≡ y → d x y ≡ 0r
@@ -20,7 +20,7 @@ record Metric {A : Type al}{B : Type bl}
 open Metric {{...}}
 
 module _{{F : Field A}}
-        {{OR : OrderedRng A}}
+        {{OR : OrderedRng l A}}
         (d : B → B → A)
         {{M : Metric d}}
         where
@@ -35,7 +35,7 @@ module _{{F : Field A}}
 
 instance
  -- absolute difference is a metric
- standardMetric : {{_ : Field A}}{{_ : OrderedRng A}} → Metric λ a b → abs (a - b)
+ standardMetric : {{_ : Field A}}{{_ : OrderedRng l A}} → Metric λ a b → abs (a - b)
  standardMetric =
   record
     { dxy≡0→x≡y = λ{x y} p →

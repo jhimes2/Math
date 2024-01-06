@@ -191,7 +191,7 @@ instance
     leAntiSymmetric : (a b : ℕ) → le a b → le b a → a ≡ b
     leAntiSymmetric Z Z p q = refl
     leAntiSymmetric (S a) (S b) p q = cong S (leAntiSymmetric a b p q)
-  totalOrderNat : TotalOrder ℕ
+  totalOrderNat : TotalOrder _ ℕ
   totalOrderNat = record { _≤_ = le
                          ; stronglyConnected = leStronglyConnected }
    where
@@ -273,7 +273,7 @@ NEqZ {a = Z} p = p refl ~> UNREACHABLE
 NEqZ {a = S a} _ = a , refl
 
 instance
-  WellOrderNat : WellOrder ℕ
+  WellOrderNat : WellOrder _ ℕ
   WellOrderNat = record { leastTerm = λ{P} PDec → aux PDec }
    where
     aux : {P : ℕ → Type} → (∀ n → P n ＋ ¬ P n) → Σ P → Σ λ x → P x × ∀ y → P y → x ≤ y

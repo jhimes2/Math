@@ -3,6 +3,8 @@
 module Algebra.Linear where
 
 open import Prelude
+open import Relations
+open import Set
 open import Algebra.Module public
 open import Algebra.Field public
 open import Cubical.Foundations.HLevels
@@ -16,18 +18,18 @@ module _{scalar : Type l}{{F : Field scalar}}{vector : Type l'}{{V : VectorSpace
   -- https://en.wikipedia.org/wiki/Linear_independence
   record LinearlyIndependent (X : vector → Type l) : Type (lsuc (l ⊔ l'))
     where field
-        -- ∀ v ∈ X, v ∉ Span(X - {v})
-        linInd : {v : vector} → v ∈ X → v ∉ Span (λ(x : vector) → (x ∈ X) × (v ≢ x))
+        linInd : ∀ Y → Span X ≡ Span Y → Y ⊆ X → Y ≡ X
         -- This is needed for the case that 'X' only contains the zero vector
         noZero : ¬ (Ô ∈ X)
   open LinearlyIndependent {{...}} public
 
   -- https://en.wikipedia.org/wiki/Basis_(linear_algebra)
-  record Basis (X : vector → Type l) : Type (lsuc l ⊔ lsuc l')
-    where field
-    overlap {{bLI}} : LinearlyIndependent X
-    maxLinInd : (x : vector) → x ∈ Span X
-  open Basis {{...}} hiding (bLI) public
+  -- A basis is defined as a minimal element of the family of linearly independent sets
+  -- by the order of set inclusion.
+  Basis : Σ LinearlyIndependent → Type (lsuc l ⊔ lsuc l')
+  Basis X = (Y : Σ LinearlyIndependent) → X ⊆ Y → X ≡ Y
+ 
+--  zornL : Σ λ(X : Σ LinearlyIndependent) → 
 
   record Basis_for_ (X : vector → Type l) (H : Σ Subspace) : Type (lsuc (l ⊔ l'))
     where field

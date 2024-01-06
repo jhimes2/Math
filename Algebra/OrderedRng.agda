@@ -7,15 +7,14 @@ open import Relations
 open import Algebra.Field
 open import Cubical.Foundations.HLevels
 
-record OrderedRng (A : Type l) {{ordrng : Rng A}} : Type (lsuc l) where
+record OrderedRng (l' : Level) (A : Type l) {{ordrng : Rng A}} : Type (lsuc (l' ⊔ l)) where
   field
-    {{totalOrd}} : TotalOrder A
+    {{totalOrd}} : TotalOrder l' A
     addLe : {a b : A} → a ≤ b → (c : A) → (a + c) ≤ (b + c) 
     multLt : {a b : A} → 0r < a → 0r < b → 0r < (a * b)
 open OrderedRng {{...}} public
 
-module ordered{{_ : Rng A}}{{_ : OrderedRng A}} where
-
+module ordered{{_ : Rng A}}{{_ : OrderedRng l A}} where
 
   subLe : {a b : A} → (c : A) → (a + c) ≤ (b + c) → a ≤ b
   subLe {a} {b} c p =
@@ -96,20 +95,20 @@ module ordered{{_ : Rng A}}{{_ : OrderedRng A}} where
   Negative = Σ λ (x : A) → 0r <  x
 
 instance
-  NZPreorder : {{G : Rng A}} → {{OR : OrderedRng A}} → Preorder λ ((a , _) (b , _) : nonZero) → a ≤ b
+  NZPreorder : {{G : Rng A}} → {{OR : OrderedRng l A}} → Preorder λ ((a , _) (b , _) : nonZero) → a ≤ b
   NZPreorder {A = A} = record
                 { transitive = transitive {A = A}
                 ; reflexive = reflexive {A = A}
                 ; isRelation = λ (a , _) (b , _) → isRelation a b }
-  NZPoset : {{G : Rng A}} → {{OR : OrderedRng A}} → Poset λ ((a , _) (b , _) : nonZero) → a ≤ b
+  NZPoset : {{G : Rng A}} → {{OR : OrderedRng l A}} → Poset λ ((a , _) (b , _) : nonZero) → a ≤ b
   NZPoset {A = A} =
      record { antiSymmetric = λ x y → Σ≡Prop (λ a b p → funExt λ x → b x ~> UNREACHABLE)
                                              (antiSymmetric x y)}
-  NZTotal : {{G : Rng A}} → {{OR : OrderedRng A}} → TotalOrder nonZero
+  NZTotal : {{G : Rng A}} → {{OR : OrderedRng l A}} → TotalOrder l nonZero
   NZTotal {A = A} = record { _≤_ = λ (a , _) (b , _) → a ≤ b
                            ; stronglyConnected = λ (a , _) (b , _) → stronglyConnected a b }
 
-module _{{_ : Field A}}{{OF : OrderedRng A}} where
+module _{{_ : Field A}}{{OF : OrderedRng l A}} where
 
   1≰0 : ¬(1r ≤ 0r)
   1≰0 contra =
@@ -174,7 +173,7 @@ module _{{_ : Field A}}{{OF : OrderedRng A}} where
     let H : 0r < ((a + a) * reciprocal 2f)
         H = multLt p (reciprocalLt 0<2) in transport (λ i → 0r < [a+a]/2≡a a i) H
 
-module _{{_ : Rng A}}{{_ : OrderedRng A}} where
+module _{{_ : Rng A}}{{_ : OrderedRng l A}} where
 
  private
   ABS : (a : A) → Σ λ b → (a ≤ 0r → neg a ≡ b) × (0r ≤ a → a ≡ b)

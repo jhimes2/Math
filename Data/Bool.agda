@@ -130,7 +130,7 @@ instance
     auxAS No Yes p q = q ~> UNREACHABLE
     auxAS No No p q = refl
 
-  boolTotalOrder : TotalOrder Bool
+  boolTotalOrder : TotalOrder _ Bool
   boolTotalOrder = record { _≤_ = le
         ; stronglyConnected = λ{ Yes Yes → inl tt ; Yes No → inr tt ; No b → inl tt}}
 

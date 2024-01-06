@@ -1,6 +1,7 @@
 {-# OPTIONS --allow-unsolved-metas --cubical --overlapping-instances #-}
 
 open import Prelude
+open import Relations
 open import Algebra.CRing
 open import Data.Natural
 open import Cubical.Foundations.Isomorphism
@@ -88,4 +89,31 @@ Schröder–Bernstein f (f' , finv) g (g' , ginv) = {!!}
 
 
 S1Equiv : Interval → Interval → Type
-S1Equiv i j = ?
+S1Equiv i j = {!!}
+
+test : (A : Type al) → ¬(¬ (¬(¬ A) → A))
+test A = implicitLEM A ¬¬= λ{ (yes p) y → y (λ _ → p) ; (no ¬p) y → {!!}}
+
+chain : {A : Type al} {_≤_ : A → A → Type} → {{_ : Poset _≤_}} → (A → Type al) → Type al
+chain {_≤_ = _≤_} C = ∀ a b → a ∈ C → b ∈ C → ¬(a ≤ b) → b ≤ a
+
+zorn' : {_≤_ : A → A → Type} → {{_ : Poset _≤_}}
+      → ((C : A → Type al) → chain C → Σ λ g → ∀ x → x ∈ C → g ≤ x → g ≡ x)
+      → ¬((x : A) → Σ λ g → x < g)
+zorn' {A = A} {_≤_ = _≤_} ch contra =
+  let x : A
+      x = {!!} in
+  let y : A
+      y = {!!} in
+  let H : x < y
+      H = {!!} in {!!}
+
+weakZorn : {_≤_ : A → A → Type} → {{_ : Poset _≤_}}
+     → ((C : A → Type al) → Σ λ g → ∀ x → x ∈ C → g ≤ x → g ≡ x)
+     → Σ λ g → ∀ x → g ≤ x → g ≡ x
+weakZorn {_≤_ = _≤_} ch = {!!} , {!!}
+
+zorn : {_≤_ : A → A → Type} → {{_ : Poset _≤_}}
+     → ((C : A → Type al) → chain C → Σ λ g → ∀ x → x ∈ C → g ≤ x → g ≡ x)
+     → ¬(¬ Σ λ g → ∀ x → g ≤ x → g ≡ x)
+zorn {_≤_ = _≤_} = {!!}

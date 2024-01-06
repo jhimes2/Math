@@ -85,6 +85,10 @@ module _{scalar : Type l}{vector : Type l'}{{R : Ring scalar}}{{V : Module vecto
     spanScale : {v : vector} → v ∈ Span X → (c : scalar) → scale c v ∈ Span X
     spanSet : {v : vector} → isProp (v ∈ Span X)
 
+  instance
+    spanIsSet : {X : vector → Type l} → Uniset (Span X)
+    spanIsSet = record { uniset = λ x y z → spanSet y z }
+
   spanIdempotent : (Span ∘ Span) ≡ Span {l}
   spanIdempotent = funExt λ X → funExt λ x → propExt spanSet spanSet (aux X x) intro
    where

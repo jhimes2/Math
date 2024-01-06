@@ -258,7 +258,7 @@ instance
            λ (a , b) (c , d) p q → eq/ (a , b) (c , d) (antiSymmetric {a = a + d} p q)
  
  -- Integer ≤ relation is a total order
- intLeTotalOrder : TotalOrder ℤ
+ intLeTotalOrder : TotalOrder _ ℤ
  intLeTotalOrder = record {
                      _≤_ = le 
                   ; stronglyConnected = λ a b → ℤDiscrete a b
