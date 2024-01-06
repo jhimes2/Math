@@ -15,22 +15,23 @@ VectorSpace vector = Module vector
 
 module _{scalar : Type l}{{F : Field scalar}}{vector : Type l'}{{V : VectorSpace vector}} where
 
+  {- I did not define 'linInd' as '∀ Y → Span X ≡ Span Y → Y ⊆ X → Y ≡ X'
+     because 'X' and 'Y' are multisets. -}
+
   -- https://en.wikipedia.org/wiki/Linear_independence
   record LinearlyIndependent (X : vector → Type l) : Type (lsuc (l ⊔ l'))
     where field
-        linInd : ∀ Y → Span X ≡ Span Y → Y ⊆ X → Y ≡ X
+        linInd : ∀ Y → Span X ≡ Span Y → Y ⊆ X → X ⊆ Y
         -- This is needed for the case that 'X' only contains the zero vector
         noZero : ¬ (Ô ∈ X)
   open LinearlyIndependent {{...}} public
 
   -- https://en.wikipedia.org/wiki/Basis_(linear_algebra)
-  -- A basis is defined as a minimal element of the family of linearly independent sets
+  -- A basis is defined as a maximal element of the family of linearly independent sets
   -- by the order of set inclusion.
-  Basis : Σ LinearlyIndependent → Type (lsuc l ⊔ lsuc l')
-  Basis X = (Y : Σ LinearlyIndependent) → X ⊆ Y → X ≡ Y
+  Basis : Σ LinearlyIndependent → Type(lsuc (l ⊔ l'))
+  Basis X = (Y : Σ LinearlyIndependent) → X ⊆ Y → Y ⊆ X
  
---  zornL : Σ λ(X : Σ LinearlyIndependent) → 
-
   record Basis_for_ (X : vector → Type l) (H : Σ Subspace) : Type (lsuc (l ⊔ l'))
     where field
     overlap {{bfLI}} : LinearlyIndependent X

@@ -4,6 +4,8 @@ module Algebra.Module where
 
 open import Prelude
 open import Algebra.CRing public
+open import Cubical.Foundations.Powerset renaming (_∈_ to _∈'_ ; _⊆_ to _⊆'_) public
+open import Cubical.Foundations.HLevels
 
 -- https://en.wikipedia.org/wiki/Module_(mathematics)
 -- Try not to confuse 'Module' with Agda's built-in 'module' keyword.
