@@ -19,8 +19,8 @@ Fin n = ℕ / λ x y → paste x n ≡ paste y n
 
 FinDiscrete : Discrete (Fin n)
 FinDiscrete {n = n} = discreteSetQuotients
- (BinaryRelation.equivRel (λ a → refl) (λ a b x → refl ∙ (sym x))
-   λ a b c x y → x ∙ y) λ a b → natDiscrete (paste a n) (paste b n)
+ (BinaryRelation.equivRel (λ a → refl) (λ a b x → refl ⋆ (sym x))
+   λ a b c x y → x ⋆ y) λ a b → natDiscrete (paste a n) (paste b n)
 
 instance
  FinIsSet : is-set (Fin n)
@@ -89,7 +89,7 @@ instance
            y + [ Z ] ≡⟨ comm y [ Z ] ⟩
            [ Z ] + y ≡⟨ lIdAux y ⟩
            y ∎)
-         λ a → [ fst (invAux a) ] , eq/ (fst(invAux a) + a) Z (snd(invAux a) ∙ sym(ZPaste n))
+         λ a → [ fst (invAux a) ] , eq/ (fst(invAux a) + a) Z (snd(invAux a) ⋆ sym(ZPaste n))
     ; lIdentity = lIdAux
     }
    where
@@ -99,8 +99,8 @@ instance
     invAux : (a : ℕ) → Σ λ(b : ℕ) → paste (b + a) n ≡ Z
     invAux Z = Z , ZPaste n
     invAux (S a) = invAux a
-       ~> λ{ (Z , p) → n , cong (λ x → paste x n) (Sout n a) ∙ pasteAdd a n ∙ p
-           ; (S r , p) → r , (cong (λ x → paste x n) (Sout r a) ∙ p) }
+       ~> λ{ (Z , p) → n , cong (λ x → paste x n) (Sout n a) ⋆ pasteAdd a n ⋆ p
+           ; (S r , p) → r , (cong (λ x → paste x n) (Sout r a) ⋆ p) }
 
   FinMultMonoid : monoid (FinMult {n = n})
   FinMultMonoid {n = n} =

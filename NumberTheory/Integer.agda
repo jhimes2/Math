@@ -26,7 +26,7 @@ instance
 
 dividesNeg : ∀ (n : ℕ)(a : ℤ) → n ∣ a → n ∣ neg a
 dividesNeg n = elimProp (λ _ → isProp→ squash₁) λ (a , b) → recTrunc squash₁ λ((d , G) : Σ λ d → (n - Z) * d ≡ [ a , b ]) →
-  ∣ neg d ,  x*-y≡-[x*y] (n - Z) d ∙ cong neg G ∣₁
+  ∣ neg d ,  x*-y≡-[x*y] (n - Z) d ⋆ cong neg G ∣₁
 
 dividesDecℤ : ∀ (n : ℕ)(a : ℤ) → Dec (n ∣ a)
 dividesDecℤ n = elimProp {!!} {!!}

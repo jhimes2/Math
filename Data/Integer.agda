@@ -93,7 +93,7 @@ multℤ = rec2 (IsSet)
 
 negℤ : ℤ → ℤ
 negℤ = QRec IsSet (λ(p , n) → [ n , p ])
-       λ (p1 , n1) (p2 , n2) r → eq/ (n1 , p1) (n2 , p2) ((comm n1 p2 ∙ sym r) ∙ comm p1 n2)
+       λ (p1 , n1) (p2 , n2) r → eq/ (n1 , p1) (n2 , p2) ((comm n1 p2 ⋆ sym r) ⋆ comm p1 n2)
 
 instance
  ℤComm : Commutative addℤ
@@ -107,7 +107,7 @@ instance
  ℤMultComm : Commutative multℤ
  ℤMultComm = record { comm = elimProp2 (λ x y → IsSet (multℤ x y) (multℤ y x))
     λ (p1 , n1) (p2 , n2) → cong [_] (≡-× (cong₂ add (comm p1 p2) (comm n1 n2))
-       ( comm (mult p1 n2) (mult n1 p2) ∙ cong₂ add (comm n1 p2) (comm p1 n2))) }
+       ( comm (mult p1 n2) (mult n1 p2) ⋆ cong₂ add (comm n1 p2) (comm p1 n2))) }
 
  ℤMultAssoc : Associative multℤ
  ℤMultAssoc = record { assoc = elimProp3 (λ x y z → IsSet (multℤ x (multℤ y z)) (multℤ (multℤ x y) z))
@@ -145,26 +145,26 @@ instance
   where
    lInv : (a : ℤ) → addℤ (negℤ a) a ≡ [ Z , Z ]
    lInv = elimProp (λ x → IsSet (addℤ (negℤ x) x) [ Z , Z ])
-      λ (p , n) → eq/ (add n p , add p n) (Z , Z) (addZ (add n p) ∙ comm n p)
+      λ (p , n) → eq/ (add n p , add p n) (Z , Z) (addZ (add n p) ⋆ comm n p)
 
  ℤMultMonoid : monoid multℤ
  ℤMultMonoid = record {
      e = [ S Z , Z ]
    ; lIdentity = lId
-   ; rIdentity = λ a → comm a [ S Z , Z ] ∙ lId a }
+   ; rIdentity = λ a → comm a [ S Z , Z ] ⋆ lId a }
   where
    lId : (a : ℤ) → multℤ [ S Z , Z ] a ≡ a
    lId = elimProp (λ x → IsSet (multℤ [ S Z , Z ] x) x)
-       λ (p , n) → cong [_] $ ≡-× (addZ (add p Z) ∙ addZ p)
-                                  (addZ (add n Z) ∙ addZ n)
+       λ (p , n) → cong [_] $ ≡-× (addZ (add p Z) ⋆ addZ p)
+                                  (addZ (add n Z) ⋆ addZ n)
 
  ℤ*+ : *+ ℤ
  ℤ*+ = record { _+_ = addℤ
               ; _*_ = multℤ
               ; lDistribute = aux2
               ; rDistribute = λ a b c → comm (addℤ b c) a
-                                      ∙ aux2 a b c
-                                      ∙ cong₂ addℤ (comm a b) (comm a c) }
+                                      ⋆ aux2 a b c
+                                      ⋆ cong₂ addℤ (comm a b) (comm a c) }
    where
     aux : (p1 p2 p3 n1 n2 n3 : ℕ) → (p1 * (p2 + p3)) + (n1 * (n2 + n3))
                                   ≡ ((p1 * p2) + (n1 * n2)) + ((p1 * p3) + (n1 * n3))

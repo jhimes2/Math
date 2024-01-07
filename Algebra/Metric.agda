@@ -41,15 +41,15 @@ instance
     { dxy≡0→x≡y = λ{x y} p →
      let H = absProperty (x - y) in
        stronglyConnected (x - y) 0r
-          ~> λ{ (inl q) → grp.invInjective (fst H q ∙ (p ∙ sym grp.lemma4))
+          ~> λ{ (inl q) → grp.invInjective (fst H q ⋆ (p ⋆ sym grp.lemma4))
                         ~> λ(G : (x - y ≡ 0r)) → grp.uniqueInv G
-              ; (inr q) → (snd H q ∙ p)
+              ; (inr q) → (snd H q ⋆ p)
                         ~> λ(G : x - y ≡ 0r) → grp.uniqueInv G}
     ; x≡y→dxy≡0 = λ {a b} p → let H = absProperty (a - b) in
         stronglyConnected (a - b) 0r
-         ~> λ{ (inr q) → snd H q ~> λ G → sym G ∙ transport (λ i → (a - p i) ≡ 0r) (rInverse a)
-             ; (inl q) → fst H q ~> λ G → sym G ∙ grp.invInjective (grp.doubleInv (a - b)
-                    ∙ transport (λ i → (a - p i) ≡ 0r) (rInverse a) ∙ sym grp.lemma4) }
+         ~> λ{ (inr q) → snd H q ~> λ G → sym G ⋆ transport (λ i → (a - p i) ≡ 0r) (rInverse a)
+             ; (inl q) → fst H q ~> λ G → sym G ⋆ grp.invInjective (grp.doubleInv (a - b)
+                    ⋆ transport (λ i → (a - p i) ≡ 0r) (rInverse a) ⋆ sym grp.lemma4) }
     ; dxy≡dyx = λ x y → abs (x - y)             ≡⟨ sym (absNeg (x - y))⟩
                         abs (neg (x - y))       ≡⟨ cong abs (sym (grp.lemma1 x (neg y)))⟩
                         abs ((neg (neg y) - x)) ≡⟨ cong abs (left _-_ (grp.doubleInv y))⟩
@@ -89,7 +89,8 @@ instance
          λ z≤x → absDiffHelper {P = λ a → (x - z) ≤ (a + abs (y - z))} x y
           (λ x≤y → absDiffHelper {P = λ a → (x - z) ≤ ((y - x) + a)} y z
             (λ y≤z → let H : y ≡ x
-                         H = antiSymmetric (transitive {a = y} y≤z z≤x) x≤y in transport (λ i → (H i - z) ≤ ((y - H i) + (z - y)))
+                         H = antiSymmetric (transitive {a = y} y≤z z≤x) x≤y
+                     in transport (λ i → (H i - z) ≤ ((y - H i) + (z - y)))
                  $ transport (right _≤_ $ sym ([aa']b≡b y (z - y)))
                  $ let G : y ≡ z
                        G = antiSymmetric y≤z (transitive {a = z} z≤x x≤y)

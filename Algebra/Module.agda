@@ -165,8 +165,8 @@ module _ {scalar : Type l}{{R : Ring scalar}}
                → {{SLT : moduleHomomorphism R}}
                → moduleHomomorphism (R ∘ T)
   modHomomorphismComp R =
-     record { addT = λ u v → cong R (addT u v) ∙ addT (T u) (T v)
-            ; multT = λ u c → cong R (multT u c) ∙ multT (T u) c }
+     record { addT = λ u v → cong R (addT u v) ⋆ addT (T u) (T v)
+            ; multT = λ u c → cong R (multT u c) ⋆ multT (T u) c }
 
 -- Bad name. I don't know what else to call this theorem.
 week7 : {{CR : CRing A}} → {{V : Module B}}

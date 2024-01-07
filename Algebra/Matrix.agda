@@ -113,9 +113,6 @@ instance
  vectVS : {A : Type l}{B : Type l'} → {{F : Field A}} → VectorSpace (B → A)
  vectVS = vectMod
 
-private
-  _⋆_ = _∙_
-
 foldrMC : {_∙_ : A → A → A}{{M : monoid _∙_}}{{C : Commutative _∙_}} → (u v : [ A ^ n ])
      → foldr _∙_ e (zip _∙_ u v) ≡ foldr _∙_ e u ∙ foldr _∙_ e  v
 foldrMC {n = Z} u v = sym(lIdentity e)
@@ -345,7 +342,7 @@ MTID {n = S (S n)} v (S x , y , p) =
       let R' : dot (tail v) (λ z → I z (x , y , SInjective p)) ≡ tail v (x , y , SInjective p)
           R' = MTID (tail v) (x , y , SInjective p) in
       let R : dot (tail v) (I (x , y , SInjective p)) ≡ tail v (x , y , SInjective p)
-          R = cong (λ a → dot (tail v) (a (x , y , SInjective p))) idTranspose ∙ R' in
+          R = cong (λ a → dot (tail v) (a (x , y , SInjective p))) idTranspose ⋆ R' in
  MT I v (S x , y , p) ≡⟨By-Definition⟩
  dot v (λ z → I z (S x , y , p)) ≡⟨ cong (λ a → dot v (λ z → a z (S x , y , p))) idTranspose ⟩
  dot v (I (S x , y , p)) ≡⟨By-Definition⟩

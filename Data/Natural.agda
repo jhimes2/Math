@@ -29,7 +29,7 @@ addZ (S n) = cong S (addZ n)
 
 addCom : (a b : ℕ) → add a b ≡ add b a
 addCom a Z = addZ a
-addCom a (S b) = (Sout a b) ∙ (cong S (addCom a b))
+addCom a (S b) = Sout a b ⋆ cong S (addCom a b)
 
 addAssoc : (a b c : ℕ) → add a (add b c) ≡ add (add a b) c
 addAssoc Z b c = refl
@@ -119,22 +119,22 @@ instance
    where
     multComAux : (a b : ℕ) → mult a b ≡ mult b a
     multComAux a Z = multZ a
-    multComAux a (S b) = addOut a b ∙ cong (add a) (multComAux a b)
+    multComAux a (S b) = addOut a b ⋆ cong (add a) (multComAux a b)
   multAssoc : Associative mult
   multAssoc = record { assoc = multAssocAux }
    where
     multAssocAux : (a b c : ℕ) → mult a (mult b c) ≡ mult (mult a b) c
     multAssocAux Z b c = refl
     multAssocAux (S a) b c = cong (add (mult b c)) (multAssocAux a b c)
-                             ∙ NatMultDist b (mult a b) c
+                             ⋆ NatMultDist b (mult a b) c
   NatMultMonoid : monoid mult
   NatMultMonoid = record { e = (S Z)
                          ; lIdentity = addZ
-                         ; rIdentity = λ a → comm a (S Z) ∙ addZ a
+                         ; rIdentity = λ a → comm a (S Z) ⋆ addZ a
                          }
 
 natRId : (n : ℕ) → mult n (S Z) ≡ n
-natRId n = (comm n (S Z)) ∙ (addZ n)
+natRId n = comm n (S Z) ⋆ addZ n
 
 NatMultDist2 : (a b c : ℕ) → mult c (add a b) ≡ add (mult c a) (mult c b)
 NatMultDist2 a b c = mult c (add a b) ≡⟨ comm c (add a b)⟩
@@ -151,7 +151,7 @@ instance
              ; rDistribute = λ a b c → sym (NatMultDist b c a) }
 
 natRCancel : {a b : ℕ} → (c : ℕ) → a + c ≡ b + c → a ≡ b
-natRCancel {a} {b} c p = natLCancel c (comm c a ∙ p ∙ comm b c)
+natRCancel {a} {b} c p = natLCancel c (comm c a ⋆ p ⋆ comm b c)
 
 multCancel : (a b m : ℕ) → a * S m ≡ b * S m → a ≡ b
 multCancel Z Z m p = refl
@@ -159,7 +159,7 @@ multCancel Z (S b) m p = ZNotS p ~> UNREACHABLE
 multCancel (S a) Z m p = ZNotS (sym p) ~> UNREACHABLE
 multCancel (S a) (S b) m p = cong S
       let p = SInjective p in
-      multCancel a b m (natRCancel m (comm (a * S m) m ∙ p ∙ comm m (b * S m)))
+      multCancel a b m (natRCancel m (comm (a * S m) m ⋆ p ⋆ comm m (b * S m)))
 
 private
     le : ℕ → ℕ → Type
@@ -244,11 +244,11 @@ ltS (S a) (S b) (a≤b , a≢b) = ltS a b (a≤b , (λ x → a≢b (cong S x)))
 
 isLe : (x y : ℕ) → (x ≤ y) ＋ (Σ λ(z : ℕ) → x ≡ S (z + y))
 isLe Z Z = inl tt
-isLe (S x) Z = inr (x , cong S (sym (addZ x)) ∙ sym refl)
+isLe (S x) Z = inr (x , cong S (sym (addZ x)) ⋆ sym refl)
 isLe Z (S y) = inl tt
 isLe (S x) (S y) with (isLe x y)
 ...              | (inl l) = inl l
-...              | (inr (r , p)) = inr (r , cong S let q = Sout r y in p ∙ sym q)
+...              | (inr (r , p)) = inr (r , cong S let q = Sout r y in p ⋆ sym q)
 
 natSC : (a b : ℕ) → a ≤ b ＋ S b ≤ a
 natSC Z _ = inl tt

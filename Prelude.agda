@@ -4,7 +4,7 @@ open import Agda.Primitive public
 open import Cubical.Core.Everything renaming (Σ to Σ'; I to Interval) public
 open import Cubical.Foundations.Prelude
     hiding (Σ)
-    renaming (I to Interval ; congL to left ; congR to right ; _≡⟨⟩_ to _≡⟨By-Definition⟩_ ) public
+    renaming (I to Interval ; congL to left ; congR to right ; _≡⟨⟩_ to _≡⟨By-Definition⟩_ ; _∙_ to _⋆_) public
 open import Cubical.Relation.Nullary public
 open import Cubical.Data.Unit renaming (Unit to ⊤) public
 open import Cubical.Data.Empty public
@@ -198,7 +198,7 @@ surjectiveComp : (Σ λ(f : A → B) → surjective f)
                → (Σ λ(g : B → C) → surjective g)
                → (Σ λ(h : A → C) → surjective h)
 surjectiveComp (f , f') (g , g') = g ∘ f , λ b → g' b ~> λ(x , x')
-                  → f' x ~> λ(y , y') → y , (cong g y' ∙ x')
+                  → f' x ~> λ(y , y') → y , (cong g y' ⋆ x')
 
 -- This is used to define symmetric groups
 bijectiveComp : (Σ λ(f : A → B) → bijective f)
@@ -217,7 +217,7 @@ rightInverse {A = A} {B} f = Σ λ (h : B → A) → (x : B) → f (h x) ≡ x
 
 -- If a function has a left inverse, then it is injective
 lInvToInjective : {f : A → B} → leftInverse f → injective f
-lInvToInjective (g , g') x y p = sym (g' x) ∙ (cong g p) ∙ (g' y)
+lInvToInjective (g , g') x y p = sym (g' x) ⋆ (cong g p) ⋆ (g' y)
   
 -- If a function has a right inverse, then it is surjective
 rInvToSurjective : {f : A → B} → rightInverse f → surjective f
@@ -341,7 +341,7 @@ bijectiveProp f = λ (Finj1 , Fsurj1) (Finj2 , Fsurj2)
     let G : Fsurj1 ≡ Fsurj2
         G = funExt λ x →
             let F : fst (Fsurj1 x) ≡ fst (Fsurj2 x)
-                F = Finj1 (fst (Fsurj1 x)) (fst (Fsurj2 x)) (snd (Fsurj1 x) ∙ sym (snd (Fsurj2 x))) in
+                F = Finj1 (fst (Fsurj1 x)) (fst (Fsurj2 x)) (snd (Fsurj1 x) ⋆ sym (snd (Fsurj2 x))) in
                  ΣPathPProp (λ a → IsSet (f a) x) F in λ i → H i , G i
 
 instance

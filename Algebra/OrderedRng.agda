@@ -163,7 +163,7 @@ module _{{_ : Field A}}{{OF : OrderedRng l A}} where
   reciprocalLt {a = a} p = let a' = (a , λ x → snd p (sym x)) in flipNeg λ contra
     → let G : 0r < (a * neg (reciprocal a'))
           G = multLt p $ (ordered.lemma2 contra ~> transport (λ i → grp.lemma4 i ≤ neg (reciprocal a')))
-                    , λ x → grp.invInjective (grp.lemma4 ∙ x)
+                    , λ x → grp.invInjective (grp.lemma4 ⋆ x)
                          ~> λ(F : 0r ≡ reciprocal a') → x⁻¹≢0 a' (sym F) in
           transport (λ i → 0r ≤ x*-y≡-[x*y] a (reciprocal a') i) (fst G)
           ~> transport (λ i → 0r ≤ neg(recInv a' i)) ~> 0≰-1
@@ -214,8 +214,8 @@ module _{{_ : Rng A}}{{_ : OrderedRng l A}} where
      ~> λ{(inl q) → let r : 0r ≤ neg a
                         r = ordered.lemma2 q ~> transport (λ i → grp.lemma4 i ≤ neg a)
                      in (snd (absProperty (neg a)) r
-                     ~> (λ G → refl ∙ sym G)) ∙ fst H q
+                     ~> (λ G → refl ⋆ sym G)) ⋆ fst H q
         ; (inr q) → let r : neg a ≤ 0r
                         r = ordered.lemma2 q ~> transport (λ i → neg a ≤ grp.lemma4 i)
                      in ((fst (absProperty (neg a)) r)
-                     ~> (λ G → (refl ∙ sym G) ∙ (grp.doubleInv a))) ∙ snd H q}
+                     ~> (λ G → refl ⋆ sym G ⋆ grp.doubleInv a)) ⋆ snd H q}

@@ -99,7 +99,7 @@ module _{A : Type l}{{R : Rng A}} where
     0r                  ≡⟨ sym (rInverse (x * y))⟩
     (x * y) + neg(x * y) ∎
   
-  x*-y≡-[x*y] = sym -x*y≡x*-y ∙ -x*y≡-[x*y]
+  x*-y≡-[x*y] = sym -x*y≡x*-y ⋆ -x*y≡-[x*y]
  
  -x*-y≡x*y = λ(x y : A) →
    neg x * neg y  ≡⟨ -x*y≡x*-y x (neg y)⟩

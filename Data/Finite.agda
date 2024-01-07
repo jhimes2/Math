@@ -20,7 +20,7 @@ fin n = Σ (λ m → Σ λ s → add (S m) s ≡ n)
 
 finSndIsProp : (a : ℕ) → isProp(Σ λ s → S a + s ≡ n)
 finSndIsProp {n = n} a (x , x') (y , y') =
-   let H = natLCancel (S a) (y' ∙ sym x') in ΣPathPProp (λ b → IsSet (S (a + b)) n) (sym H)
+   let H = natLCancel (S a) (y' ⋆ sym x') in ΣPathPProp (λ b → IsSet (S (a + b)) n) (sym H)
 
 finZ : fin (S n)
 finZ {n = n} = Z , n , refl

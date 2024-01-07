@@ -5,9 +5,6 @@ module Algebra.Group where
 open import Prelude
 open import Algebra.Monoid public
 
-private
-  _⋆_ = _∙_
-
 -- https://en.wikipedia.org/wiki/Group_(mathematics)
 record group {A : Type l}(_∙_ : A → A → A) : Type(lsuc l) where
   field

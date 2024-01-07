@@ -47,14 +47,13 @@ private
                         let H : S b * q ≡ Z
                             H = (S b * q ≡⟨ cong (S b *_) x ⟩
                                  S b * Z ≡⟨ multZ b ⟩
-                                 Z ∎) in (x' ∙ left add H)
+                                 Z ∎) in (x' ⋆ left add H)
                      ; (no x) → NEqZ x ~> λ(h , f) →
-                                let x' = a ≡⟨ x' ∙ left _+_ (comm (S b) q) ⟩
+                                let x' = a ≡⟨ x' ⋆ left _+_ (comm (S b) q) ⟩
                                          mult q (S b) + r ≡⟨ left _+_ (left _*_ f) ⟩
                                          (S b + mult h (S b)) + r ≡⟨ sym (assoc (S b) (h * S b) r) ⟩
                                          S b + (mult h (S b) + r) ∎ in
                                      leSNEq a (b + (mult h (S b) + r)) (leAdd2 a b (mult h (S b) + r) p) x' ~> UNREACHABLE}
- 
  
  divJump : (b x : ℕ) → divProp b x → divProp b (S(x + b))
  divJump b = λ a ((q , r) , (a≡q+b*q+r , r≤b) , y)
@@ -211,10 +210,10 @@ instance
     antisymmetric : (a b : ℕ) → a ∣ b → b ∣ a → a ≡ b
     antisymmetric Z b x y = recTrunc (IsSet Z b)
         (λ((x , p) : Σ λ x → x * Z ≡ b) → recTrunc (IsSet Z b)
-        (λ((y , q) : Σ λ y → y * b ≡ Z) → sym (multZ x) ∙ p) y) x
+        (λ((y , q) : Σ λ y → y * b ≡ Z) → sym (multZ x) ⋆ p) y) x
     antisymmetric (S a) Z x y = recTrunc (IsSet (S a) Z)
         (λ((x , p) : Σ λ x → x * S a ≡ Z) → recTrunc (IsSet (S a) Z)
-        (λ((y , q) : Σ λ y → y * Z ≡ S a) → ZNotS (sym (multZ y) ∙ q) ~> UNREACHABLE) y) x
+        (λ((y , q) : Σ λ y → y * Z ≡ S a) → ZNotS (sym (multZ y) ⋆ q) ~> UNREACHABLE) y) x
     antisymmetric (S a) (S b) x' y' = recTrunc (IsSet (S a) (S b))
         (λ((x , p) : Σ λ x → x * S a ≡ S b) → recTrunc (IsSet (S a) (S b))
         (λ((y , q) : Σ λ y → y * S b ≡ S a) →
@@ -258,14 +257,14 @@ cutS a b = isLe (S b + a) b
     ; (inr (r , p)) →
  SInjective p ~> λ q → 
  let D : a ≡ r
-     D = natLCancel b (q ∙ comm r b) in
+     D = natLCancel b (q ⋆ comm r b) in
  let F : inr (r , p) ≡ (isLe (S b + a) b)
      F = ＋≡ (λ (x , p) (y , q) → ΣPathPProp (λ t u v → IsSet (S (add b a)) (S (add t b)) u v)
-             let u = SInjective(sym p ∙ q) in natRCancel b u)
+             let u = SInjective(sym p ⋆ q) in natRCancel b u)
              (leAddN a b) (r , p) (isLe (S (add b a)) b) in
  let G : inr (a , cong S (comm b a)) ≡ inr (r , p)
      G = cong inr (ΣPathPProp (λ c → IsSet (S (add b a)) (S(add c b))) D) in
-  let E = G ∙ F in
+  let E = G ⋆ F in
          fst (fst (jumpInductionAux (divProp b) b (S b + a) (isLe (S b + a) b)(divBase b) (divJump b) ))
         ≡⟨ cong (λ x → fst (fst (jumpInductionAux (divProp b) b (S b + a) x (divBase b) (divJump b) ))) (sym E)  ⟩
          fst (fst (jumpInductionAux (divProp b) b (S b + a) (inr (a , cong S (comm b a))) (divBase b) (divJump b)))
@@ -279,14 +278,14 @@ pasteAdd a b = isLe (S b + a) b
     ; (inr (r , p)) →
  SInjective p ~> λ q → 
  let D : a ≡ r
-     D = natLCancel b (q ∙ comm r b) in
+     D = natLCancel b (q ⋆ comm r b) in
  let F : inr (r , p) ≡ (isLe (S b + a) b)
      F = ＋≡ (λ (x , p) (y , q) → ΣPathPProp (λ t u v → IsSet (S (add b a)) (S (add t b)) u v)
-             let u = SInjective(sym p ∙ q) in natRCancel b u)
+             let u = SInjective(sym p ⋆ q) in natRCancel b u)
              (leAddN a b) (r , p) (isLe (S (add b a)) b) in
  let G : inr (a , cong S (comm b a)) ≡ inr (r , p)
      G = cong inr (ΣPathPProp (λ c → IsSet (S (add b a)) (S(add c b))) D) in
-  let E = G ∙ F in
+  let E = G ⋆ F in
          snd (fst (jumpInductionAux (divProp b) b (S b + a) (isLe (S b + a) b)(divBase b) (divJump b) ))
         ≡⟨ cong (λ x → snd (fst (jumpInductionAux (divProp b) b (S b + a) x (divBase b) (divJump b) ))) (sym E)  ⟩
          snd (fst (jumpInductionAux (divProp b) b (S b + a) (inr (a , cong S (comm b a))) (divBase b) (divJump b)))
@@ -295,7 +294,7 @@ pasteAdd a b = isLe (S b + a) b
          }
 
 pasteAdd2 : (a b : ℕ) → paste (S a + b) b ≡ paste a b
-pasteAdd2 a b = cong (λ x → paste (S x) b) (comm a b) ∙ pasteAdd a b
+pasteAdd2 a b = cong (λ x → paste (S x) b) (comm a b) ⋆ pasteAdd a b
 
 ZCut : ∀ a → cut Z a ≡ Z
 ZCut a = let H = cutLemma Z a in
@@ -311,7 +310,7 @@ ZPaste a =
   Z ∎
 
 cutCopy : (a b : ℕ) → cut (copy a b) a ≡ b
-cutCopy a Z = left cut (multZ (S a)) ∙ ZCut a
+cutCopy a Z = left cut (multZ (S a)) ⋆ ZCut a
 cutCopy a (S b) =
  cut (copy a (S b)) a       ≡⟨ cong (λ x → cut x a) (comm (S a) (S b))⟩
  cut (S a + mult b (S a)) a ≡⟨ cong (λ x → cut (S a + x) a) (comm b (S a))⟩
@@ -320,7 +319,7 @@ cutCopy a (S b) =
  S b ∎          
 
 pasteCopy : (b r : ℕ) → paste (copy b r) b ≡ Z
-pasteCopy b Z = left paste (multZ (S b)) ∙ ZPaste b
+pasteCopy b Z = left paste (multZ (S b)) ⋆ ZPaste b
 pasteCopy b (S r) =
  paste (copy b (S r)) b       ≡⟨ cong (λ(x : ℕ) → paste x b) (comm (S b) (S r))⟩
  paste (S b + mult r (S b)) b ≡⟨ pasteAdd (mult r (S b)) b ⟩
@@ -356,7 +355,7 @@ pasteAB≢0→SB∤A a b = modusTollens (SB∣A→pasteAB≡0 a b)
 dividesDec : (a b : ℕ) → Dec (a ∣ b)
 dividesDec Z Z = yes ∣ Z , refl ∣₁
 dividesDec Z (S b) = no (λ x → recTrunc (λ x → x ~> UNREACHABLE)
-    (λ(x , p) → ZNotS (sym (multZ x) ∙ p)) x)
+    (λ(x , p) → ZNotS (sym (multZ x) ⋆ p)) x)
 dividesDec (S a) b = let H = cutLemma b a in
        natDiscrete (paste b a) Z
  ~> λ{ (yes p) → yes $ ∣_∣₁ $ cut b a
@@ -413,51 +412,51 @@ pasteSaa a = paste (S a) a     ≡⟨ cong (λ x → paste x a) (sym (addZ (S a)
 
 pasteLemma : {n : ℕ} → (a : ℕ) → paste (S a) n ≡ Z → paste a n ≡ n
 pasteLemma {n = n} = jumpInduction (λ x → paste (S x) n ≡ Z → paste x n ≡ n) n
-  (λ a a≤n p → pasteLeId {a} a≤n ∙ (pasteAB≡0→SB∣A (S a) n p ~> recTrunc (IsSet a n)
+  (λ a a≤n p → pasteLeId {a} a≤n ⋆ (pasteAB≡0→SB∣A (S a) n p ~> recTrunc (IsSet a n)
     λ{ (Z , q) → ZNotS q ~> UNREACHABLE
-    ; (S Z , q) → SInjective (sym q ∙ cong S (lIdentity n))
+    ; (S Z , q) → SInjective (sym q ⋆ cong S (lIdentity n))
     ; (S (S x) , q) → SInjective q ~> λ q → transport (λ i → q (~ i) ≤ n) a≤n
       ~> transport (λ i → Sout n (n + (x * S n)) i ≤ n)
       ~> λ r → leAddN (add n (mult x (S n))) n r ~> UNREACHABLE}))
-      λ a jump p → pasteAdd2 a n ∙ jump (sym (pasteAdd2 (S a) n) ∙ p)
+      λ a jump p → pasteAdd2 a n ⋆ jump (sym (pasteAdd2 (S a) n) ⋆ p)
 
 pasteLemma2 : {n : ℕ} → (a b : ℕ) → paste (S a) n ≡ S b → paste a n ≡ b
 pasteLemma2 {n} a b = jumpInduction (λ x → paste (S x) n ≡ S b → paste x n ≡ b) n
-     (λ a a≤n p → pasteLeId {a} a≤n ∙ (natDiscrete a n
-       ~> λ{(yes q) → ZNotS (sym (pasteSaa a) ∙ cong (λ x → paste (S a) x) q ∙ p) ~> UNREACHABLE
-          ; (no q) → ltS a n (a≤n , q) ~> λ r → SInjective (sym (pasteLeId {S a} {n} r) ∙ p)}))
-     (λ a jump p →  pasteAdd2 a n ∙ jump (sym (pasteAdd2 (S a) n) ∙ p)) a
+     (λ a a≤n p → pasteLeId {a} a≤n ⋆ (natDiscrete a n
+       ~> λ{(yes q) → ZNotS (sym (pasteSaa a) ⋆ cong (λ x → paste (S a) x) q ⋆ p) ~> UNREACHABLE
+          ; (no q) → ltS a n (a≤n , q) ~> λ r → SInjective (sym (pasteLeId {S a} {n} r) ⋆ p)}))
+     (λ a jump p →  pasteAdd2 a n ⋆ jump (sym (pasteAdd2 (S a) n) ⋆ p)) a
 
 pasteS : {n : ℕ} → (a b : ℕ) → paste a n ≡ paste b n → paste (S a) n ≡ paste (S b) n
 pasteS {n = n} a b = jumpInduction (λ x → paste x n ≡ paste b n → paste (S x) n ≡ paste (S b) n)
   n (λ k p → jumpInduction (λ y → paste k n ≡ paste y n → paste (S k) n ≡ paste (S y) n)
     n (λ c q r → let H : k ≡ c
-                     H = sym(pasteLeId {k} p) ∙ r ∙ pasteLeId {c} q in
+                     H = sym(pasteLeId {k} p) ⋆ r ⋆ pasteLeId {c} q in
                  cong (λ x → paste x n) (cong S H))
-                 (λ x y q → paste (S k) n  ≡⟨ y (q ∙ pasteAdd2 x n)⟩
+                 (λ x y q → paste (S k) n  ≡⟨ y (q ⋆ pasteAdd2 x n)⟩
                             paste (S x) n  ≡⟨ sym (pasteAdd2 (S x) n)⟩
                             paste (S(S(x + n))) n ∎) b)
-                 (λ x y p → pasteAdd2 (S x) n ∙ y (sym (pasteAdd2 x n) ∙ p)) a
+                 (λ x y p → pasteAdd2 (S x) n ⋆ y (sym (pasteAdd2 x n) ⋆ p)) a
 
 pasteS2 : {n : ℕ} → (a b : ℕ) → paste (S a) n ≡ paste (S b) n → paste a n ≡ paste b n
 pasteS2 {n} = jumpInduction
                (λ a → ∀ b → paste (S a) n ≡ paste (S b) n → paste a n ≡ paste b n)
                n (λ a a≤n b p → natDiscrete a n
-                 ~> λ{(yes q) → cong (paste a) (sym q) ∙ pasteLeId {a} (reflexive {a = a})
-                          ∙ let H = paste (S b) a ≡⟨ cong (paste (S b)) q ⟩
+                 ~> λ{(yes q) → cong (paste a) (sym q) ⋆ pasteLeId {a} (reflexive {a = a})
+                          ⋆ let H = paste (S b) a ≡⟨ cong (paste (S b)) q ⟩
                                     paste (S b) n ≡⟨ sym p ⟩
                                     paste (S a) n ≡⟨ cong (paste (S a)) (sym q)⟩
                                     paste (S a) a ≡⟨ pasteSaa a ⟩
                                     Z ∎ in
                             let G : paste b a ≡ a
-                                G = pasteLemma b H in sym G ∙ cong (paste b) q
+                                G = pasteLemma b H in sym G ⋆ cong (paste b) q
                     ; (no q) → ltS a n (a≤n , q)
                       ~> λ r → let H = paste (S b) n ≡⟨ sym p ⟩
                                        paste (S a) n ≡⟨ pasteLeId {S a} {n} r ⟩
                                        S a ∎ in
                                let G = pasteLemma2 {n} b a H
-                               in pasteLeId a≤n ∙ sym G})
-                 λ a jump b p → pasteAdd2 a n ∙ jump b (sym (pasteAdd2 (S a) n) ∙ p)
+                               in pasteLeId a≤n ⋆ sym G})
+                 λ a jump b p → pasteAdd2 a n ⋆ jump b (sym (pasteAdd2 (S a) n) ⋆ p)
 
 -- compatibility with translation
 translation : {a b n : ℕ} → paste a n ≡ paste b n → (k : ℕ) → paste (k + a) n ≡ paste (k + b) n
@@ -470,19 +469,19 @@ translation2 {a}{b}{n} (S k) congr = translation2 k (pasteS2 (k + a) (k + b) con
 
 -- compatibility with scaling
 scaling : {a b n : ℕ} → paste a n ≡ paste b n → (k : ℕ) → paste (a * k) n ≡ paste (b * k) n
-scaling  {Z} {Z} {n} congr k = ZPaste n ∙ sym (ZPaste n)
-scaling {Z} {S b} {n} congr k = pasteAB≡0→SB∣A (S b) n (sym(sym(ZPaste n) ∙ congr))
+scaling  {Z} {Z} {n} congr k = ZPaste n ⋆ sym (ZPaste n)
+scaling {Z} {S b} {n} congr k = pasteAB≡0→SB∣A (S b) n (sym(sym(ZPaste n) ⋆ congr))
    ~> recTrunc (IsSet (paste Z n) (paste (copy b k) n))
-    λ(r , q) → ZPaste n ∙ sym (SB∣A→pasteAB≡0 (copy b k) n ∣ (r * k) ,
+    λ(r , q) → ZPaste n ⋆ sym (SB∣A→pasteAB≡0 (copy b k) n ∣ (r * k) ,
                              ((r * k) * S n ≡⟨ [ab]c≡[ac]b r k (S n)⟩
                               (r * S n) * k ≡⟨ left _*_ q ⟩
                               copy b k ∎) ∣₁)
-scaling {S a} {Z} {n} congr k = pasteAB≡0→SB∣A (S a) n (congr ∙ ZPaste n)
+scaling {S a} {Z} {n} congr k = pasteAB≡0→SB∣A (S a) n (congr ⋆ ZPaste n)
      ~> recTrunc (IsSet (paste (add k (mult a k)) n) (paste Z n))
        λ(x , q) → SB∣A→pasteAB≡0 (copy a k) n ∣ (x * k) ,
                   ((x * k) * S n ≡⟨ [ab]c≡[ac]b x k (S n) ⟩
                    (x * S n) * k ≡⟨ left _*_ q ⟩
-                   copy a k ∎) ∣₁ ∙ sym (ZPaste n)
+                   copy a k ∎) ∣₁ ⋆ sym (ZPaste n)
 scaling {S a} {S b} {n} congr k = translation (scaling {a} {b} {n} (pasteS2 {n = n} a b congr) k) k
 
 pasteSideAdd2 : (a b c : ℕ) → paste (a + paste b c) c ≡ paste (a + b) c
@@ -498,7 +497,7 @@ pasteSideAdd2 a b c = jumpInduction (λ b → paste (a + paste b c) c ≡ paste 
 
 pasteSideAdd : (a b c : ℕ) → paste (paste b c + a) c ≡ paste (b + a) c
 pasteSideAdd a b c = cong (λ(x : ℕ) → paste x c) (comm (paste b c) a)
-                    ∙ pasteSideAdd2 a b c ∙ cong (λ(x : ℕ) → paste x c) (comm a b) 
+                    ⋆ pasteSideAdd2 a b c ⋆ cong (λ(x : ℕ) → paste x c) (comm a b) 
 
 pasteIdempotent : (a b : ℕ) → paste (paste a b) b ≡ paste a b
 pasteIdempotent a b = pasteSideAdd2 Z a b
@@ -535,6 +534,3 @@ exponentiation {a} {b} {n} p (S c) =
     ≡⟨ cong (λ x → paste x n) (cong₂ _*_ p (exponentiation p c)) ⟩
   paste (paste b n * paste (pow b c) n) n ≡⟨ pasteMultBoth b (pow b c) n ⟩
   paste (b * pow b c) n ∎
-
--- Euclid's-Lemma : (a b n : ℕ) → gcd a b ≡ S Z → a ∣ copy b n → a ∣ n
--- Euclid's-Lemma a b n coprime p = p >>= λ(x , p) → ∣ {!!} , {!!} ∣₁
