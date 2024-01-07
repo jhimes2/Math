@@ -21,7 +21,7 @@ module _{scalar : Type l}{{F : Field scalar}}{vector : Type l'}{{V : VectorSpace
     where field
         linInd : ∀ Y → Span X ≡ Span Y → Y ⊆ X → X ⊆ Y
         noZero : ¬ (Ô ∈ X) -- This is needed for the case that 'X' only contains the zero vector
-        {{LIUniset}} : Uniset X
+        {{LISet}} : Property X
   open LinearlyIndependent {{...}} public
 
   -- https://en.wikipedia.org/wiki/Basis_(linear_algebra)

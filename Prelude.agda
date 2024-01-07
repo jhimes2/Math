@@ -38,27 +38,6 @@ _~>_ : A → (A → B) → B
 a ~> f = f a
 infixl 0 _~>_
 
-record setMembership (A : Type al)(B : Type (lsuc bl)) : Type (al ⊔ lsuc bl) where
-  field
-   _∈_ : A → (A → B) → Type bl
-_∈_ : {B : Type (lsuc bl)} {{X : setMembership A B}} → A → (A → B) → Type bl
-_∈_ {{X}} = setMembership._∈_ X
-infixr 5 _∈_
-
-_∉_ : {B : Type (lsuc bl)} {{_ : setMembership A B}} → A → (A → B) → Type bl
-_∉_ a X = ¬(a ∈ X)
-infixr 5 _∉_
-
-instance
- -- https://en.wikipedia.org/wiki/Multiset
- -- Multisets are just functions that return types
- multiset : setMembership A (Type bl)
- multiset = record { _∈_ = _~>_ }
-
- -- Sets where every element within are unique
- unisetSM : {A : Type al} → setMembership A (hProp al)
- unisetSM = record { _∈_ = _∈'_ }
-
 -- Explicitly exists
 Σ : {A : Type l} → (P : A → Type l') → Type(l ⊔ l')
 Σ {A = A} = Σ' A

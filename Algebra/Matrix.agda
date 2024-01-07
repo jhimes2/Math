@@ -3,6 +3,7 @@
 module Algebra.Matrix where
 
 open import Prelude
+open import Relations
 open import Algebra.Linear
 open import Data.Natural
 open import Data.Finite

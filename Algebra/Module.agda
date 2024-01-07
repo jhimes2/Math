@@ -3,10 +3,9 @@
 module Algebra.Module where
 
 open import Prelude
+open import Relations
 open import Set
 open import Algebra.CRing public
-open import Cubical.Foundations.Powerset renaming (_∈_ to _∈'_ ; _⊆_ to _⊆'_) public
-open import Cubical.Foundations.HLevels
 
 -- https://en.wikipedia.org/wiki/Module_(mathematics)
 -- Try not to confuse 'Module' with Agda's built-in 'module' keyword.
@@ -89,8 +88,8 @@ module _{scalar : Type l}{vector : Type l'}{{R : Ring scalar}}{{V : Module vecto
     spanSet : {v : vector} → isProp (v ∈ Span X)
 
   instance
-    spanIsSet : {X : vector → Type l} → Uniset (Span X)
-    spanIsSet = record { uniset = λ x y z → spanSet y z }
+    spanIsSet : {X : vector → Type l} → Property (Span X)
+    spanIsSet = record { setProp = λ x y z → spanSet y z }
 
   spanIdempotent : (Span ∘ Span) ≡ Span {l}
   spanIdempotent = funExt λ X → funExt λ x → propExt spanSet spanSet (aux X x) intro

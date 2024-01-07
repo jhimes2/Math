@@ -8,19 +8,21 @@ open import Cubical.Foundations.Powerset renaming (_∈_ to _∈'_ ; _⊆_ to _�
 open import Cubical.Foundations.HLevels
 open import Cubical.HITs.PropositionalTruncation renaming (rec to recTrunc)
 
+
+-- A set defined by a property
+record Property {A : Type al} (P : A → Type l) : Type(al ⊔ l) where
+ field
+  setProp : ∀ x → isProp (P x)
+open Property {{...}} public
+
 -- The support of a multiset 'X' is the underlying set of the multiset
 data Support{A : Type al}(X : A → Type l) : A → Type(al ⊔ l) where
   supportIntro : ∀ x → x ∈ X → x ∈ Support X 
-  supportSet : ∀ x → isProp (x ∈ Support X)
-
-record Uniset {A : Type al} (P : A → Type l) : Type(al ⊔ l) where
- field
-  uniset : ∀ x → isProp (P x)
-open Uniset {{...}} public
+  supportProp : ∀ x → isProp (x ∈ Support X)
 
 instance
- supportUniset : {X : A → Type l} → Uniset (Support X)
- supportUniset = record { uniset = λ x → supportSet x }
+ supportSet : {X : A → Type l} → Property (Support X)
+ supportSet = record { setProp = λ x → supportProp x }
 
 _∪_ : (A → hProp l) → (A → hProp l') → A → hProp (l ⊔ l')
 _∪_ f g = λ x → ∥ fst(f x) ＋ fst(g x) ∥₁ , squash₁

@@ -3,6 +3,7 @@
 module Algebra.Group where
 
 open import Prelude
+open import Relations
 open import Algebra.Monoid public
 
 -- https://en.wikipedia.org/wiki/Group_(mathematics)

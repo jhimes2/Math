@@ -1,8 +1,30 @@
 {-# OPTIONS --cubical --safe --overlapping-instances #-}
 
 open import Prelude
+open import Cubical.Foundations.HLevels
 
 module Relations where
+
+record setMembership (A : Type al)(B : Type (lsuc bl)) : Type (al ⊔ lsuc bl) where
+  field
+   _∈_ : A → (A → B) → Type bl
+_∈_ : {B : Type (lsuc bl)} {{X : setMembership A B}} → A → (A → B) → Type bl
+_∈_ {{X}} = setMembership._∈_ X
+infixr 5 _∈_
+
+_∉_ : {B : Type (lsuc bl)} {{_ : setMembership A B}} → A → (A → B) → Type bl
+_∉_ a X = ¬(a ∈ X)
+infixr 5 _∉_
+
+instance
+ -- https://en.wikipedia.org/wiki/Multiset
+ -- Multisets are just functions that return types
+ multiset : setMembership A (Type bl)
+ multiset = record { _∈_ = _~>_ }
+
+ -- Sets where every element within are unique
+ unisetSM : {A : Type al} → setMembership A (hProp al)
+ unisetSM = record { _∈_ = _∈'_ }
 
 -- https://en.wikipedia.org/wiki/Preorder
 record Preorder {A : Type al} (_≤_ : A → A → Type l) : Type (lsuc (l ⊔ al))
