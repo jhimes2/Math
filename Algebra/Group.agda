@@ -5,6 +5,9 @@ module Algebra.Group where
 open import Prelude
 open import Algebra.Monoid public
 
+private
+  _⋆_ = _∙_
+
 -- https://en.wikipedia.org/wiki/Group_(mathematics)
 record group {A : Type l}(_∙_ : A → A → A) : Type(lsuc l) where
   field
@@ -191,7 +194,7 @@ groupIsProp {A = A} _∙_ G1 G2 i =
            F = let Inv1 = G1 .inverse a in
                let Inv2 = G2 .inverse a in
                let H : fst Inv1 ≡ fst Inv2
-                   H = grp.lcancel ⦃ G1 ⦄ a (eqTrans (snd Inv1) (sym (eqTrans (snd Inv2) (sym E)))) in
+                   H = grp.lcancel ⦃ G1 ⦄ a ((snd Inv1) ⋆ (sym ((snd Inv2) ⋆ (sym E)))) in
                let G : PathP (λ j → H j ∙ a ≡ E j) (snd Inv1) (snd Inv2)
                    G = toPathP set in ΣPathP (H , G)
            in F i

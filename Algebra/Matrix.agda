@@ -113,12 +113,15 @@ instance
  vectVS : {A : Type l}{B : Type l'} → {{F : Field A}} → VectorSpace (B → A)
  vectVS = vectMod
 
+private
+  _⋆_ = _∙_
+
 foldrMC : {_∙_ : A → A → A}{{M : monoid _∙_}}{{C : Commutative _∙_}} → (u v : [ A ^ n ])
      → foldr _∙_ e (zip _∙_ u v) ≡ foldr _∙_ e u ∙ foldr _∙_ e  v
 foldrMC {n = Z} u v = sym(lIdentity e)
 foldrMC {n = S n} {_∙_ = _∙_} u v =
-      eqTrans (right _∙_ (foldrMC {n = n} (tail u) (tail v))) ([ab][cd]≡[ac][bd] (head u)
-                   (head v) (foldr _∙_ e (tail u)) (foldr _∙_ e (tail v)))
+      right _∙_ (foldrMC {n = n} (tail u) (tail v)) ⋆ [ab][cd]≡[ac][bd] (head u)
+                   (head v) (foldr _∙_ e (tail u)) (foldr _∙_ e (tail v))
 
 instance
 -- Matrix transformation over a ring is a module homomorphism.

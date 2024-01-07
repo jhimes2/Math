@@ -30,9 +30,9 @@ module _{{F : Field A}} where
    let H : a * reciprocal (a , p) ≡ a * 0r 
        H = right _*_ contra in
    let G : 1r ≡ a * 0r 
-       G = eqTrans (sym (recInv (a , p))) H in
+       G = sym (recInv (a , p)) ∙ H in
    let F : 1r ≡ 0r 
-       F = eqTrans G (x*0≡0 a) in oneNotZero F
+       F = G ∙ (x*0≡0 a) in oneNotZero F
  
  -- Multiplying two nonzero values gives a nonzero value
  nonZeroMult : (a b : nonZero) → (fst a * fst b) ≢ 0r 
@@ -47,7 +47,7 @@ module _{{F : Field A}} where
            (reciprocal (a , a') * a) * b ≡⟨ sym (assoc (reciprocal (a , a')) a b)⟩
            (reciprocal (a , a')) * (a * b) ∎ in
    let contradiction : b ≡ 0r 
-       contradiction = eqTrans F (eqTrans H G)
+       contradiction = F ∙ H ∙ G
        in b' contradiction
  
  NZMult : nonZero → nonZero → nonZero

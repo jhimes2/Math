@@ -29,7 +29,7 @@ addZ (S n) = cong S (addZ n)
 
 addCom : (a b : ℕ) → add a b ≡ add b a
 addCom a Z = addZ a
-addCom a (S b) = eqTrans (Sout a b) (cong S (addCom a b))
+addCom a (S b) = (Sout a b) ∙ (cong S (addCom a b))
 
 addAssoc : (a b c : ℕ) → add a (add b c) ≡ add (add a b) c
 addAssoc Z b c = refl
@@ -119,18 +119,18 @@ instance
    where
     multComAux : (a b : ℕ) → mult a b ≡ mult b a
     multComAux a Z = multZ a
-    multComAux a (S b) = eqTrans (addOut a b) (cong (add a) (multComAux a b))
+    multComAux a (S b) = addOut a b ∙ cong (add a) (multComAux a b)
   multAssoc : Associative mult
   multAssoc = record { assoc = multAssocAux }
    where
     multAssocAux : (a b c : ℕ) → mult a (mult b c) ≡ mult (mult a b) c
     multAssocAux Z b c = refl
-    multAssocAux (S a) b c = eqTrans (cong (add (mult b c)) (multAssocAux a b c))
-                                     (NatMultDist b (mult a b) c)
+    multAssocAux (S a) b c = cong (add (mult b c)) (multAssocAux a b c)
+                             ∙ NatMultDist b (mult a b) c
   NatMultMonoid : monoid mult
   NatMultMonoid = record { e = (S Z)
                          ; lIdentity = addZ
-                         ; rIdentity = λ a → eqTrans (comm a (S Z)) (addZ a)
+                         ; rIdentity = λ a → comm a (S Z) ∙ addZ a
                          }
 
 natRId : (n : ℕ) → mult n (S Z) ≡ n
@@ -244,11 +244,11 @@ ltS (S a) (S b) (a≤b , a≢b) = ltS a b (a≤b , (λ x → a≢b (cong S x)))
 
 isLe : (x y : ℕ) → (x ≤ y) ＋ (Σ λ(z : ℕ) → x ≡ S (z + y))
 isLe Z Z = inl tt
-isLe (S x) Z = inr (x , eqTrans (cong S (sym (addZ x))) (sym refl))
+isLe (S x) Z = inr (x , cong S (sym (addZ x)) ∙ sym refl)
 isLe Z (S y) = inl tt
 isLe (S x) (S y) with (isLe x y)
 ...              | (inl l) = inl l
-...              | (inr (r , p)) = inr (r , cong S let q = Sout r y in eqTrans p (sym q))
+...              | (inr (r , p)) = inr (r , cong S let q = Sout r y in p ∙ sym q)
 
 natSC : (a b : ℕ) → a ≤ b ＋ S b ≤ a
 natSC Z _ = inl tt

@@ -32,9 +32,6 @@ id x = x
 _≢_ : {A : Type l} → A → A → Type l 
 a ≢ b = ¬(a ≡ b)
 
-eqTrans : {x y z : A} → x ≡ y → y ≡ z → x ≡ z
-eqTrans = _∙_
-
 -- Pipe Operator
 -- Equivalent to `|>` in F#
 _~>_ : A → (A → B) → B
@@ -136,12 +133,6 @@ _>>=_ {m = m} mA p = μ (map p mA)
 _<*>_ : {m : Type l → Type l} → {{Monad m}} → m (A → B) → m A → m B
 _<*>_ {m = m} mf mA = mf >>= λ f → map f mA
 
-tcomp : (f : B → C) → (g : A → B) → (x : ∥ A ∥₁) → map' (f ∘ g) x ≡ (map' f ∘ map' g) x
-tcomp f g x = squash₁ (map' (f ∘ g) x) ((map' f ∘ map' g) x)
-
-truncNeg : ¬ ∥ A ∥₁ → ¬ A
-truncNeg = λ z z₁ → z ∣ z₁ ∣₁
-
 instance
   -- Double-negation is a functor and monad
   dnFunctor : Functor (implicit {l = l})
@@ -226,7 +217,7 @@ rightInverse {A = A} {B} f = Σ λ (h : B → A) → (x : B) → f (h x) ≡ x
 
 -- If a function has a left inverse, then it is injective
 lInvToInjective : {f : A → B} → leftInverse f → injective f
-lInvToInjective (g , g') x y p = eqTrans (sym (g' x)) (eqTrans (cong g p) (g' y))
+lInvToInjective (g , g') x y p = sym (g' x) ∙ (cong g p) ∙ (g' y)
   
 -- If a function has a right inverse, then it is surjective
 rInvToSurjective : {f : A → B} → rightInverse f → surjective f
@@ -243,9 +234,6 @@ embedding f = ∀ y → isProp (fiber f y)
 
 transpose : (B → C → A) → (C → B → A)
 transpose f x y = f y x
-
-transposeInvolution : (f : B → C → A) → transpose (transpose f) ≡ f
-transposeInvolution M = funExt λ x → funExt λ y → refl
 
 propExt : isProp A → isProp B → (A → B) → (B → A) → A ≡ B
 propExt pA pB ab ba = isoToPath (iso ab ba (λ b → pB (ab (ba b)) b) λ a → pA (ba (ab a)) a)
