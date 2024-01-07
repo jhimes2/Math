@@ -248,7 +248,7 @@ funRed p x i = p i x
 
 -- https://en.wikipedia.org/wiki/Image_(mathematics)
 image : {A : Type al}{B : Type bl} → (A → B) → B → Type (al ⊔ bl)
-image f b = ∃ λ a → b ≡ f a
+image f b = ∃ λ a → f a ≡ b
 
 record Associative {A : Type l}(_∙_ : A → A → A) : Type(lsuc l) where
   field

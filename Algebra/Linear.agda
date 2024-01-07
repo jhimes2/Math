@@ -8,6 +8,7 @@ open import Set
 open import Algebra.Module public
 open import Algebra.Field public
 open import Cubical.Foundations.HLevels
+open import Cubical.HITs.PropositionalTruncation renaming (rec to truncRec)
 
 --https://en.wikipedia.org/wiki/Vector_space
 VectorSpace : {scalar : Type l} → {{F : Field scalar}} → (vector : Type l') → Type (lsuc (l ⊔ l'))
@@ -15,15 +16,12 @@ VectorSpace vector = Module vector
 
 module _{scalar : Type l}{{F : Field scalar}}{vector : Type l'}{{V : VectorSpace vector}} where
 
-  {- I did not define 'linInd' as '∀ Y → Span X ≡ Span Y → Y ⊆ X → Y ≡ X'
-     because 'X' and 'Y' are multisets. -}
-
   -- https://en.wikipedia.org/wiki/Linear_independence
   record LinearlyIndependent (X : vector → Type l) : Type (lsuc (l ⊔ l'))
     where field
         linInd : ∀ Y → Span X ≡ Span Y → Y ⊆ X → X ⊆ Y
-        -- This is needed for the case that 'X' only contains the zero vector
-        noZero : ¬ (Ô ∈ X)
+        noZero : ¬ (Ô ∈ X) -- This is needed for the case that 'X' only contains the zero vector
+        {{LIUniset}} : Uniset X
   open LinearlyIndependent {{...}} public
 
   -- https://en.wikipedia.org/wiki/Basis_(linear_algebra)
@@ -46,11 +44,11 @@ module _{scalar : Type l}{{F : Field scalar}}{vector : Type l'}{{V : VectorSpace
     LinearMap T = moduleHomomorphism T
 
     -- https://en.wikipedia.org/wiki/Kernel_(linear_algebra)
-    nullSpace : (T : vector' → vector) → {{TLM : LinearMap T}} → vector' → Type l'
-    nullSpace T x = T x ≡ Ô
+    Null : (T : vector' → vector) → {{TLM : LinearMap T}} → vector' → Type l'
+    Null T x = T x ≡ Ô
 
     -- The null space is a subspace
-    nullSubspace : (T : vector' → vector) → {{TLM : LinearMap T}} → Subspace (nullSpace T)
+    nullSubspace : (T : vector' → vector) → {{TLM : LinearMap T}} → Subspace (Null T)
     nullSubspace T = record
       { ssZero = modHomomorphismZ T
       ; ssAdd = λ{v u} vNull uNull →
@@ -67,19 +65,38 @@ module _{scalar : Type l}{{F : Field scalar}}{vector : Type l'}{{V : VectorSpace
       ; ssSet = λ{v} p q → IsSet (T v) Ô p q
       }
 
-    Col : (T : vector' → vector) → {{TLM : LinearMap T}} → vector → Type (al ⊔ l')
-    Col T v = ¬(¬ Σ λ u → T u ≡ v)
+    -- Actually a generalization of a column space
+    Col : (T : vector' → vector) → {{_ : LinearMap T}} → vector → Type (al ⊔ l')
+    Col T = image T
+
+    -- The column space is a subspace
+    colSubspace : (T : vector' → vector) → {{TLM : LinearMap T}} → Subspace (Col T)
+    colSubspace T = record
+      { ssZero = ∣ Ô , modHomomorphismZ T ∣₁
+      ; ssAdd = λ{v u} vCol uCol →
+         vCol >>= λ(v' , vCol) →
+         uCol >>= λ(u' , uCol) → η $ (v' [+] u') ,
+         (T (v' [+] u') ≡⟨ addT v' u' ⟩
+          T v' [+] T u' ≡⟨ left _[+]_ vCol ⟩
+          v [+] T u'    ≡⟨ right _[+]_ uCol ⟩
+          v [+] u ∎)
+      ; ssScale = λ{v} vCol c →
+         vCol >>= λ(v' , vCol) → η $ (scale c v') ,
+         (T (scale c v') ≡⟨ multT v' c ⟩
+          scale c (T v') ≡⟨ cong (scale c) vCol ⟩
+          scale c v ∎)
+      ; ssSet = λ{v : vector} → squash₁
+      }
 
 instance
     FieldToVectorSpace : {A : Type l} → {{F : Field A}} → VectorSpace A
-    FieldToVectorSpace {A = A}  =
-      record {
-              _[+]_ = _+_
-            ; scale = _*_
-            ; scalarDistribute = lDistribute
-            ; vectorDistribute = rDistribute
-            ; scalarAssoc = λ a b c → assoc b c a
-            ; scaleId = lIdentity
+    FieldToVectorSpace {A = A} = record
+      { _[+]_ = _+_
+      ; scale = _*_
+      ; scalarDistribute = lDistribute
+      ; vectorDistribute = rDistribute
+      ; scalarAssoc = λ a b c → assoc b c a
+      ; scaleId = lIdentity
       }
 
 linearForm : {A : Type l}{vector : Type l'}{{F : Field A}}(VS : VectorSpace vector) → Type (l ⊔ l')
