@@ -250,14 +250,14 @@ funRed p x i = p i x
 image : {A : Type al}{B : Type bl} → (A → B) → B → Type (al ⊔ bl)
 image f b = ∃ λ a → b ≡ f a
 
-record Associative {A : Type l}(f : A → A → A) : Type(lsuc l) where
+record Associative {A : Type l}(_∙_ : A → A → A) : Type(lsuc l) where
   field
-      assoc : (a b c : A) → f a (f b c) ≡ f (f a b) c
+      assoc : (a b c : A) → a ∙ (b ∙ c) ≡ (a ∙ b) ∙ c
 open Associative {{...}} public
 
 record Commutative {A : Type l}{B : Type l'}(_∙_ : A → A → B) : Type(lsuc (l ⊔ l')) where
   field
-    comm : (a b : A) → _∙_ a b ≡ _∙_ b a
+    comm : (a b : A) → a ∙ b ≡ b ∙ a
 open Commutative {{...}} public
 
 -- Trivial associative and commutative proofs
