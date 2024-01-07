@@ -3,6 +3,7 @@
 module Algebra.Module where
 
 open import Prelude
+open import Set
 open import Algebra.CRing public
 open import Cubical.Foundations.Powerset renaming (_∈_ to _∈'_ ; _⊆_ to _⊆'_) public
 open import Cubical.Foundations.HLevels

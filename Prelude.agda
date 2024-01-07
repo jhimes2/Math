@@ -59,11 +59,6 @@ instance
  unisetSM : {A : Type al} → setMembership A (hProp al)
  unisetSM = record { _∈_ = _∈'_ }
 
-record Uniset {A : Type al} (P : A → Type l) : Type(al ⊔ l) where
- field
-  uniset : ∀ x → isProp (P x)
-open Uniset {{...}} public
-
 -- Explicitly exists
 Σ : {A : Type l} → (P : A → Type l') → Type(l ⊔ l')
 Σ {A = A} = Σ' A
