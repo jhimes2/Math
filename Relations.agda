@@ -4,6 +4,7 @@ open import Prelude
 
 module Relations where
 
+-- https://en.wikipedia.org/wiki/Preorder
 record Preorder {A : Type al} (_≤_ : A → A → Type l) : Type (lsuc (l ⊔ al))
   where field
    transitive : {a b c : A} → (a ≤ b) → (b ≤ c) → (a ≤ c)
@@ -14,6 +15,7 @@ open Preorder {{...}} public
 eqToLe : {_≤_ : A → A → Type l} → {{_ : Preorder _≤_}} → {a b : A} → a ≡ b → a ≤ b
 eqToLe {_≤_ = _≤_} {a = a} p = transport (λ i → a ≤ p i) reflexive
 
+-- https://en.wikipedia.org/wiki/Partially_ordered_set
 record Poset {A : Type l}(_≤_ : A → A → Type al) : Type (lsuc (l ⊔ al))
   where field
    {{partpre}} : Preorder _≤_
@@ -30,6 +32,7 @@ a<b→b≤c→a≢c : {_≤_ : A → A → Type l} {{O : Poset _≤_}} → {a b 
 a<b→b≤c→a≢c {_≤_ = _≤_} {a = a} {b} {c} (q , p) b<c contra = p
      $ antiSymmetric q $ transport (λ i → b ≤ contra (~ i)) b<c
 
+-- https://en.wikipedia.org/wiki/Total_order
 record TotalOrder (l : Level) (A : Type al) : Type (lsuc (l ⊔ al))
   where field
    _≤_ : A → A → Type l
@@ -50,6 +53,7 @@ flipNeg {{TO}} {a = a} {b} p = (stronglyConnected a b
    aux : {{TO : TotalOrder al A}} → {a b : A} → ¬(b ≤ a) → a ≢ b
    aux {a = a} {b} = modusTollens (λ x → transport (λ i → x i ≤ a) (reflexive {a = a}))
 
+-- https://en.wikipedia.org/wiki/Well-order
 record WellOrder (l : Level) (A : Type al) : Type (lsuc (l ⊔ al))
   where field
    {{welltotal}} : TotalOrder l A

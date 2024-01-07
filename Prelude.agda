@@ -235,7 +235,12 @@ rInvToSurjective (rInv , r') = λ b → rInv b , r' b
 equiv : (A : Type l)(B : Type l') → Type (l ⊔ l')
 equiv A B = Σ λ (f : A → B) → injective f × surjective f
 
--- Left side of a dependent pair.
+fiber : {A : Type al}{B : Type bl} → (A → B) → B → Type(al ⊔ bl)
+fiber f y = Σ λ x → f x ≡ y
+
+embedding : {A : Type al}{B : Type bl} → (A → B) → Type(al ⊔ bl)
+embedding f = ∀ y → isProp (fiber f y)
+
 transpose : (B → C → A) → (C → B → A)
 transpose f x y = f y x
 

@@ -91,9 +91,6 @@ Schröder–Bernstein f (f' , finv) g (g' , ginv) = {!!}
 S1Equiv : Interval → Interval → Type
 S1Equiv i j = {!!}
 
-test : (A : Type al) → ¬(¬ (¬(¬ A) → A))
-test A = implicitLEM A ¬¬= λ{ (yes p) y → y (λ _ → p) ; (no ¬p) y → {!!}}
-
 chain : {A : Type al} {_≤_ : A → A → Type} → {{_ : Poset _≤_}} → (A → Type al) → Type al
 chain {_≤_ = _≤_} C = ∀ a b → a ∈ C → b ∈ C → ¬(a ≤ b) → b ≤ a
 
@@ -116,4 +113,15 @@ weakZorn {_≤_ = _≤_} ch = {!!} , {!!}
 zorn : {_≤_ : A → A → Type} → {{_ : Poset _≤_}}
      → ((C : A → Type al) → chain C → Σ λ g → ∀ x → x ∈ C → g ≤ x → g ≡ x)
      → ¬(¬ Σ λ g → ∀ x → g ≤ x → g ≡ x)
-zorn {_≤_ = _≤_} = {!!}
+zorn {A = A} {_≤_ = _≤_} = let H = implicitLEM A in λ x y → H (λ y → {!!})
+
+test2 : Dec ((A : Type al) → Dec A)
+test2 {al} = no λ x → (implicitLEM (Dec ((A : Type al) → Dec A))) ~> λ{x → {!!}}
+
+DNElimF : ¬ ((l : Level) → (A : Type) → ¬(¬ A) → A)
+DNElimF dn =
+  let f = dn lzero Bool in
+  let isEq : (A : Type) → Discrete A
+      isEq = {!!}
+  in  {!!}
+
