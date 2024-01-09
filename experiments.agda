@@ -124,4 +124,3 @@ DNElimF dn =
   let isEq : (A : Type) → Discrete A
       isEq = {!!}
   in  {!!}
-

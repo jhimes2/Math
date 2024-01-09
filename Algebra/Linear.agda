@@ -10,27 +10,26 @@ open import Algebra.Field public
 open import Cubical.Foundations.HLevels
 open import Cubical.HITs.PropositionalTruncation renaming (rec to truncRec)
 
---https://en.wikipedia.org/wiki/Vector_space
+-- https://en.wikipedia.org/wiki/Vector_space
 VectorSpace : {scalar : Type l} → {{F : Field scalar}} → (vector : Type l') → Type (lsuc (l ⊔ l'))
 VectorSpace vector = Module vector
 
 module _{scalar : Type l}{{F : Field scalar}}{vector : Type l'}{{V : VectorSpace vector}} where
 
   -- https://en.wikipedia.org/wiki/Linear_independence
-  record LinearlyIndependent (X : vector → Type l) : Type (lsuc (l ⊔ l'))
+  record LinearlyIndependent (X : vector → Type(l ⊔ l')) : Type (lsuc (l ⊔ l'))
     where field
-        linInd : ∀ Y → Span X ≡ Span Y → Y ⊆ X → X ⊆ Y
-        noZero : ¬ (Ô ∈ X) -- This is needed for the case that 'X' only contains the zero vector
-        {{LISet}} : Property X
+        {{linInd}} : Independent X
+        noZero : ¬ (Ô ∈ X)
   open LinearlyIndependent {{...}} public
 
   -- https://en.wikipedia.org/wiki/Basis_(linear_algebra)
   -- A basis is defined as a maximal element of the family of linearly independent sets
   -- by the order of set inclusion.
   Basis : Σ LinearlyIndependent → Type(lsuc (l ⊔ l'))
-  Basis X = (Y : Σ LinearlyIndependent) → X ⊆ Y → Y ⊆ X
+  Basis X = (Y : Σ LinearlyIndependent) → X ⊆ Y → X ≡ Y
  
-  record Basis_for_ (X : vector → Type l) (H : Σ Subspace) : Type (lsuc (l ⊔ l'))
+  record Basis_for_ (X : vector → Type(l ⊔ l')) (H : Σ Subspace) : Type (lsuc (l ⊔ l'))
     where field
     overlap {{bfLI}} : LinearlyIndependent X
     spanEq : Span X ≡ fst H

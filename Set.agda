@@ -20,6 +20,11 @@ data Support{A : Type al}(X : A → Type l) : A → Type(al ⊔ l) where
   supportIntro : ∀ x → x ∈ X → x ∈ Support X 
   supportProp : ∀ x → isProp (x ∈ Support X)
 
+supportRec : {X : A → Type al} → isProp B → ∀ x → (x ∈ X → B) → x ∈ Support X → B
+supportRec BProp x f (supportIntro .x z) = f z
+supportRec BProp x f (supportProp .x z y i) = BProp (supportRec BProp x f z)
+                                                    (supportRec BProp x f y) i
+
 instance
  supportSet : {X : A → Type l} → Property (Support X)
  supportSet = record { setProp = λ x → supportProp x }

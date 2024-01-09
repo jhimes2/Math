@@ -69,7 +69,7 @@ module _{scalar : Type l}{vector : Type l'}{{R : Ring scalar}}{{V : Module vecto
 
   scaleNegOneInv : (v : vector) → scale (neg 1r) v ≡ negV v
   scaleNegOneInv v =
-    scale (neg 1r) v ≡⟨ scaleInv v 1r ⟩
+    scale (neg 1r) v  ≡⟨ scaleInv v 1r ⟩
     negV (scale 1r v) ≡⟨ cong negV (scaleId v)⟩
     negV v ∎
 
@@ -88,17 +88,35 @@ module _{scalar : Type l}{vector : Type l'}{{R : Ring scalar}}{{V : Module vecto
     spanSet : {v : vector} → isProp (v ∈ Span X)
 
   instance
-    spanIsSet : {X : vector → Type l} → Property (Span X)
+    spanIsSet : {X : vector → Type al} → Property (Span X)
     spanIsSet = record { setProp = λ x y z → spanSet y z }
 
-  spanIdempotent : (Span ∘ Span) ≡ Span {l}
+  spanIdempotent : (Span ∘ Span) ≡ Span {al}
   spanIdempotent = funExt λ X → funExt λ x → propExt spanSet spanSet (aux X x) intro
    where
-    aux : (X : vector → Type l) → (x : vector) → x ∈ (Span ∘ Span) X → x ∈ Span X
+    aux : (X : vector → Type al) → (x : vector) → x ∈ (Span ∘ Span) X → x ∈ Span X
     aux X x (intro p) = p
     aux X x (spanAdd {v} p {u} q) = spanAdd (aux X v p) (aux X u q)
     aux X x (spanScale {v} p c) = spanScale (aux X v p) c
     aux X x (spanSet {v} p q H) = spanSet (aux X v p) (aux X v q) H
+
+  support→span : (X : vector → Type al) → ∀ v → v ∈ Support X → v ∈ Span X
+  support→span X v (supportIntro .v x) = intro x
+  support→span X v (supportProp .v x y i) = spanSet (support→span X v x) (support→span X v y) i
+
+  spanSupport : (X : vector → Type al) → Span (Support X) ≡ Span X
+  spanSupport X = funExt λ v → propExt spanSet spanSet (aux1 v) (aux2 v)
+    where
+     aux1 : ∀ v → v ∈ Span (Support X) → v ∈ Span X
+     aux1 v (intro x) = support→span X v x
+     aux1 v (spanAdd {u} x {w} y) = spanAdd (aux1 u x) (aux1 w y)
+     aux1 v (spanScale {u} x c) = spanScale (aux1 u x) c
+     aux1 v (spanSet {u} x y i) = spanSet (aux1 v x) (aux1 v y) i
+     aux2 : ∀ v → v ∈ Span X → v ∈ Span (Support X)
+     aux2 v (intro x) = intro (supportIntro v x)
+     aux2 v (spanAdd {u} x {w} y) = spanAdd (aux2 u x) (aux2 w y)
+     aux2 v (spanScale {u} x c) = spanScale (aux2 u x) c
+     aux2 v (spanSet {u} x y i) = spanSet (aux2 v x) (aux2 v y) i
 
   -- This is a more general definition that uses a module instead of a vector space
   record Subspace (X : vector → Type al) : Type (lsuc (al ⊔ l ⊔ l'))
@@ -110,14 +128,31 @@ module _{scalar : Type l}{vector : Type l'}{{R : Ring scalar}}{{V : Module vecto
   open Subspace {{...}} public
 
   -- The span of a non-empty set of vectors is a subspace
-  NonEmptySpanIsSubspace :{X : vector → Type l}
+  NonEmptySpanIsSubspace :{X : vector → Type al}
                         → Σ X
                         → Subspace (Span X)
   NonEmptySpanIsSubspace {X = X} (v , v') =
       record { ssZero = scaleZ v ~> λ p → subst (Span X) p (spanScale (intro v') 0r)
              ; ssAdd = λ x y → spanAdd x y
              ; ssScale = λ x c → spanScale x c
-             ; ssSet = λ {v} → spanSet }
+             ; ssSet = λ {v} → spanSet
+             }
+
+  {- This is almost the definition of linear independence except that the set which contains
+     only the zero vector is a member. -}
+  record Independent (X : vector → Type al) : Type (lsuc (l ⊔ l' ⊔ al))
+    where field
+        Ind : ∀ Y → Span Y ≡ Span X → Y ⊆ X → Y ≡ X
+  open Independent {{...}} public
+
+  instance
+   IndSet : {X : vector → Type l'} → {{_ : Independent X}} → Property X
+   IndSet {X = X} =
+      let H : Support X ≡ X
+          H = Ind (Support X) (spanSupport X)
+                  λ x → supportRec (λ p q → funExt λ z → isProp⊥ (p z) (q z)) x
+                                    λ y z → z y
+       in record { setProp = λ v → transport (λ i → isProp (v ∈ H i)) (supportProp v) }
 
 -- https://en.wikipedia.org/wiki/Module_homomorphism
 record moduleHomomorphism {A : Type l}
