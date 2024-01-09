@@ -9,10 +9,7 @@ open import Algebra.Field
 module Trigonometry.Trigonometry
     {{F : Field A}}
     (π/2 : A)
-    (sin : A → A)
-    -- First two trigonometric axioms
-    (oddFunction : ∀ θ → neg(sin θ) ≡ sin(neg θ))
-    (evaluation : sin π/2 ≡ 1r) where
+    (sin : A → A) where
 
 π = π/2 + π/2
 2π = π + π
@@ -24,8 +21,10 @@ cot = λ((θ , sinθ≢0) : Σ λ θ → sin θ ≢ 0r) → cos θ / (sin θ , s
 csc = λ((θ , sinθ≢0) : Σ λ θ → sin θ ≢ 0r) → reciprocal (sin θ , sinθ≢0)
 sec = λ((θ , cosθ≢0) : Σ λ θ → cos θ ≢ 0r) → reciprocal (cos θ , cosθ≢0)
 
--- Final two trigonometric axioms
-module _(sinAngleAdd : ∀ x y → sin(x + y) ≡ (sin x * cos y)+(sin y * cos x))
+-- Four trigonometric axioms
+module _(oddFunction : ∀ θ → neg(sin θ) ≡ sin(neg θ))
+        (evaluation : sin π/2 ≡ 1r)
+        (sinAngleAdd : ∀ x y → sin(x + y) ≡ (sin x * cos y)+(sin y * cos x))
         (pythagorean : ∀ θ → sin² θ + cos² θ ≡ 1r) where
 
  sin0≡0 : sin 0r ≡ 0r
