@@ -83,10 +83,10 @@ module _{scalar : Type l}{vector : Type l'}{{R : Ring scalar}}{{V : Module vecto
 
   -- This is a more general definition that uses a module instead of a vector space
   data Span (X : vector → Type al) : vector → Type (l ⊔ l' ⊔ al) where
-    intro : {v : vector} → v ∈ X → v ∈ Span X
-    spanAdd : {v : vector} → v ∈ Span X → {u : vector} → u ∈ Span X → v [+] u ∈ Span X
-    spanScale : {v : vector} → v ∈ Span X → (c : scalar) → scale c v ∈ Span X
-    spanSet : {v : vector} → isProp (v ∈ Span X)
+    intro : ∀{v} → v ∈ X → v ∈ Span X
+    spanAdd : ∀{u v} → u ∈ Span X → v ∈ Span X → u [+] v ∈ Span X
+    spanScale : ∀{v} → v ∈ Span X → (c : scalar) → scale c v ∈ Span X
+    spanSet : ∀{v} → isProp (v ∈ Span X)
 
   instance
     spanIsSet : {X : vector → Type al} → Property (Span X)
@@ -97,7 +97,7 @@ module _{scalar : Type l}{vector : Type l'}{{R : Ring scalar}}{{V : Module vecto
    where
     aux : (X : vector → Type al) → (x : vector) → x ∈ (Span ∘ Span) X → x ∈ Span X
     aux X x (intro p) = p
-    aux X x (spanAdd {v} p {u} q) = spanAdd (aux X v p) (aux X u q)
+    aux X x (spanAdd {v} {u} p q) = spanAdd (aux X v p) (aux X u q)
     aux X x (spanScale {v} p c) = spanScale (aux X v p) c
     aux X x (spanSet {v} p q H) = spanSet (aux X v p) (aux X v q) H
 
@@ -110,18 +110,18 @@ module _{scalar : Type l}{vector : Type l'}{{R : Ring scalar}}{{V : Module vecto
     where
      aux1 : ∀ v → v ∈ Span (Support X) → v ∈ Span X
      aux1 v (intro x) = support→span X v x
-     aux1 v (spanAdd {u} x {w} y) = spanAdd (aux1 u x) (aux1 w y)
+     aux1 v (spanAdd {u} {w} x y) = spanAdd (aux1 u x) (aux1 w y)
      aux1 v (spanScale {u} x c) = spanScale (aux1 u x) c
      aux1 v (spanSet {u} x y i) = spanSet (aux1 v x) (aux1 v y) i
      aux2 : ∀ v → v ∈ Span X → v ∈ Span (Support X)
      aux2 v (intro x) = intro (supportIntro v x)
-     aux2 v (spanAdd {u} x {w} y) = spanAdd (aux2 u x) (aux2 w y)
+     aux2 v (spanAdd {u} {w} x y) = spanAdd (aux2 u x) (aux2 w y)
      aux2 v (spanScale {u} x c) = spanScale (aux2 u x) c
      aux2 v (spanSet x y i) = spanSet (aux2 v x) (aux2 v y) i
 
   span⊆preserve : ∀ {X Y : vector → Type al} → X ⊆ Y → Span X ⊆ Span Y
   span⊆preserve {X = X} {Y} p v (intro x) = truncRec squash₁ (λ z → η (intro z)) (p v x)
-  span⊆preserve {X = X} {Y} p v (spanAdd {u} x {w} y) =
+  span⊆preserve {X = X} {Y} p v (spanAdd {u} {w} x y) =
      span⊆preserve p u x >>= λ H →
      span⊆preserve p w y >>= λ G → η $ spanAdd H G
   span⊆preserve {X = X} {Y} p v (spanScale {u} x c) = span⊆preserve p u x >>= λ z → η (spanScale z c)
