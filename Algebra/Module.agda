@@ -6,6 +6,7 @@ open import Prelude
 open import Relations
 open import Set
 open import Algebra.CRing public
+open import Cubical.HITs.PropositionalTruncation renaming (rec to truncRec)
 
 -- https://en.wikipedia.org/wiki/Module_(mathematics)
 -- Try not to confuse 'Module' with Agda's built-in 'module' keyword.
@@ -116,7 +117,16 @@ module _{scalar : Type l}{vector : Type l'}{{R : Ring scalar}}{{V : Module vecto
      aux2 v (intro x) = intro (supportIntro v x)
      aux2 v (spanAdd {u} x {w} y) = spanAdd (aux2 u x) (aux2 w y)
      aux2 v (spanScale {u} x c) = spanScale (aux2 u x) c
-     aux2 v (spanSet {u} x y i) = spanSet (aux2 v x) (aux2 v y) i
+     aux2 v (spanSet x y i) = spanSet (aux2 v x) (aux2 v y) i
+
+  span⊆preserve : ∀ {X Y : vector → Type al} → X ⊆ Y → Span X ⊆ Span Y
+  span⊆preserve {X = X} {Y} p v (intro x) = truncRec squash₁ (λ z → η (intro z)) (p v x)
+  span⊆preserve {X = X} {Y} p v (spanAdd {u} x {w} y) =
+     span⊆preserve p u x >>= λ H →
+     span⊆preserve p w y >>= λ G → η $ spanAdd H G
+  span⊆preserve {X = X} {Y} p v (spanScale {u} x c) = span⊆preserve p u x >>= λ z → η (spanScale z c)
+  span⊆preserve {X = X} {Y} p v (spanSet x y i) = squash₁ (span⊆preserve p v x)
+                                                          (span⊆preserve p v y) i
 
   -- This is a more general definition that uses a module instead of a vector space
   record Subspace (X : vector → Type al) : Type (lsuc (al ⊔ l ⊔ l'))
@@ -150,9 +160,20 @@ module _{scalar : Type l}{vector : Type l'}{{R : Ring scalar}}{{V : Module vecto
    IndSet {X = X} =
       let H : Support X ≡ X
           H = Ind (Support X) (spanSupport X)
-                  λ x → supportRec (λ p q → funExt λ z → isProp⊥ (p z) (q z)) x
-                                    λ y z → z y
+                  λ x → supportRec squash₁ x λ y → η y
        in record { setProp = λ v → transport (λ i → isProp (v ∈ H i)) (supportProp v) }
+
+  record  MaxInd (X : vector → Type al) : Type (lsuc (l ⊔ l' ⊔ al))  where
+   field
+    {{independent}} : Independent X
+    maxInd : ∀ Y → {{Independent Y}} → X ⊆ Y → X ≡ Y
+  open MaxInd {{...}} public
+
+  completeSpan : (X : vector → Type l') → {{I : Independent X}} → (∀ v → v ∈ Span X) → MaxInd X
+  completeSpan X f = record { maxInd = λ Y (y : X ⊆ Y) →
+       let H = span⊆preserve y in
+       Ind X (funExt λ z → propExt spanSet spanSet (λ x → truncRec spanSet (λ w → w) (H z x)) λ _ → f z) y
+       }
 
 -- https://en.wikipedia.org/wiki/Module_homomorphism
 record moduleHomomorphism {A : Type l}

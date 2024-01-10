@@ -49,7 +49,7 @@ open inclusion {{...}} public
 
 instance
  sub1 : {A : Type al} → inclusion (A → Type l) (l ⊔ al)
- sub1 = record { _⊆_ = λ X Y → ∀ x → x ∈ X → ¬(¬(x ∈ Y)) }
+ sub1 = record { _⊆_ = λ X Y → ∀ x → x ∈ X → ∥ x ∈ Y ∥₁ }
 
  sub2 : {A : Type al}{_≤_ : A → A → Type l}{{_ : Preorder _≤_}}{P : A → Type bl}
       → inclusion (Σ P) l
@@ -57,9 +57,10 @@ instance
 
  inclusionPre : {A : Type al} → Preorder (λ(X Y : A → Type l) → X ⊆ Y)
  inclusionPre = record
-   { transitive = λ{a b c} f g x z z₁ → f x z (λ z₂ → g x z₂ z₁)
-   ; reflexive = λ x z z₁ → z₁ z
-   ; isRelation = λ a b x y → funExt λ z → funExt λ w → funExt λ v → y z w v ~> UNREACHABLE
+   { transitive = λ{a b c} f g x z → f x z >>= λ p →
+                                     g x p >>= λ q → η q
+   ; reflexive = λ x z → η z
+   ; isRelation = λ a b x y → funExt λ z → funExt λ w → squash₁ (x z w) (y z w)
    }
 
  inclusionPre2 : {P : A → Type al} → {_≤_ : A → A → Type l} → {{_ : Preorder _≤_}}
