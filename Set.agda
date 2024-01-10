@@ -29,17 +29,16 @@ instance
  supportSet : {X : A → Type l} → Property (Support X)
  supportSet = record { setProp = λ x → supportProp x }
 
-_∪_ : (A → hProp l) → (A → hProp l') → A → hProp (l ⊔ l')
-_∪_ f g = λ x → ∥ fst(f x) ＋ fst(g x) ∥₁ , squash₁
+_∪_ : (A → Type l) → (A → Type l') → A → Type (l ⊔ l')
+_∪_ X Y = λ x → ∥ (x ∈ X) ＋ (x ∈ Y) ∥₁
 infix 6 _∪_
 
-_∩_ : (A → hProp l) → (A → hProp l') → A → hProp (l ⊔ l')
-_∩_ f g = λ x → fst(f x) × fst(g x) , λ{(y , y') (z , z')
-              → cong₂ _,_ (snd (f x) y z) (snd (g x) y' z')}
+_∩_ : (A → Type l) → (A → Type l') → A → Type (l ⊔ l')
+_∩_ X Y = λ x → (x ∈ X) × (x ∈ Y)
 infix 7 _∩_
 
-_ᶜ : (A → hProp l) → (A → hProp l)
-f ᶜ = λ x → (¬ fst(f x)) , λ y z → funExt λ w → isProp⊥ (y w) (z w)
+_ᶜ : (A → Type l) → A → Type l
+X ᶜ = λ x → x ∉ X
 infix 20 _ᶜ
 
 record inclusion (A : Type l) (l' : Level) : Type(lsuc (l ⊔ l')) where
