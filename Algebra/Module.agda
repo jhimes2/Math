@@ -128,6 +128,9 @@ module _{scalar : Type l}{vector : Type l'}{{R : Ring scalar}}{{V : Module vecto
   span⊆preserve {X = X} {Y} p v (spanSet x y i) = squash₁ (span⊆preserve p v x)
                                                           (span⊆preserve p v y) i
 
+  ⊆span : (X : vector → Type(l' ⊔ l)) → X ⊆ Span X
+  ⊆span X x P = η (intro P)
+
   -- This is a more general definition that uses a module instead of a vector space
   record Subspace (X : vector → Type al) : Type (lsuc (al ⊔ l ⊔ l'))
     where field
