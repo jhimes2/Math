@@ -8,6 +8,13 @@ open import Cubical.Foundations.Powerset renaming (_∈_ to _∈'_ ; _⊆_ to _�
 open import Cubical.Foundations.HLevels
 open import Cubical.HITs.PropositionalTruncation renaming (rec to recTrunc)
 
+-- Full set
+𝓤 : A → Type l
+𝓤 = λ _ → True
+
+-- Empty set
+∅ : A → Type l
+∅ = λ _ → False
 
 -- A set defined by a property
 record Property {A : Type al} (P : A → Type l) : Type(al ⊔ l) where

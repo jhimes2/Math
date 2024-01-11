@@ -32,6 +32,11 @@ id x = x
 _≢_ : {A : Type l} → A → A → Type l 
 a ≢ b = ¬(a ≡ b)
 
+data False {l : Level} : Type l where
+
+data True {l : Level} : Type l where
+  truth : True {l}
+
 -- Pipe Operator
 -- Equivalent to `|>` in F#
 _~>_ : A → (A → B) → B
@@ -327,3 +332,6 @@ instance
 
  bijectiveSet : {{_ : is-set A}}{{_ : is-set B}} → is-set (Σ λ(f : A → B) → bijective f)
  bijectiveSet = record { IsSet = isSetΣ (isSet→ IsSet) λ x → isProp→isSet (bijectiveProp x) }
+
+TrueEq : isProp A → A → A ≡ True
+TrueEq p a = propExt p (λ{ truth truth → refl}) (λ _ → truth) (λ _ → a)

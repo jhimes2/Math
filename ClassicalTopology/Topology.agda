@@ -9,25 +9,11 @@ open import Relations
 
 module ClassicalTopology.Topology where
 
-data False {l : Level} : Type l where
-
-data True {l : Level} : Type l where
-  truth : True {l}
-
-TrueEq : isProp A → A → A ≡ True
-TrueEq p a = isoToPath (iso (λ x → truth) (λ x → a) (λ{ truth → refl}) λ b → p a b )
-
-full : A → Type l
-full = λ _ → True
-  
-empty : A → Type l
-empty = λ _ → False
-
 -- https://en.wikipedia.org/wiki/Topological_space
 record topology {A : Type al} (T : (A → Type l') → Type l) : Type (l ⊔ lsuc l' ⊔ al) where
   field
-   tempty : empty ∈ T
-   tfull : full ∈ T
+   tempty : ∅ ∈ T
+   tfull : 𝓤 ∈ T
    tunion : {X Y : (A → Type l')} → X ∈ T → Y ∈ T → X ∪ Y ∈ T
    tintersection : {X Y : A → Type l'} → X ∈ T → Y ∈ T → X ∩ Y ∈ T
 --   tset : ∀ X → isProp (X ∈ T) -- TODO
@@ -56,7 +42,7 @@ instance
       ; tintersection = λ _ _ → truth
    --   ; tset = λ{ X truth truth → refl}
       }
-  indiscreteTopology : topology λ (X : A → Type l') → (X ≡ full) ＋ (X ≡ empty)
+  indiscreteTopology : topology λ (X : A → Type l') → (X ≡ 𝓤) ＋ (X ≡ ∅)
   indiscreteTopology =
      record {
         tempty = inr refl
@@ -68,9 +54,9 @@ instance
                     ; (inr w) → transport (λ i → y i z) w})) λ ()}
       ; tintersection = λ{ {X = X} {Y} (inl x) (inl y) → inl $ funExt λ z →
                             (X ∩ Y) z ≡⟨ cong (λ w → (w ∩ Y) z) x ⟩
-                            (full ∩ Y) z ≡⟨ cong (λ w → (full ∩ w) z) y ⟩
-                            (full ∩ full) z ≡⟨ TrueEq (λ{(truth , truth) (truth , truth) → refl}) (truth , truth) ⟩
-                            full z ∎
+                            (𝓤 ∩ Y) z ≡⟨ cong (λ w → (𝓤 ∩ w) z) y ⟩
+                            (𝓤 ∩ 𝓤) z ≡⟨ TrueEq (λ{(truth , truth) (truth , truth) → refl}) (truth , truth) ⟩
+                            𝓤 z ∎
                          ; {X = X} {Y} (inl x) (inr y) → inr (cong (λ w → X ∩ w) y ⋆ funExt λ w → propExt (λ()) (λ()) (λ()) (λ()))
                          ; {X = X} {Y} (inr x) y → inr (cong (λ w → w ∩ Y) x ⋆ funExt λ w → propExt (λ()) (λ()) (λ()) (λ()) )}
       }
@@ -82,11 +68,11 @@ discreteDomainContinuous f = λ _ → truth
 indiscreteCodomainContinuous : {T : (B → Type l') → Type l}{{XT : topology T}}
                          → (f : B → A) → continuous {{T2 = indiscreteTopology}} f
 indiscreteCodomainContinuous {T = T} f {V} (inl p) =
-  let H : full ≡ f ⁻¹[ V ]
+  let H : 𝓤 ≡ f ⁻¹[ V ]
       H = cong (f ⁻¹[_]) (sym p) in
        subst T H tfull
 indiscreteCodomainContinuous {T = T} f {V} (inr p) =
-  let H : empty ≡ f ⁻¹[ V ]
+  let H : ∅ ≡ f ⁻¹[ V ]
       H = cong (f ⁻¹[_]) (sym p) in
        subst T H tempty
 
