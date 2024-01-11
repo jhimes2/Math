@@ -7,6 +7,7 @@ open import Relations
 open import Cubical.Foundations.Powerset renaming (_∈_ to _∈'_ ; _⊆_ to _⊆'_) public
 open import Cubical.Foundations.HLevels
 open import Cubical.HITs.PropositionalTruncation renaming (rec to recTrunc ; map to mapTrunc)
+open import Cubical.Foundations.Isomorphism
 
 -- Full set
 𝓤 : A → Type l
@@ -94,9 +95,13 @@ instance
   where
    open import Cubical.Foundations.HLevels
 
+∩Complement : (X : A → Type l) → X ∩ X ᶜ ≡ ∅
+∩Complement X = funExt λ x → isoToPath (iso (λ(a , b) → b a ~> UNREACHABLE)
+                                            (λ()) (λ()) λ(a , b) → b a ~> UNREACHABLE)
+
 -- Union and intersection operations are associative and commutative
 instance
- ∪assoc : Associative (_∪_ {l} {A = A} {l'})
+ ∪assoc : Associative (_∪_ {A = A} {l})
  ∪assoc = record { assoc = λ X Y Z → funExt λ x →
     let H : x ∈ X ∪ (Y ∪ Z) → x ∈ (X ∪ Y) ∪ Z
         H = λ p → p >>= λ{(inl p) → η $ inl $ (η (inl p))
@@ -107,20 +112,18 @@ instance
                                            ;(inr p) → η (inr (η (inl p)))}
                         ; (inr p) → η $ inr (η (inr p)) } in
        propExt squash₁ squash₁ H G }
- ∩assoc : Associative (_∩_ {l} {A = A} {l'})
+ ∩assoc : Associative (_∩_ {A = A} {l})
  ∩assoc = record { assoc = λ X Y Z → funExt λ x → isoToPath (iso (λ(a , b , c) → (a , b) , c)
                                                             (λ((a , b), c) → a , b , c)
                                                             (λ b → refl)
                                                              λ b → refl) }
-   where open import Cubical.Foundations.Isomorphism
- ∪comm : Commutative (_∪_ {l} {A = A} {l'})
+ ∪comm : Commutative (_∪_ {A = A} {l})
  ∪comm = record { comm = λ X Y → funExt λ x →
     let H : ∀ X Y → x ∈ X ∪ Y → x ∈ Y ∪ X
         H X Y = map (λ{ (inl p) → inr p ; (inr p) → inl p}) in
             propExt squash₁ squash₁ (H X Y) (H Y X) }
- ∩comm : Commutative (_∩_ {l} {A = A} {l'})
+ ∩comm : Commutative (_∩_ {A = A} {l})
  ∩comm = record { comm = λ X Y → funExt λ x → isoToPath (iso (λ(a , b) → b , a)
                                                              (λ(a , b) → b , a)
                                                              (λ b → refl)
                                                               λ b → refl) }
-   where open import Cubical.Foundations.Isomorphism
