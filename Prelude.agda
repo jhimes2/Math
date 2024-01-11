@@ -78,10 +78,11 @@ demorgan3 z = (λ x → z (inl x)) , (λ x → z (inr x))
 implicit : Type l → Type l
 implicit A = ¬(¬ A)
 
--- All types are implicitly decidable.
+-- All types are implicitly decidable
 implicitLEM : (A : Type l) → implicit(Dec A)
 implicitLEM A f = f (no (λ x → f (yes x)))
 
+-- Explicit membership
 _∈_ : A → (A → Type l) → Type l
 _∈_ = _~>_
 infixr 5 _∈_
@@ -89,6 +90,11 @@ infixr 5 _∈_
 _∉_ :  A → (A → Type l) → Type l
 _∉_ a X = ¬(a ∈ X)
 infixr 5 _∉_
+
+-- Implicit membership
+_∊_ : A → (A → Type l) → Type l
+x ∊ X = implicit (x ∈ X)
+infixr 5 _∊_
 
 -- Function Composition
 _∘_ :  (B → C) → (A → B) → (A → C)
