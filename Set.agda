@@ -45,7 +45,7 @@ instance
  supportProperty = record { setProp = λ x → supportProp x }
 
 _∪_ : (A → Type l) → (A → Type l') → A → Type (l ⊔ l')
-_∪_ X Y = λ x → ∥ (x ∈ X) ＋ (x ∈ Y) ∥₁
+_∪_ X Y = λ x → implicit((x ∈ X) ＋ (x ∈ Y))
 infix 6 _∪_
 
 _∩_ : (A → Type l) → (A → Type l') → A → Type (l ⊔ l')
@@ -111,7 +111,7 @@ instance
         G = λ p → p >>= λ{(inl p) → p >>= λ{(inl p) → η (inl p)
                                            ;(inr p) → η (inr (η (inl p)))}
                         ; (inr p) → η $ inr (η (inr p)) } in
-       propExt squash₁ squash₁ H G }
+       propExt (isProp¬ _) (isProp¬ _) H G }
  ∩assoc : Associative (_∩_ {A = A} {l})
  ∩assoc = record { assoc = λ X Y Z → funExt λ x → isoToPath (iso (λ(a , b , c) → (a , b) , c)
                                                             (λ((a , b), c) → a , b , c)
@@ -121,7 +121,7 @@ instance
  ∪comm = record { comm = λ X Y → funExt λ x →
     let H : ∀ X Y → x ∈ X ∪ Y → x ∈ Y ∪ X
         H X Y = map (λ{ (inl p) → inr p ; (inr p) → inl p}) in
-            propExt squash₁ squash₁ (H X Y) (H Y X) }
+            propExt (isProp¬ _) (isProp¬ _) (H X Y) (H Y X) }
  ∩comm : Commutative (_∩_ {A = A} {l})
  ∩comm = record { comm = λ X Y → funExt λ x → isoToPath (iso (λ(a , b) → b , a)
                                                              (λ(a , b) → b , a)

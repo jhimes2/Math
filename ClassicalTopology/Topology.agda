@@ -47,11 +47,11 @@ instance
      record {
         tempty = inr refl
       ; tfull = inl refl
-      ; tunion = λ{ (inl x) _ → inl $ funExt λ z → TrueEq squash₁ $ η $ inl $ transport (λ i → x (~ i) z) truth
-       ; (inr x) (inl y) → inl $ funExt λ z → TrueEq squash₁ $ η $ inr $ transport (λ i → y (~ i) z) truth
-       ; (inr x) (inr y) → inr $ funExt λ z → propExt squash₁ (λ()) (truncRec (λ())
-                  (λ{ (inl w) → transport (λ i → x i z) w
-                    ; (inr w) → transport (λ i → y i z) w})) λ ()}
+      ; tunion = λ{ (inl x) _ → inl $ funExt λ z → TrueEq (isProp¬ _) $ η $ inl $ transport (λ i → x (~ i) z) truth
+       ; (inr x) (inl y) → inl $ funExt λ z → TrueEq (isProp¬ _) $ η $ inr $ transport (λ i → y (~ i) z) truth
+       ; (inr x) (inr y) → inr $ funExt λ z → propExt (isProp¬ _) (λ())
+                (λ q → q ((λ { (inl w) → transport (λ i → x i z) w ~> λ()
+                             ; (inr w) → transport (λ i → y i z) w ~> λ()})) ~> UNREACHABLE) λ ()}
       ; tintersection = λ{ {X = X} {Y} (inl x) (inl y) → inl $ funExt λ z →
                             (X ∩ Y) z ≡⟨ cong (λ w → (w ∩ Y) z) x ⟩
                             (𝓤 ∩ Y) z ≡⟨ cong (λ w → (𝓤 ∩ w) z) y ⟩
