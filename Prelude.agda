@@ -82,6 +82,14 @@ implicit A = ¬(¬ A)
 implicitLEM : (A : Type l) → implicit(Dec A)
 implicitLEM A f = f (no (λ x → f (yes x)))
 
+_∈_ : A → (A → Type l) → Type l
+_∈_ = _~>_
+infixr 5 _∈_
+
+_∉_ :  A → (A → Type l) → Type l
+_∉_ a X = ¬(a ∈ X)
+infixr 5 _∉_
+
 -- Function Composition
 _∘_ :  (B → C) → (A → B) → (A → C)
 f ∘ g = λ a → f (g a)

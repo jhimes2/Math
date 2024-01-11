@@ -5,14 +5,6 @@ open import Cubical.Foundations.HLevels
 
 module Relations where
 
-_∈_ : A → (A → Type l) → Type l
-_∈_ = _~>_
-infixr 5 _∈_
-
-_∉_ :  A → (A → Type l) → Type l
-_∉_ a X = ¬(a ∈ X)
-infixr 5 _∉_
-
 -- https://en.wikipedia.org/wiki/Preorder
 record Preorder {A : Type al} (_≤_ : A → A → Type l) : Type (lsuc (l ⊔ al))
   where field
