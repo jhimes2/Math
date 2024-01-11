@@ -25,5 +25,5 @@ multInvUnique {{R}} r (r' , rr'≡1) (r'' , rr''≡1) =
          1r * r''        ≡⟨ lIdentity r'' ⟩
          r''            ∎
 
-_ˣ : (A : Type l) → {{R : CRing A}} → ℙ A
-(A ˣ) r = (Σ λ r' → r * r' ≡ 1r) , multInvUnique r
+_ˣ : (A : Type l) → {{R : CRing A}} → A → Type l
+(A ˣ) r = Σ λ r' → r * r' ≡ 1r

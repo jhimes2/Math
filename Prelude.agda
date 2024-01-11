@@ -13,12 +13,10 @@ open import Cubical.HITs.PropositionalTruncation
                     renaming (map to map' ; rec to truncRec ; elim to truncElim)
 open import Cubical.Data.Sum hiding (elim ; rec ; map) renaming (_⊎_ to infix 2 _＋_) public
 open import Cubical.Foundations.HLevels
-open import Cubical.Foundations.Powerset renaming (_∈_ to _∈'_ ; _⊆_ to _⊆'_) public
 
 {- Renamed the interval 'I' to 'Interval' because 'I' will be used for identity matrices. -}
 {- Renamed existential quantifiers so I don't have to explicitly state the type of the existing
    term. '∃[ a ∈ A ] ...' will become '∃ λ a → ...' -}
-{- Renamed '∈' so I can overload the name to include multisets. -}
 
 variable
     l l' al bl cl : Level
