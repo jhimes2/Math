@@ -99,6 +99,10 @@ instance
 ∩Complement X = funExt λ x → isoToPath (iso (λ(a , b) → b a ~> UNREACHABLE)
                                             (λ()) (λ()) λ(a , b) → b a ~> UNREACHABLE)
 
+∪Complement : (X : A → Type l) → X ∪ X ᶜ ≡ 𝓤
+∪Complement X = funExt λ x → propExt (isProp¬ _) (λ{truth truth → refl})
+    (λ _ → truth) λ _ → λ p → p (inr (λ q → p (inl q)))
+
 -- Union and intersection operations are associative and commutative
 instance
  ∪assoc : Associative (_∪_ {A = A} {l})
