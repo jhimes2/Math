@@ -6,7 +6,7 @@ open import Prelude
 open import Relations
 open import Cubical.Foundations.Powerset renaming (_∈_ to _∈'_ ; _⊆_ to _⊆'_) public
 open import Cubical.Foundations.HLevels
-open import Cubical.HITs.PropositionalTruncation renaming (rec to recTrunc)
+open import Cubical.HITs.PropositionalTruncation renaming (rec to recTrunc ; map to mapTrunc)
 
 -- Full set
 𝓤 : A → Type l
@@ -16,13 +16,19 @@ open import Cubical.HITs.PropositionalTruncation renaming (rec to recTrunc)
 ∅ : A → Type l
 ∅ = λ _ → False
 
--- A set defined by a property
+-- A property is defined as a function that maps elements to propositions
 record Property {A : Type al} (P : A → Type l) : Type(al ⊔ l) where
  field
   setProp : ∀ x → isProp (P x)
 open Property {{...}} public
 
--- The support of a multiset 'X' is the underlying set of the multiset
+-- https://en.wikipedia.org/wiki/Multiset
+-- A multiset is defined as a function that maps elements to sets
+record Multiset {A : Type al} (M : A → Type l) : Type(al ⊔ l) where
+ field
+  multiset : ∀ x → isSet (M x)
+open Multiset {{...}} public
+
 data Support{A : Type al}(X : A → Type l) : A → Type(al ⊔ l) where
   supportIntro : ∀ x → x ∈ X → x ∈ Support X 
   supportProp : ∀ x → isProp (x ∈ Support X)
@@ -33,8 +39,9 @@ supportRec BProp x f (supportProp .x z y i) = BProp (supportRec BProp x f z)
                                                     (supportRec BProp x f y) i
 
 instance
- supportSet : {X : A → Type l} → Property (Support X)
- supportSet = record { setProp = λ x → supportProp x }
+ -- The support of a multitype 'X' is an underlying property
+ supportProperty : {X : A → Type l} → Property (Support X)
+ supportProperty = record { setProp = λ x → supportProp x }
 
 _∪_ : (A → Type l) → (A → Type l') → A → Type (l ⊔ l')
 _∪_ X Y = λ x → ∥ (x ∈ X) ＋ (x ∈ Y) ∥₁
@@ -86,3 +93,34 @@ instance
    }
   where
    open import Cubical.Foundations.HLevels
+
+-- Union and intersection operations are associative and commutative
+instance
+ ∪assoc : Associative (_∪_ {l} {A = A} {l'})
+ ∪assoc = record { assoc = λ X Y Z → funExt λ x →
+    let H : x ∈ X ∪ (Y ∪ Z) → x ∈ (X ∪ Y) ∪ Z
+        H = λ p → p >>= λ{(inl p) → η $ inl $ (η (inl p))
+                 ; (inr p) → p >>= λ{(inl p) → η $ inl (η (inr p))
+                                    ;(inr p) → η (inr p)}} in
+    let G : x ∈ (X ∪ Y) ∪ Z → x ∈ X ∪ (Y ∪ Z)
+        G = λ p → p >>= λ{(inl p) → p >>= λ{(inl p) → η (inl p)
+                                           ;(inr p) → η (inr (η (inl p)))}
+                        ; (inr p) → η $ inr (η (inr p)) } in
+       propExt squash₁ squash₁ H G }
+ ∩assoc : Associative (_∩_ {l} {A = A} {l'})
+ ∩assoc = record { assoc = λ X Y Z → funExt λ x → isoToPath (iso (λ(a , b , c) → (a , b) , c)
+                                                            (λ((a , b), c) → a , b , c)
+                                                            (λ b → refl)
+                                                             λ b → refl) }
+   where open import Cubical.Foundations.Isomorphism
+ ∪comm : Commutative (_∪_ {l} {A = A} {l'})
+ ∪comm = record { comm = λ X Y → funExt λ x →
+    let H : ∀ X Y → x ∈ X ∪ Y → x ∈ Y ∪ X
+        H X Y = map (λ{ (inl p) → inr p ; (inr p) → inl p}) in
+            propExt squash₁ squash₁ (H X Y) (H Y X) }
+ ∩comm : Commutative (_∩_ {l} {A = A} {l'})
+ ∩comm = record { comm = λ X Y → funExt λ x → isoToPath (iso (λ(a , b) → b , a)
+                                                             (λ(a , b) → b , a)
+                                                             (λ b → refl)
+                                                              λ b → refl) }
+   where open import Cubical.Foundations.Isomorphism
