@@ -80,9 +80,6 @@ Schröder–Bernstein : {A : Type al}
                    → (f : A → B) → leftInverse f
                    → (g : B → A) → leftInverse g → Σ λ(h : A → B) → bijective h
 Schröder–Bernstein f (f' , finv) g (g' , ginv) = {!!}
-  where
-    LEM : (A : Type al) → A ＋ (¬ A)
-    LEM A = {!!}
 
 
 S1Equiv : Interval → Interval → Type
@@ -110,10 +107,10 @@ weakZorn {_≤_ = _≤_} ch = {!!} , {!!}
 zorn : {_≤_ : A → A → Type} → {{_ : Poset _≤_}}
      → ((C : A → Type al) → chain C → Σ λ g → ∀ x → x ∈ C → g ≤ x → g ≡ x)
      → ¬(¬ Σ λ g → ∀ x → g ≤ x → g ≡ x)
-zorn {A = A} {_≤_ = _≤_} = let H = implicitLEM A in λ x y → H (λ y → {!!})
+zorn {A = A} {_≤_ = _≤_} = let H = LEM A in λ x y → H (λ y → {!!})
 
 test2 : Dec ((A : Type al) → Dec A)
-test2 {al} = no λ x → (implicitLEM (Dec ((A : Type al) → Dec A))) ~> λ{x → {!!}}
+test2 {al} = no λ x → (LEM (Dec ((A : Type al) → Dec A))) ~> λ{x → {!!}}
 
 DNElimF : ¬ ((l : Level) → (A : Type) → ¬(¬ A) → A)
 DNElimF dn =

@@ -1,17 +1,15 @@
 {-# OPTIONS  --without-K --cubical --safe #-}
 
 open import Agda.Primitive public
-open import Cubical.Core.Everything renaming (Σ to Σ'; I to Interval) public
 open import Cubical.Foundations.Prelude
-    hiding (Σ)
-    renaming (I to Interval ; congL to left ; congR to right ; _≡⟨⟩_ to _≡⟨By-Definition⟩_ ; _∙_ to _⋆_) public
+    renaming (Σ to Σ' ; I to Interval ; _∨_ to or ; congL to left
+             ; congR to right ; _≡⟨⟩_ to _≡⟨By-Definition⟩_ ; _∙_ to _⋆_) public
 open import Cubical.Relation.Nullary public
 open import Cubical.Data.Unit renaming (Unit to ⊤) public
 open import Cubical.Data.Empty public
-open import Cubical.Data.Sigma renaming (∃ to ∃') hiding (Σ ; I ; ∃!) public
+open import Cubical.Data.Sigma renaming (∃ to ∃' ; _∨_ to Max) hiding (Σ ; I ; ∃!) public
 open import Cubical.HITs.PropositionalTruncation
                     renaming (map to map' ; rec to truncRec ; elim to truncElim)
-open import Cubical.Data.Sum hiding (elim ; rec ; map) renaming (_⊎_ to infix 2 _＋_) public
 open import Cubical.Foundations.HLevels
 
 {- Renamed the interval 'I' to 'Interval' because 'I' will be used for identity matrices. -}
@@ -35,50 +33,34 @@ data False {l : Level} : Type l where
 data True {l : Level} : Type l where
   truth : True {l}
 
+data _＋_ (A : Type al)(B : Type bl) : Type (al ⊔ bl) where
+  inl : A → A ＋ B
+  inr : B → A ＋ B
+infix 2 _＋_
+
+implicit : Type l → Type l
+implicit A = ¬(¬ A)
+
+-- Logical or
+_∨_ : (A : Type al)(B : Type bl) → Type (al ⊔ bl)
+A ∨ B = implicit (A ＋ B)
+infix 2 _∨_
+
+-- All types are implicitly decidable (Law of Excluded Middle)
+LEM : (A : Type l) → A ∨ ¬ A
+LEM A f = f (inr λ x → f (inl x))
+
 -- Pipe Operator
 -- Equivalent to `|>` in F#
 _~>_ : A → (A → B) → B
 a ~> f = f a
 infixl 0 _~>_
 
--- Explicitly exists
-Σ : {A : Type l} → (P : A → Type l') → Type(l ⊔ l')
-Σ {A = A} = Σ' A
-
--- Merely exists
-∃ : {A : Type l} → (P : A → Type l') → Type(l ⊔ l')
-∃ {A = A} = ∃' A
-
-∃! : {A : Type l} → (P : A → Type l') → Type(l ⊔ l')
-∃! {A = A} P = Σ λ x → P x × ∀ y → P y → x ≡ y
-
-modusTollens : (A → B) → ¬ B → ¬ A
-modusTollens f Bn a = Bn (f a)
-
 -- Function application operator
 -- Equivalent to `$` in Haskell
 _$_ : (A → B) → A → B
 _$_ f a = f a
 infixr 0 _$_
-
--- https://en.wikipedia.org/wiki/De_Morgan's_laws
-demorgan : (¬ A) ＋ (¬ B) → ¬(A × B)
-demorgan (inl x) (a , _) = x a
-demorgan (inr x) (_ , b) = x b
-
-demorgan2 : (¬ A) × (¬ B) → ¬(A ＋ B)
-demorgan2 (a , b) (inl x) = a x
-demorgan2 (a , b) (inr x) = b x
-
-demorgan3 : ¬(A ＋ B) → (¬ A) × (¬ B)
-demorgan3 z = (λ x → z (inl x)) , (λ x → z (inr x))
-
-implicit : Type l → Type l
-implicit A = ¬(¬ A)
-
--- All types are implicitly decidable
-implicitLEM : (A : Type l) → implicit(Dec A)
-implicitLEM A f = f (no (λ x → f (yes x)))
 
 -- Explicit membership
 _∈_ : A → (A → Type l) → Type l
@@ -97,6 +79,32 @@ infixr 5 _∊_
 -- Function Composition
 _∘_ :  (B → C) → (A → B) → (A → C)
 f ∘ g = λ a → f (g a)
+
+-- Explicitly exists
+Σ : {A : Type l} → (P : A → Type l') → Type(l ⊔ l')
+Σ {A = A} = Σ' A
+
+-- Merely exists
+∃ : {A : Type l} → (P : A → Type l') → Type(l ⊔ l')
+∃ {A = A} = ∃' A
+
+∃! : {A : Type l} → (P : A → Type l') → Type(l ⊔ l')
+∃! {A = A} P = Σ λ x → P x × ∀ y → P y → x ≡ y
+
+modusTollens : (A → B) → ¬ B → ¬ A
+modusTollens f Bn a = Bn (f a)
+
+-- https://en.wikipedia.org/wiki/De_Morgan's_laws
+demorgan : (¬ A) ＋ (¬ B) → ¬(A × B)
+demorgan (inl x) (a , _) = x a
+demorgan (inr x) (_ , b) = x b
+
+demorgan2 : (¬ A) × (¬ B) → ¬(A ＋ B)
+demorgan2 (a , b) (inl x) = a x
+demorgan2 (a , b) (inr x) = b x
+
+demorgan3 : ¬(A ＋ B) → (¬ A) × (¬ B)
+demorgan3 z = (λ x → z (inl x)) , (λ x → z (inr x))
 
 -- https://en.wikipedia.org/wiki/Functor_(functional_programming)
 -- https://en.wikipedia.org/wiki/Functor
@@ -144,18 +152,18 @@ _¬¬=_ : (¬ ¬ A) → (A → ¬ B) → ¬ B
 x ¬¬= f = λ z → x (λ z₁ → f z₁ z)
 
 demorgan4 : implicit(¬(A × B) → (¬ A) ＋ (¬ B))
-demorgan4 {l} {A = A} {B = B} = implicitLEM (A ＋ B) >>= λ{ (yes (inl a)) → λ p
-  → p (λ q → inr (λ b → q (a , b))) ; (yes (inr b)) → λ p → p (λ q → inl (λ a → q (a , b)))
-  ; (no x) → λ p → p (λ q → inl (λ a → x (inl a)))}
+demorgan4 {l} {A = A} {B = B} = LEM (A ＋ B) >>= λ{ (inl (inl a)) → λ p
+  → p (λ q → inr (λ b → q (a , b))) ; (inl (inr b)) → λ p → p (λ q → inl (λ a → q (a , b)))
+  ; (inr x) → λ p → p (λ q → inl (λ a → x (inl a)))}
 
 -- https://en.wikipedia.org/wiki/Principle_of_explosion
 UNREACHABLE : ⊥ → {A : Type l} → A
 UNREACHABLE ()
 
 DNOut : (A → implicit B) → implicit (A → B)
-DNOut {A = A} {B = B} f = implicitLEM A
-         ¬¬= λ{ (yes a) → f a ¬¬= λ b → η λ _ → b
-              ; (no x) → λ y → y (λ a → x a ~> UNREACHABLE) }
+DNOut {A = A} {B = B} f = LEM A
+         ¬¬= λ{ (inl a) → f a ¬¬= λ b → η λ _ → b
+              ; (inr x) → λ y → y (λ a → x a ~> UNREACHABLE) }
 
 demorgan5 : {P : A → Type l} → ¬(Σ P) → (x : A) → ¬ (P x)
 demorgan5 p x q = p (x , q)
