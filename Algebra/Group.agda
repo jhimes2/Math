@@ -242,17 +242,11 @@ module directProduct(VG : A → Group l) where
      }
     where open Group {{...}}
 
+
 module _{A : Type al}{_∙_ : A → A → A} where
 
  module _(G : group _∙_) where
   instance _ = G
-
-  -- https://en.wikipedia.org/wiki/Cyclic_group
-  data cyclic (x : A) : A → Type al where
-   cyc-intro : x ∈ cyclic x
-   cyc-inv : ∀{y} → y ∈ cyclic x → inv y ∈ cyclic x
-   cyc-op : ∀{y z} → y ∈ cyclic x → z ∈ cyclic x → y ∙ z ∈ cyclic x
-   cyc-set : ∀ y → isProp (y ∈ cyclic x)
   
   -- https://en.wikipedia.org/wiki/Subgroup
   record _≥_(H : A → Type bl) : Type (al ⊔ bl) where
@@ -269,16 +263,42 @@ module _{A : Type al}{_∙_ : A → A → A} where
       {{NisSubgroup}} : _≥_ N
       gng' : ∀ {n} → n ∈ N → ∀ g → (g ∙ n) ∙ inv g ∈ N
 
- cyclicIsSubgroup : ∀(G : group _∙_)(x : A) → G ≥ cyclic G x
- cyclicIsSubgroup G x = let instance _ = G in
+module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
+
+ -- Overloading '⟨_⟩' for cyclic and generating set of a group
+ record Generating (B : Type l) (l' : Level) : Type((l ⊔ al ⊔ lsuc l')) where
+   field
+     ⟨_⟩ : B → A → Type l'
+ open Generating {{...}} public
+
+ -- https://en.wikipedia.org/wiki/Cyclic_group
+ data cyclic (x : A) : A → Type al where
+  cyc-intro : x ∈ cyclic x
+  cyc-inv : ∀{y} → y ∈ cyclic x → inv y ∈ cyclic x
+  cyc-op : ∀{y z} → y ∈ cyclic x → z ∈ cyclic x → y ∙ z ∈ cyclic x
+  cyc-set : ∀ y → isProp (y ∈ cyclic x)
+
+  -- https://en.wikipedia.org/wiki/Generating_set_of_a_group
+ data generating (X : A → Type l) : A → Type (al ⊔ l) where
+  gen-intro : ∀ {x} → x ∈ X → x ∈ generating X
+  gen-inv : ∀{y} → y ∈ generating X → inv y ∈ generating X
+  gen-op : ∀{y z} → y ∈ generating X → z ∈ generating X → y ∙ z ∈ generating X
+  gen-set : ∀ y → isProp (y ∈ generating X)
+
+ instance
+  cyclicOverload : Generating A al
+  cyclicOverload = record { ⟨_⟩ = cyclic }
+  generatingOverload : Generating (A → Type l) (al ⊔ l)
+  generatingOverload = record { ⟨_⟩ = generating }
+
+ cyclicIsSubgroup : (x : A) → G ≥ ⟨ x ⟩
+ cyclicIsSubgroup x =
   record
-   { id-closed = subst (cyclic G x) (lInverse x) (cyc-op (cyc-inv cyc-intro) cyc-intro)
+   { id-closed = subst ⟨ x ⟩ (lInverse x) (cyc-op (cyc-inv cyc-intro) cyc-intro)
    ; op-closed = cyc-op
    ; inv-closed = cyc-inv
    ; subgroup-set = cyc-set
    }
-
-module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
 
  module _{B : Type bl}{_*_ : B → B → B}{{H : group _*_}}
          (h : A → B) where
