@@ -269,6 +269,15 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
    ; subgroup-set = cyc-set
    }
 
+ -- Non-empty generating set is a subgroup
+ generatingIsSubgroup : (X : A → Type l) → Σ X → G ≥ ⟨ X ⟩
+ generatingIsSubgroup X (x , H) = record
+   { id-closed = subst ⟨ X ⟩ (lInverse x) (gen-op (gen-inv (gen-intro H)) (gen-intro H))
+   ; op-closed = gen-op
+   ; inv-closed = gen-inv
+   ; subgroup-set = gen-set
+   }
+
  module _{B : Type bl}{_*_ : B → B → B}{{H : group _*_}}
          (h : A → B) where
 
