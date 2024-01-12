@@ -12,9 +12,6 @@ open import NumberTheory.Natural
 open import NumberTheory.Overloads
 open import Data.Bool
 
-finDecrInj : (f : fin (S n) → fin (S m)) → ((x y : fin (S n)) → f x ≡ f y → x ≡ y) → Σ λ(g : fin n → fin m) → injective g
-finDecrInj {n} {m} f fInj = {!!}
-
 JRule : (P : {x y : A} → x ≡ y → Type l) → (x : A) → P (λ _ → x) → {y : A} → (p : x ≡ y) → P p
 JRule P x = J (λ y → P {x = x} {y})
 
