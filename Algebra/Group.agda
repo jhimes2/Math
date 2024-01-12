@@ -171,37 +171,6 @@ module grp {_∙_ : A → A → A}{{G : group _∙_}} where
     e ∙ inv e ≡⟨ rInverse e ⟩
     e ∎
 
--- Every operator can only be part of at most one group
-groupIsProp : (_∙_ : A → A → A) → isProp (group _∙_)
-groupIsProp {A = A} _∙_ G1 G2 i =
-  let set = λ{a b : A}{p q : a ≡ b} → IsSet a b p q in
-  let E : G1 .e ≡ G2 .e
-      E = G1 .e                 ≡⟨ idUnique {{grpIsMonoid {{G2}}}} (G1 .lIdentity)⟩
-          grpIsMonoid {{G2}} .e ≡⟨ sym (idUnique {{grpIsMonoid {{G2}}}} (G2 .lIdentity))⟩
-          G2 .e ∎ in
-  record
-   {
-     e = E i
-   ; IsSetGrp = record { IsSet = isPropIsSet (G1 .IsSetGrp .IsSet) (G2 .IsSetGrp .IsSet) i }
-   ; lIdentity = λ a →
-       let F : PathP (λ j → E j ∙ a ≡ a) (G1 .lIdentity a) (G2 .lIdentity a)
-           F = toPathP set
-                in F i
-   ; inverse = λ a →
-       let F : PathP (λ j → Σ λ b → b ∙ a ≡ E j) (G1 .inverse a) (G2 .inverse a)
-           F = let Inv1 = G1 .inverse a in
-               let Inv2 = G2 .inverse a in
-               let H : fst Inv1 ≡ fst Inv2
-                   H = grp.lcancel ⦃ G1 ⦄ a ((snd Inv1) ⋆ (sym ((snd Inv2) ⋆ (sym E)))) in
-               let G : PathP (λ j → H j ∙ a ≡ E j) (snd Inv1) (snd Inv2)
-                   G = toPathP set in ΣPathP (H , G)
-           in F i
-   ; gAssoc = record { assoc = λ a b c → set {p = G1 .gAssoc .assoc a b c} {G2 .gAssoc .assoc a b c} i }
-   }
- where
-  open group
-  open import Cubical.Foundations.HLevels
-
 -- https://en.wikipedia.org/wiki/Symmetric_group
 -- Compiling 'Module.agda' seems to take forever whenever I instantiate a symmetric group
 symmetricGroup : {{_ : is-set A}} → group (bijectiveComp {A = A})
@@ -384,3 +353,34 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
  a[ba]'≡b' a b = a ∙ inv (b ∙ a)     ≡⟨ right _∙_ (sym (grp.lemma1 b a))⟩
                  a ∙ (inv a ∙ inv b) ≡⟨ a[a'b]≡b a (inv b)⟩
                  inv b ∎
+
+-- Every operator can only be part of at most one group
+groupIsProp : (_∙_ : A → A → A) → isProp (group _∙_)
+groupIsProp {A = A} _∙_ G1 G2 i =
+  let set = λ{a b : A}{p q : a ≡ b} → IsSet a b p q in
+  let E : G1 .e ≡ G2 .e
+      E = G1 .e                 ≡⟨ idUnique {{grpIsMonoid {{G2}}}} (G1 .lIdentity)⟩
+          grpIsMonoid {{G2}} .e ≡⟨ sym (idUnique {{grpIsMonoid {{G2}}}} (G2 .lIdentity))⟩
+          G2 .e ∎ in
+  record
+   {
+     e = E i
+   ; IsSetGrp = record { IsSet = isPropIsSet (G1 .IsSetGrp .IsSet) (G2 .IsSetGrp .IsSet) i }
+   ; lIdentity = λ a →
+       let F : PathP (λ j → E j ∙ a ≡ a) (G1 .lIdentity a) (G2 .lIdentity a)
+           F = toPathP set
+                in F i
+   ; inverse = λ a →
+       let F : PathP (λ j → Σ λ b → b ∙ a ≡ E j) (G1 .inverse a) (G2 .inverse a)
+           F = let Inv1 = G1 .inverse a in
+               let Inv2 = G2 .inverse a in
+               let H : fst Inv1 ≡ fst Inv2
+                   H = grp.lcancel ⦃ G1 ⦄ a ((snd Inv1) ⋆ (sym ((snd Inv2) ⋆ (sym E)))) in
+               let G : PathP (λ j → H j ∙ a ≡ E j) (snd Inv1) (snd Inv2)
+                   G = toPathP set in ΣPathP (H , G)
+           in F i
+   ; gAssoc = record { assoc = λ a b c → set {p = G1 .gAssoc .assoc a b c} {G2 .gAssoc .assoc a b c} i }
+   }
+ where
+  open group
+  open import Cubical.Foundations.HLevels
