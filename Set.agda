@@ -30,6 +30,13 @@ record Multiset {A : Type al} (M : A → Type l) : Type(al ⊔ l) where
   multiset : ∀ x → isSet (M x)
 open Multiset {{...}} public
 
+instance
+ ΣSet : {{is-set A}} → {X : A → Type l} → {{Multiset X}} → is-set (Σ X)
+ ΣSet {A = A} {X = X} = record { IsSet = isSetΣ IsSet λ x → multiset x }
+
+ propertyIsMultiset : {X : A → Type l} → {{Property X}} → Multiset X
+ propertyIsMultiset = record { multiset = λ x → isProp→isSet (setProp x) }
+
 data Support{A : Type al}(X : A → Type l) : A → Type(al ⊔ l) where
   supportIntro : ∀ x → x ∈ X → x ∈ Support X 
   supportProp : ∀ x → isProp (x ∈ Support X)

@@ -4,6 +4,7 @@ module Algebra.Group where
 
 open import Prelude
 open import Relations
+open import Set
 open import Algebra.Monoid public
 
 -- https://en.wikipedia.org/wiki/Group_(mathematics)
@@ -223,7 +224,7 @@ module _{A : Type al}{_∙_ : A → A → A} where
       id-closed  : e ∈ H
       op-closed  : {x y : A} → x ∈ H → y ∈ H → x ∙ y ∈ H
       inv-closed : {x : A} → x ∈ H → inv x ∈ H
-      subgroup-set : (x : A) → isProp (H x)
+      {{subgroup-set}} : Property H
   open _≥_ {{...}} public
 
   -- https://en.wikipedia.org/wiki/Normal_subgroup
@@ -233,6 +234,22 @@ module _{A : Type al}{_∙_ : A → A → A} where
       gng' : ∀ n → n ∈ N → ∀ g → (g ∙ n) ∙ inv g ∈ N
 
 module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
+
+ -- operator of a subgroup
+ _⪀_ : {H : A → Type l} → {{G ≥ H}} → Σ H → Σ H → Σ H
+ _⪀_ (x , x') (y , y') = x ∙ y , op-closed x' y'
+
+ instance
+  ⪀assoc : {H : A → Type l} → {{_ : G ≥ H}} → Associative _⪀_
+  ⪀assoc = record { assoc = λ (a , a') (b , b') (c , c') → ΣPathPProp setProp (assoc a b c) }
+
+ -- Group structure of a subgroup
+ grp : {H : A → Type l} → {{_ : G ≥ H}} → group _⪀_
+ grp = record
+     { e = e , id-closed
+     ; inverse = λ(a , a') → (inv a , inv-closed a') , ΣPathPProp setProp (lInverse a)
+     ; lIdentity = λ(a , a') → ΣPathPProp setProp (lIdentity a)
+     }
 
  -- Every subgroup of an abelian group is normal
  abelian≥→⊵ : {{Commutative _∙_}} → (H : A → Type bl) → {{G ≥ H}} → G ⊵ H
@@ -259,6 +276,9 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
   generatingOverload : Generating (A → Type l) (al ⊔ l)
   generatingOverload = record { ⟨_⟩ = generating }
 
+  generatingProperty : {X : A → Type l} → Property (generating X)
+  generatingProperty = record { setProp = gen-set }
+
   -- https://en.wikipedia.org/wiki/Cyclic_group
   cyclicOverload : Generating A al
   cyclicOverload = record { ⟨_⟩ = λ x → ⟨ (λ y → y ≡ x) ⟩ }
@@ -269,7 +289,6 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
    { id-closed = subst ⟨ X ⟩ (lInverse x) (gen-op (gen-inv (gen-intro H)) (gen-intro H))
    ; op-closed = gen-op
    ; inv-closed = gen-inv
-   ; subgroup-set = gen-set
    }
 
  cyclicIsSubGroup : (x : A) → G ≥ ⟨ x ⟩
@@ -320,6 +339,10 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
   kernel : {{_ : Homo}} → A → Type bl
   kernel u = h u ≡ e
 
+  instance
+   kernelProperty : {{_ : Homo}} → Property kernel
+   kernelProperty = record { setProp = λ x → IsSet (h x) e }
+
   -- If the kernel only contains the identity element, then the homomorphism is injective
   kerOnlyId1-1 : {{X : Homo}} → (∀ x → x ∈ kernel → x ≡ e) → injective h
   kerOnlyId1-1 {{X}} =
@@ -346,7 +369,6 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
                                           inv (h x) ≡⟨ cong inv p ⟩
                                           inv e     ≡⟨ grp.lemma4 ⟩
                                           e ∎
-     ; subgroup-set = λ x → IsSet (h x) e
      }
 
  a[b'a]'≡b : ∀ a b → a ∙ inv (inv b ∙ a) ≡ b
