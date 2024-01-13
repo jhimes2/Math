@@ -235,17 +235,10 @@ module _{A : Type al}{_∙_ : A → A → A} where
 module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
 
  -- Overloading '⟨_⟩' for cyclic and generating set of a group
- record Generating (B : Type l) (l' : Level) : Type((l ⊔ al ⊔ lsuc l')) where
+ record Generating (B : Type l) (l' : Level) : Type(l ⊔ al ⊔ lsuc l') where
    field
      ⟨_⟩ : B → A → Type l'
  open Generating {{...}} public
-
- -- https://en.wikipedia.org/wiki/Cyclic_group
- data cyclic (x : A) : A → Type al where
-  cyc-intro : x ∈ cyclic x
-  cyc-inv : ∀{y} → y ∈ cyclic x → inv y ∈ cyclic x
-  cyc-op : ∀{y z} → y ∈ cyclic x → z ∈ cyclic x → y ∙ z ∈ cyclic x
-  cyc-set : ∀ y → isProp (y ∈ cyclic x)
 
   -- https://en.wikipedia.org/wiki/Generating_set_of_a_group
  data generating (X : A → Type l) : A → Type (al ⊔ l) where
@@ -255,19 +248,12 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
   gen-set : ∀ y → isProp (y ∈ generating X)
 
  instance
-  cyclicOverload : Generating A al
-  cyclicOverload = record { ⟨_⟩ = cyclic }
   generatingOverload : Generating (A → Type l) (al ⊔ l)
   generatingOverload = record { ⟨_⟩ = generating }
 
- cyclicIsSubgroup : (x : A) → G ≥ ⟨ x ⟩
- cyclicIsSubgroup x =
-  record
-   { id-closed = subst ⟨ x ⟩ (lInverse x) (cyc-op (cyc-inv cyc-intro) cyc-intro)
-   ; op-closed = cyc-op
-   ; inv-closed = cyc-inv
-   ; subgroup-set = cyc-set
-   }
+  -- https://en.wikipedia.org/wiki/Cyclic_group
+  cyclicOverload : Generating A al
+  cyclicOverload = record { ⟨_⟩ = λ x → ⟨ (λ y → y ≡ x) ⟩ }
 
  -- Non-empty generating set is a subgroup
  generatingIsSubgroup : (X : A → Type l) → Σ X → G ≥ ⟨ X ⟩
@@ -277,6 +263,9 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
    ; inv-closed = gen-inv
    ; subgroup-set = gen-set
    }
+
+ cyclicIsSubGroup : (x : A) → G ≥ ⟨ x ⟩
+ cyclicIsSubGroup x = generatingIsSubgroup (λ z → z ≡ x) (x , refl)
 
  module _{B : Type bl}{_*_ : B → B → B}{{H : group _*_}}
          (h : A → B) where
