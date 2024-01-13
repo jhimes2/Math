@@ -4,8 +4,6 @@ module Algebra.Field where
 
 open import Prelude
 open import Algebra.CRing public
-open import Data.Finite
-open import Data.Natural
 
 -- https://en.wikipedia.org/wiki/Field_(mathematics)
 record Field (A : Type l) : Type (lsuc l) where
@@ -14,7 +12,6 @@ record Field (A : Type l) : Type (lsuc l) where
     oneNotZero : 1r ≢ 0r
     reciprocal : nonZero → A
     recInv : (a : nonZero) → fst a * reciprocal a ≡ 1r
-    GFP : (xs : [ A ^ n ]) → xs ≢ (λ _ → 0r) → (x : A) → ∃ λ i → xs i ≢ 0r
 open Field {{...}} public
 
 module _{{F : Field A}} where
@@ -60,21 +57,6 @@ module _{{F : Field A}} where
                               neg 1r ≡⟨ contra ⟩
                               0r     ≡⟨ sym (grp.lemma4) ⟩
                               neg 0r  ∎
- 
-distinguishingOutput : (xs : [ A ^ n ]) → {a : A}
-                     → ((x : A) → Dec (x ≡ a))
-                     → xs ≢ (λ _ → a) → ∃ λ i → xs i ≢ a
-distinguishingOutput {n = Z} xs {a} decide p =
-         p (funExt λ (x , y , p) → ZNotS (sym p) ~> UNREACHABLE) ~> UNREACHABLE
-distinguishingOutput {n = S n} xs {a} decide p = decide (head xs)
-  ~> λ{(yes y) → let H : tail xs ≢ (λ _ → a)
-                     H = λ absurd → p (headTail≡ xs (λ _ → a) y absurd)
-                   in distinguishingOutput {n = n} (tail xs) decide H
-                     >>= λ(r , p) →
-                     η $ (finS r) , (λ x → p x)
-     ; (no y) → ∣ ( Z , n , refl) , (λ x → y x) ∣₁}
- where open import Cubical.HITs.PropositionalTruncation
-
 instance
   NZMultComm : {{F : Field A}} → Commutative NZMult
   NZMultComm = record { comm = λ a b → ΣPathPProp (λ w x y → funExt λ p → y p ~> UNREACHABLE)

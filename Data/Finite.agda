@@ -97,8 +97,6 @@ finDecrInj {x = Z , y , z} p q H = p (ΣPathPProp finSndIsProp refl) ~> UNREACHA
 finDecrInj {x = _} {Z , b , c} p q H = q (ΣPathPProp finSndIsProp refl) ~> UNREACHABLE
 finDecrInj {x = S x , y , z} {S a , b , c} p q H = ΣPathPProp finSndIsProp (cong S λ i → fst (H i))
 
-
-
 -- Pigeon hole principle
 -- A mapping from a finite set to a smaller set is not injective.
 pigeonhole : (f : fin (S n + m) → fin n) → ¬(injective f)
@@ -137,3 +135,18 @@ pigeonhole {n = S n} {m} f contra = let (g , gInj) = finDecrInjFun (f , contra) 
     ...                       | (no r) = finS≢finZ (fInj (finS x) finZ (finDecrInj a r p))
                                        ~> UNREACHABLE
     decrInj x y p | (no a)  | (no b) = finSInj (fInj (finS x) (finS y) (finDecrInj a b p))
+
+ 
+distinguishingOutput : (xs : [ A ^ n ]) → {a : A}
+                     → ((x : A) → Dec (x ≡ a))
+                     → xs ≢ (λ _ → a) → Σ λ i → xs i ≢ a
+distinguishingOutput {n = Z} xs {a} decide p =
+         p (funExt λ (x , y , p) → ZNotS (sym p) ~> UNREACHABLE) ~> UNREACHABLE
+distinguishingOutput {n = S n} xs {a} decide p = decide (head xs)
+  ~> λ{(yes y) → let H : tail xs ≢ (λ _ → a)
+                     H = λ absurd → p (headTail≡ xs (λ _ → a) y absurd)
+                   in distinguishingOutput {n = n} (tail xs) decide H
+                     ~> λ(r , p) →
+                     (finS r) , (λ x → p x)
+     ; (no y) → ( Z , n , refl) , (λ x → y x) }
+
