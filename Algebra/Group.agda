@@ -230,9 +230,17 @@ module _{A : Type al}{_∙_ : A → A → A} where
   record _⊵_(N : A → Type bl) : Type (al ⊔ bl) where
     field
       {{NisSubgroup}} : _≥_ N
-      gng' : ∀ {n} → n ∈ N → ∀ g → (g ∙ n) ∙ inv g ∈ N
+      gng' : ∀ n → n ∈ N → ∀ g → (g ∙ n) ∙ inv g ∈ N
 
 module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
+
+ -- Every subgroup of an abelian group is normal
+ abelian≥→⊵ : {{Commutative _∙_}} → (H : A → Type bl) → {{G ≥ H}} → G ⊵ H
+ abelian≥→⊵ H = record
+    { gng' = λ n n∈H g → let P : n ∈ H ≡ (g ∙ n) ∙ inv g ∈ H
+                             P = cong H $ sym (a'[ab]≡b g n) ⋆ comm (inv g) (g ∙ n)
+                         in transport P n∈H
+    }
 
  -- Overloading '⟨_⟩' for cyclic and generating set of a group
  record Generating (B : Type l) (l' : Level) : Type(l ⊔ al ⊔ lsuc l') where
