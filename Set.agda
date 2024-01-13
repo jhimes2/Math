@@ -51,14 +51,22 @@ instance
  supportProperty : {X : A → Type l} → Property (Support X)
  supportProperty = record { setProp = λ x → supportProp x }
 
+-- Multitype union
+_⊎_ : (A → Type l) → (A → Type l') → A → Type (l ⊔ l')
+X ⊎ Y = λ x → (x ∈ X) ＋ (x ∈ Y)
+infix 6 _⊎_
+
+-- Union
 _∪_ : (A → Type l) → (A → Type l') → A → Type (l ⊔ l')
-_∪_ X Y = λ x → implicit((x ∈ X) ＋ (x ∈ Y))
+X ∪ Y = λ x → (x ∈ X) ∨ (x ∈ Y)
 infix 6 _∪_
 
+-- Intersection
 _∩_ : (A → Type l) → (A → Type l') → A → Type (l ⊔ l')
-_∩_ X Y = λ x → (x ∈ X) × (x ∈ Y)
+X ∩ Y = λ x → (x ∈ X) × (x ∈ Y)
 infix 7 _∩_
 
+-- Complement
 _ᶜ : (A → Type l) → A → Type l
 X ᶜ = λ x → x ∉ X
 infix 20 _ᶜ
