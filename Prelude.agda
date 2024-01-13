@@ -330,6 +330,10 @@ record is-set (A : Type l) : Type l
    IsSet : isSet A
 open is-set {{...}} public
 
+instance
+ productIsSet : {{is-set A}} → {{is-set B}} → is-set (A × B)
+ productIsSet = record { IsSet = isSet× IsSet IsSet }
+
 compAssoc : (f g h : A → A) → f ∘ (g ∘ h) ≡ (f ∘ g) ∘ h
 compAssoc f g h = funExt λ x → refl
 
