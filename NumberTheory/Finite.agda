@@ -4,15 +4,15 @@ module NumberTheory.Finite where
 
 open import Prelude
 open import Relations
+open import Set
+open import Data.Bool
 open import Data.Natural
-open import Data.Finite
 open import NumberTheory.Natural
 open import Algebra.Field renaming (_/_ to _//_)
 open import Cubical.HITs.SetQuotients renaming (rec to QRec ; elim to QElim)
-open import Cubical.Relation.Binary
-open import Cubical.Foundations.HLevels
 
-open monoid {{...}}
+variable
+ n : ℕ
 
 Fin : ℕ → Type
 Fin n = ℕ / λ x y → paste x n ≡ paste y n
@@ -21,6 +21,7 @@ FinDiscrete : Discrete (Fin n)
 FinDiscrete {n = n} = discreteSetQuotients
  (BinaryRelation.equivRel (λ a → refl) (λ a b x → refl ⋆ (sym x))
    λ a b c x y → x ⋆ y) λ a b → natDiscrete (paste a n) (paste b n)
+ where open import Cubical.Relation.Binary
 
 instance
  FinIsSet : is-set (Fin n)
@@ -102,6 +103,9 @@ instance
        ~> λ{ (Z , p) → n , cong (λ x → paste x n) (Sout n a) ⋆ pasteAdd a n ⋆ p
            ; (S r , p) → r , (cong (λ x → paste x n) (Sout r a) ⋆ p) }
 
+  FinRng : Rng (Fin n)
+  FinRng = record {}
+
   FinMultMonoid : monoid (FinMult {n = n})
   FinMultMonoid {n = n} =
     record { e = [ S Z ]
@@ -111,11 +115,42 @@ instance
                    λ a → cong [_] (NatMultMonoid .rIdentity a)
            }
 
-  FinRng : Rng (Fin n)
-  FinRng = record {}
-
   FinRing : Ring (Fin n)
   FinRing = record {}
 
   FinCRing : CRing (Fin n)
   FinCRing = record {}
+
+-- Dihedral element
+D = λ(n : ℕ) → Fin n × Bool
+
+{- For a dihedral group 'D n', 'n' is one less than the geometric convention.
+   So 'D 2' is the symmetry group of an equilateral triangle.
+   'Ord(D n) = 2*(n+1)' -}
+
+-- Dihedral operator
+_●_ : D n → D n → D n
+(r , No) ● (r' , s) = (r + r') , s
+(r , Yes) ● (r' , s) = (r - r') , not s
+
+instance
+ dihedralAssoc : {n : ℕ} → Associative (_●_ {n})
+ dihedralAssoc = record { assoc = aux }
+  where
+   aux : (a b c : D n) → a ● (b ● c) ≡ (a ● b) ● c
+   aux (r1 , Yes) (r2 , Yes) (r3 , Yes) =
+         ≡-× (a[bc]'≡[ab']c' r1 r2 (neg r3)
+              ⋆ cong ((r1 + (neg r2)) +_) (grp.doubleInv r3)) refl
+   aux (r1 , Yes) (r2 , Yes) (r3 , No) =
+         ≡-× (a[bc]'≡[ab']c' r1 r2 (neg r3)
+              ⋆ cong ((r1 + (neg r2)) +_) (grp.doubleInv r3)) refl
+   aux (r1 , Yes) (r2 , No) (r3 , s3) = ≡-× (a[bc]'≡[ab']c' r1 r2 r3) refl
+   aux (r1 , No) (r2 , Yes) (r3 , s3) = ≡-× (assoc r1 r2 (neg r3)) refl
+   aux (r1 , No) (r2 , No) (r3 , s3) = ≡-× (assoc r1 r2 r3) refl
+
+ dihedralGroup : group (_●_ {n})
+ group.e (dihedralGroup {n = n}) = 0r , 0r
+ group.inverse dihedralGroup (r , Yes) = (r , Yes) , ≡-× (rInverse r) refl
+ group.inverse dihedralGroup (r , No) = (neg r , No) , ≡-× (lInverse r) refl
+ group.lIdentity dihedralGroup (r , Yes) = ≡-× (grpIsMonoid .lIdentity r) refl
+ group.lIdentity dihedralGroup (r , No) = ≡-× (grpIsMonoid .lIdentity r) refl
