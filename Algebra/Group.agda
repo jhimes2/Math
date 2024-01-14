@@ -382,6 +382,12 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
                  a ∙ (inv a ∙ inv b) ≡⟨ a[a'b]≡b a (inv b)⟩
                  inv b ∎
 
+ a[bc]'≡[ab']c' : {{Commutative _∙_}} → ∀ a b c → a ∙ inv(b ∙ c) ≡ (a ∙ inv b) ∙ inv c
+ a[bc]'≡[ab']c' a b c = a ∙ inv(b ∙ c)      ≡⟨ right _∙_ (sym (grp.lemma1 b c))⟩
+                        a ∙ (inv c ∙ inv b) ≡⟨ right _∙_ (comm (inv c) (inv b))⟩
+                        a ∙ (inv b ∙ inv c) ≡⟨ assoc a (inv b) (inv c)⟩
+                       (a ∙ inv b) ∙ inv c ∎
+
 -- Every operator can only be part of at most one group
 groupIsProp : (_∙_ : A → A → A) → isProp (group _∙_)
 groupIsProp {A = A} _∙_ G1 G2 i =
@@ -412,3 +418,4 @@ groupIsProp {A = A} _∙_ G1 G2 i =
  where
   open group
   open import Cubical.Foundations.HLevels
+
