@@ -259,6 +259,13 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
                          in transport P n∈H
     }
 
+ -- https://en.wikipedia.org/wiki/Group_action
+ -- Left group action
+ record Action {B : Type bl} (act : A → B → B) : Type (al ⊔ bl) where
+  field
+   identity : ∀ x → act e x ≡ x
+   compatibility : ∀ g h x → act g (act h x) ≡ act (g ∙ h) x
+
  -- Overloading '⟨_⟩' for cyclic and generating set of a group
  record Generating (B : Type l) (l' : Level) : Type(l ⊔ al ⊔ lsuc l') where
    field
