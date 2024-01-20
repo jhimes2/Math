@@ -200,10 +200,10 @@ surjectiveComp (f , f') (g , g') = g ∘ f , λ b → g' b ~> λ(x , x')
                   → f' x ~> λ(y , y') → y , (cong g y' ⋆ x')
 
 -- This is used to define symmetric groups
-bijectiveComp : (Σ λ(f : A → B) → bijective f)
-              → (Σ λ(g : B → C) → bijective g)
+bijectiveComp : (Σ λ(f : B → C) → bijective f)
+              → (Σ λ(g : A → B) → bijective g)
               → Σ λ(h : A → C) → bijective h
-bijectiveComp (f , Finj , Fsurj) (g , Ginj , Gsurj) = g ∘ f , (λ x y z → Finj x y (Ginj (f x) (f y) z))
+bijectiveComp (g , Ginj , Gsurj) (f , Finj , Fsurj) = g ∘ f , (λ x y z → Finj x y (Ginj (f x) (f y) z))
                                        , (snd (surjectiveComp (f , Fsurj) (g , Gsurj)))
 
 -- https://en.wikipedia.org/wiki/Inverse_function#Left_and_right_inverses

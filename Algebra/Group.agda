@@ -173,20 +173,22 @@ module grp {_∙_ : A → A → A}{{G : group _∙_}} where
     e ∎
 
 -- https://en.wikipedia.org/wiki/Symmetric_group
--- Compiling 'Module.agda' seems to take forever whenever I instantiate a symmetric group
+{- Instantiating this symmetric group may cause problems for files using
+   the '--overlapping-instances' flag. -}
 instance
  symmetricGroup : {{_ : is-set A}} → group (bijectiveComp {A = A})
  symmetricGroup =
   record
-   { e = id , ((λ x y p → p) , λ b → b , refl)
-   ; inverse = λ (f , Finj , Fsurj) → ((λ a → fst (Fsurj a)) ,
-        (λ x y (z : fst (Fsurj x) ≡ fst (Fsurj y)) →
-         x                 ≡⟨ sym (snd (Fsurj x))⟩
-         f (fst (Fsurj x)) ≡⟨ cong f z ⟩
-         f (fst (Fsurj y)) ≡⟨ snd (Fsurj y)⟩
-         y ∎)
-         , λ b → f b , Finj (fst (Fsurj (f b))) b (snd (Fsurj (f b)))) ,
-                 ΣPathPProp bijectiveProp (funExt λ x → snd (Fsurj x))
+   { e = id , (λ x y p → p) , λ b → b , refl
+   ; inverse = λ(g , gInj , gSurj) → ((λ a → fst (gSurj a)) , (λ x y z →
+       x ≡⟨ sym (snd (gSurj x))⟩
+       g (fst (gSurj x)) ≡⟨ cong g z ⟩
+       g (fst (gSurj y)) ≡⟨ snd (gSurj y)⟩
+       y ∎) , λ b → g b , (gInj (fst (gSurj (g b))) b (snd (gSurj (g b)))))
+    , ΣPathPProp bijectiveProp (funExt λ x →
+       let y = fst (gSurj (g x)) in
+       let H : g y ≡ g x
+           H = snd (gSurj (g x)) in gInj y x H)
    ; lIdentity = λ a → ΣPathPProp bijectiveProp refl
    }
 
@@ -259,31 +261,6 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
                              P = cong H $ sym (a'[ab]≡b g n) ⋆ comm (inv g) (g ∙ n)
                          in transport P n∈H
     }
-
- -- https://en.wikipedia.org/wiki/Group_action
- -- Left group action
- record Action {B : Type bl} (act : A → B → B) : Type (al ⊔ bl) where
-  field
-   act-identity : ∀ x → act e x ≡ x
-   act-compatibility : ∀ g h x → act g (act h x) ≡ act (g ∙ h) x
- open Action {{...}}
-
- -- Curried group action is bijective
- ActionBijective : (act : A → B → B){{_ : Action act}} → ∀ x → bijective (act x)
- ActionBijective act z = (λ a b (p : act z a ≡ act z b) →
-      a                     ≡⟨ sym (act-identity a)⟩
-      act e a               ≡⟨ left act (sym (lInverse z))⟩
-      act (inv z ∙ z) a     ≡⟨ sym (act-compatibility (inv z) z a)⟩
-      act (inv z) (act z a) ≡⟨ right act p ⟩
-      act (inv z) (act z b) ≡⟨ act-compatibility (inv z) z b ⟩
-      act (inv z ∙ z) b     ≡⟨ left act (lInverse z)⟩
-      act e b               ≡⟨ act-identity b ⟩
-      b ∎) ,
-      λ b → (act (inv z) b) ,
-         (act z (act (inv z) b) ≡⟨ act-compatibility z (inv z) b ⟩
-          act (z ∙ inv z) b     ≡⟨ left act (rInverse z)⟩
-          act e b               ≡⟨ act-identity b ⟩
-          b ∎)
 
  -- Overloading '⟨_⟩' for cyclic and generating set of a group
  record Generating (B : Type l) (l' : Level) : Type(l ⊔ al ⊔ lsuc l') where
@@ -396,6 +373,40 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
                                           inv e     ≡⟨ grp.lemma4 ⟩
                                           e ∎
      }
+
+ -- https://en.wikipedia.org/wiki/Group_action
+ -- Left group action
+ record Action {B : Type bl}(act : A → B → B) : Type (al ⊔ bl) where
+  field
+   act-identity : ∀ x → act e x ≡ x
+   act-compatibility : ∀ g h x → act g (act h x) ≡ act (g ∙ h) x
+   {{act-set}} : is-set B
+ open Action {{...}}
+
+ -- Curried action group is bijective
+ ActionBijective : (act : A → B → B){{_ : Action act}} → ∀ x → bijective (act x)
+ ActionBijective act z = (λ a b (p : act z a ≡ act z b) →
+      a                     ≡⟨ sym (act-identity a)⟩
+      act e a               ≡⟨ left act (sym (lInverse z))⟩
+      act (inv z ∙ z) a     ≡⟨ sym (act-compatibility (inv z) z a)⟩
+      act (inv z) (act z a) ≡⟨ right act p ⟩
+      act (inv z) (act z b) ≡⟨ act-compatibility (inv z) z b ⟩
+      act (inv z ∙ z) b     ≡⟨ left act (lInverse z)⟩
+      act e b               ≡⟨ act-identity b ⟩
+      b ∎) ,
+      λ b → (act (inv z) b) ,
+         (act z (act (inv z) b) ≡⟨ act-compatibility z (inv z) b ⟩
+          act (z ∙ inv z) b     ≡⟨ left act (rInverse z)⟩
+          act e b               ≡⟨ act-identity b ⟩
+          b ∎)
+
+ -- Group action homomorphism
+ actionHomomorphism : {B : Type bl} (act : A → B → B) → {{R : Action act}}
+                    → Homo (λ x → act x , ActionBijective act x)
+ actionHomomorphism act = record
+    {morphism = λ u v → ΣPathPProp bijectiveProp
+                                   (funExt λ x → sym (act-compatibility u v x))
+    }
 
  a[b'a]'≡b : ∀ a b → a ∙ inv (inv b ∙ a) ≡ b
  a[b'a]'≡b a b = a ∙ inv(inv b ∙ a)       ≡⟨ right _∙_ (sym(grp.lemma1 (inv b) a))⟩
