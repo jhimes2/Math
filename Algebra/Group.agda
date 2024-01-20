@@ -174,20 +174,21 @@ module grp {_∙_ : A → A → A}{{G : group _∙_}} where
 
 -- https://en.wikipedia.org/wiki/Symmetric_group
 -- Compiling 'Module.agda' seems to take forever whenever I instantiate a symmetric group
-symmetricGroup : {{_ : is-set A}} → group (bijectiveComp {A = A})
-symmetricGroup =
- record
-  { e = id , ((λ x y p → p) , λ b → b , refl)
-  ; inverse = λ (f , Finj , Fsurj) → ((λ a → fst (Fsurj a)) ,
-       (λ x y (z : fst (Fsurj x) ≡ fst (Fsurj y)) →
-        x                 ≡⟨ sym (snd (Fsurj x))⟩
-        f (fst (Fsurj x)) ≡⟨ cong f z ⟩
-        f (fst (Fsurj y)) ≡⟨ snd (Fsurj y)⟩
-        y ∎)
-        , λ b → f b , Finj (fst (Fsurj (f b))) b (snd (Fsurj (f b)))) ,
-                ΣPathPProp bijectiveProp (funExt λ x → snd (Fsurj x))
-  ; lIdentity = λ a → ΣPathPProp bijectiveProp refl
-  }
+instance
+ symmetricGroup : {{_ : is-set A}} → group (bijectiveComp {A = A})
+ symmetricGroup =
+  record
+   { e = id , ((λ x y p → p) , λ b → b , refl)
+   ; inverse = λ (f , Finj , Fsurj) → ((λ a → fst (Fsurj a)) ,
+        (λ x y (z : fst (Fsurj x) ≡ fst (Fsurj y)) →
+         x                 ≡⟨ sym (snd (Fsurj x))⟩
+         f (fst (Fsurj x)) ≡⟨ cong f z ⟩
+         f (fst (Fsurj y)) ≡⟨ snd (Fsurj y)⟩
+         y ∎)
+         , λ b → f b , Finj (fst (Fsurj (f b))) b (snd (Fsurj (f b)))) ,
+                 ΣPathPProp bijectiveProp (funExt λ x → snd (Fsurj x))
+   ; lIdentity = λ a → ΣPathPProp bijectiveProp refl
+   }
 
 -- Product of an arbitrary family of groups
 module directProduct(VG : A → Group l) where

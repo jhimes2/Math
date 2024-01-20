@@ -1,4 +1,4 @@
-{-# OPTIONS --cubical --safe --overlapping-instances #-}
+{-# OPTIONS --cubical --safe #-}
 
 module Algebra.Module where
 
@@ -75,8 +75,7 @@ module _{scalar : Type l}{vector : Type l'}{{R : Ring scalar}}{{V : Module vecto
     negV v ∎
 
   scaleNeg : (v : vector) → (c : scalar) → scale (neg c) v ≡ scale c (negV v)
-  scaleNeg v c = scale (neg c) v             ≡⟨ left scale (sym(rIdentity (neg c)))⟩
-                 scale (neg c * 1r) v        ≡⟨ left scale (-x*y≡x*-y c 1r)⟩
+  scaleNeg v c = scale (neg c) v             ≡⟨ left scale (sym(x*-1≡-x c))⟩
                  scale (c * neg 1r) v        ≡⟨ sym (scalarAssoc v c (neg 1r))⟩
                  scale c  (scale (neg 1r) v) ≡⟨ right scale (scaleNegOneInv v)⟩
                  scale c (negV v) ∎
