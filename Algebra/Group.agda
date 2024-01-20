@@ -263,8 +263,26 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
  -- Left group action
  record Action {B : Type bl} (act : A → B → B) : Type (al ⊔ bl) where
   field
-   identity : ∀ x → act e x ≡ x
-   compatibility : ∀ g h x → act g (act h x) ≡ act (g ∙ h) x
+   act-identity : ∀ x → act e x ≡ x
+   act-compatibility : ∀ g h x → act g (act h x) ≡ act (g ∙ h) x
+ open Action {{...}}
+
+ -- Curried group action is bijective
+ ActionBijective : (act : A → B → B){{_ : Action act}} → ∀ x → bijective (act x)
+ ActionBijective act z = (λ a b (p : act z a ≡ act z b) →
+      a                     ≡⟨ sym (act-identity a)⟩
+      act e a               ≡⟨ left act (sym (lInverse z))⟩
+      act (inv z ∙ z) a     ≡⟨ sym (act-compatibility (inv z) z a)⟩
+      act (inv z) (act z a) ≡⟨ right act p ⟩
+      act (inv z) (act z b) ≡⟨ act-compatibility (inv z) z b ⟩
+      act (inv z ∙ z) b     ≡⟨ left act (lInverse z)⟩
+      act e b               ≡⟨ act-identity b ⟩
+      b ∎) ,
+      λ b → (act (inv z) b) ,
+         (act z (act (inv z) b) ≡⟨ act-compatibility z (inv z) b ⟩
+          act (z ∙ inv z) b     ≡⟨ left act (rInverse z)⟩
+          act e b               ≡⟨ act-identity b ⟩
+          b ∎)
 
  -- Overloading '⟨_⟩' for cyclic and generating set of a group
  record Generating (B : Type l) (l' : Level) : Type(l ⊔ al ⊔ lsuc l') where
