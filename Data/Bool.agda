@@ -133,3 +133,34 @@ instance
   boolTotalOrder : TotalOrder _ Bool
   boolTotalOrder = record { _≤_ = le
         ; stronglyConnected = λ{ Yes Yes → inl tt ; Yes No → inr tt ; No b → inl tt}}
+
+
+-- https://en.wikipedia.org/wiki/Generalized_dihedral_group
+module _{_∙_ : A → A → A}{{_ : Commutative _∙_}}{{G : group _∙_}} where
+
+  -- Generalized Dihedral operator
+ _●_ : (A × Bool) → (A × Bool) → (A × Bool)
+ (r , No) ● (r' , s) = (r ∙ r') , s
+ (r , Yes) ● (r' , s) = (r ∙ inv r') , not s
+
+ instance
+  dihedralAssoc : Associative _●_
+  dihedralAssoc = record { assoc = aux }
+   where
+    aux : (a b c : (A × Bool)) → a ● (b ● c) ≡ (a ● b) ● c
+    aux (r1 , Yes) (r2 , Yes) (r3 , Yes) =
+          ≡-× (a[bc]'≡[ab']c' r1 r2 (inv r3)
+               ⋆ cong ((r1 ∙ (inv r2)) ∙_) (grp.doubleInv r3)) refl
+    aux (r1 , Yes) (r2 , Yes) (r3 , No) =
+          ≡-× (a[bc]'≡[ab']c' r1 r2 (inv r3)
+               ⋆ cong ((r1 ∙ (inv r2)) ∙_) (grp.doubleInv r3)) refl
+    aux (r1 , Yes) (r2 , No) (r3 , s3) = ≡-× (a[bc]'≡[ab']c' r1 r2 r3) refl
+    aux (r1 , No) (r2 , Yes) (r3 , s3) = ≡-× (assoc r1 r2 (inv r3)) refl
+    aux (r1 , No) (r2 , No) (r3 , s3) = ≡-× (assoc r1 r2 r3) refl
+ 
+  dihedralGroup : group _●_
+  group.e dihedralGroup = e , 0r
+  group.inverse dihedralGroup (r , Yes) = (r , Yes) , ≡-× (rInverse r) refl
+  group.inverse dihedralGroup (r , No) = (inv r , No) , ≡-× (lInverse r) refl
+  group.lIdentity dihedralGroup (r , Yes) = ≡-× (lIdentity r) refl
+  group.lIdentity dihedralGroup (r , No) = ≡-× (lIdentity r) refl

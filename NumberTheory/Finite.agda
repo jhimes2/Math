@@ -121,6 +121,8 @@ instance
   FinCRing : CRing (Fin n)
   FinCRing = record {}
 
+-- https://en.wikipedia.org/wiki/Dihedral_group
+
 -- Dihedral element
 D = λ(n : ℕ) → Fin n × Bool
 
@@ -128,29 +130,6 @@ D = λ(n : ℕ) → Fin n × Bool
    So 'D 2' is the symmetry group of an equilateral triangle.
    'Ord(D n) = 2*(n+1)' -}
 
--- Dihedral operator
-_●_ : D n → D n → D n
-(r , No) ● (r' , s) = (r + r') , s
-(r , Yes) ● (r' , s) = (r - r') , not s
-
-instance
- dihedralAssoc : {n : ℕ} → Associative (_●_ {n})
- dihedralAssoc = record { assoc = aux }
-  where
-   aux : (a b c : D n) → a ● (b ● c) ≡ (a ● b) ● c
-   aux (r1 , Yes) (r2 , Yes) (r3 , Yes) =
-         ≡-× (a[bc]'≡[ab']c' r1 r2 (neg r3)
-              ⋆ cong ((r1 + (neg r2)) +_) (grp.doubleInv r3)) refl
-   aux (r1 , Yes) (r2 , Yes) (r3 , No) =
-         ≡-× (a[bc]'≡[ab']c' r1 r2 (neg r3)
-              ⋆ cong ((r1 + (neg r2)) +_) (grp.doubleInv r3)) refl
-   aux (r1 , Yes) (r2 , No) (r3 , s3) = ≡-× (a[bc]'≡[ab']c' r1 r2 r3) refl
-   aux (r1 , No) (r2 , Yes) (r3 , s3) = ≡-× (assoc r1 r2 (neg r3)) refl
-   aux (r1 , No) (r2 , No) (r3 , s3) = ≡-× (assoc r1 r2 r3) refl
-
- dihedralGroup : group (_●_ {n})
- group.e (dihedralGroup {n = n}) = 0r , 0r
- group.inverse dihedralGroup (r , Yes) = (r , Yes) , ≡-× (rInverse r) refl
- group.inverse dihedralGroup (r , No) = (neg r , No) , ≡-× (lInverse r) refl
- group.lIdentity dihedralGroup (r , Yes) = ≡-× (grpIsMonoid .lIdentity r) refl
- group.lIdentity dihedralGroup (r , No) = ≡-× (grpIsMonoid .lIdentity r) refl
+-- Dihedral operator defined from the generalized dihedral group
+_⎈_ : D n → D n → D n
+_⎈_ = _●_
