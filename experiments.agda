@@ -1,8 +1,7 @@
-{-# OPTIONS --allow-unsolved-metas --cubical --overlapping-instances #-}
+{-# OPTIONS --guardedness --allow-unsolved-metas --cubical --overlapping-instances #-}
 
 open import Prelude
 open import Relations
-open import Algebra.CRing
 open import Data.Natural
 open import Cubical.Foundations.Isomorphism
 open import Data.Integer
@@ -60,20 +59,8 @@ retNo' = transport (λ i → flipPath i) Yes
 reflLoopF : ((λ i → base) ≡ loop) → Yes ≡ No
 reflLoopF contra = λ i → endPtOfYes (contra i)
 
-fermat'sLittleTheorem : {p : ℕ} → {{_ : TwoLessP p}}
-                      → (a : ℕ) → paste (pow a (S(S p))) (S p) ≡ paste a (S p)
-fermat'sLittleTheorem {p} a =
- paste (pow a (S(S p))) (S p) ≡⟨By-Definition⟩
- paste (a * (a * (pow a p))) (S p) ≡⟨ {!!} ⟩
- paste a (S p) ∎
-
 Euclid's-Lemma : (a b c : ℕ) → gcd a b ≡ S Z → a ∣ copy b c → a ∣ c
 Euclid's-Lemma a b c coprime p = p >>= λ(x , p) → ∣ {!!} , {!!} ∣₁
-
--- Proof irrelevant implication
-_⇒_ : Type al → Type bl → Type(al ⊔ bl)
-A ⇒ B = A → ∥ B ∥₁
-infixr 0 _⇒_
 
 Schröder–Bernstein : {A : Type al}
                    → {B : Type bl}
@@ -99,11 +86,6 @@ zorn' {A = A} {_≤_ = _≤_} ch contra =
   let H : x < y
       H = {!!} in {!!}
 
-weakZorn : {_≤_ : A → A → Type} → {{_ : Poset _≤_}}
-     → ((C : A → Type al) → Σ λ g → ∀ x → x ∈ C → g ≤ x → g ≡ x)
-     → Σ λ g → ∀ x → g ≤ x → g ≡ x
-weakZorn {_≤_ = _≤_} ch = {!!} , {!!}
-
 zorn : {_≤_ : A → A → Type} → {{_ : Poset _≤_}}
      → ((C : A → Type al) → chain C → Σ λ g → ∀ x → x ∈ C → g ≤ x → g ≡ x)
      → ¬(¬ Σ λ g → ∀ x → g ≤ x → g ≡ x)
@@ -117,4 +99,33 @@ DNElimF dn =
   let f = dn lzero Bool in
   let isEq : (A : Type) → Discrete A
       isEq = {!!}
-  in  {!!}
+  in {!!}
+
+-- https://en.wikipedia.org/wiki/Klein_four-group
+-- Would this be a klein four-group?
+data klein4 : Type where
+  e4 a4 b4 : klein4
+  _∙_ : klein4 → klein4 → klein4
+  k-1 : a4 ∙ a4 ≡ e4
+  k-2 : b4 ∙ b4 ≡ e4
+  k-3 : (a4 ∙ b4) ∙ (a4 ∙ b4) ≡ e4
+
+record Stream (A : Type) : Type where
+  coinductive
+  field
+    hd : A
+    tl : Stream A
+open Stream
+
+repeat : {A : Set} (a : A) -> Stream A
+hd (repeat a) = a
+tl (repeat a) = repeat a
+
+open import Algebra.CRing
+
+fermat'sLittleTheorem : {p : ℕ} → {{_ : TwoLessP p}}
+                      → (a : ℕ) → paste (pow a (S(S p))) (S p) ≡ paste a (S p)
+fermat'sLittleTheorem {p} x =
+ paste (pow x (S(S p))) (S p) ≡⟨By-Definition⟩
+ paste (x * (x * (pow x p))) (S p) ≡⟨ {!!} ⟩
+ paste x (S p) ∎

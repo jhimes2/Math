@@ -1,4 +1,4 @@
-{-# OPTIONS --safe --cubical #-}
+{-# OPTIONS --safe --cubical --overlapping-instances #-}
 
 module Algebra.OrderedRng where
 

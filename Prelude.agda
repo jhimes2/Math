@@ -325,6 +325,12 @@ module _{_∙_ : A → A → A}{{_ : Commutative _∙_}}(a b c : A) where
                       ((a ∙ c) ∙ b) ∙ d ≡⟨ sym (assoc (_∙_ a c) b d)⟩
                       (a ∙ c) ∙ (b ∙ d) ∎
 
+-- Is proposition
+record is-prop (A : Type l) : Type l
+  where field
+   IsProp : isProp A
+open is-prop {{...}} public
+
 record is-set (A : Type l) : Type l
   where field
    IsSet : isSet A

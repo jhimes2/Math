@@ -175,7 +175,7 @@ module grp {_∙_ : A → A → A}{{G : group _∙_}} where
 -- https://en.wikipedia.org/wiki/Symmetric_group
 {- Instantiating this symmetric group may cause problems for files using
    the '--overlapping-instances' flag. -}
-instance
+private instance
  symmetricGroup : {{_ : is-set A}} → group (bijectiveComp {A = A})
  symmetricGroup =
   record
@@ -214,7 +214,6 @@ module directProduct(VG : A → Group l) where
      ; gAssoc = record { assoc =  λ a b c → funExt λ x → group.gAssoc (VG x .grp) .assoc (a x) (b x) (c x) }
      }
     where open Group {{...}}
-
 
 module _{A : Type al}{_∙_ : A → A → A} where
 
@@ -297,62 +296,53 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
  cyclicIsSubGroup : (x : A) → G ≥ ⟨ x ⟩
  cyclicIsSubGroup x = generatingIsSubgroup (λ z → z ≡ x) (x , refl)
 
- module _{B : Type bl}{_*_ : B → B → B}{{H : group _*_}}
+ module _{B : Type bl}{_*_ : B → B → B}{{H : group _*_}} 
          (h : A → B) where
 
   -- https://en.wikipedia.org/wiki/Group_homomorphism
-  record Homo : Type (lsuc(al ⊔ bl))
+  record Homomorphism : Type (lsuc(al ⊔ bl))
     where field
-     morphism : (u v : A) → h (u ∙ v) ≡ h u * h v
- 
-  record Mono : Type (lsuc(al ⊔ bl))
+     preserve : (u v : A) → h (u ∙ v) ≡ h u * h v
+  open Homomorphism {{...}} public
+
+  record Monomorphism : Type (lsuc(al ⊔ bl))
     where field
-     {{x}} : Homo
+     {{homo}} : Homomorphism
      inject : injective h
 
-  record Epi : Type (lsuc(al ⊔ bl))
-    where field
-     {{x}} : Homo
-     surject : surjective h
-
-  record Iso : Type (lsuc(al ⊔ bl))
-    where field
-     {{x}} : Mono
-     {{y}} : Epi
-
   -- A group homomorphism maps identity elements to identity elements
-  idToId : {{X : Homo}} → h e ≡ e
-  idToId {{X}} = let P : h e ≡ h e * h e → h e ≡ e
-                     P = grp.lemma3 in P $
+  idToId : {{X : Homomorphism}} → h e ≡ e
+  idToId = let P : h e ≡ h e * h e → h e ≡ e
+               P = grp.lemma3 in P $
            h e       ≡⟨ cong h (sym (lIdentity e))⟩
-           h (e ∙ e) ≡⟨ Homo.morphism X e e ⟩
+           h (e ∙ e) ≡⟨ preserve e e ⟩
            h e * h e ∎
 
   -- A group homomorphism maps inverse elements to inverse elements
-  inverseToInverse : {{X : Homo}} → ∀ a → h (inv a) ≡ inv (h a)
-  inverseToInverse {{X}} a =
+  inverseToInverse : {{X : Homomorphism}} → ∀ a → h (inv a) ≡ inv (h a)
+  inverseToInverse a =
       let P : h (inv a) * h a ≡ inv (h a) * h a → h (inv a) ≡ inv (h a)
           P = grp.lcancel (h a) in P $
-      h (inv a) * h a ≡⟨ sym (Homo.morphism X (inv a) a)⟩
+      h (inv a) * h a ≡⟨ sym (preserve (inv a) a)⟩
       h (inv a ∙ a)   ≡⟨ cong h (lInverse a)⟩
       h e             ≡⟨ idToId ⟩
       e               ≡⟨ sym (lInverse (h a))⟩
       inv (h a) * h a ∎
 
-  kernel : {{_ : Homo}} → A → Type bl
+  kernel : {{_ : Homomorphism}} → A → Type bl
   kernel u = h u ≡ e
 
   instance
-   kernelProperty : {{_ : Homo}} → Property kernel
+   kernelProperty : {{_ : Homomorphism}} → Property kernel
    kernelProperty = record { setProp = λ x → IsSet (h x) e }
 
   -- If the kernel only contains the identity element, then the homomorphism is injective
-  kerOnlyId1-1 : {{X : Homo}} → (∀ x → x ∈ kernel → x ≡ e) → injective h
-  kerOnlyId1-1 {{X}} =
+  kerOnlyId1-1 : {{X : Homomorphism}} → (∀ x → x ∈ kernel → x ≡ e) → injective h
+  kerOnlyId1-1 =
          λ(p : ∀ x → h x ≡ e → x ≡ e)
           x y
           (q : h x ≡ h y)
-         → let P = h (x ∙ inv y)   ≡⟨ Homo.morphism X x (inv y)⟩
+         → let P = h (x ∙ inv y)   ≡⟨ preserve x (inv y)⟩
                    h x * h (inv y) ≡⟨ right _*_ (inverseToInverse y)⟩
                    h x * inv (h y) ≡⟨ right _*_ (cong inv (sym q))⟩
                    h x * inv (h x) ≡⟨ rInverse (h x)⟩
@@ -361,10 +351,10 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
                Q = p (x ∙ inv y) P in grp.uniqueInv Q
 
   -- A kernel is a subgroup
-  kerSubgroup : {{X : Homo}} → G ≥ kernel
-  kerSubgroup {{X}} = record
+  kerSubgroup : {{X : Homomorphism}} → G ≥ kernel
+  kerSubgroup = record
      { id-closed = idToId
-     ; op-closed = λ{x y} (p : h x ≡ e) (q : h y ≡ e) → h (x ∙ y) ≡⟨ Homo.morphism X x y ⟩
+     ; op-closed = λ{x y} (p : h x ≡ e) (q : h y ≡ e) → h (x ∙ y) ≡⟨ preserve x y ⟩
                                                         h x * h y ≡⟨ cong₂ _*_ p q ⟩
                                                         e * e     ≡⟨ lIdentity e ⟩
                                                         e ∎
@@ -373,6 +363,68 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
                                           inv e     ≡⟨ grp.lemma4 ⟩
                                           e ∎
      }
+
+ record Epimorphism{B : Type bl}(h : A → B) : Type (lsuc(al ⊔ bl))
+   where field
+    _∗_ : B → B → B
+    epi-preserve : (u v : A) → h (u ∙ v) ≡ h u ∗ h v
+    surject : surjective h
+    {{epi-set}} : is-set B
+ open Epimorphism {{...}} public
+
+ {- We didn't require the codomain of an epimorphism to be an underlying set of a group
+    because it already was. -}
+ instance
+  EpimorphismCodomainGroup : {h : A → B} → {{E : Epimorphism h}}
+                           → group _∗_
+  EpimorphismCodomainGroup {h = h} = record
+    { e = h e
+    ; inverse = λ a →
+       let a' = fst (surject a) in
+       let H : h a' ≡ a
+           H = snd (surject a) in
+       h (inv a') ,
+            (h (inv a') ∗ a    ≡⟨ right _∗_ (sym H)⟩
+             h (inv a') ∗ h a' ≡⟨ sym (epi-preserve (inv a') a')⟩
+             h (inv a' ∙ a')   ≡⟨ cong h (lInverse a')⟩
+             h e ∎)
+    ; lIdentity = λ a →
+       let a' = fst (surject a) in
+       let H : h a' ≡ a
+           H = snd (surject a) in
+              h e ∗ a    ≡⟨ right _∗_ (sym H)⟩
+              h e ∗ h a' ≡⟨ sym (epi-preserve e a')⟩
+              h (e ∙ a') ≡⟨ cong h (lIdentity a')⟩
+              h a'       ≡⟨ H ⟩
+              a ∎
+    ; gAssoc = record
+       { assoc = λ a b c →
+          let a' = fst (surject a) in
+          let H : h a' ≡ a
+              H = snd (surject a) in
+          let b' = fst (surject b) in
+          let G : h b' ≡ b
+              G = snd (surject b) in
+          let c' = fst (surject c) in
+          let F : h c' ≡ c
+              F = snd (surject c) in
+           a ∗ (b ∗ c)          ≡⟨ cong₂ _∗_ (sym H) (cong₂ _∗_ (sym G) (sym F))⟩
+           h a' ∗ (h b' ∗ h c') ≡⟨ right _∗_ (sym (epi-preserve b' c'))⟩
+           h a' ∗ h (b' ∙ c')   ≡⟨ sym (epi-preserve a' (b' ∙ c'))⟩
+           h (a' ∙ (b' ∙ c'))   ≡⟨ cong h (assoc a' b' c')⟩
+           h ((a' ∙ b') ∙ c')   ≡⟨ epi-preserve (a' ∙ b') c' ⟩
+           h (a' ∙ b') ∗ h c'   ≡⟨ left _∗_ (epi-preserve a' b')⟩
+           (h a' ∗ h b') ∗ h c' ≡⟨ cong₂ _∗_ (cong₂ _∗_ H G) F ⟩
+           (a ∗ b) ∗ c ∎
+       }
+    }
+  Epi→Homo : {h : A → B}{{_ : Epimorphism h}} → Homomorphism h
+  Epi→Homo = record { preserve = epi-preserve }
+
+ record Isomorphism{B : Type bl}(h : A → B) : Type (lsuc(al ⊔ bl))
+   where field
+    {{epi}} : Epimorphism h
+    {{mono}} : Monomorphism h
 
  -- https://en.wikipedia.org/wiki/Group_action
  -- Left group action
@@ -402,9 +454,9 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
 
  -- Group action homomorphism
  actionHomomorphism : {B : Type bl} (act : A → B → B) → {{R : Action act}}
-                    → Homo (λ x → act x , ActionBijective act x)
+                    → Homomorphism (λ x → act x , ActionBijective act x)
  actionHomomorphism act = record
-    {morphism = λ u v → ΣPathPProp bijectiveProp
+    {preserve = λ u v → ΣPathPProp bijectiveProp
                                    (funExt λ x → sym (act-compatibility u v x))
     }
 
