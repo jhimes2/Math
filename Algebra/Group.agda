@@ -305,6 +305,7 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
      preserve : (u v : A) → h (u ∙ v) ≡ h u * h v
   open Homomorphism {{...}} public
 
+  -- https://en.wikipedia.org/wiki/Monomorphism
   record Monomorphism : Type (lsuc(al ⊔ bl))
     where field
      {{homo}} : Homomorphism
@@ -364,6 +365,7 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
                                           e ∎
      }
 
+ -- https://en.wikipedia.org/wiki/Epimorphism
  record Epimorphism{B : Type bl}(h : A → B) : Type (lsuc(al ⊔ bl))
    where field
     _∗_ : B → B → B
@@ -418,6 +420,9 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
            (a ∗ b) ∗ c ∎
        }
     }
+
+  {- Now that we proved that epimorphism codomains are groups, we
+     can conclude that epimorphisms are homomorphisms. -}
   Epi→Homo : {h : A → B}{{_ : Epimorphism h}} → Homomorphism h
   Epi→Homo = record { preserve = epi-preserve }
 
@@ -507,4 +512,3 @@ groupIsProp {A = A} _∙_ G1 G2 i =
  where
   open group
   open import Cubical.Foundations.HLevels
-
