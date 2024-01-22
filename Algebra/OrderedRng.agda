@@ -140,10 +140,8 @@ module _{{_ : Field A}}{{OF : OrderedRng l A}} where
     (a + a) * reciprocal 2f  ≡⟨ left _*_ (x+x≡x2 a)⟩
     (a * 2r) * reciprocal 2f ≡⟨ sym (assoc a 2r (reciprocal 2f))⟩
     a * (2r * reciprocal 2f) ≡⟨ right _*_ (recInv 2f)⟩
-    a * 1r ≡⟨ multStr .rIdentity a ⟩
+    a * 1r ≡⟨ rIdentity a ⟩
     a ∎
-  {- I don't why Agda can't solve the following constraints when I just state 'rIdentity a'.
-     For some reason I have to explicitly specify 'multStr .rIdentity a'. -}
 
   0<2 : 0r < 2r
   0<2 = ordered.lemma3 (fst zeroLtOne) (fst zeroLtOne) , λ x → snd 2f (sym x)
