@@ -21,7 +21,7 @@ open monoid {{...}}
 instance
   intNT : NTOperators ℤ
   intNT = record {
-        _∣_ = λ a b → ∃ λ d → (a - Z) * d ≡ b
+        _∣_ = λ a b → ∥Σ∥ λ d → (a - Z) * d ≡ b
       ; copy = λ x y → (S x - Z) * y }
 
 dividesNeg : ∀ (n : ℕ)(a : ℤ) → n ∣ a → n ∣ neg a

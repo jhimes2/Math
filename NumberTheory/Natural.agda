@@ -120,7 +120,7 @@ instance
 
     ℕNT : NTOperators ℕ
     ℕNT = record
-           { _∣_ = λ a b → ∃ λ x → x * a ≡ b
+           { _∣_ = λ a b → ∥Σ∥ λ x → x * a ≡ b
            ; copy = λ a b → S a * b
            }
 

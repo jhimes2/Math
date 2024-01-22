@@ -61,7 +61,7 @@ module _{A : Type al}{{R : Rng A}} where
  MT M v x =  v ∙ λ y → M y x
 
 columnSpace : {A : Type l} → {B : Type l'} → {{F : Field A}} → (fin n → B → A) → (B → A) → Type (l ⊔ l')
-columnSpace {n = n} M x = ∃ λ y → MT M y ≡ x
+columnSpace {n = n} M x = ∥Σ∥ λ y → MT M y ≡ x
 
 rowSpace : {A : Type l} → {B : Type l'} → {{F : Field A}} → (B → fin n → A) → (B → A) → Type (l ⊔ l')
 rowSpace {n = n} M = columnSpace {n = n} (transpose M)

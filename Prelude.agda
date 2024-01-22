@@ -84,9 +84,13 @@ f ∘ g = λ a → f (g a)
 Σ : {A : Type l} → (P : A → Type l') → Type(l ⊔ l')
 Σ {A = A} = Σ' A
 
--- Merely exists
+-- Implicitly exists
 ∃ : {A : Type l} → (P : A → Type l') → Type(l ⊔ l')
-∃ {A = A} = ∃' A
+∃ P = implicit (Σ P)
+
+-- Merely exists
+∥Σ∥ : {A : Type l} → (P : A → Type l') → Type(l ⊔ l')
+∥Σ∥ P = ∥ Σ P ∥₁
 
 ∃! : {A : Type l} → (P : A → Type l') → Type(l ⊔ l')
 ∃! {A = A} P = Σ λ x → P x × ∀ y → P y → x ≡ y
@@ -169,7 +173,7 @@ demorgan5 p x q = p (x , q)
 demorgan6 : {P : A → Type l} → (∀ a → a ∉ P) → ¬ Σ P
 demorgan6 f (a , p) = f a p
 
-demorgan7 : {P : A → Type l} → ¬ (∀ x → x ∊ P) → implicit (Σ λ x → x ∉ P)
+demorgan7 : {P : A → Type l} → ¬ (∀ x → x ∊ P) → ∃ λ x → x ∉ P
 demorgan7 g f = g λ x z → f (x , z)
 
 -- https://en.wikipedia.org/wiki/Bijection,_injection_and_surjection
@@ -245,7 +249,7 @@ funRed p x i = p i x
 
 -- https://en.wikipedia.org/wiki/Image_(mathematics)
 image : {A : Type al}{B : Type bl} → (A → B) → B → Type (al ⊔ bl)
-image f b = ∃ λ a → f a ≡ b
+image f b = ∥Σ∥ λ a → f a ≡ b
 
 record Associative {A : Type l}(_∙_ : A → A → A) : Type(lsuc l) where
   field
