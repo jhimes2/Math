@@ -148,13 +148,11 @@ instance
   truncMonad : Monad (∥_∥₁ {ℓ = l})
   truncMonad = record { μ = transport (propTruncIdempotent squash₁) ; η = ∣_∣₁ }
 
-_¬¬=_ : (¬ ¬ A) → (A → ¬ B) → ¬ B
+_¬¬=_ : ¬ ¬ A → (A → ¬ B) → ¬ B
 x ¬¬= f = λ z → x (λ z₁ → f z₁ z)
 
-demorgan4 : implicit(¬(A × B) → (¬ A) ＋ (¬ B))
-demorgan4 {l} {A = A} {B = B} = LEM (A ＋ B) >>= λ{ (inl (inl a)) → λ p
-  → p (λ q → inr (λ b → q (a , b))) ; (inl (inr b)) → λ p → p (λ q → inl (λ a → q (a , b)))
-  ; (inr x) → λ p → p (λ q → inl (λ a → x (inl a)))}
+demorgan4 : ¬(A × B) → ¬ A ∨ ¬ B
+demorgan4 = λ p q → q (inl λ x → q (inr λ y → p (x , y)))
 
 -- https://en.wikipedia.org/wiki/Principle_of_explosion
 UNREACHABLE : ⊥ → {A : Type l} → A
@@ -165,14 +163,14 @@ DNOut {A = A} {B = B} f = LEM A
          ¬¬= λ{ (inl a) → f a ¬¬= λ b → η λ _ → b
               ; (inr x) → λ y → y (λ a → x a ~> UNREACHABLE) }
 
-demorgan5 : {P : A → Type l} → ¬(Σ P) → (x : A) → ¬ (P x)
+demorgan5 : {P : A → Type l} → ¬ Σ P → ∀ x → x ∉ P
 demorgan5 p x q = p (x , q)
 
-demorgan6 : {P : A → Type l} → ((a : A) → ¬ P a) → ¬ Σ P
+demorgan6 : {P : A → Type l} → (∀ a → a ∉ P) → ¬ Σ P
 demorgan6 f (a , p) = f a p
 
-demorgan7 : {P : A → Type l} → ¬ ((x : A) → implicit (P x)) → implicit (Σ λ x → ¬ P x)
-demorgan7 g f = g λ x → λ z → f (x , z)
+demorgan7 : {P : A → Type l} → ¬ (∀ x → x ∊ P) → implicit (Σ λ x → x ∉ P)
+demorgan7 g f = g λ x z → f (x , z)
 
 -- https://en.wikipedia.org/wiki/Bijection,_injection_and_surjection
 
