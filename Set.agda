@@ -1,10 +1,9 @@
-{-# OPTIONS  --without-K --cubical --safe #-}
+{-# OPTIONS --cubical --safe #-}
 
 module Set where
 
 open import Prelude
 open import Relations
-open import Cubical.Foundations.Powerset renaming (_∈_ to _∈'_ ; _⊆_ to _⊆'_) public
 open import Cubical.Foundations.HLevels
 open import Cubical.HITs.PropositionalTruncation renaming (rec to recTrunc ; map to mapTrunc)
 open import Cubical.Foundations.Isomorphism
