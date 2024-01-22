@@ -112,8 +112,9 @@ instance
             ; scaleId = λ v → funExt λ x → lIdentity (v x)
             }
 
- vectVS : {A : Type l}{B : Type l'} → {{F : Field A}} → VectorSpace (B → A)
- vectVS = vectMod
+ -- https://en.wikipedia.org/wiki/Function_space
+ functionSpace : {A : Type l}{B : Type l'} → {{F : Field A}} → VectorSpace (B → A)
+ functionSpace = vectMod
 
 foldrMC : {_∙_ : A → A → A}{{M : monoid _∙_}}{{C : Commutative _∙_}} → (u v : [ A ^ n ])
      → foldr _∙_ e (zip _∙_ u v) ≡ foldr _∙_ e u ∙ foldr _∙_ e  v
