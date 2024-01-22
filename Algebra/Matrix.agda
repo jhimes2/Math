@@ -306,12 +306,12 @@ transposeMMult {A = A} {n = n} {C = C} {B = B} M N = funExt λ c → funExt λ b
     (λ x → M x c) ∙ N b       ≡⟨By-Definition⟩
     mMult (transpose N) (transpose M) c b ∎
 
--- infinite identity matrix
+{- An infinite identity matrix is a function that takes two natural
+   numbers and returns `1` if they are equal and `0` otherwise. -}
 I∞ : {{R : Ring A}} → ℕ → ℕ → A
 I∞ Z Z = 1r
-I∞ Z (S b) = 0r
-I∞ (S a) Z = 0r
 I∞ (S a) (S b) = I∞ a b
+I∞ _ _ = 0r
 
 I∞Transpose : {{R : Ring A}} → I∞ ≡ transpose I∞
 I∞Transpose = funExt λ x → funExt λ y → Rec x y
