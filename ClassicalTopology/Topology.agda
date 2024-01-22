@@ -1,9 +1,7 @@
 {-# OPTIONS --cubical --safe #-}
 
-open import Prelude hiding (empty)
+open import Prelude
 open import Cubical.HITs.PropositionalTruncation renaming (rec to truncRec)
-open import Cubical.Foundations.HLevels
-open import Cubical.Foundations.Isomorphism
 open import Set
 open import Relations
 
@@ -18,10 +16,6 @@ record topology {A : Type al} (T : (A → Type l') → Type l) : Type (l ⊔ lsu
    tintersection : {X Y : A → Type l'} → X ∈ T → Y ∈ T → X ∩ Y ∈ T
 --   tset : ∀ X → isProp (X ∈ T) -- TODO
 open topology {{...}}
-
--- preimage
-_⁻¹[_] : (f : A → B) → (B → Type l) → (A → Type l)
-(f ⁻¹[ g ]) = g ∘ f
 
 continuous : {B : Type bl}
             {X : (A → Type l') → Type l}{{T1 : topology X}}

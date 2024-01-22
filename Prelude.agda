@@ -251,6 +251,10 @@ funRed p x i = p i x
 image : {A : Type al}{B : Type bl} → (A → B) → B → Type (al ⊔ bl)
 image f b = ∥Σ∥ λ a → f a ≡ b
 
+-- preimage
+_⁻¹[_] : (f : A → B) → (B → Type l) → (A → Type l)
+f ⁻¹[ g ] = g ∘ f
+
 record Associative {A : Type l}(_∙_ : A → A → A) : Type(lsuc l) where
   field
       assoc : (a b c : A) → a ∙ (b ∙ c) ≡ (a ∙ b) ∙ c
