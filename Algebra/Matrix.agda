@@ -77,7 +77,7 @@ scalar-distributivity2 s x y = funExt λ z → lDistribute s (x z) (y z)
 pointwise : (_∗_ : A → A → A)
           → (B : Type bl)
           → (B → A) → (B → A) → (B → A)
-pointwise _∗_ B f g b = f b ∗ g b
+pointwise _∗_ _ f = zip _∗_ f
 
 instance
 
