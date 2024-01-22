@@ -29,7 +29,7 @@ dividesNeg n = elimProp (λ _ → isProp→ squash₁)
                         λ(a , b) → recTrunc squash₁ λ((d , G) : Σ λ d → (n - Z) * d ≡ [ a , b ]) →
                                                     η $ neg d ,  x*-y≡-[x*y] (n - Z) d ⋆ cong neg G
 
-dividesDecℤ : ∀ (n : ℕ)(a : ℤ) → Decidable (n ∣ a)
+dividesDecℤ : ∀ (n : ℕ)(a : ℤ) → Dec (n ∣ a)
 dividesDecℤ n = elimProp {!!} {!!}
 
 {- I would like to make 'divisionℤ' shorter. In the meantime, here's a proof in comments.
@@ -170,7 +170,7 @@ divisionℤ b =
  where
   decT : ∀(a : ℤ)(b r : ℕ) → (Σ λ q → a ≡ ([ S b , Z ] * q) + [ r , Z ]) ＋ ¬(Σ λ q → a ≡ ([ S b , Z ] * q) + [ r , Z ])
   decT a b r = dividesDecℤ (S b) (a - [ r , Z ])
-    ~> λ{ (inl p) → inl (recTrunc {!!} {!!} p)
-        ; (inr ¬p) → {!!}}
+    ~> λ{ (yes p) → inl (recTrunc {!!} {!!} p)
+        ; (no ¬p) → {!!}}
 
 

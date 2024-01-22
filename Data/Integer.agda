@@ -13,8 +13,7 @@ open import Cubical.Foundations.HLevels
 ℤ = (ℕ × ℕ) / λ{(p1 , n1) (p2 , n2) → add p1 n2 ≡ add p2 n1}
 
 ℤDiscrete : Discrete ℤ
-ℤDiscrete = StdLibDiscrete $
-           discreteSetQuotients (BinaryRelation.equivRel (λ{(p , n) → refl})
+ℤDiscrete = discreteSetQuotients (BinaryRelation.equivRel (λ{(p , n) → refl})
                                                           (λ{(p1 , n1) (p2 , n2) x → sym x})
                                                           λ{(p1 , n1) (p2 , n2) (p3 , n3) x y
           → natLCancel (add p2 n2) $
@@ -26,13 +25,12 @@ open import Cubical.Foundations.HLevels
           add (add n2 p3) (add p2 n1) ≡⟨ [ab][cd]≡[ac][bd] n2 p3 p2 n1 ⟩
           add (add n2 p2) (add p3 n1) ≡⟨ left add (comm n2 p2) ⟩
           add (add p2 n2) (add p3 n1) ∎
-    }) λ{(p1 , n1) (p2 , n2) → DiscreteStdLib natDiscrete (add p1 n2) (add p2 n1)}
-  where
-    open import Cubical.Relation.Binary
+    }) λ{(p1 , n1) (p2 , n2) → natDiscrete (add p1 n2) (add p2 n1)}
+  where open import Cubical.Relation.Binary
 
 instance
  ℤisSet : is-set ℤ
- ℤisSet = record { IsSet = Hedberg ℤDiscrete }
+ ℤisSet = record { IsSet = Discrete→isSet ℤDiscrete }
 
 addℤaux : ℕ × ℕ → ℕ × ℕ → ℤ
 addℤaux (p1 , n1) (p2 , n2) = [ add p1 p2 , add n1 n2 ]
@@ -264,8 +262,8 @@ instance
  intLeTotalOrder = record {
                      _≤_ = le 
                   ; stronglyConnected = λ a b → ℤDiscrete a b
-                    ~> λ{(inl p) → inl (eqToLe p)
-                       ; (inr p) → transport (propTruncIdempotent
+                    ~> λ{(yes p) → inl (eqToLe p)
+                       ; (no p) → transport (propTruncIdempotent
                             λ{ (inl x) (inl y) → cong inl (isRelation a b x y)
                              ; (inl x) (inr y) → p (antiSymmetric x y) ~> UNREACHABLE
                              ; (inr x) (inl y) → p (antiSymmetric y x) ~> UNREACHABLE

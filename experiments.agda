@@ -91,8 +91,8 @@ zorn : {_≤_ : A → A → Type} → {{_ : Poset _≤_}}
      → ¬(¬ Σ λ g → ∀ x → g ≤ x → g ≡ x)
 zorn {A = A} {_≤_ = _≤_} = let H = LEM A in λ x y → H (λ y → {!!})
 
-test2 : Decidable ((A : Type al) → Decidable A)
-test2 {al} = inr λ x → (LEM (Decidable ((A : Type al) → Decidable A))) ~> λ{x → {!!}}
+test2 : Dec ((A : Type al) → Dec A)
+test2 {al} = no λ x → (LEM (Dec ((A : Type al) → Dec A))) ~> λ{x → {!!}}
 
 DNElimF : ¬ ((l : Level) → (A : Type) → ¬(¬ A) → A)
 DNElimF dn =

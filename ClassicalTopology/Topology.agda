@@ -27,30 +27,29 @@ closed : {T : (A → Type l') → Type l}{{T1 : topology T}}(s : A → Type l') 
 closed {A = A} {T = T} s = T(s ᶜ)
 
 instance
-  discreteTopology : topology λ (_ : A → Type l') → Lift {j = l} ⊤
+  discreteTopology : topology λ (_ : A → Type l') → True {l = l}
   discreteTopology =
      record
-      { tempty = lift tt
-      ; tfull = lift tt
-      ; tunion = λ _ _ → lift tt
-      ; tintersection = λ _ _ → lift tt
-   --   ; tset = λ{ X tt tt → refl}
+      { tempty = truth
+      ; tfull = truth
+      ; tunion = λ _ _ → truth
+      ; tintersection = λ _ _ → truth
+   --   ; tset = λ{ X truth truth → refl}
       }
   indiscreteTopology : topology λ (X : A → Type l') → (X ≡ 𝓤) ＋ (X ≡ ∅)
   indiscreteTopology =
      record {
         tempty = inr refl
       ; tfull = inl refl
-      ; tunion = λ{ (inl x) _ → inl $ funExt λ z → TrueEq isProp¬ $ η $ inl $ transport (λ i → x (~ i) z) (lift tt)
-       ; (inr x) (inl y) → inl $ funExt λ z → TrueEq isProp¬ $ η $ inr $ transport (λ i → y (~ i) z) (lift tt)
-       ; (inr x) (inr y) → inr $ funExt λ z → propExt isProp¬ (λ())
+      ; tunion = λ{ (inl x) _ → inl $ funExt λ z → TrueEq (isProp¬ _) $ η $ inl $ transport (λ i → x (~ i) z) truth
+       ; (inr x) (inl y) → inl $ funExt λ z → TrueEq (isProp¬ _) $ η $ inr $ transport (λ i → y (~ i) z) truth
+       ; (inr x) (inr y) → inr $ funExt λ z → propExt (isProp¬ _) (λ())
                 (λ q → q ((λ { (inl w) → transport (λ i → x i z) w ~> λ()
                              ; (inr w) → transport (λ i → y i z) w ~> λ()})) ~> UNREACHABLE) λ ()}
       ; tintersection = λ{ {X = X} {Y} (inl x) (inl y) → inl $ funExt λ z →
                             (X ∩ Y) z ≡⟨ cong (λ w → (w ∩ Y) z) x ⟩
                             (𝓤 ∩ Y) z ≡⟨ cong (λ w → (𝓤 ∩ w) z) y ⟩
-                            (𝓤 ∩ 𝓤) z ≡⟨ TrueEq (λ{(lift tt , lift tt) (lift tt , lift tt) → refl})
-                                                   (lift tt , lift tt)⟩
+                            (𝓤 ∩ 𝓤) z ≡⟨ TrueEq (λ{(truth , truth) (truth , truth) → refl}) (truth , truth) ⟩
                             𝓤 z ∎
                          ; {X = X} {Y} (inl x) (inr y) → inr (cong (λ w → X ∩ w) y ⋆ funExt λ w → propExt (λ()) (λ()) (λ()) (λ()))
                          ; {X = X} {Y} (inr x) y → inr (cong (λ w → w ∩ Y) x ⋆ funExt λ w → propExt (λ()) (λ()) (λ()) (λ()) )}
@@ -58,7 +57,7 @@ instance
 
 discreteDomainContinuous : {A : Type al} → {X : (B → Type l') → Type l}{{XT : topology X}}
                          → (f : A → B) → continuous {l = (al ⊔ l')} {{T1 = discreteTopology}} {{XT}} f
-discreteDomainContinuous f = λ _ → lift tt
+discreteDomainContinuous f = λ _ → truth
 
 indiscreteCodomainContinuous : {T : (B → Type l') → Type l}{{XT : topology T}}
                          → (f : B → A) → continuous {{T2 = indiscreteTopology}} f

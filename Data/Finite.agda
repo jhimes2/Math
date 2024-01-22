@@ -47,12 +47,10 @@ finMax : fin (S n)
 finMax {n} = n , (Z , (cong S (addZ n)))
 
 finDiscrete : Discrete (fin n)
-finDiscrete = StdLibDiscrete $ discreteΣ (DiscreteStdLib natDiscrete)
-                                         (λ a x y → yes (finSndIsProp a x y))
-  where open import Cubical.Relation.Nullary
+finDiscrete = discreteΣ natDiscrete (λ a x y → yes (finSndIsProp a x y))
 
 finIsSet : isSet (fin n)
-finIsSet = Hedberg finDiscrete
+finIsSet = Discrete→isSet finDiscrete
 
 -- Finite vector
 -- `[ Bool ^ n ]` would be a vector of booleans of length `n`.
@@ -116,24 +114,39 @@ pigeonhole {n = S n} {m} f contra = let (g , gInj) = finDecrInjFun (f , contra) 
    where
     decr : fin (S n) → fin (S m)
     decr x with finDiscrete finZ (f (finS x))
-    ...      | (inl p) with finDiscrete finZ (f finZ) 
-    ...                 | (inl r) = finS≢finZ (fInj (finS x) finZ (sym p ⋆ r)) ~> λ()
-    ...                 | (inr r) = finDecr r
-    decr x   | (inr p) = finDecr p
+    ...      | (yes p) with finDiscrete finZ (f finZ) 
+    ...                 | (yes r) = finS≢finZ (fInj (finS x) finZ (sym p ⋆ r)) ~> λ()
+    ...                 | (no r) = finDecr r
+    decr x   | (no p) = finDecr p
     decrInj : injective decr
     decrInj x y p with finDiscrete finZ (f (finS x)) | finDiscrete finZ (f (finS y))
-    ...           | (inl a) | (inl b) with finDiscrete finZ (f finZ)
-    ...                       | (inl r) = finS≢finZ (fInj (finS x) finZ (sym a ⋆ r))
+    ...           | (yes a) | (yes b) with finDiscrete finZ (f finZ)
+    ...                       | (yes r) = finS≢finZ (fInj (finS x) finZ (sym a ⋆ r))
                                         ~> UNREACHABLE
-    ...                       | (inr r) = finSInj (fInj (finS x) (finS y) (sym a ⋆ b))
-    decrInj x y p | (inl a) | (inr b) with finDiscrete finZ (f finZ)
-    ...                       | (inl r) = finS≢finZ (fInj (finS x) finZ (sym a ⋆ r))
+    ...                       | (no r) = finSInj (fInj (finS x) (finS y) (sym a ⋆ b))
+    decrInj x y p | (yes a) | (no b) with finDiscrete finZ (f finZ)
+    ...                       | (yes r) = finS≢finZ (fInj (finS x) finZ (sym a ⋆ r))
                                         ~> UNREACHABLE
-    ...                       | (inr r) = finS≢finZ (sym (fInj finZ (finS y) (finDecrInj r b p)))
+    ...                       | (no r) = finS≢finZ (sym (fInj finZ (finS y) (finDecrInj r b p)))
                                        ~> UNREACHABLE
-    decrInj x y p | (inr a)  | (inl b) with finDiscrete finZ (f finZ)
-    ...                       | (inl r) = finS≢finZ (fInj (finS y) finZ (sym b ⋆ r))
+    decrInj x y p | (no a)  | (yes b) with finDiscrete finZ (f finZ)
+    ...                       | (yes r) = finS≢finZ (fInj (finS y) finZ (sym b ⋆ r))
                                         ~> UNREACHABLE
-    ...                       | (inr r) = finS≢finZ (fInj (finS x) finZ (finDecrInj a r p))
+    ...                       | (no r) = finS≢finZ (fInj (finS x) finZ (finDecrInj a r p))
                                        ~> UNREACHABLE
-    decrInj x y p | (inr a)  | (inr b) = finSInj (fInj (finS x) (finS y) (finDecrInj a b p))
+    decrInj x y p | (no a)  | (no b) = finSInj (fInj (finS x) (finS y) (finDecrInj a b p))
+
+ 
+distinguishingOutput : (xs : [ A ^ n ]) → {a : A}
+                     → ((x : A) → Dec (x ≡ a))
+                     → xs ≢ (λ _ → a) → Σ λ i → xs i ≢ a
+distinguishingOutput {n = Z} xs {a} decide p =
+         p (funExt λ (x , y , p) → ZNotS (sym p) ~> UNREACHABLE) ~> UNREACHABLE
+distinguishingOutput {n = S n} xs {a} decide p = decide (head xs)
+  ~> λ{(yes y) → let H : tail xs ≢ (λ _ → a)
+                     H = λ absurd → p (headTail≡ xs (λ _ → a) y absurd)
+                   in distinguishingOutput {n = n} (tail xs) decide H
+                     ~> λ(r , p) →
+                     (finS r) , (λ x → p x)
+     ; (no y) → ( Z , n , refl) , (λ x → y x) }
+

@@ -10,11 +10,11 @@ open import Cubical.Foundations.Isomorphism
 
 -- Full set
 𝓤 : A → Type l
-𝓤 = λ _ → Lift ⊤
+𝓤 = λ _ → True
 
 -- Empty set
 ∅ : A → Type l
-∅ = λ _ → Lift ⊥
+∅ = λ _ → False
 
 -- A property is defined as a function that maps elements to propositions
 record Property {A : Type al} (P : A → Type l) : Type(al ⊔ l) where
@@ -114,8 +114,8 @@ instance
                                             (λ()) (λ()) λ(a , b) → b a ~> UNREACHABLE)
 
 ∪Complement : (X : A → Type l) → X ∪ X ᶜ ≡ 𝓤
-∪Complement X = funExt λ x → propExt isProp¬ (λ{(lift tt) (lift tt) → refl})
-    (λ _ → lift tt) λ _ → λ p → p (inr (λ q → p (inl q)))
+∪Complement X = funExt λ x → propExt (isProp¬ _) (λ{truth truth → refl})
+    (λ _ → truth) λ _ → λ p → p (inr (λ q → p (inl q)))
 
 -- Union and intersection operations are associative and commutative
 instance
@@ -129,7 +129,7 @@ instance
         G = λ p → p >>= λ{(inl p) → p >>= λ{(inl p) → η (inl p)
                                            ;(inr p) → η (inr (η (inl p)))}
                         ; (inr p) → η $ inr (η (inr p)) } in
-       propExt isProp¬ isProp¬ H G }
+       propExt (isProp¬ _) (isProp¬ _) H G }
  ∩assoc : Associative (_∩_ {A = A} {l})
  ∩assoc = record { assoc = λ X Y Z → funExt λ x → isoToPath (iso (λ(a , b , c) → (a , b) , c)
                                                             (λ((a , b), c) → a , b , c)
@@ -139,7 +139,7 @@ instance
  ∪comm = record { comm = λ X Y → funExt λ x →
     let H : ∀ X Y → x ∈ X ∪ Y → x ∈ Y ∪ X
         H X Y = map (λ{ (inl p) → inr p ; (inr p) → inl p}) in
-            propExt isProp¬ isProp¬ (H X Y) (H Y X) }
+            propExt (isProp¬ _) (isProp¬ _) (H X Y) (H Y X) }
  ∩comm : Commutative (_∩_ {A = A} {l})
  ∩comm = record { comm = λ X Y → funExt λ x → isoToPath (iso (λ(a , b) → b , a)
                                                              (λ(a , b) → b , a)

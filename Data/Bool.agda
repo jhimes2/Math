@@ -34,15 +34,15 @@ YesNEqNo p = eqToSetoid p
     eqToSetoid {No} p = transport (λ i → setoid No (p i)) tt
 
 boolDiscrete : Discrete Bool
-boolDiscrete Yes Yes = inl refl
-boolDiscrete Yes No = inr YesNEqNo
-boolDiscrete No Yes = inr (λ x → YesNEqNo (sym x))
-boolDiscrete No No = inl refl
+boolDiscrete Yes Yes = yes refl
+boolDiscrete Yes No = no YesNEqNo
+boolDiscrete No Yes = no (λ x → YesNEqNo (sym x))
+boolDiscrete No No = yes refl
 
 instance
 
   BoolIsSet : is-set Bool
-  BoolIsSet = record { IsSet = Hedberg boolDiscrete }
+  BoolIsSet = record { IsSet = Discrete→isSet boolDiscrete }
 
   andAssoc : Associative and
   andAssoc = record { assoc = λ{ Yes _ _ → refl

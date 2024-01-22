@@ -73,17 +73,16 @@ x≢x+Sy {x = S x} p = x≢x+Sy (SInjective p)
 
 -- Equality of two naturals is decidable
 natDiscrete : Discrete ℕ
-natDiscrete Z Z = inl refl
-natDiscrete Z (S b) = inr (λ x → ZNotS x)
-natDiscrete (S a) Z = inr (λ x → ZNotS (sym x))
-natDiscrete (S a) (S b) = natDiscrete a b ~> λ{ (inl x) → inl (cong S x)
-                                              ; (inr x) → inr (λ y → x (SInjective y))}
+natDiscrete Z Z = yes refl
+natDiscrete Z (S b) = no (λ x → ZNotS x)
+natDiscrete (S a) Z = no (λ x → ZNotS (sym x))
+natDiscrete (S a) (S b) = natDiscrete a b ~> λ{ (yes x) → yes (cong S x) ; (no x) → no (λ y → x (SInjective y))}
 
 -- Addition on natural numbers is a comm monoid
 instance
 
   natIsSet : is-set ℕ
-  natIsSet = record { IsSet = Hedberg natDiscrete }
+  natIsSet = record { IsSet = Discrete→isSet natDiscrete }
 
   AddCom : Commutative add
   AddCom = record { comm = addCom }
@@ -182,7 +181,7 @@ instance
       leRefl Z = tt
       leRefl (S a) = leRefl a
       ≤isProp : (a b : ℕ) → isProp (le a b)
-      ≤isProp Z _ = isProp⊤
+      ≤isProp Z _ = isPropUnit
       ≤isProp (S a) Z = isProp⊥
       ≤isProp (S a) (S b) = ≤isProp a b
 
@@ -297,8 +296,8 @@ instance
                                         λ y (q , r) → leContra y x (r , q) ~> UNREACHABLE
                 ; (inr w) → aux2 x (S z) Pz (leS {n = x} x≤z)
                  λ y (p , q) →
-                 natDiscrete (S x) y ~> λ{ (inl u) → subst (λ r → ¬ P r) u w
-                                         ; (inr u) → H y (leNEq (S x) y p u , q)}
+                 natDiscrete (S x) y ~> λ{ (yes u) → subst (λ r → ¬ P r) u w
+                                         ; (no u) → H y (leNEq (S x) y p u , q)}
                 }
 
 nonZ : Type
@@ -307,15 +306,19 @@ nonZ = Σ λ x → Σ λ y → x ≡ S y
 greatest : (ℕ → Type l) → Type l
 greatest P = Σ λ(g : ℕ) → P g × (∀ x → P x → x ≤ g)
 
-findGreatest : (P : ℕ → Type l) → (∀ n → Decidable (P n))
+findGreatest : (P : ℕ → Type l) → (∀ n → Dec (P n))
              → Σ P → (n : ℕ) → (∀ m → P m → m ≤ n) → greatest P
 findGreatest P decide (Z , Px) Z f = Z , (Px , f)
 findGreatest P decide (S x , Px) Z f = f (S x) Px ~> UNREACHABLE
 findGreatest P decide X (S n) f = decide (S n)
-     ~> λ{(inl p) → (S n) , (p , f)
-        ; (inr p) → findGreatest P decide X n λ m Pm → let H = f m Pm in
-           natDiscrete m (S n) ~> (λ { (inl q) → p (subst P q Pm) ~> UNREACHABLE
-                                     ; (inr q) → leNEq m (S n) H q })}
+     ~> λ{(yes p) → (S n) , (p , f)
+        ; (no p) → findGreatest P decide X n λ m Pm → let H = f m Pm in
+           natDiscrete m (S n) ~> (λ { (yes q) → p (subst P q Pm) ~> UNREACHABLE
+                                     ; (no q) → leNEq m (S n) H q })}
+
+open import Cubical.Foundations.Pointed.Homogeneous
+NatHomogeneous : isHomogeneous (ℕ , Z)
+NatHomogeneous = isHomogeneousDiscrete natDiscrete
 
 notAnySIsZ : ∀ a → (∀ b → a ≢ S b) → a ≡ Z
 notAnySIsZ Z _ = refl

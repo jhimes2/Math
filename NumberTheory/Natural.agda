@@ -43,12 +43,12 @@ private
  divBase b a p = (Z , a) , (left _+_ (sym (multZ (S b))) , p) ,
                     λ (q , r) (x' , y') →
                      natDiscrete q Z ~> λ{
-                       (inl x) → ≡-× (sym x)
+                       (yes x) → ≡-× (sym x)
                         let H : S b * q ≡ Z
                             H = (S b * q ≡⟨ cong (S b *_) x ⟩
                                  S b * Z ≡⟨ multZ b ⟩
                                  Z ∎) in (x' ⋆ left add H)
-                     ; (inr x) → NEqZ x ~> λ(h , f) →
+                     ; (no x) → NEqZ x ~> λ(h , f) →
                                 let x' = a ≡⟨ x' ⋆ left _+_ (comm (S b) q) ⟩
                                          mult q (S b) + r ≡⟨ left _+_ (left _*_ f) ⟩
                                          (S b + mult h (S b)) + r ≡⟨ sym (assoc (S b) (h * S b) r) ⟩
@@ -225,8 +225,8 @@ instance
 
 pasteZ : (a : ℕ) → paste a Z ≡ Z
 pasteZ a = let G = pasteLe a Z in natDiscrete (paste a Z) Z
-   ~> λ{ (inl p) → p
-       ; (inr p) → NEqZ p ~> λ (q , r) → transport (λ i → r i ≤ Z) G ~> UNREACHABLE}
+   ~> λ{ (yes p) → p
+       ; (no p) → NEqZ p ~> λ (q , r) → transport (λ i → r i ≤ Z) G ~> UNREACHABLE}
 
 cutZ : (a : ℕ) → cut a Z ≡ a
 cutZ a = let H = cutLemma a Z in
@@ -352,19 +352,19 @@ SB∣A→pasteAB≡0 a b = recTrunc (IsSet (paste a b) Z)
 pasteAB≢0→SB∤A : (a b : ℕ) → paste a b ≢ Z → S b ∤ a
 pasteAB≢0→SB∤A a b = modusTollens (SB∣A→pasteAB≡0 a b)
 
-dividesDec : (a b : ℕ) → Decidable (a ∣ b)
-dividesDec Z Z = inl ∣ Z , refl ∣₁
-dividesDec Z (S b) = inr (λ x → recTrunc (λ x → x ~> UNREACHABLE)
+dividesDec : (a b : ℕ) → Dec (a ∣ b)
+dividesDec Z Z = yes ∣ Z , refl ∣₁
+dividesDec Z (S b) = no (λ x → recTrunc (λ x → x ~> UNREACHABLE)
     (λ(x , p) → ZNotS (sym (multZ x) ⋆ p)) x)
 dividesDec (S a) b = let H = cutLemma b a in
        natDiscrete (paste b a) Z
- ~> λ{ (inl p) → inl $ ∣_∣₁ $ cut b a
+ ~> λ{ (yes p) → yes $ ∣_∣₁ $ cut b a
    , (cut b a * S a ≡⟨ comm (cut b a) (S a)⟩
       copy a (cut b a) ≡⟨ sym (rIdentity (copy a (cut b a)))⟩
       copy a (cut b a) + Z ≡⟨ right _+_ (sym p) ⟩
       (copy a (cut b a)) + paste b a ≡⟨ sym H ⟩
       b ∎)
-     ; (inr p) → inr $ pasteAB≢0→SB∤A b a p
+     ; (no p) → no $ pasteAB≢0→SB∤A b a p
      }
 
 -- 'b' is one less than it should be.
@@ -372,10 +372,10 @@ dividesDec (S a) b = let H = cutLemma b a in
 GCD : (a b : ℕ) → greatest (commonDivisor a (S b))
 GCD a b = findGreatest (commonDivisor a (S b))
      (λ n → dividesDec n a
-          ~> λ{ (inl p) → dividesDec n (S b)
-                     ~> λ{(inl q) → inl (p , q)
-                        ; (inr q) → inr (λ(_ , y) → q y)}
-              ; (inr p) → inr (λ(x , _) → p x)}) ((S Z) , (∣ a , (rIdentity a) ∣₁
+          ~> λ{ (yes p) → dividesDec n (S b)
+                     ~> λ{(yes q) → yes (p , q)
+                         ; (no q) → no (λ(_ , y) → q y)}
+              ; (no p) → no (λ(x , _) → p x)}) ((S Z) , (∣ a , (rIdentity a) ∣₁
                          , ∣ S b , cong S (rIdentity b) ∣₁)) (S b)
                            λ m (x , y) → divides.le m b y
 
@@ -423,8 +423,8 @@ pasteLemma {n = n} = jumpInduction (λ x → paste (S x) n ≡ Z → paste x n �
 pasteLemma2 : {n : ℕ} → (a b : ℕ) → paste (S a) n ≡ S b → paste a n ≡ b
 pasteLemma2 {n} a b = jumpInduction (λ x → paste (S x) n ≡ S b → paste x n ≡ b) n
      (λ a a≤n p → pasteLeId {a} a≤n ⋆ (natDiscrete a n
-       ~> λ{(inl q) → ZNotS (sym (pasteSaa a) ⋆ cong (λ x → paste (S a) x) q ⋆ p) ~> UNREACHABLE
-          ; (inr q) → ltS a n (a≤n , q) ~> λ r → SInjective (sym (pasteLeId {S a} {n} r) ⋆ p)}))
+       ~> λ{(yes q) → ZNotS (sym (pasteSaa a) ⋆ cong (λ x → paste (S a) x) q ⋆ p) ~> UNREACHABLE
+          ; (no q) → ltS a n (a≤n , q) ~> λ r → SInjective (sym (pasteLeId {S a} {n} r) ⋆ p)}))
      (λ a jump p →  pasteAdd2 a n ⋆ jump (sym (pasteAdd2 (S a) n) ⋆ p)) a
 
 pasteS : {n : ℕ} → (a b : ℕ) → paste a n ≡ paste b n → paste (S a) n ≡ paste (S b) n
@@ -442,7 +442,7 @@ pasteS2 : {n : ℕ} → (a b : ℕ) → paste (S a) n ≡ paste (S b) n → past
 pasteS2 {n} = jumpInduction
                (λ a → ∀ b → paste (S a) n ≡ paste (S b) n → paste a n ≡ paste b n)
                n (λ a a≤n b p → natDiscrete a n
-                 ~> λ{(inl q) → cong (paste a) (sym q) ⋆ pasteLeId {a} (reflexive a)
+                 ~> λ{(yes q) → cong (paste a) (sym q) ⋆ pasteLeId {a} (reflexive a)
                           ⋆ let H = paste (S b) a ≡⟨ cong (paste (S b)) q ⟩
                                     paste (S b) n ≡⟨ sym p ⟩
                                     paste (S a) n ≡⟨ cong (paste (S a)) (sym q)⟩
@@ -450,7 +450,7 @@ pasteS2 {n} = jumpInduction
                                     Z ∎ in
                             let G : paste b a ≡ a
                                 G = pasteLemma b H in sym G ⋆ cong (paste b) q
-                    ; (inr q) → ltS a n (a≤n , q)
+                    ; (no q) → ltS a n (a≤n , q)
                       ~> λ r → let H = paste (S b) n ≡⟨ sym p ⟩
                                        paste (S a) n ≡⟨ pasteLeId {S a} {n} r ⟩
                                        S a ∎ in
