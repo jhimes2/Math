@@ -10,11 +10,11 @@ open import Cubical.Foundations.Isomorphism
 
 -- Full set
 𝓤 : A → Type l
-𝓤 = λ _ → True
+𝓤 = λ _ → Lift ⊤
 
 -- Empty set
 ∅ : A → Type l
-∅ = λ _ → False
+∅ = λ _ → Lift ⊥
 
 -- A property is defined as a function that maps elements to propositions
 record Property {A : Type al} (P : A → Type l) : Type(al ⊔ l) where
@@ -114,8 +114,8 @@ instance
                                             (λ()) (λ()) λ(a , b) → b a ~> UNREACHABLE)
 
 ∪Complement : (X : A → Type l) → X ∪ X ᶜ ≡ 𝓤
-∪Complement X = funExt λ x → propExt (isProp¬ _) (λ{truth truth → refl})
-    (λ _ → truth) λ _ → λ p → p (inr (λ q → p (inl q)))
+∪Complement X = funExt λ x → propExt (isProp¬ _) (λ{(lift tt) (lift tt) → refl})
+    (λ _ → (lift tt)) λ _ → λ p → p (inr (λ q → p (inl q)))
 
 -- Union and intersection operations are associative and commutative
 instance

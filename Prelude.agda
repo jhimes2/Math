@@ -28,11 +28,6 @@ id x = x
 _≢_ : {A : Type l} → A → A → Type l 
 a ≢ b = ¬(a ≡ b)
 
-data False {l : Level} : Type l where
-
-data True {l : Level} : Type l where
-  truth : True {l}
-
 data _＋_ (A : Type al)(B : Type bl) : Type (al ⊔ bl) where
   inl : A → A ＋ B
   inr : B → A ＋ B
@@ -369,5 +364,5 @@ instance
  bijectiveSet : {{_ : is-set A}}{{_ : is-set B}} → is-set (Σ λ(f : A → B) → bijective f)
  bijectiveSet = record { IsSet = isSetΣ (isSet→ IsSet) λ x → isProp→isSet (bijectiveProp x) }
 
-TrueEq : isProp A → A → A ≡ True
-TrueEq p a = propExt p (λ{ truth truth → refl}) (λ _ → truth) (λ _ → a)
+TrueEq : isProp A → A → A ≡ Lift ⊤
+TrueEq p a = propExt p (λ{ (lift tt) (lift tt) → refl}) (λ _ → lift tt) (λ _ → a)
