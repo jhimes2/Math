@@ -98,7 +98,7 @@ instance
   NZPreorder : {{G : Rng A}} → {{OR : OrderedRng l A}} → Preorder λ ((a , _) (b , _) : nonZero) → a ≤ b
   NZPreorder {A = A} = record
                 { transitive = transitive {A = A}
-                ; reflexive = reflexive {A = A}
+                ; reflexive = λ(a , _) → reflexive a
                 ; isRelation = λ (a , _) (b , _) → isRelation a b }
   NZPoset : {{G : Rng A}} → {{OR : OrderedRng l A}} → Poset λ ((a , _) (b , _) : nonZero) → a ≤ b
   NZPoset {A = A} =
@@ -132,7 +132,7 @@ module _{{_ : Field A}}{{OF : OrderedRng l A}} where
 
   2f : nonZero
   2f = 1r + 1r , λ(contra : 1r + 1r ≡ 0r)
-   → a<b→b≤c→a≢c zeroLtOne (ordered.lemma3 (reflexive {a = 1r}) (fst zeroLtOne)) (sym contra)
+   → a<b→b≤c→a≢c zeroLtOne (ordered.lemma3 (reflexive 1r) (fst zeroLtOne)) (sym contra)
 
   [a+a]/2≡a : ∀ a → (a + a) / 2f ≡ a
   [a+a]/2≡a a =

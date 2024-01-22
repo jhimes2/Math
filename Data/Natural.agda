@@ -171,7 +171,7 @@ instance
   preorderNat : Preorder le
   preorderNat = record
                  { transitive = λ {a b c} → leTrans a b c
-                 ; reflexive = λ{a} → leRefl a
+                 ; reflexive = λ a → leRefl a
                  ; isRelation = ≤isProp }
     where
       leTrans : (a b c : ℕ) → le a b → le b c → le a c
@@ -219,7 +219,7 @@ leAdd2 Z _ _ _ = tt
 leAdd2 (S a) (S b) c p = leAdd2 a b c p
 
 leAdd3 : (a b : ℕ) → a ≤ (b + a)
-leAdd3 a Z = reflexive {a = a}
+leAdd3 a Z = reflexive a
 leAdd3 a (S b) = leS2 a (add b a) (leAdd3 a b)
 
 leAddN : (a b : ℕ) → ¬((S b + a) ≤ b)
@@ -277,7 +277,7 @@ instance
   WellOrderNat = record { leastTerm = λ{P} PDec → aux PDec }
    where
     aux : {P : ℕ → Type} → (∀ n → P n ＋ ¬ P n) → Σ P → Σ λ x → P x × ∀ y → P y → x ≤ y
-    aux {P = P} PDec (p , p') = aux2 p p p' (reflexive {a = p})
+    aux {P = P} PDec (p , p') = aux2 p p p' (reflexive p)
                                      λ y (q , r) → leContra p y ((leS {n = p} q) , r) ~> UNREACHABLE
      where
       aux2 : (x z : ℕ) → P z → x ≤ z → (∀ y → S x ≤ y × S y ≤ z → ¬ P y) → Σ λ x → P x × ∀ y → P y → x ≤ y
@@ -292,7 +292,7 @@ instance
                                   ; (inr t) → G t y' ~> UNREACHABLE}
                                   }}
       aux2 (S x) (S z) Pz x≤z H = PDec (S x)
-            ~> λ{ (inl w) → aux2 x (S x) w (leS2 x x (reflexive {a = x}))
+            ~> λ{ (inl w) → aux2 x (S x) w (leS2 x x (reflexive x))
                                         λ y (q , r) → leContra y x (r , q) ~> UNREACHABLE
                 ; (inr w) → aux2 x (S z) Pz (leS {n = x} x≤z)
                  λ y (p , q) →

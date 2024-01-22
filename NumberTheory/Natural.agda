@@ -25,7 +25,7 @@ jumpInductionAux P a n (inl w) Base jump  = Base n w
 jumpInductionAux P a n (inr (x , p)) Base jump = 
                        subst P (sym p) $ jump x
                          let H : (x + a) ≤ n
-                             H = (transport (λ i → (x + a) ≤ p (~ i)) (leS2 (add x a) (add x a) (reflexive {a = (x + a)}))) in
+                             H = (transport (λ i → (x + a) ≤ p (~ i)) (leS2 (add x a) (add x a) (reflexive (x + a)))) in
                          jumpInductionAux P a x (isLe x a) Base jump
 
 jumpInduction : (P : ℕ → Type l)
@@ -172,7 +172,7 @@ module divides where
  le : (d a : ℕ) → d ∣ S a → d ≤ S a
  le d a x = recTrunc (isRelation d (S a)) 
            (λ{(Z , p) → ZNotS p ~> UNREACHABLE
-           ; (S x , p) → transport (λ i → d ≤ p i) (leAdd2 d d (x * d) (reflexive {a = d})) }) x
+           ; (S x , p) → transport (λ i → d ≤ p i) (leAdd2 d d (x * d) (reflexive d)) }) x
 
  sum : (c a b : ℕ) → c ∣ a → c ∣ b → c ∣ (a + b)
  sum c a b x y = 
@@ -191,7 +191,7 @@ module divides where
 instance
   dividesNZPreorder : Preorder _∣_
   dividesNZPreorder = record { transitive = λ{a b c} → trans a b c
-                           ; reflexive = λ{a} → ∣ S Z , rIdentity a ∣₁
+                           ; reflexive = λ a → η $ (S Z , rIdentity a)
                            ; isRelation = λ a b → squash₁ }
    where
     trans : (a b c : ℕ) → a ∣ b → b ∣ c → a ∣ c
@@ -442,7 +442,7 @@ pasteS2 : {n : ℕ} → (a b : ℕ) → paste (S a) n ≡ paste (S b) n → past
 pasteS2 {n} = jumpInduction
                (λ a → ∀ b → paste (S a) n ≡ paste (S b) n → paste a n ≡ paste b n)
                n (λ a a≤n b p → natDiscrete a n
-                 ~> λ{(yes q) → cong (paste a) (sym q) ⋆ pasteLeId {a} (reflexive {a = a})
+                 ~> λ{(yes q) → cong (paste a) (sym q) ⋆ pasteLeId {a} (reflexive a)
                           ⋆ let H = paste (S b) a ≡⟨ cong (paste (S b)) q ⟩
                                     paste (S b) n ≡⟨ sym p ⟩
                                     paste (S a) n ≡⟨ cong (paste (S a)) (sym q)⟩

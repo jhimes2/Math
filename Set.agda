@@ -32,7 +32,7 @@ open Multiset {{...}} public
 
 instance
  ΣSet : {{is-set A}} → {X : A → Type l} → {{Multiset X}} → is-set (Σ X)
- ΣSet {A = A} {X = X} = record { IsSet = isSetΣ IsSet λ x → multiset x }
+ ΣSet = record { IsSet = isSetΣ IsSet λ x → multiset x }
 
  propertyIsMultiset : {X : A → Type l} → {{Property X}} → Multiset X
  propertyIsMultiset = record { multiset = λ x → isProp→isSet (setProp x) }
@@ -88,7 +88,7 @@ instance
  inclusionPre = record
    { transitive = λ{a b c} f g x z → f x z >>= λ p →
                                      g x p >>= λ q → η q
-   ; reflexive = λ x z → η z
+   ; reflexive = λ _ x z → η z
    ; isRelation = λ a b x y → funExt λ z → funExt λ w → squash₁ (x z w) (y z w)
    }
 
@@ -96,7 +96,7 @@ instance
                → Preorder (λ(X Y : Σ P) → fst X ≤ fst Y)
  inclusionPre2 {_≤_ = _≤_} = record
    { transitive = λ{a b c} p q → transitive {a = fst a} p q
-   ; reflexive = λ {a} → reflexive {a = fst a}
+   ; reflexive = λ a → reflexive (fst a)
    ; isRelation = λ a b → isRelation (fst a) (fst b)
    }
 

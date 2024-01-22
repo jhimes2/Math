@@ -9,12 +9,12 @@ module Relations where
 record Preorder {A : Type al} (_≤_ : A → A → Type l) : Type (lsuc (l ⊔ al))
   where field
    transitive : {a b c : A} → (a ≤ b) → (b ≤ c) → (a ≤ c)
-   reflexive : {a : A} → a ≤ a
+   reflexive : (a : A) → a ≤ a
    isRelation : (a b : A) → isProp(a ≤ b)
 open Preorder {{...}} public
 
 eqToLe : {_≤_ : A → A → Type l} → {{_ : Preorder _≤_}} → {a b : A} → a ≡ b → a ≤ b
-eqToLe {_≤_ = _≤_} {a = a} p = transport (λ i → a ≤ p i) reflexive
+eqToLe {_≤_ = _≤_} {a = a} p = transport (λ i → a ≤ p i) (reflexive a)
 
 -- https://en.wikipedia.org/wiki/Partially_ordered_set
 record Poset {A : Type l}(_≤_ : A → A → Type al) : Type (lsuc (l ⊔ al))
@@ -42,17 +42,17 @@ record TotalOrder (l : Level) (A : Type al) : Type (lsuc (l ⊔ al))
 
 -- This will make goals more readable
 _≤_ : {{TO : TotalOrder al A}} → A → A → Type al
-_≤_ {{TO = TO}} = TotalOrder._≤_ TO
+_≤_ {{TO}} = TotalOrder._≤_ TO
 
 open TotalOrder {{...}} hiding (_≤_) public
 
 flipNeg : {{TO : TotalOrder al A}} → {a b : A} → ¬(b ≤ a) → a < b
-flipNeg {{TO}} {a = a} {b} p = (stronglyConnected a b
-                               ~>  (λ{ (inl x) → x
-                                     ; (inr x) → p x ~> UNREACHABLE})), aux p
+flipNeg {a = a} {b} p = (stronglyConnected a b
+                         ~>  (λ{ (inl x) → x
+                               ; (inr x) → p x ~> UNREACHABLE})), aux p
   where
    aux : {{TO : TotalOrder al A}} → {a b : A} → ¬(b ≤ a) → a ≢ b
-   aux {a = a} {b} = modusTollens (λ x → transport (λ i → x i ≤ a) (reflexive {a = a}))
+   aux {a = a} {b} = modusTollens (λ x → transport (λ i → x i ≤ a) (reflexive a))
 
 -- https://en.wikipedia.org/wiki/Well-order
 record WellOrder (l : Level) (A : Type al) : Type (lsuc (l ⊔ al))

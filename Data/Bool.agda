@@ -106,7 +106,7 @@ instance
   boolPreorder : Preorder le
   boolPreorder = record {
          transitive = λ{a = a}{b}{c} → auxTrans a b c
-       ; reflexive = λ{a} → auxRefl a
+       ; reflexive = λ a → auxRefl a
        ; isRelation = auxRel }
    where
     auxTrans : (a b c : Bool) → le a b → le b c → le a c

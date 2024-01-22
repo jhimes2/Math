@@ -229,14 +229,14 @@ instance
  -- Integer ≤ relation is a preorder
  intLePreorder : Preorder le
  intLePreorder = record { transitive = λ {a b c} → intLeTrans a b c
-   ; reflexive = λ {a} → intLeRefl a
+   ; reflexive = λ a → intLeRefl a
    ; isRelation = intLeProp }
    where
     intLeProp : (a b : ℤ) → isProp (le a b)
     intLeProp = elimProp2 (λ x y → isPropIsProp)
                             λ a b → isRelation (fst a + snd b) (fst b + snd a)
     intLeRefl : (a : ℤ) → le a a
-    intLeRefl = elimProp (λ x → intLeProp x x) λ a → reflexive {a = fst a + snd a}
+    intLeRefl = elimProp (λ x → intLeProp x x) λ a → reflexive (fst a + snd a)
     intLeTrans : (a b c : ℤ) → le a b → le b c → le a c
     intLeTrans = elimProp3 (λ x y z → isProp→ (isProp→ (intLeProp x z)))
                    λ (a , b) (c , d) (e , f) → λ x y →

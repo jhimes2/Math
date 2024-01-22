@@ -61,7 +61,7 @@ instance
             (λ y≤z → transport (right _≤_ $ z - x ≡⟨ comm z (neg x)⟩
                                             neg x + z ≡⟨ left _+_ (sym (a'[ab]≡b y (neg x)))⟩
                                 (neg y + (y - x)) + z ≡⟨ [ab]c≡b[ca] (neg y) (y - x) z ⟩
-                                        (y - x) + (z - y) ∎) $ reflexive {a =(z - x)})
+                                        (y - x) + (z - y) ∎) $ reflexive (z - x))
              λ z≤y → transport (right _≤_ $ ([ab]c≡[ac]b y (y - z) (neg x)))
                              $ addLe (ordered.subLe z (ordered.lemma1 z≤y z≤y
                                ~> transport (right _≤_ $ y + y ≡⟨ right _+_ (sym ([ab']b≡a y z))⟩
@@ -86,7 +86,7 @@ instance
                     $ let H : z ≡ x
                           H = antiSymmetric (transitive {a = z} z≤y y≤x) x≤z
                       in transport (λ i → (z - H i) ≤ (H i - z))
-                       $ reflexive {a =(z - z)} )
+                       $ reflexive (z - z) )
          λ z≤x → absDiffHelper {P = λ a → (x - z) ≤ (a + abs (y - z))} x y
           (λ x≤y → absDiffHelper {P = λ a → (x - z) ≤ ((y - x) + a)} y z
             (λ y≤z → let H : y ≡ x
@@ -95,7 +95,7 @@ instance
                  $ transport (right _≤_ $ sym ([aa']b≡b y (z - y)))
                  $ let G : y ≡ z
                        G = antiSymmetric y≤z (transitive {a = z} z≤x x≤y)
-                in transport (λ i → (y - G i) ≤ (G i - y)) (reflexive {a =(y - y)}))
+                in transport (λ i → (y - G i) ≤ (G i - y)) (reflexive (y - y)))
               λ z≤y → transport (right _≤_ $ sym (assoc (y - x) y (neg z)))
                  $ addLe
                   (ordered.subLe x
@@ -113,4 +113,4 @@ instance
              λ z≤y → transport (right _≤_ $ x - z ≡⟨ left _-_ (sym([ab']b≡a x y))⟩
                                             ((x - y) + y) - z ≡⟨ sym (assoc (x - y) y (neg z))⟩
                                             (x - y) + (y - z) ∎)
-               (reflexive {a = x - z}) }
+               (reflexive (x - z)) }
