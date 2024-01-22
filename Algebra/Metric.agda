@@ -35,6 +35,7 @@ module _{{F : Field A}}
 
 instance
  -- absolute difference is a metric
+ -- I now realize that this proof would be less convoluted had I used Agda's 'with abstraction'.
  standardMetric : {{_ : Field A}}{{_ : OrderedRng l A}} → Metric λ a b → abs (a - b)
  standardMetric =
   record
