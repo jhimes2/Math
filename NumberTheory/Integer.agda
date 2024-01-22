@@ -25,8 +25,9 @@ instance
       ; copy = λ x y → (S x - Z) * y }
 
 dividesNeg : ∀ (n : ℕ)(a : ℤ) → n ∣ a → n ∣ neg a
-dividesNeg n = elimProp (λ _ → isProp→ squash₁) λ (a , b) → recTrunc squash₁ λ((d , G) : Σ λ d → (n - Z) * d ≡ [ a , b ]) →
-  ∣ neg d ,  x*-y≡-[x*y] (n - Z) d ⋆ cong neg G ∣₁
+dividesNeg n = elimProp (λ _ → isProp→ squash₁)
+                        λ(a , b) → recTrunc squash₁ λ((d , G) : Σ λ d → (n - Z) * d ≡ [ a , b ]) →
+                                                    η $ neg d ,  x*-y≡-[x*y] (n - Z) d ⋆ cong neg G
 
 dividesDecℤ : ∀ (n : ℕ)(a : ℤ) → Dec (n ∣ a)
 dividesDecℤ n = elimProp {!!} {!!}
