@@ -74,28 +74,28 @@ scalar-distributivity2 : ∀ {{R : Rng A}} (s : A) (x y : B → A)
                        → scaleV s (addv x y) ≡ addv (scaleV s x) (scaleV s y)
 scalar-distributivity2 s x y = funExt λ z → lDistribute s (x z) (y z)
 
-pointwise : (_∙_ : A → A → A)
+pointwise : (_∗_ : A → A → A)
           → (B : Type bl)
           → (B → A) → (B → A) → (B → A)
-pointwise _∙_ B f g b = f b ∙ g b
+pointwise _∗_ B f g b = f b ∗ g b
 
 instance
 
- comf : {_∙_ : A → A → A} → {{_ : Commutative _∙_}} → Commutative (pointwise _∙_ B)
+ comf : {_∗_ : A → A → A} → {{_ : Commutative _∗_}} → Commutative (pointwise _∗_ B)
  comf = record { comm = λ u v → funExt λ x → comm (u x) (v x) }
 
- assocf : {_∙_ : A → A → A} → {{_ : Associative _∙_}} → Associative (pointwise _∙_ B)
+ assocf : {_∗_ : A → A → A} → {{_ : Associative _∗_}} → Associative (pointwise _∗_ B)
  assocf = record { assoc = λ u v w → funExt λ x → assoc (u x) (v x) (w x) }
 
  IsSet→ : {{_ : is-set B}} → is-set (A → B)
  IsSet→ = record { IsSet = isSet→ IsSet }
 
- monoidf : {_∙_ : A → A → A} → {{R : monoid _∙_}} → monoid (pointwise _∙_ B)
+ monoidf : {_∗_ : A → A → A} → {{R : monoid _∗_}} → monoid (pointwise _∗_ B)
  monoidf = record { e = λ _ → e
                      ; lIdentity = λ v → funExt (λ x → lIdentity (v x))
                      ; rIdentity = λ v → funExt (λ x → rIdentity (v x)) }
 
- groupf : {_∙_ : A → A → A} → {{R : group _∙_}} → group (pointwise _∙_ B)
+ groupf : {_∗_ : A → A → A} → {{R : group _∗_}} → group (pointwise _∗_ B)
  groupf = record { e = λ _ → e
                      ; inverse = λ v → map inv v , funExt λ x → lInverse (v x)
                      ; lIdentity = λ v → funExt (λ x → lIdentity (v x)) }
@@ -116,12 +116,12 @@ instance
  functionSpace : {A : Type l}{B : Type l'} → {{F : Field A}} → VectorSpace (B → A)
  functionSpace = vectMod
 
-foldrMC : {_∙_ : A → A → A}{{M : monoid _∙_}}{{C : Commutative _∙_}} → (u v : [ A ^ n ])
-     → foldr _∙_ e (zip _∙_ u v) ≡ foldr _∙_ e u ∙ foldr _∙_ e  v
+foldrMC : {_∗_ : A → A → A}{{M : monoid _∗_}}{{C : Commutative _∗_}} → (u v : [ A ^ n ])
+     → foldr _∗_ e (zip _∗_ u v) ≡ foldr _∗_ e u ∗ foldr _∗_ e v
 foldrMC {n = Z} u v = sym(lIdentity e)
-foldrMC {n = S n} {_∙_ = _∙_} u v =
-      right _∙_ (foldrMC {n = n} (tail u) (tail v)) ⋆ [ab][cd]≡[ac][bd] (head u)
-                   (head v) (foldr _∙_ e (tail u)) (foldr _∙_ e (tail v))
+foldrMC {n = S n} {_∗_ = _∗_} u v =
+      right _∗_ (foldrMC {n = n} (tail u) (tail v)) ⋆ [ab][cd]≡[ac][bd] (head u)
+                   (head v) (foldr _∗_ e (tail u)) (foldr _∗_ e (tail v))
 
 instance
 -- Matrix transformation over a ring is a module homomorphism.
