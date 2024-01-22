@@ -1,12 +1,9 @@
-{-# OPTIONS  --without-K --cubical --safe #-}
+{-# OPTIONS  --cubical --safe #-}
 
 open import Agda.Primitive public
 open import Cubical.Foundations.Prelude
     renaming (Σ to Σ' ; I to Interval ; _∨_ to or ; congL to left
              ; congR to right ; _≡⟨⟩_ to _≡⟨By-Definition⟩_ ; _∙_ to _⋆_) public
-open import Cubical.Relation.Nullary public
-open import Cubical.Data.Unit renaming (Unit to ⊤) public
-open import Cubical.Data.Empty public
 open import Cubical.Data.Sigma renaming (∃ to ∃' ; _∨_ to Max) hiding (Σ ; I ; ∃!) public
 open import Cubical.HITs.PropositionalTruncation
                     renaming (map to map' ; rec to truncRec ; elim to truncElim)
@@ -25,13 +22,19 @@ variable
 id : A → A
 id x = x
 
+-- False
+data ⊥ : Type where
+
+-- True
+data ⊤ : Type where
+ tt : ⊤
+
+¬_ : Type l → Type l
+¬_ A = A → ⊥
+
 _≢_ : {A : Type l} → A → A → Type l 
 a ≢ b = ¬(a ≡ b)
-
-data False {l : Level} : Type l where
-
-data True {l : Level} : Type l where
-  truth : True {l}
+infix 4 _≢_
 
 data _＋_ (A : Type al)(B : Type bl) : Type (al ⊔ bl) where
   inl : A → A ＋ B
@@ -369,5 +372,37 @@ instance
  bijectiveSet : {{_ : is-set A}}{{_ : is-set B}} → is-set (Σ λ(f : A → B) → bijective f)
  bijectiveSet = record { IsSet = isSetΣ (isSet→ IsSet) λ x → isProp→isSet (bijectiveProp x) }
 
-TrueEq : isProp A → A → A ≡ True
-TrueEq p a = propExt p (λ{ truth truth → refl}) (λ _ → truth) (λ _ → a)
+TrueEq : isProp A → A → A ≡ Lift ⊤
+TrueEq p a = propExt p (λ{ (lift tt) (lift tt) → refl}) (λ _ → lift tt) (λ _ → a)
+
+isProp¬ : {A : Type l} → isProp (¬ A)
+isProp¬ {A = A} f g = funExt λ x → g x ~> UNREACHABLE
+
+isProp⊤ : isProp ⊤
+isProp⊤ tt tt = refl
+
+isProp⊥ : isProp ⊥
+isProp⊥ ()
+
+Decidable : Type l → Type l
+Decidable A = A ＋ ¬ A
+
+Discrete : Type l → Type l
+Discrete A = (a b : A) → Decidable (a ≡ b)
+
+import Cubical.Relation.Nullary
+
+DiscreteStdLib : Discrete A → Cubical.Relation.Nullary.Discrete A
+DiscreteStdLib H x y with H x y
+...                   | (inl p) = Cubical.Relation.Nullary.yes p
+...                   | (inr p) = Cubical.Relation.Nullary.no λ q → p q ~> UNREACHABLE
+
+StdLibDiscrete : Cubical.Relation.Nullary.Discrete A → Discrete A
+StdLibDiscrete H x y with H x y
+...                   | (Cubical.Relation.Nullary.yes p) = inl p
+...                   | (Cubical.Relation.Nullary.no p) = inr λ q → p q ~> λ()
+
+Hedberg : Discrete A → isSet A
+Hedberg H = Cubical.Relation.Nullary.Discrete→isSet λ x y → H x y
+     ~> λ{ (inl p) → Cubical.Relation.Nullary.yes p
+         ; (inr p) → Cubical.Relation.Nullary.no λ q → p q ~> UNREACHABLE}

@@ -18,14 +18,14 @@ Fin : ℕ → Type
 Fin n = ℕ / λ x y → paste x n ≡ paste y n
 
 FinDiscrete : Discrete (Fin n)
-FinDiscrete {n = n} = discreteSetQuotients
+FinDiscrete {n = n} = StdLibDiscrete $ discreteSetQuotients
  (BinaryRelation.equivRel (λ a → refl) (λ a b x → refl ⋆ (sym x))
-   λ a b c x y → x ⋆ y) λ a b → natDiscrete (paste a n) (paste b n)
+   λ a b c x y → x ⋆ y) λ a b → (DiscreteStdLib natDiscrete) (paste a n) (paste b n)
  where open import Cubical.Relation.Binary
 
 instance
  FinIsSet : is-set (Fin n)
- FinIsSet = record { IsSet = Discrete→isSet FinDiscrete }
+ FinIsSet = record { IsSet = Hedberg FinDiscrete }
 
 FinAdd : Fin n → Fin n → Fin n
 FinAdd {n = n} = rec2 IsSet (λ x y → [ x + y ])
