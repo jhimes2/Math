@@ -27,7 +27,7 @@ module _{scalar : Type l}{{F : Field scalar}}{vector : Type l'}{{V : VectorSpace
   record LinearlyIndependent (X : vector → Type(l ⊔ l')) : Type (lsuc (l ⊔ l'))
     where field
         {{linInd}} : Independent X
-        noZero : ¬ (Ô ∈ X)
+        noZero : Ô ∉ X
   open LinearlyIndependent {{...}} public
 
   -- https://en.wikipedia.org/wiki/Basis_(linear_algebra)
