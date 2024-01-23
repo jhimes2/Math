@@ -1,4 +1,4 @@
-{-# OPTIONS --cubical --without-K --safe --overlapping-instances #-}
+{-# OPTIONS --cubical --safe --overlapping-instances #-}
 
 module Algebra.Linear where
 
@@ -15,6 +15,13 @@ VectorSpace : {scalar : Type l} → {{F : Field scalar}} → (vector : Type l') 
 VectorSpace vector = Module vector
 
 module _{scalar : Type l}{{F : Field scalar}}{vector : Type l'}{{V : VectorSpace vector}} where
+
+  instance
+   scaleAction : Action λ ((x , _) : Σ λ x → x ≢ 0r) → scale x 
+   scaleAction = record
+     { act-identity = scaleId
+     ; act-compatibility = λ v (a , _) (b , _) → scalarAssoc v a b
+     }
 
   -- https://en.wikipedia.org/wiki/Linear_independence
   record LinearlyIndependent (X : vector → Type(l ⊔ l')) : Type (lsuc (l ⊔ l'))
