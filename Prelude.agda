@@ -79,13 +79,13 @@ f ∘ g = λ a → f (g a)
 Σ : {A : Type l} → (P : A → Type l') → Type(l ⊔ l')
 Σ {A = A} = Σ' A
 
--- Implicitly exists
-∃ : {A : Type l} → (P : A → Type l') → Type(l ⊔ l')
-∃ P = implicit (Σ P)
-
 -- Merely exists
 ∥Σ∥ : {A : Type l} → (P : A → Type l') → Type(l ⊔ l')
 ∥Σ∥ P = ∥ Σ P ∥₁
+
+-- Implicitly exists
+∃ : {A : Type l} → (P : A → Type l') → Type(l ⊔ l')
+∃ P = implicit (Σ P)
 
 ∃! : {A : Type l} → (P : A → Type l') → Type(l ⊔ l')
 ∃! {A = A} P = Σ λ x → P x × ∀ y → P y → x ≡ y
