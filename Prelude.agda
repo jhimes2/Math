@@ -94,16 +94,28 @@ modusTollens : (A → B) → ¬ B → ¬ A
 modusTollens f Bn a = Bn (f a)
 
 -- https://en.wikipedia.org/wiki/De_Morgan's_laws
-demorgan : (¬ A) ＋ (¬ B) → ¬(A × B)
-demorgan (inl x) (a , _) = x a
-demorgan (inr x) (_ , b) = x b
+DeMorgan : (¬ A) ＋ (¬ B) → ¬(A × B)
+DeMorgan (inl x) (a , _) = x a
+DeMorgan (inr x) (_ , b) = x b
 
-demorgan2 : (¬ A) × (¬ B) → ¬(A ＋ B)
-demorgan2 (a , b) (inl x) = a x
-demorgan2 (a , b) (inr x) = b x
+DeMorgan2 : (¬ A) × (¬ B) → ¬(A ＋ B)
+DeMorgan2 (a , b) (inl x) = a x
+DeMorgan2 (a , b) (inr x) = b x
 
-demorgan3 : ¬(A ＋ B) → (¬ A) × (¬ B)
-demorgan3 z = (λ x → z (inl x)) , (λ x → z (inr x))
+DeMorgan3 : ¬(A ＋ B) → (¬ A) × (¬ B)
+DeMorgan3 z = (λ x → z (inl x)) , (λ x → z (inr x))
+
+DeMorgan4 : ¬(A × B) → ¬ A ∨ ¬ B
+DeMorgan4 = λ p q → q (inl λ x → q (inr λ y → p (x , y)))
+
+DeMorgan5 : {P : A → Type l} → ¬ Σ P → ∀ x → x ∉ P
+DeMorgan5 p x q = p (x , q)
+
+DeMorgan6 : {P : A → Type l} → (∀ a → a ∉ P) → ¬ Σ P
+DeMorgan6 f (a , p) = f a p
+
+DeMorgan7 : {P : A → Type l} → ¬ (∀ x → x ∊ P) → ∃ λ x → x ∉ P
+DeMorgan7 g f = g λ x z → f (x , z)
 
 -- https://en.wikipedia.org/wiki/Functor_(functional_programming)
 -- https://en.wikipedia.org/wiki/Functor
@@ -150,9 +162,6 @@ instance
 _¬¬=_ : ¬ ¬ A → (A → ¬ B) → ¬ B
 x ¬¬= f = λ z → x (λ z₁ → f z₁ z)
 
-demorgan4 : ¬(A × B) → ¬ A ∨ ¬ B
-demorgan4 = λ p q → q (inl λ x → q (inr λ y → p (x , y)))
-
 -- https://en.wikipedia.org/wiki/Principle_of_explosion
 UNREACHABLE : ⊥ → {A : Type l} → A
 UNREACHABLE ()
@@ -161,15 +170,6 @@ DNOut : (A → implicit B) → implicit (A → B)
 DNOut {A = A} {B = B} f = LEM A
          ¬¬= λ{ (inl a) → f a ¬¬= λ b → η λ _ → b
               ; (inr x) → λ y → y (λ a → x a ~> UNREACHABLE) }
-
-demorgan5 : {P : A → Type l} → ¬ Σ P → ∀ x → x ∉ P
-demorgan5 p x q = p (x , q)
-
-demorgan6 : {P : A → Type l} → (∀ a → a ∉ P) → ¬ Σ P
-demorgan6 f (a , p) = f a p
-
-demorgan7 : {P : A → Type l} → ¬ (∀ x → x ∊ P) → ∃ λ x → x ∉ P
-demorgan7 g f = g λ x z → f (x , z)
 
 -- https://en.wikipedia.org/wiki/Bijection,_injection_and_surjection
 
