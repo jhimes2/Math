@@ -34,7 +34,7 @@ data _＋_ (A : Type al)(B : Type bl) : Type (al ⊔ bl) where
 infix 2 _＋_
 
 implicit : Type l → Type l
-implicit A = ¬(¬ A)
+implicit A = ¬ ¬ A
 
 -- Logical or
 _∨_ : (A : Type al)(B : Type bl) → Type (al ⊔ bl)
@@ -103,13 +103,13 @@ DeMorgan2 (a , b) (inl x) = a x
 DeMorgan2 (a , b) (inr x) = b x
 
 DeMorgan3 : ¬(A ＋ B) → (¬ A) × (¬ B)
-DeMorgan3 z = (λ x → z (inl x)) , (λ x → z (inr x))
+DeMorgan3 z = (λ x → z (inl x)) , λ x → z (inr x)
 
 DeMorgan4 : ¬(A × B) → ¬ A ∨ ¬ B
-DeMorgan4 = λ p q → q (inl λ x → q (inr λ y → p (x , y)))
+DeMorgan4 = λ f g → g (inl λ x → g (inr λ y → f (x , y)))
 
 DeMorgan5 : {P : A → Type l} → ¬ Σ P → ∀ x → x ∉ P
-DeMorgan5 p x q = p (x , q)
+DeMorgan5 f x p = f (x , p)
 
 DeMorgan6 : {P : A → Type l} → (∀ a → a ∉ P) → ¬ Σ P
 DeMorgan6 f (a , p) = f a p
@@ -162,7 +162,7 @@ instance
   truncMonad = record { μ = transport (propTruncIdempotent squash₁) ; η = ∣_∣₁ }
 
 _¬¬=_ : ¬ ¬ A → (A → ¬ B) → ¬ B
-x ¬¬= f = λ z → x (λ z₁ → f z₁ z)
+f ¬¬= g = λ x → f λ y → g y x
 
 -- https://en.wikipedia.org/wiki/Principle_of_explosion
 UNREACHABLE : ⊥ → {A : Type l} → A
@@ -171,7 +171,7 @@ UNREACHABLE ()
 DNOut : (A → implicit B) → implicit (A → B)
 DNOut {A = A} {B = B} f = LEM A
          ¬¬= λ{ (inl a) → f a ¬¬= λ b → η λ _ → b
-              ; (inr x) → λ y → y (λ a → x a ~> UNREACHABLE) }
+              ; (inr x) → η λ a → x a ~> UNREACHABLE }
 
 -- https://en.wikipedia.org/wiki/Bijection,_injection_and_surjection
 
@@ -230,7 +230,7 @@ fiber f y = λ x → f x ≡ y
 embedding : {A : Type al}{B : Type bl} → (A → B) → Type(al ⊔ bl)
 embedding f = ∀ y → isProp (Σ(fiber f y))
 
-transpose : (B → C → A) → (C → B → A)
+transpose : (A → B → C) → (B → A → C)
 transpose f x y = f y x
 
 propExt : isProp A → isProp B → (A → B) → (B → A) → A ≡ B
