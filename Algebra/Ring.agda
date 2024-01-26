@@ -12,7 +12,14 @@ record Ring (A : Type l) : Type (lsuc l) where
     {{multStr}} : monoid _*_
 open Ring {{...}} public
 
-module _{{R : Ring A}} where
+module _{A : Type l}{{R : Ring A}} where
+
+ -- https://en.wikipedia.org/wiki/Ideal_(ring_theory)
+ record Ideal(I : A → Type l') : Type(lsuc (l ⊔ l')) where
+  field
+   {{subgrpIdeal}} : Subgroup I
+   *-in : (r x : A) → x ∈ I → r * x ∈ I
+ open Ideal {{...}} public
 
  1r : A
  1r = multStr .e
