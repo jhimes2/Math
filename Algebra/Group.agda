@@ -211,6 +211,7 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
    field
      overlap {{NisSubgroup}} : Subgroup N
      gng' : ∀ n → n ∈ N → ∀ g → (g ∙ n) ∙ inv g ∈ N
+
 module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
 
  -- operator of a subgroup
@@ -447,6 +448,12 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
           act (z ∙ inv z) b     ≡⟨ left act (rInverse z)⟩
           act e b               ≡⟨ act-identity b ⟩
           b ∎)
+
+ -- https://en.wikipedia.org/wiki/Coset
+ data Coset (g : A)(H : A → Type al){{SG : Subgroup H}} : (A → Type al) → Type (lsuc al) where
+   coIntro : H ∈ Coset g H
+   coS : ∀ F → F ∈ Coset g H → (λ x → Σ λ y → y ∈ F → x ≡ g ∙ y) ∈ Coset g H
+   coset : ∀ F → isProp (F ∈ Coset g H)
 
 -- https://en.wikipedia.org/wiki/Symmetric_group
 {- Instantiating this symmetric group publicly may cause severely long compile
