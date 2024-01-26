@@ -172,26 +172,6 @@ module grp {_∙_ : A → A → A}{{G : group _∙_}} where
     e ∙ inv e ≡⟨ rInverse e ⟩
     e ∎
 
--- https://en.wikipedia.org/wiki/Symmetric_group
-{- Instantiating this symmetric group may cause problems for files using
-   the '--overlapping-instances' flag. -}
-private instance
- symmetricGroup : {{_ : is-set A}} → group (bijectiveComp {A = A})
- symmetricGroup =
-  record
-   { e = id , (λ x y p → p) , λ b → b , refl
-   ; inverse = λ(g , gInj , gSurj) → ((λ a → fst (gSurj a)) , (λ x y z →
-       x ≡⟨ sym (snd (gSurj x))⟩
-       g (fst (gSurj x)) ≡⟨ cong g z ⟩
-       g (fst (gSurj y)) ≡⟨ snd (gSurj y)⟩
-       y ∎) , λ b → g b , (gInj (fst (gSurj (g b))) b (snd (gSurj (g b)))))
-    , ΣPathPProp bijectiveProp (funExt λ x →
-       let y = fst (gSurj (g x)) in
-       let H : g y ≡ g x
-           H = snd (gSurj (g x)) in gInj y x H)
-   ; lIdentity = λ a → ΣPathPProp bijectiveProp refl
-   }
-
 -- Product of an arbitrary family of groups
 module directProduct(VG : A → Group l) where
 
@@ -215,46 +195,55 @@ module directProduct(VG : A → Group l) where
      }
     where open Group {{...}}
 
-module _{A : Type al}{_∙_ : A → A → A} where
+module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
 
- module _(G : group _∙_) where
-  instance _ = G
-  
-  -- https://en.wikipedia.org/wiki/Subgroup
-  record _≥_(H : A → Type bl) : Type (al ⊔ bl) where
-    field
-      id-closed  : e ∈ H
-      op-closed  : {x y : A} → x ∈ H → y ∈ H → x ∙ y ∈ H
-      inv-closed : {x : A} → x ∈ H → inv x ∈ H
-      {{subgroup-set}} : Property H
-  open _≥_ {{...}} public
+ -- https://en.wikipedia.org/wiki/Subgroup
+ record Subgroup(H : A → Type bl) : Type (al ⊔ bl) where
+   field
+     id-closed  : e ∈ H
+     op-closed  : {x y : A} → x ∈ H → y ∈ H → x ∙ y ∈ H
+     inv-closed : {x : A} → x ∈ H → inv x ∈ H
+     {{subgroup-set}} : Property H
+ open Subgroup {{...}} public
 
-  -- https://en.wikipedia.org/wiki/Normal_subgroup
-  record _⊵_(N : A → Type bl) : Type (al ⊔ bl) where
-    field
-      {{NisSubgroup}} : _≥_ N
-      gng' : ∀ n → n ∈ N → ∀ g → (g ∙ n) ∙ inv g ∈ N
-
+ -- https://en.wikipedia.org/wiki/Normal_subgroup
+ record NormalSG(N : A → Type bl) : Type (al ⊔ bl) where
+   field
+     overlap {{NisSubgroup}} : Subgroup N
+     gng' : ∀ n → n ∈ N → ∀ g → (g ∙ n) ∙ inv g ∈ N
 module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
 
  -- operator of a subgroup
- _⪀_ : {H : A → Type l} → {{G ≥ H}} → Σ H → Σ H → Σ H
+ _⪀_ : {H : A → Type l} → {{Subgroup H}} → Σ H → Σ H → Σ H
  _⪀_ (x , x') (y , y') = x ∙ y , op-closed x' y'
 
  instance
-  ⪀assoc : {H : A → Type l} → {{_ : G ≥ H}} → Associative _⪀_
+  ⪀assoc : {H : A → Type l} → {{_ : Subgroup H}} → Associative _⪀_
   ⪀assoc = record { assoc = λ (a , a') (b , b') (c , c') → ΣPathPProp setProp (assoc a b c) }
 
  -- Group structure of a subgroup
- grp : {H : A → Type l} → {{_ : G ≥ H}} → group _⪀_
- grp = record
+ subgrpStr : (H : A → Type l) → {{_ : Subgroup H}} → group _⪀_
+ subgrpStr _ = record
      { e = e , id-closed
      ; inverse = λ(a , a') → (inv a , inv-closed a') , ΣPathPProp setProp (lInverse a)
      ; lIdentity = λ(a , a') → ΣPathPProp setProp (lIdentity a)
      }
 
+ record _≥_ (H : A → Type l)(F : A → Type bl) : Type (bl ⊔ al ⊔ l) where
+  field
+    {{SG}} : Subgroup H
+    ≥⊆ : F ⊆ H
+    overlap {{≥sg}}  : Subgroup F
+ open _≥_ {{...}} public
+
+ record _⊵_ (H : A → Type l)(F : A → Type bl) : Type (bl ⊔ al ⊔ l) where
+  field
+    {{⊵≥}} : H ≥ F
+    {{⊵sg}}  : NormalSG F
+ open _⊵_ {{...}} public
+
  -- Every subgroup of an abelian group is normal
- abelian≥→⊵ : {{Commutative _∙_}} → (H : A → Type bl) → {{G ≥ H}} → G ⊵ H
+ abelian≥→⊵ : {{Commutative _∙_}} → (H : A → Type bl) → {{Subgroup H}} → NormalSG H
  abelian≥→⊵ H = record
     { gng' = λ n n∈H g → let P : n ∈ H ≡ (g ∙ n) ∙ inv g ∈ H
                              P = cong H $ sym (a'[ab]≡b g n) ⋆ comm (inv g) (g ∙ n)
@@ -286,14 +275,14 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
   cyclicOverload = record { ⟨_⟩ = λ x → ⟨ (λ y → y ≡ x) ⟩ }
 
  -- Non-empty generating set is a subgroup
- generatingIsSubgroup : (X : A → Type l) → Σ X → G ≥ ⟨ X ⟩
+ generatingIsSubgroup : (X : A → Type l) → Σ X → Subgroup ⟨ X ⟩
  generatingIsSubgroup X (x , H) = record
    { id-closed = subst ⟨ X ⟩ (lInverse x) (gen-op (gen-inv (gen-intro H)) (gen-intro H))
    ; op-closed = gen-op
    ; inv-closed = gen-inv
    }
 
- cyclicIsSubGroup : (x : A) → G ≥ ⟨ x ⟩
+ cyclicIsSubGroup : (x : A) → Subgroup ⟨ x ⟩
  cyclicIsSubGroup x = generatingIsSubgroup (λ z → z ≡ x) (x , refl)
 
  module _{B : Type bl}{_*_ : B → B → B}{{H : group _*_}} 
@@ -353,7 +342,7 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
                Q = p (x ∙ inv y) P in grp.uniqueInv Q
 
   -- A kernel is a subgroup
-  kerSubgroup : {{X : Homomorphism}} → G ≥ kernel
+  kerSubgroup : {{X : Homomorphism}} → Subgroup kernel
   kerSubgroup = record
      { id-closed = idToId
      ; op-closed = λ{x y} (p : h x ≡ e) (q : h y ≡ e) → h (x ∙ y) ≡⟨ preserve x y ⟩
@@ -440,7 +429,7 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
    act-identity : ∀ x → act e x ≡ x
    act-compatibility : ∀ x g h → act g (act h x) ≡ act (g ∙ h) x
    {{act-set}} : is-set B
- open Action {{...}}
+ open Action {{...}} public
 
  -- Curried action group is bijective
  ActionBijective : (act : A → B → B){{_ : Action act}} → ∀ x → bijective (act x)
@@ -458,6 +447,28 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
           act (z ∙ inv z) b     ≡⟨ left act (rInverse z)⟩
           act e b               ≡⟨ act-identity b ⟩
           b ∎)
+
+-- https://en.wikipedia.org/wiki/Symmetric_group
+{- Instantiating this symmetric group publicly may cause severely long compile
+   times for files using the '--overlapping-instances' flag. -}
+private instance
+ symmetricGroup : {{_ : is-set A}} → group (bijectiveComp {A = A})
+ symmetricGroup =
+  record
+   { e = id , (λ x y p → p) , λ b → b , refl
+   ; inverse = λ(g , gInj , gSurj) → ((λ a → fst (gSurj a)) , (λ x y z →
+       x ≡⟨ sym (snd (gSurj x))⟩
+       g (fst (gSurj x)) ≡⟨ cong g z ⟩
+       g (fst (gSurj y)) ≡⟨ snd (gSurj y)⟩
+       y ∎) , λ b → g b , (gInj (fst (gSurj (g b))) b (snd (gSurj (g b)))))
+    , ΣPathPProp bijectiveProp (funExt λ x →
+       let y = fst (gSurj (g x)) in
+       let H : g y ≡ g x
+           H = snd (gSurj (g x)) in gInj y x H)
+   ; lIdentity = λ a → ΣPathPProp bijectiveProp refl
+   }
+
+module _{_∙_ : A → A → A} {{G : group _∙_}} where
 
  instance
   -- Group action homomorphism

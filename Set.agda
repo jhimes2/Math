@@ -70,17 +70,17 @@ _ᶜ : (A → Type l) → A → Type l
 X ᶜ = λ x → x ∉ X
 infix 20 _ᶜ
 
-record inclusion (A : Type l) (l' : Level) : Type(lsuc (l ⊔ l')) where
+record inclusion (A : Type al)(B : Type bl) (l' : Level) : Type(lsuc (al ⊔ bl ⊔ l')) where
  field
-   _⊆_ : A → A → Type l'
+   _⊆_ : A → B → Type l'
 open inclusion {{...}} public
 
 instance
- sub1 : {A : Type al} → inclusion (A → Type l) (l ⊔ al)
+ sub1 : {A : Type al} → inclusion (A → Type l)(A → Type l') (al ⊔ l ⊔ l')
  sub1 = record { _⊆_ = λ X Y → ∀ x → x ∈ X → ∥ x ∈ Y ∥₁ }
 
  sub2 : {A : Type al}{_≤_ : A → A → Type l}{{_ : Preorder _≤_}}{P : A → Type bl}
-      → inclusion (Σ P) l
+      → inclusion (Σ P) (Σ P) l
  sub2 {_≤_ = _≤_} = record { _⊆_ = λ X Y → fst X ≤ fst Y }
 
  inclusionPre : {A : Type al} → Preorder (λ(X Y : A → Type l) → X ⊆ Y)
