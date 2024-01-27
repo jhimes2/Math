@@ -8,7 +8,6 @@ open import Data.Integer
 open import Cubical.HITs.PropositionalTruncation renaming (rec to recTrunc)
 open import Data.Finite
 open import NumberTheory.Natural
-open import NumberTheory.Overloads
 open import Data.Bool
 
 JRule : (P : {x y : A} → x ≡ y → Type l) → (x : A) → P (λ _ → x) → {y : A} → (p : x ≡ y) → P p
