@@ -337,8 +337,8 @@ module _{A : Type l}{_∙_ : A → A → A}{{_ : Associative _∙_}}(X : A → T
  centralizer = ∀ x → x ∈ X → a ∙ x ≡ x ∙ a
 
  -- { a | aX ≡ Xa }
- normalizer : Type (lsuc(l ⊔ l'))
- normalizer = ∀ x → (Σ λ y → (y ∈ X) × (a ∙ y ≡ x)) ≡ Σ λ y → (y ∈ X) × (y ∙ a ≡ x)
+ normalizer : Type (l ⊔ l')
+ normalizer = ∀ x → Σ λ t → (t ∈ X) × (a ∙ x ≡ t ∙ a)
 
 -- Is proposition
 record is-prop (A : Type l) : Type l
