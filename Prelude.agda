@@ -329,6 +329,15 @@ module _{_∙_ : A → A → A}{{_ : Commutative _∙_}}(a b c : A) where
                       ((a ∙ c) ∙ b) ∙ d ≡⟨ sym (assoc (_∙_ a c) b d)⟩
                       (a ∙ c) ∙ (b ∙ d) ∎
 
+-- https://en.wikipedia.org/wiki/Centralizer_and_normalizer
+module _{A : Type l}{_∙_ : A → A → A}{{_ : Associative _∙_}}(X : A → Type l')(a : A) where
+
+ centralizer : Type (l ⊔ l')
+ centralizer = Σ λ x → x ∈ X → a ∙ x ≡ x ∙ a
+
+ normalizer : Type (lsuc(l ⊔ l'))
+ normalizer = ∀ x → Σ (λ y → (y ∈ X) × (a ∙ y ≡ x)) ≡ Σ λ y → (y ∈ X) × (y ∙ a ≡ x)
+
 -- Is proposition
 record is-prop (A : Type l) : Type l
   where field
