@@ -36,6 +36,10 @@ instance
  propertyIsMultiset : {X : A → Type l} → {{Property X}} → Multiset X
  propertyIsMultiset = record { multiset = λ x → isProp→isSet (setProp x) }
 
+ centralizerProperty : {{_ : is-set A}} → {_∙_ : A → A → A} → {{_ : Associative _∙_}}
+                     → {H : A → Type l} → Property (centralizer H)
+ centralizerProperty {_∙_ = _∙_} = record { setProp = λ x → isPropΠ λ y → isProp→ (IsSet (x ∙ y) (y ∙ x)) }
+
 data Support{A : Type al}(X : A → Type l) : A → Type(al ⊔ l) where
   supportIntro : ∀ x → x ∈ X → x ∈ Support X 
   supportProp : ∀ x → isProp (x ∈ Support X)

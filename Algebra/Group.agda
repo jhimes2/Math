@@ -6,6 +6,7 @@ open import Prelude
 open import Relations
 open import Set
 open import Algebra.Monoid public
+open import Cubical.Foundations.HLevels
 
 -- https://en.wikipedia.org/wiki/Group_(mathematics)
 record group {A : Type l}(_∙_ : A → A → A) : Type(lsuc l) where
@@ -211,6 +212,21 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
    field
      overlap {{NisSubgroup}} : Subgroup N
      gng' : ∀ n → n ∈ N → ∀ g → (g ∙ n) ∙ inv g ∈ N
+ open NormalSG {{...}} public
+
+ SG-Criterion : {H : A → Type l} → {{Property H}} → Σ H → (∀ x y → x ∈ H → y ∈ H → x ∙ inv y ∈ H)
+              → Subgroup H
+ SG-Criterion {H = H} (x , x') P =
+   let Q : e ∈ H
+       Q = subst H (rInverse x) (P x x x' x') in
+   record
+   { id-closed = Q
+   ; op-closed = λ{y z} p q →
+      let F : inv z ∈ H
+          F = subst H (lIdentity (inv z)) (P e z Q q) in
+      transport (λ i → y ∙ grp.doubleInv z i ∈ H) (P y (inv z) p F)
+   ; inv-closed = λ{y} p → subst H (lIdentity (inv y)) (P e y Q p)
+   }
 
 module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
 
