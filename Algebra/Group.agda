@@ -248,6 +248,9 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
        y ∙ ((a ∙ inv b) ∙ b) ≡⟨ assoc y (a ∙ inv b) b ⟩
        (y ∙ (a ∙ inv b)) ∙ b ∎
 
+ centralizeAbelian : {{Commutative _∙_}} → {H : A → Type l} → ∀ x → x ∈ centralizer H
+ centralizeAbelian x y y∈H = comm x y
+
 module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
 
  -- operator of a subgroup
