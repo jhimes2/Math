@@ -187,6 +187,9 @@ surjective {A = A} {B} f = (b : B) → Σ λ(a : A) → f a ≡ b
 bijective : {A : Type l}{B : Type l'} → (A → B) → Type(l ⊔ l')
 bijective f = injective f × surjective f
 
+equiv : (A : Type l)(B : Type l') → Type (l ⊔ l')
+equiv A B = Σ λ (f : B → A) → bijective f
+
 injectiveComp : (Σ λ(f : A → B) → injective f)
               → (Σ λ(g : B → C) → injective g)
               → Σ λ(h : A → C) → injective h
@@ -199,9 +202,9 @@ surjectiveComp (f , f') (g , g') = g ∘ f , λ b → g' b ~> λ(x , x')
                   → f' x ~> λ(y , y') → y , (cong g y' ⋆ x')
 
 -- This is used to define symmetric groups
-bijectiveComp : (Σ λ(f : B → C) → bijective f)
-              → (Σ λ(g : A → B) → bijective g)
-              → Σ λ(h : A → C) → bijective h
+bijectiveComp : equiv A B
+              → equiv B C
+              → equiv A C
 bijectiveComp (g , Ginj , Gsurj) (f , Finj , Fsurj) = g ∘ f , (λ x y z → Finj x y (Ginj (f x) (f y) z))
                                        , (snd (surjectiveComp (f , Fsurj) (g , Gsurj)))
 
@@ -221,9 +224,6 @@ lInvToInjective (g , g') x y p = sym (g' x) ⋆ (cong g p) ⋆ (g' y)
 rInvToSurjective : {f : A → B} → rightInverse f → surjective f
 rInvToSurjective (rInv , r') = λ b → rInv b , r' b
 
-equiv : (A : Type l)(B : Type l') → Type (l ⊔ l')
-equiv A B = Σ λ (f : A → B) → injective f × surjective f
-
 fiber : {A : Type al}{B : Type bl} → (A → B) → B → A → Type bl
 fiber f y = λ x → f x ≡ y
 
@@ -233,6 +233,7 @@ embedding f = ∀ y → isProp (Σ(fiber f y))
 transpose : (A → B → C) → (B → A → C)
 transpose f x y = f y x
 
+-- Propositional Extensionality
 propExt : isProp A → isProp B → (A → B) → (B → A) → A ≡ B
 propExt pA pB ab ba = isoToPath (iso ab ba (λ b → pB (ab (ba b)) b) λ a → pA (ba (ab a)) a)
   where open import Cubical.Foundations.Isomorphism
