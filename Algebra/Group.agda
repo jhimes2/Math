@@ -459,7 +459,7 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
 {- Instantiating this symmetric group publicly may cause severely long compile
    times for files using the '--overlapping-instances' flag. -}
 private instance
- symmetricGroup : {{_ : is-set A}} → group (bijectiveComp {A = A})
+ symmetricGroup : {{_ : is-set A}} → group (≅transitive {A = A})
  symmetricGroup =
   record
    { e = id , (λ x y p → p) , λ b → b , refl

@@ -187,8 +187,8 @@ surjective {A = A} {B} f = (b : B) → Σ λ(a : A) → f a ≡ b
 bijective : {A : Type l}{B : Type l'} → (A → B) → Type(l ⊔ l')
 bijective f = injective f × surjective f
 
-equiv : (A : Type l)(B : Type l') → Type (l ⊔ l')
-equiv A B = Σ λ (f : B → A) → bijective f
+_≅_ : (A : Type l)(B : Type l') → Type (l ⊔ l')
+A ≅ B = Σ λ (f : B → A) → bijective f
 
 injectiveComp : (Σ λ(f : A → B) → injective f)
               → (Σ λ(g : B → C) → injective g)
@@ -202,10 +202,10 @@ surjectiveComp (f , f') (g , g') = g ∘ f , λ b → g' b ~> λ(x , x')
                   → f' x ~> λ(y , y') → y , (cong g y' ⋆ x')
 
 -- This is used to define symmetric groups
-bijectiveComp : equiv A B
-              → equiv B C
-              → equiv A C
-bijectiveComp (g , Ginj , Gsurj) (f , Finj , Fsurj) = g ∘ f , (λ x y z → Finj x y (Ginj (f x) (f y) z))
+≅transitive : A ≅ B
+              → B ≅ C
+              → A ≅ C
+≅transitive (g , Ginj , Gsurj) (f , Finj , Fsurj) = g ∘ f , (λ x y z → Finj x y (Ginj (f x) (f y) z))
                                        , (snd (surjectiveComp (f , Fsurj) (g , Gsurj)))
 
 -- https://en.wikipedia.org/wiki/Inverse_function#Left_and_right_inverses
@@ -362,7 +362,7 @@ bijectiveProp f = λ (Finj1 , Fsurj1) (Finj2 , Fsurj2)
 
 instance
  -- Bijective composition is associative if the underlying type is a set
- bijectiveCompAssoc : {{_ : is-set A}} → Associative (bijectiveComp {A = A})
+ bijectiveCompAssoc : {{_ : is-set A}} → Associative (≅transitive {A = A})
  bijectiveCompAssoc = record { assoc =
    λ{(f , Finj , Fsurj) (g , Ginj , Gsurj) (h , Hinj , Hsurj)
    → ΣPathPProp bijectiveProp refl} }
