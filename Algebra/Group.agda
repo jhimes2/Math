@@ -228,6 +228,26 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
    ; inv-closed = λ{y} p → subst H (lIdentity (inv y)) (P e y Q p)
    }
 
+ -- Centralizing any subset of a group is a subgroup
+ centralizerSG : {H : A → Type l} → Subgroup (centralizer H)
+ centralizerSG {H = H} =
+    SG-Criterion (e , (λ y y' → lIdentity y ⋆ sym (rIdentity y)))
+     λ a b p q y y' →
+        let P : (inv b ∙ y) ∙ b ≡ y
+            P = grp.cancel b $
+             b ∙ ((inv b ∙ y) ∙ b) ≡⟨ right _∙_ (sym (assoc (inv b) y b))⟩
+             b ∙ (inv b ∙ (y ∙ b)) ≡⟨ a[a'b]≡b b (y ∙ b)⟩
+             y ∙ b                 ≡⟨ sym (q y y')⟩
+             b ∙ y ∎ in
+       grp.lcancel b $
+       ((a ∙ inv b) ∙ y) ∙ b ≡⟨ left _∙_ (sym (assoc a (inv b) y))⟩
+       (a ∙ (inv b ∙ y)) ∙ b ≡⟨ sym (assoc a (inv b ∙ y) b)⟩
+       a ∙ ((inv b ∙ y) ∙ b) ≡⟨ right _∙_ P ⟩
+       a ∙ y                 ≡⟨ p y y' ⟩
+       y ∙ a                 ≡⟨ sym (right _∙_ ([ab']b≡a a b))⟩
+       y ∙ ((a ∙ inv b) ∙ b) ≡⟨ assoc y (a ∙ inv b) b ⟩
+       (y ∙ (a ∙ inv b)) ∙ b ∎
+
 module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
 
  -- operator of a subgroup
