@@ -332,11 +332,13 @@ module _{_∙_ : A → A → A}{{_ : Commutative _∙_}}(a b c : A) where
 -- https://en.wikipedia.org/wiki/Centralizer_and_normalizer
 module _{A : Type l}{_∙_ : A → A → A}{{_ : Associative _∙_}}(X : A → Type l')(a : A) where
 
+ -- { a | ax ≡ xa for all x ∈ X }
  centralizer : Type (l ⊔ l')
  centralizer = Σ λ x → x ∈ X → a ∙ x ≡ x ∙ a
 
+ -- { a | aX ≡ Xa }
  normalizer : Type (l ⊔ l')
- normalizer = ∀ y → Σ λ x → (x ∈ X) × (a ∙ x ≡ y) × (x ∙ a ≡ y)
+ normalizer = ∀ x → x ∈ X → a ∙ x ≡ x ∙ a
 
 -- Is proposition
 record is-prop (A : Type l) : Type l
