@@ -45,16 +45,16 @@ infix 2 _∨_
 LEM : (A : Type l) → A ∨ ¬ A
 LEM A f = f (inr λ x → f (inl x))
 
--- Pipe Operator
--- Equivalent to `|>` in F#
+-- Modus ponens operator
+-- Equivalent to the pipe operator `|>` in F#
 _~>_ : A → (A → B) → B
 a ~> f = f a
 infixl 0 _~>_
 
--- Function application operator
+-- Function application operator (Another modus ponens operator)
 -- Equivalent to `$` in Haskell
 _$_ : (A → B) → A → B
-_$_ f a = f a
+f $ a = f a
 infixr 0 _$_
 
 -- Explicit membership
@@ -201,10 +201,7 @@ surjectiveComp : (Σ λ(f : A → B) → surjective f)
 surjectiveComp (f , f') (g , g') = g ∘ f , λ b → g' b ~> λ(x , x')
                   → f' x ~> λ(y , y') → y , (cong g y' ⋆ x')
 
--- This is used to define symmetric groups
-≅transitive : A ≅ B
-              → B ≅ C
-              → A ≅ C
+≅transitive : A ≅ B → B ≅ C → A ≅ C
 ≅transitive (g , Ginj , Gsurj) (f , Finj , Fsurj) = g ∘ f , (λ x y z → Finj x y (Ginj (f x) (f y) z))
                                        , (snd (surjectiveComp (f , Fsurj) (g , Gsurj)))
 
@@ -224,13 +221,15 @@ lInvToInjective (g , g') x y p = sym (g' x) ⋆ (cong g p) ⋆ (g' y)
 rInvToSurjective : {f : A → B} → rightInverse f → surjective f
 rInvToSurjective (rInv , r') = λ b → rInv b , r' b
 
-fiber : {A : Type al}{B : Type bl} → (A → B) → B → A → Type bl
+-- https://en.wikipedia.org/wiki/Fiber_(mathematics)
+fiber : {B : Type bl} → (A → B) → B → A → Type bl
 fiber f y = λ x → f x ≡ y
 
 embedding : {A : Type al}{B : Type bl} → (A → B) → Type(al ⊔ bl)
 embedding f = ∀ y → isProp (Σ(fiber f y))
 
-transpose : (A → B → C) → (B → A → C)
+-- https://en.wikipedia.org/wiki/Transpose
+transpose : (A → B → C) → B → A → C
 transpose f x y = f y x
 
 -- Propositional Extensionality
