@@ -300,7 +300,7 @@ transposeMMult : {{R : CRing A}}
                → (M : fin n → C → A)
                → (N : B → fin n → A)
                → transpose (mMult M N) ≡ mMult (transpose N) (transpose M)
-transposeMMult {A = A} {n = n} {C = C} {B = B} M N = funExt λ c → funExt λ b →
+transposeMMult {A = A} {n = n} M N = funExt λ c → funExt λ b →
     transpose (mMult M N) c b ≡⟨By-Definition⟩
     N b ∙ (λ x → M x c)       ≡⟨ comm (N b) (λ x → M x c)⟩
     (λ x → M x c) ∙ N b       ≡⟨By-Definition⟩

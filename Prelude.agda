@@ -263,6 +263,15 @@ record Commutative {A : Type l}{B : Type l'}(_∙_ : A → A → B) : Type(lsuc 
 open Commutative {{...}} public
 
 -- Trivial associative and commutative proofs
+
+[ab][cd]≡a[[bc]d] : {_∙_ : A → A → A} → {{Associative _∙_}} →
+                    (a b c d : A) → (a ∙ b) ∙ (c ∙ d) ≡ a ∙ ((b ∙ c) ∙ d)
+[ab][cd]≡a[[bc]d] {_∙_ = _∙_} a b c d =
+                    (a ∙ b) ∙ (c ∙ d) ≡⟨ sym (assoc a b (c ∙ d))⟩
+                    a ∙ (b ∙ (c ∙ d)) ≡⟨ right _∙_ (assoc b c d)⟩
+                    a ∙ ((b ∙ c) ∙ d) ∎
+
+
 module _{_∙_ : A → A → A}{{_ : Commutative _∙_}}(a b c : A) where
 
 
@@ -321,11 +330,9 @@ module _{_∙_ : A → A → A}{{_ : Commutative _∙_}}(a b c : A) where
                 (c ∙ b) ∙ a ∎
  
   [ab][cd]≡[ac][bd] = λ(d : A)
-                    → (a ∙ b) ∙ (c ∙ d) ≡⟨ assoc (_∙_ a b) c d ⟩
-                      ((a ∙ b) ∙ c) ∙ d ≡⟨ left _∙_ (sym(assoc a b c))⟩
-                      (a ∙ (b ∙ c)) ∙ d ≡⟨ left _∙_ (right _∙_ (comm b c))⟩
-                      (a ∙ (c ∙ b)) ∙ d ≡⟨ left _∙_ (assoc a c b)⟩
-                      ((a ∙ c) ∙ b) ∙ d ≡⟨ sym (assoc (_∙_ a c) b d)⟩
+                    → (a ∙ b) ∙ (c ∙ d) ≡⟨ [ab][cd]≡a[[bc]d] a b c d ⟩
+                      a ∙ ((b ∙ c) ∙ d) ≡⟨ right _∙_ (left _∙_ (comm b c))⟩
+                      a ∙ ((c ∙ b) ∙ d) ≡⟨ sym ([ab][cd]≡a[[bc]d] a c b d)⟩
                       (a ∙ c) ∙ (b ∙ d) ∎
 
 -- https://en.wikipedia.org/wiki/Centralizer_and_normalizer
