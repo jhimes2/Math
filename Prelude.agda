@@ -90,6 +90,14 @@ f ∘ g = λ a → f (g a)
 ∃! : {A : Type l} → (P : A → Type l') → Type(l ⊔ l')
 ∃! {A = A} P = Σ λ x → P x × ∀ y → P y → x ≡ y
 
+_↔_ : Type l → Type l' → Type (l ⊔ l')
+A ↔ B = (A → B) × (B → A)
+infixr 0 _↔_ 
+
+_⇔_ : Type l → Type l' → Type (l ⊔ l')
+A ⇔ B = ∥ A ↔ B ∥₁
+infixr 0 _⇔_ 
+
 modusTollens : (A → B) → ¬ B → ¬ A
 modusTollens f Bn a = Bn (f a)
 
@@ -338,13 +346,11 @@ module _{_∙_ : A → A → A}{{_ : Commutative _∙_}}(a b c : A) where
 -- https://en.wikipedia.org/wiki/Centralizer_and_normalizer
 module _{A : Type l}{_∙_ : A → A → A}{{_ : Associative _∙_}}(X : A → Type l')(a : A) where
 
- -- { a | ax ≡ xa for all x ∈ X }
  centralizer : Type (l ⊔ l')
  centralizer = ∀ x → x ∈ X → a ∙ x ≡ x ∙ a
 
- -- { a | aX ≡ Xa }
  normalizer : Type (l ⊔ l')
- normalizer = ∀ x → x ∈ X → ∥Σ∥ λ t → (t ∈ X) × (a ∙ x ≡ t ∙ a)
+ normalizer = ∀ x → a ∙ x ∈ X ⇔ x ∙ a ∈ X
 
 -- Is proposition
 record is-prop (A : Type l) : Type l

@@ -44,7 +44,7 @@ instance
  normalizerProperty : {_∙_ : A → A → A} → {{_ : Associative _∙_}}
                      → {H : A → Type l} → Property (normalizer H)
  normalizerProperty =
-     record { setProp = λ x p q → funExt λ y → funExt λ y∈H → squash₁ (p y y∈H) (q y y∈H) }
+     record { setProp = λ x p q → funExt λ y → squash₁ (p y) (q y) }
 
 data Support{A : Type al}(X : A → Type l) : A → Type(al ⊔ l) where
   supportIntro : ∀ x → x ∈ X → x ∈ Support X 
