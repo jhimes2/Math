@@ -424,8 +424,6 @@ instance
    ; lDistribute = lMatrixDistr
    ; rDistribute = rMatrixDistr
    }
- matrixAddComm : {{R : Ring C}} → Commutative (mAdd {A = A} {B = B} {{R}})
- matrixAddComm = record { comm = λ M N → funExt λ x → funExt λ y → comm (M x y) (N x y) }
  sqrMatrixAddGroup : {{R : Ring A}} → group (mAdd {A = fin n}{B = fin n})
  sqrMatrixAddGroup = record
     { e = λ _ _ → 0r
