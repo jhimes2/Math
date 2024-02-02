@@ -1,4 +1,4 @@
-{-# OPTIONS --cubical --safe --overlapping-instances #-}
+{-# OPTIONS --cubical --safe #-}
 
 module Algebra.Monoid where
 
@@ -44,6 +44,19 @@ record Submonoid{A : Type al}
     op-closed  : {x y : A} → x ∈ H → y ∈ H → x ∙ y ∈ H
     overlap {{submonoid-set}} : Property H
 open Submonoid {{...}} public
+
+module _{_∙_ : A → A → A} {{M : monoid _∙_}} where
+
+ instance
+  -- The intersection of two submonoids are submonoids
+  intersectionSM : {X : A → Type bl}{{_ : Submonoid X _∙_}}
+                   {Y : A → Type cl}{{_ : Submonoid Y _∙_}}
+                 → Submonoid (X ∩ Y) _∙_
+  intersectionSM = record
+    { id-closed = id-closed , id-closed
+    ; op-closed = λ{x y} (x∈X , y∈Y) (x∈X' , y∈Y') → op-closed x∈X x∈X' , op-closed y∈Y y∈Y'
+    ; submonoid-set = record { setProp = λ x → isProp× (setProp x) (setProp x) }
+    }
 
 -- Every operator can only be part of at most one monoid
 monoidIsProp : (_∙_ : A → A → A) → isProp (monoid _∙_)

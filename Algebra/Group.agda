@@ -284,30 +284,38 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
  centralizeAbelian x y y∈H = comm x y
 
 module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
+ module _{H : A → Type l}{{SG : Subgroup H}} where
 
- -- operator of a subgroup
- _⪀_ : {H : A → Type l} → {{Subgroup H}} → Σ H → Σ H → Σ H
- _⪀_ (x , x') (y , y') = x ∙ y , op-closed x' y'
+  -- The intersection of two subgroups are subgroups
+  intersectionSG : {Y : A → Type cl}{{_ : Subgroup Y}}
+                 → Subgroup (H ∩ Y)
+  intersectionSG = record
+    { inv-closed = λ{x} (x∈H , y∈H) → inv-closed x∈H , inv-closed y∈H }
 
- instance
-  ⪀assoc : {H : A → Type l} → {{_ : Subgroup H}} → Associative _⪀_
-  ⪀assoc = record { assoc = λ (a , a') (b , b') (c , c') → ΣPathPProp setProp (assoc a b c) }
-
-  -- Group structure of a subgroup
-  subgrpStr : {H : A → Type l} → {{_ : Subgroup H}} → group _⪀_
-  subgrpStr = record
-      { e = e , id-closed
-      ; inverse = λ(a , a') → (inv a , inv-closed a') , ΣPathPProp setProp (lInverse a)
-      ; lIdentity = λ(a , a') → ΣPathPProp setProp (lIdentity a)
-      }
-
- -- Every subgroup of an abelian group is normal
- abelian≥→⊵ : {{Commutative _∙_}} → (H : A → Type bl) → {{Subgroup H}} → NormalSG H
- abelian≥→⊵ H = record
-    { gng' = λ n n∈H g → let P : n ∈ H ≡ (g ∙ n) ∙ inv g ∈ H
-                             P = cong H $ sym (a'[ab]≡b g n) ⋆ comm (inv g) (g ∙ n)
-                         in transport P n∈H
-    }
+  -- operator of a subgroup
+  _⪀_ : Σ H → Σ H → Σ H
+  (x , x') ⪀ (y , y') = x ∙ y , op-closed x' y'
+ 
+  instance
+   ⪀assoc : Associative _⪀_
+   ⪀assoc = record { assoc = λ (a , a') (b , b') (c , c') → ΣPathPProp setProp (assoc a b c) }
+ 
+   -- Group structure of a subgroup
+   subgrpStr : group _⪀_
+   subgrpStr = record
+       { e = e , id-closed
+       ; inverse = λ(a , a') → (inv a , inv-closed a') , ΣPathPProp setProp (lInverse a)
+       ; lIdentity = λ(a , a') → ΣPathPProp setProp (lIdentity a)
+       ; IsSetGrp = ΣSet
+       }
+ 
+  -- Every subgroup of an abelian group is normal
+  abelian≥→⊵ : {{Commutative _∙_}} → NormalSG H
+  abelian≥→⊵ = record
+     { gng' = λ n n∈H g → let P : n ∈ H ≡ (g ∙ n) ∙ inv g ∈ H
+                              P = cong H $ sym (a'[ab]≡b g n) ⋆ comm (inv g) (g ∙ n)
+                          in transport P n∈H
+     }
 
  -- Overloading '⟨_⟩' for cyclic and generating set of a group
  record Generating (B : Type l) (l' : Level) : Type(l ⊔ al ⊔ lsuc l') where

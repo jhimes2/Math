@@ -19,14 +19,14 @@ open import Cubical.Foundations.Isomorphism
 -- A property is defined as a function that maps elements to propositions
 record Property {A : Type al} (P : A → Type l) : Type(al ⊔ l) where
  field
-  setProp : ∀ x → isProp (P x)
+  setProp : ∀ x → isProp (x ∈ P)
 open Property {{...}} public
 
 -- https://en.wikipedia.org/wiki/Multiset
 -- A multiset is defined as a function that maps elements to sets
 record Multiset {A : Type al} (M : A → Type l) : Type(al ⊔ l) where
  field
-  multiset : ∀ x → isSet (M x)
+  multiset : ∀ x → isSet (x ∈ M)
 open Multiset {{...}} public
 
 instance
@@ -41,10 +41,10 @@ instance
  centralizerProperty {_∙_ = _∙_} =
      record { setProp = λ x → isPropΠ λ y → isProp→ (IsSet (x ∙ y) (y ∙ x)) }
 
- normalizerProperty : {_∙_ : A → A → A} → {{_ : Associative _∙_}}
-                     → {H : A → Type l} → Property (normalizer H)
- normalizerProperty =
-     record { setProp = λ x p q → funExt λ y → squash₁ (p y) (q y) }
+normalizerProperty : {_∙_ : A → A → A} → {{_ : Associative _∙_}}
+                    → {H : A → Type l} → Property (normalizer H)
+normalizerProperty =
+    record { setProp = λ x p q → funExt λ y → squash₁ (p y) (q y) }
 
 data Support{A : Type al}(X : A → Type l) : A → Type(al ⊔ l) where
   supportIntro : ∀ x → x ∈ X → x ∈ Support X 
@@ -92,6 +92,11 @@ instance
  sub2 : {A : Type al}{_≤_ : A → A → Type l}{{_ : Preorder _≤_}}{P : A → Type bl}
       → inclusion (Σ P) (Σ P) l
  sub2 {_≤_ = _≤_} = record { _⊆_ = λ X Y → fst X ≤ fst Y }
+
+-- ∩Prop : {X : A → Type al} → {{_ : Property X}}
+--       → {Y : A → Type bl} → {{_ : Property Y}}
+--       → Property (X ∩ Y)
+-- ∩Prop = record { setProp = λ x → isProp× (setProp x) (setProp x) }
 
  inclusionPre : {A : Type al} → Preorder (λ(X Y : A → Type l) → X ⊆ Y)
  inclusionPre = record
