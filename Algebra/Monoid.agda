@@ -62,6 +62,41 @@ module _{_∙_ : A → A → A} {{M : monoid _∙_}} where
   fullSM : Submonoid (𝓤 {l = l}) _∙_
   fullSM = record { id-closed = lift tt ; op-closed = λ _ _ → lift tt }
 
+  -- Centralizing any subset of a group is a submonoid
+  centralizerSM : {H : A → Type l} → Submonoid (centralizer H) _∙_
+  centralizerSM {H = H} = record
+    { id-closed = λ x x∈H → lIdentity x ⋆ sym (rIdentity x)
+    ; op-closed = λ{x y} x∈Cent y∈Cent z z∈H →
+      let P : y ∙ z ≡ z ∙ y
+          P = y∈Cent z z∈H in
+      let Q : x ∙ z ≡ z ∙ x
+          Q = x∈Cent z z∈H in
+      (x ∙ y) ∙ z ≡⟨ sym (assoc x y z)⟩
+      x ∙ (y ∙ z) ≡⟨ right _∙_ P ⟩
+      x ∙ (z ∙ y) ≡⟨ assoc x z y ⟩
+      (x ∙ z) ∙ y ≡⟨ left _∙_ Q ⟩
+      (z ∙ x) ∙ y ≡⟨ sym (assoc z x y)⟩
+      z ∙ (x ∙ y) ∎
+    }
+
+  -- Normalizing any subset of a monoid is a submonoid
+  normalizerSM : {N : A → Type l} → Submonoid (normalizer N) _∙_
+  normalizerSM {N = N} = record
+     { id-closed = λ x → η $ (λ p → subst N (sym (rIdentity x)) (subst N (lIdentity x) p))
+                           ,  λ p → subst N (sym (lIdentity x)) (subst N (rIdentity x) p)
+     ; op-closed = λ{x y} x∈Norm y∈Norm z →
+              x∈Norm (y ∙ z) >>= λ(p : x ∙ (y ∙ z) ∈ N ↔ (y ∙ z) ∙ x ∈ N) →
+              y∈Norm (z ∙ x) >>= λ(q : y ∙ (z ∙ x) ∈ N ↔ (z ∙ x) ∙ y ∈ N) →
+                 η $ (λ xyz∈N →
+              subst N (sym (assoc z x y)) $ fst q
+            $ subst N (sym (assoc y z x)) $ fst p
+            $ subst N (sym (assoc x y z)) xyz∈N)
+            , λ zxy∈N → subst N (assoc x y z) $ snd p
+                      $ subst N (assoc y z x) $ snd q
+                        (subst N (assoc z x y) zxy∈N)
+     ; submonoid-set = normalizerProperty {H = N}
+     }
+
 
 -- Every operator can only be part of at most one monoid
 monoidIsProp : (_∙_ : A → A → A) → isProp (monoid _∙_)

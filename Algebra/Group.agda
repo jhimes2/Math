@@ -234,43 +234,21 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
 
  -- Centralizing any subset of a group is a subgroup
  centralizerSG : {H : A → Type l} → Subgroup (centralizer H)
- centralizerSG {H = H} =
-    SG-Criterion (e , (λ y y' → lIdentity y ⋆ sym (rIdentity y)))
-     λ a b p q y y' →
-        let P : (inv b ∙ y) ∙ b ≡ y
-            P = grp.cancel b $
-             b ∙ ((inv b ∙ y) ∙ b) ≡⟨ right _∙_ (sym (assoc (inv b) y b))⟩
-             b ∙ (inv b ∙ (y ∙ b)) ≡⟨ a[a'b]≡b b (y ∙ b)⟩
-             y ∙ b                 ≡⟨ sym (q y y')⟩
-             b ∙ y ∎ in
-       grp.lcancel b $
-       ((a ∙ inv b) ∙ y) ∙ b ≡⟨ left _∙_ (sym (assoc a (inv b) y))⟩
-       (a ∙ (inv b ∙ y)) ∙ b ≡⟨ sym (assoc a (inv b ∙ y) b)⟩
-       a ∙ ((inv b ∙ y) ∙ b) ≡⟨ right _∙_ P ⟩
-       a ∙ y                 ≡⟨ p y y' ⟩
-       y ∙ a                 ≡⟨ sym (right _∙_ ([ab']b≡a a b))⟩
-       y ∙ ((a ∙ inv b) ∙ b) ≡⟨ assoc y (a ∙ inv b) b ⟩
-       (y ∙ (a ∙ inv b)) ∙ b ∎
+ centralizerSG = record
+    { inv-closed = λ{x} x∈Cent z z∈H →
+      grp.cancel x $
+      x ∙ (inv x ∙ z) ≡⟨ a[a'b]≡b x z ⟩
+      z               ≡⟨ sym ([ab]b'≡a z x)⟩
+      (z ∙ x) ∙ inv x ≡⟨ left _∙_ (sym (x∈Cent z z∈H))⟩
+      (x ∙ z) ∙ inv x ≡⟨ sym (assoc x z (inv x))⟩
+      x ∙ (z ∙ inv x) ∎
+    }
 
   -- Normalizing any subset of a group is a subgroup
  normalizerSG : {N : A → Type l} → Subgroup (normalizer N)
- normalizerSG {N = N} = record
-   { subgroupSubmonoid = record
-     { id-closed = λ x → η $ (λ p → subst N (sym (rIdentity x)) (subst N (lIdentity x) p))
-                           ,  λ p → subst N (sym (lIdentity x)) (subst N (rIdentity x) p)
-     ; op-closed = λ{x y} x∈Norm y∈Norm z →
-              x∈Norm (y ∙ z) >>= λ(p : x ∙ (y ∙ z) ∈ N ↔ (y ∙ z) ∙ x ∈ N) →
-              y∈Norm (z ∙ x) >>= λ(q : y ∙ (z ∙ x) ∈ N ↔ (z ∙ x) ∙ y ∈ N) →
-                 η $ (λ xyz∈N →
-              subst N (sym (assoc z x y)) $ fst q
-            $ subst N (sym (assoc y z x)) $ fst p
-            $ subst N (sym (assoc x y z)) xyz∈N)
-            , λ zxy∈N → subst N (assoc x y z) $ snd p
-                      $ subst N (assoc y z x) $ snd q
-                        (subst N (assoc z x y) zxy∈N)
-     ; submonoid-set = normalizerProperty {H = N}
-     }
-   ; inv-closed = λ{x} x∈Norm z
+ normalizerSG {N = N} =
+   record
+   { inv-closed = λ{x} x∈Norm z
       → let H = (x ∙ ((inv x ∙ z) ∙ inv x) ∈ N ↔ ((inv x ∙ z) ∙ inv x) ∙ x ∈ N)
                             ≡⟨ left _↔_ (cong N (assoc x (inv x ∙ z) (inv x)))⟩
                 ((x ∙ (inv x ∙ z)) ∙ inv x ∈ N ↔ ((inv x ∙ z) ∙ inv x) ∙ x ∈ N)
@@ -282,6 +260,7 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
          let F : z ∙ inv x ∈ N ↔ inv x ∙ z ∈ N
              F = transport H a in
         η $ (λ x'z∈N → snd F x'z∈N) , λ zx'∈N → fst F zx'∈N
+   ; subgroupSubmonoid = normalizerSM {N = N}
    }
 
  centralizeAbelian : {{Commutative _∙_}} → {H : A → Type l} → ∀ x → x ∈ centralizer H
