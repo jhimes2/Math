@@ -3,6 +3,7 @@
 module Algebra.Monoid where
 
 open import Prelude
+open import Set
 open import Cubical.Foundations.HLevels
 
 -- https://en.wikipedia.org/wiki/Monoid
@@ -15,20 +16,30 @@ record monoid {A : Type l}(_∙_ : A → A → A) : Type(lsuc l) where
       {{mAssoc}} : Associative _∙_
 open monoid {{...}}
 
--- Identity element of a monoid is unique
-idUnique : {_∙_ : A → A → A} {{M : monoid _∙_}} → {a : A} → ((x : A) → a ∙ x ≡ x) → a ≡ e
-idUnique {A = A} {_∙_ = _∙_} {a} =
-  λ(p : (x : A) → a ∙ x ≡ x) →
-    a     ≡⟨ sym (rIdentity a) ⟩
-    a ∙ e ≡⟨ p e ⟩
-    e ∎
+module _{A : Type al}{_∙_ : A → A → A} {{M : monoid _∙_}} where
 
-idUnique2 : {_∙_ : A → A → A} {{M : monoid _∙_}} → {a : A} → a ∙ e ≡ e → a ≡ e
-idUnique2 {A = A} {_∙_ = _∙_} {a} =
-  λ(p : a ∙ e ≡ e) →
-    a     ≡⟨ sym (rIdentity a) ⟩
-    a ∙ e ≡⟨ p ⟩
-    e ∎
+ -- Identity element of a monoid is unique
+ idUnique : {a : A} → ((x : A) → a ∙ x ≡ x) → a ≡ e
+ idUnique {a} =
+   λ(p : (x : A) → a ∙ x ≡ x) →
+     a     ≡⟨ sym (rIdentity a) ⟩
+     a ∙ e ≡⟨ p e ⟩
+     e ∎
+ 
+ idUnique2 : {a : A} → a ∙ e ≡ e → a ≡ e
+ idUnique2 {a} =
+   λ(p : a ∙ e ≡ e) →
+     a     ≡⟨ sym (rIdentity a) ⟩
+     a ∙ e ≡⟨ p ⟩
+     e ∎
+ 
+ -- https://en.wikipedia.org/wiki/Monoid#Submonoids
+ record Submonoid(H : A → Type bl) : Type (al ⊔ bl) where
+   field
+     id-closed  : e ∈ H
+     op-closed  : {x y : A} → x ∈ H → y ∈ H → x ∙ y ∈ H
+     {{submonoid-set}} : Property H
+ open Submonoid {{...}} public
 
 -- Every operator can only be part of at most one monoid
 monoidIsProp : (_∙_ : A → A → A) → isProp (monoid _∙_)

@@ -201,10 +201,8 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
  -- https://en.wikipedia.org/wiki/Subgroup
  record Subgroup(H : A → Type bl) : Type (al ⊔ bl) where
    field
-     id-closed  : e ∈ H
-     op-closed  : {x y : A} → x ∈ H → y ∈ H → x ∙ y ∈ H
      inv-closed : {x : A} → x ∈ H → inv x ∈ H
-     {{subgroup-set}} : Property H
+     {{subgroupSubmonoid}} : Submonoid H
  open Subgroup {{...}} public
 
  -- https://en.wikipedia.org/wiki/Normal_subgroup
@@ -220,11 +218,13 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
    let Q : e ∈ H
        Q = subst H (rInverse x) (P x x x' x') in
    record
-   { id-closed = Q
-   ; op-closed = λ{y z} p q →
-      let F : inv z ∈ H
-          F = subst H (lIdentity (inv z)) (P e z Q q) in
-      transport (λ i → y ∙ grp.doubleInv z i ∈ H) (P y (inv z) p F)
+   { subgroupSubmonoid = record
+     { id-closed = Q
+     ; op-closed = λ{y z} p q →
+        let F : inv z ∈ H
+            F = subst H (lIdentity (inv z)) (P e z Q q) in
+        transport (λ i → y ∙ grp.doubleInv z i ∈ H) (P y (inv z) p F)
+     }
    ; inv-closed = λ{y} p → subst H (lIdentity (inv y)) (P e y Q p)
    }
 
@@ -254,18 +254,21 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
   -- Normalizing any subset of a group is a subgroup
  normalizerSG : {N : A → Type l} → Subgroup (normalizer N)
  normalizerSG {N = N} = record
-   { id-closed = λ x → η $ (λ p → subst N (sym (rIdentity x)) (subst N (lIdentity x) p))
-                         ,  λ p → subst N (sym (lIdentity x)) (subst N (rIdentity x) p)
-   ; op-closed = λ{x y} x∈Norm y∈Norm z →
-            x∈Norm (y ∙ z) >>= λ(p : x ∙ (y ∙ z) ∈ N ↔ (y ∙ z) ∙ x ∈ N) →
-            y∈Norm (z ∙ x) >>= λ(q : y ∙ (z ∙ x) ∈ N ↔ (z ∙ x) ∙ y ∈ N) →
-               η $ (λ xyz∈N →
-            subst N (sym (assoc z x y)) $ fst q
-          $ subst N (sym (assoc y z x)) $ fst p
-          $ subst N (sym (assoc x y z)) xyz∈N)
-          , λ zxy∈N → subst N (assoc x y z) $ snd p
-                    $ subst N (assoc y z x) $ snd q
-                      (subst N (assoc z x y) zxy∈N)
+   { subgroupSubmonoid = record
+     { id-closed = λ x → η $ (λ p → subst N (sym (rIdentity x)) (subst N (lIdentity x) p))
+                           ,  λ p → subst N (sym (lIdentity x)) (subst N (rIdentity x) p)
+     ; op-closed = λ{x y} x∈Norm y∈Norm z →
+              x∈Norm (y ∙ z) >>= λ(p : x ∙ (y ∙ z) ∈ N ↔ (y ∙ z) ∙ x ∈ N) →
+              y∈Norm (z ∙ x) >>= λ(q : y ∙ (z ∙ x) ∈ N ↔ (z ∙ x) ∙ y ∈ N) →
+                 η $ (λ xyz∈N →
+              subst N (sym (assoc z x y)) $ fst q
+            $ subst N (sym (assoc y z x)) $ fst p
+            $ subst N (sym (assoc x y z)) xyz∈N)
+            , λ zxy∈N → subst N (assoc x y z) $ snd p
+                      $ subst N (assoc y z x) $ snd q
+                        (subst N (assoc z x y) zxy∈N)
+     ; submonoid-set = normalizerProperty {H = N}
+     }
    ; inv-closed = λ{x} x∈Norm z
       → let H = (x ∙ ((inv x ∙ z) ∙ inv x) ∈ N ↔ ((inv x ∙ z) ∙ inv x) ∙ x ∈ N)
                             ≡⟨ left _↔_ (cong N (assoc x (inv x ∙ z) (inv x)))⟩
@@ -278,7 +281,6 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
          let F : z ∙ inv x ∈ N ↔ inv x ∙ z ∈ N
              F = transport H a in
         η $ (λ x'z∈N → snd F x'z∈N) , λ zx'∈N → fst F zx'∈N
-   ; subgroup-set = normalizerProperty {H = N}
    }
 
 module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
@@ -347,8 +349,10 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
  -- Non-empty generating set is a subgroup
  generatingIsSubgroup : (X : A → Type l) → Σ X → Subgroup ⟨ X ⟩
  generatingIsSubgroup X (x , H) = record
-   { id-closed = subst ⟨ X ⟩ (lInverse x) (gen-op (gen-inv (gen-intro H)) (gen-intro H))
-   ; op-closed = gen-op
+   { subgroupSubmonoid = record
+     { id-closed = subst ⟨ X ⟩ (lInverse x) (gen-op (gen-inv (gen-intro H)) (gen-intro H))
+     ; op-closed = gen-op
+     }
    ; inv-closed = gen-inv
    }
 
@@ -414,11 +418,13 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
   -- A kernel is a subgroup
   kerSubgroup : {{X : Homomorphism}} → Subgroup kernel
   kerSubgroup = record
-     { id-closed = idToId
-     ; op-closed = λ{x y} (p : h x ≡ e) (q : h y ≡ e) → h (x ∙ y) ≡⟨ preserve x y ⟩
-                                                        h x * h y ≡⟨ cong₂ _*_ p q ⟩
-                                                        e * e     ≡⟨ lIdentity e ⟩
-                                                        e ∎
+     { subgroupSubmonoid = record
+       { id-closed = idToId
+       ; op-closed = λ{x y} (p : h x ≡ e) (q : h y ≡ e) → h (x ∙ y) ≡⟨ preserve x y ⟩
+                                                          h x * h y ≡⟨ cong₂ _*_ p q ⟩
+                                                          e * e     ≡⟨ lIdentity e ⟩
+                                                          e ∎
+       }
      ; inv-closed = λ{x} (p : h x ≡ e) → h (inv x) ≡⟨ inverseToInverse x ⟩
                                           inv (h x) ≡⟨ cong inv p ⟩
                                           inv e     ≡⟨ grp.lemma4 ⟩
