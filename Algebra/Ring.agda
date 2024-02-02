@@ -14,6 +14,14 @@ open Ring {{...}} public
 
 module _{A : Type l}{{R : Ring A}} where
 
+ -- https://en.wikipedia.org/wiki/Subring
+ record Subring(H : A → Type l') : Type(lsuc (l ⊔ l')) where
+  field
+   {{ringSG}} : Subgroup H
+   {{ringSM}} : Submonoid H _*_
+ open Subring {{...}} public
+ 
+
  -- https://en.wikipedia.org/wiki/Ideal_(ring_theory)
  record Ideal(I : A → Type l') : Type(lsuc (l ⊔ l')) where
   field

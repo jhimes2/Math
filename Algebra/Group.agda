@@ -202,7 +202,7 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
  record Subgroup(H : A → Type bl) : Type (al ⊔ bl) where
    field
      inv-closed : {x : A} → x ∈ H → inv x ∈ H
-     {{subgroupSubmonoid}} : Submonoid H
+     {{subgroupSubmonoid}} : Submonoid H _∙_
  open Subgroup {{...}} public
 
  -- https://en.wikipedia.org/wiki/Normal_subgroup

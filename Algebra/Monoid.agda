@@ -16,7 +16,7 @@ record monoid {A : Type l}(_∙_ : A → A → A) : Type(lsuc l) where
       {{mAssoc}} : Associative _∙_
 open monoid {{...}}
 
-module _{A : Type al}{_∙_ : A → A → A} {{M : monoid _∙_}} where
+module _{_∙_ : A → A → A} {{M : monoid _∙_}} where
 
  -- Identity element of a monoid is unique
  idUnique : {a : A} → ((x : A) → a ∙ x ≡ x) → a ≡ e
@@ -33,13 +33,17 @@ module _{A : Type al}{_∙_ : A → A → A} {{M : monoid _∙_}} where
      a ∙ e ≡⟨ p ⟩
      e ∎
  
- -- https://en.wikipedia.org/wiki/Monoid#Submonoids
- record Submonoid(H : A → Type bl) : Type (al ⊔ bl) where
-   field
-     id-closed  : e ∈ H
-     op-closed  : {x y : A} → x ∈ H → y ∈ H → x ∙ y ∈ H
-     {{submonoid-set}} : Property H
- open Submonoid {{...}} public
+-- https://en.wikipedia.org/wiki/Monoid#Submonoids
+{- We're requiring the operator to be an explicit parameter because when defining
+   a subring it becomes ambiguous whether we're referring to '+' or '*'. -}
+record Submonoid{A : Type al}
+                (H : A → Type bl)
+                (_∙_ : A → A → A) {{M : monoid _∙_}} : Type (al ⊔ bl) where
+  field
+    id-closed  : e ∈ H
+    op-closed  : {x y : A} → x ∈ H → y ∈ H → x ∙ y ∈ H
+    overlap {{submonoid-set}} : Property H
+open Submonoid {{...}} public
 
 -- Every operator can only be part of at most one monoid
 monoidIsProp : (_∙_ : A → A → A) → isProp (monoid _∙_)
