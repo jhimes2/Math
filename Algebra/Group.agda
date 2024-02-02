@@ -293,26 +293,13 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
   ⪀assoc : {H : A → Type l} → {{_ : Subgroup H}} → Associative _⪀_
   ⪀assoc = record { assoc = λ (a , a') (b , b') (c , c') → ΣPathPProp setProp (assoc a b c) }
 
- -- Group structure of a subgroup
- subgrpStr : (H : A → Type l) → {{_ : Subgroup H}} → group _⪀_
- subgrpStr _ = record
-     { e = e , id-closed
-     ; inverse = λ(a , a') → (inv a , inv-closed a') , ΣPathPProp setProp (lInverse a)
-     ; lIdentity = λ(a , a') → ΣPathPProp setProp (lIdentity a)
-     }
-
- record _≥_ (H : A → Type l)(F : A → Type bl) : Type (bl ⊔ al ⊔ l) where
-  field
-    {{SG}} : Subgroup H
-    ≥⊆ : F ⊆ H
-    overlap {{≥sg}}  : Subgroup F
- open _≥_ {{...}} public
-
- record _⊵_ (H : A → Type l)(F : A → Type bl) : Type (bl ⊔ al ⊔ l) where
-  field
-    {{⊵≥}} : H ≥ F
-    {{⊵sg}}  : NormalSG F
- open _⊵_ {{...}} public
+  -- Group structure of a subgroup
+  subgrpStr : {H : A → Type l} → {{_ : Subgroup H}} → group _⪀_
+  subgrpStr = record
+      { e = e , id-closed
+      ; inverse = λ(a , a') → (inv a , inv-closed a') , ΣPathPProp setProp (lInverse a)
+      ; lIdentity = λ(a , a') → ΣPathPProp setProp (lIdentity a)
+      }
 
  -- Every subgroup of an abelian group is normal
  abelian≥→⊵ : {{Commutative _∙_}} → (H : A → Type bl) → {{Subgroup H}} → NormalSG H
