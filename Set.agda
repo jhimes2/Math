@@ -30,11 +30,15 @@ record Multiset {A : Type al} (M : A → Type l) : Type(al ⊔ l) where
 open Multiset {{...}} public
 
 instance
+
  ΣSet : {{is-set A}} → {X : A → Type l} → {{Multiset X}} → is-set (Σ X)
  ΣSet = record { IsSet = isSetΣ IsSet λ x → multiset x }
 
  propertyIsMultiset : {X : A → Type l} → {{Property X}} → Multiset X
  propertyIsMultiset = record { multiset = λ x → isProp→isSet (setProp x) }
+
+ fullProp : Property $ 𝓤 {A = A} {l}
+ fullProp = record { setProp = λ x tt tt → refl }
 
  centralizerProperty : {{_ : is-set A}} → {_∙_ : A → A → A} → {{_ : Associative _∙_}}
                      → {H : A → Type l} → Property (centralizer H)

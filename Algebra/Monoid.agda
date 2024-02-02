@@ -58,6 +58,11 @@ module _{_∙_ : A → A → A} {{M : monoid _∙_}} where
     ; submonoid-set = record { setProp = λ x → isProp× (setProp x) (setProp x) }
     }
 
+  -- The full set is a submonoid
+  fullSM : Submonoid (𝓤 {l = l}) _∙_
+  fullSM = record { id-closed = lift tt ; op-closed = λ _ _ → lift tt }
+
+
 -- Every operator can only be part of at most one monoid
 monoidIsProp : (_∙_ : A → A → A) → isProp (monoid _∙_)
 monoidIsProp {A = A} _∙_ M1 M2 i =
