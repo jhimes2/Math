@@ -184,9 +184,9 @@ record moduleHomomorphism {A : Type l}
                           {<U> : Type al}
                          {{V : Module <V>}}
                          {{U : Module <U>}}
-                          (T : <U> → <V>) : Type (l ⊔ l' ⊔ al)
+                          (T : <U> → <V>) : Type (l ⊔ lsuc(l' ⊔ al))
   where field
-  addT : ∀ u v →  T (u [+] v) ≡ T u [+] T v
+  {{addT}} : Homomorphism T
   multT : ∀ u → (c : A) → T (scale c u) ≡ scale c (T u)
 open moduleHomomorphism {{...}} public 
 
@@ -197,9 +197,11 @@ modHomomorphismIsProp : {{F : Ring A}}
                       → isProp (moduleHomomorphism LT)
 modHomomorphismIsProp {{VS' = VS'}} LT x y i = let set = λ{a b p q} → IsSet a b p q in
  record {
-    addT = λ u v →
-     let H : moduleHomomorphism.addT x u v ≡ moduleHomomorphism.addT y u v
-         H = set in H i
+    addT = record { preserve =
+     λ u v →
+      let H : Homomorphism.preserve (moduleHomomorphism.addT x) u v
+            ≡ Homomorphism.preserve (moduleHomomorphism.addT y) u v
+          H = set in H i }
   ; multT = λ u c →
      let H : moduleHomomorphism.multT x u c ≡ moduleHomomorphism.multT y u c
          H = set in H i
@@ -223,7 +225,7 @@ module _ {scalar : Type l}{{R : Ring scalar}}
                → {{SLT : moduleHomomorphism R}}
                → moduleHomomorphism (R ∘ T)
   modHomomorphismComp R =
-     record { addT = λ u v → cong R (addT u v) ⋆ addT (T u) (T v)
+     record { addT = record { preserve = λ u v → cong R (preserve u v) ⋆ preserve (T u) (T v) }
             ; multT = λ u c → cong R (multT u c) ⋆ multT (T u) c }
 
 -- Bad name. I don't know what else to call this theorem.
@@ -235,7 +237,7 @@ week7 T c = record
                Ô   ≡⟨ sym (scaleVZ c)⟩
                scale c Ô ∎
     ; ssAdd = λ {v} {u} (p : T v ≡ scale c v) (q : T u ≡ scale c u) →
-                   T (v [+] u)             ≡⟨ addT v u ⟩
+                   T (v [+] u)             ≡⟨ preserve v u ⟩
                    T v [+] T u             ≡⟨ cong₂ _[+]_ p q ⟩
                    scale c v [+] scale c u ≡⟨ sym (scalarDistribute c v u)⟩
                    scale c (v [+] u) ∎
@@ -256,7 +258,7 @@ module _ {A : Type l}  {{CR : CRing A}}
 
  -- https://en.wikipedia.org/wiki/Bilinear_map
  -- 'Bilinear' is generalized to have a commutative ring instead of a field
- record Bilinear (B : V → W → X) : Type (al ⊔ bl ⊔ cl ⊔ l) where
+ record Bilinear (B : V → W → X) : Type (l ⊔ lsuc (al ⊔ bl ⊔ cl)) where
   field      
    lLinear : (v : V) → moduleHomomorphism (B v)
    rLinear : (w : W) → moduleHomomorphism (λ x → B x w)

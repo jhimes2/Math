@@ -128,7 +128,8 @@ instance
   MHMT : {{R : Ring A}} → {M : fin n → B → A} → moduleHomomorphism (MT M)
   MHMT {{R}} {M = M} =
    record {
-     addT = λ u v → funExt λ x →
+     addT = record { preserve =
+       λ u v → funExt λ x →
      MT M (addv u v) x
        ≡⟨By-Definition⟩
      foldr _+_ 0r (zip _*_ (addv u v) (transpose M x))
@@ -145,7 +146,7 @@ instance
        ≡⟨By-Definition⟩
      foldr _+_ 0r (zip _*_ u (transpose M x)) + foldr _+_ 0r  (zip _*_ v (transpose M x))
        ≡⟨By-Definition⟩
-     addv (MT M u) (MT M v) x ∎
+     addv (MT M u) (MT M v) x ∎ }
    ; multT = λ u c → funExt λ x →
        MT M (scaleV c u) x ≡⟨By-Definition⟩
        foldr _+_ 0r  (λ y → (c * u y) * M y x) ≡⟨ cong (foldr _+_ 0r ) (funExt λ y → sym (assoc c (u y) (M y x))) ⟩
