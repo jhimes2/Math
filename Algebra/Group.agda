@@ -420,7 +420,7 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
 
  {- We didn't require the codomain of an epimorphism to be an underlying set of a group
     because it already was. -}
- instance
+ private instance
   EpimorphismCodomainGroup : {h : A → B} → {{E : Epimorphism h}}
                            → group _∗_
   EpimorphismCodomainGroup {h = h} = record

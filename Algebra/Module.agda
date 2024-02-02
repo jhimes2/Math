@@ -211,13 +211,6 @@ module _ {scalar : Type l}{{R : Ring scalar}}
          {{V : Module A}}{{U : Module B}}
          (T : A → B){{TLT : moduleHomomorphism T}} where
 
-  modHomomorphismZ : T Ô ≡ Ô
-  modHomomorphismZ =
-          T Ô             ≡⟨ sym (cong T (scaleZ Ô))⟩
-          T (scale 0r Ô)  ≡⟨ moduleHomomorphism.multT TLT Ô 0r ⟩
-          scale 0r (T Ô)  ≡⟨ scaleZ (T Ô)⟩
-          Ô ∎
-
   -- If 'T' and 'R' are module homomorphisms and are composable, then 'R ∘ T' is
   -- a module homomorphism.
   modHomomorphismComp : {{W : Module C}}
@@ -233,7 +226,7 @@ week7 : {{CR : CRing A}} → {{V : Module B}}
       → (T : B → B) → {{TLT : moduleHomomorphism T}}
       → (c : A) → Subspace (λ x → T x ≡ scale c x)
 week7 T c = record
-    { ssZero = T Ô ≡⟨ modHomomorphismZ T ⟩
+    { ssZero = T Ô ≡⟨ idToId T ⟩
                Ô   ≡⟨ sym (scaleVZ c)⟩
                scale c Ô ∎
     ; ssAdd = λ {v} {u} (p : T v ≡ scale c v) (q : T u ≡ scale c u) →
@@ -265,13 +258,13 @@ module _ {A : Type l}  {{CR : CRing A}}
  open Bilinear {{...}}
 
  bilinearLZ : {B : V → W → X} → {{BL : Bilinear B}} → (v : V) → B v Ô ≡ Ô
- bilinearLZ {B = B} v = modHomomorphismZ (B v)
+ bilinearLZ {B = B} v = idToId (B v)
    where instance
-       MH : moduleHomomorphism (B v)
-       MH = lLinear v
+       H : Homomorphism (B v)
+       H = moduleHomomorphism.addT (lLinear v)
 
  bilinearRZ : {B : V → W → X} → {{BL : Bilinear B}} → (w : W) → B Ô w ≡ Ô
- bilinearRZ {B = B} w = modHomomorphismZ (λ x → B x w)
+ bilinearRZ {B = B} w = idToId (λ x → B x w)
    where instance
-       MH : moduleHomomorphism λ x → B x w
-       MH = rLinear w
+       H : Homomorphism λ x → B x w
+       H = moduleHomomorphism.addT (rLinear w)

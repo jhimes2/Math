@@ -56,7 +56,7 @@ module _{scalar : Type l}{{F : Field scalar}}{vector : Type l'}{{V : VectorSpace
     -- The null space is a subspace
     nullSubspace : (T : vector' → vector) → {{TLM : LinearMap T}} → Subspace (Null T)
     nullSubspace T = record
-      { ssZero = modHomomorphismZ T
+      { ssZero = idToId T
       ; ssAdd = λ{v u} vNull uNull →
         T (v [+] u) ≡⟨ preserve v u ⟩
         T v [+] T u ≡⟨ left _[+]_ vNull ⟩
@@ -78,7 +78,7 @@ module _{scalar : Type l}{{F : Field scalar}}{vector : Type l'}{{V : VectorSpace
     -- The column space is a subspace
     colSubspace : (T : vector' → vector) → {{TLM : LinearMap T}} → Subspace (Col T)
     colSubspace T = record
-      { ssZero = ∣ Ô , modHomomorphismZ T ∣₁
+      { ssZero = ∣ Ô , idToId T ∣₁
       ; ssAdd = λ{v u} vCol uCol →
          vCol >>= λ(v' , vCol) →
          uCol >>= λ(u' , uCol) → η $ (v' [+] u') ,
