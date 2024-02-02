@@ -228,6 +228,10 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
    ; inv-closed = λ{y} p → subst H (lIdentity (inv y)) (P e y Q p)
    }
 
+ -- The full set is a subgroup
+ fullSG : Subgroup $ 𝓤 {l = l}
+ fullSG = record { inv-closed = λ x → lift tt }
+
  -- Centralizing any subset of a group is a subgroup
  centralizerSG : {H : A → Type l} → Subgroup (centralizer H)
  centralizerSG {H = H} =
