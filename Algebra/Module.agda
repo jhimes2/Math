@@ -136,8 +136,31 @@ module _{scalar : Type l}{vector : Type l'}{{R : Ring scalar}}{{V : Module vecto
         ssZero : Ô ∈ X 
         ssAdd : {v u : vector} → v ∈ X → u ∈ X → v [+] u ∈ X
         ssScale : {v : vector} → v ∈ X → (c : scalar) → scale c v ∈ X
-        ssSet : {v : vector} → isProp (v ∈ X)
+        ssSet : (v : vector) → isProp (v ∈ X)
   open Subspace {{...}} public
+
+  instance
+   SubspaceSet : {X : vector → Type al}{{_ : Subspace X}} → Property X
+   SubspaceSet = record { setProp = ssSet }
+ 
+   -- A subspace is a submonoid of the additive group of vectors
+   SubspaceSM : {X : vector → Type al}{{_ : Subspace X}} → Submonoid X _[+]_
+   SubspaceSM = record
+     { id-closed = ssZero
+     ; op-closed = ssAdd
+     }
+
+   -- A subspace is a subgroup of the additive group of vectors
+   SubspaceSG : {X : vector → Type al}{{_ : Subspace X}} → Subgroup X
+   SubspaceSG {X = X} = record
+      { inv-closed = λ{x} x∈X →
+        let H = scale (neg 1r) x ∈ X  ≡⟨ cong X (scaleNeg x 1r)⟩
+                scale 1r (negV x) ∈ X ≡⟨ cong X (scaleId (negV x))⟩
+                negV x ∈ X ∎ in
+        let F : scale (neg 1r) x ∈ X
+            F = ssScale x∈X (neg 1r) in
+            transport H F
+      }
 
   -- The span of a non-empty set of vectors is a subspace
   NonEmptySpanIsSubspace :{X : vector → Type al}
@@ -147,7 +170,7 @@ module _{scalar : Type l}{vector : Type l'}{{R : Ring scalar}}{{V : Module vecto
       record { ssZero = scaleZ v ~> λ p → subst (Span X) p (spanScale (intro v') 0r)
              ; ssAdd = λ x y → spanAdd x y
              ; ssScale = λ x c → spanScale x c
-             ; ssSet = λ {v} → spanSet
+             ; ssSet = λ v → spanSet
              }
 
   {- This is almost the definition of linear independence except that the set which contains
@@ -241,7 +264,7 @@ week7 T c = record
                    scale (d * c) v     ≡⟨ left scale (comm d c)⟩
                    scale (c * d) v     ≡⟨ sym (scalarAssoc v c d)⟩
                    scale c (scale d v) ∎
-    ; ssSet = λ {v} → IsSet (T v) (scale c v)
+    ; ssSet = λ v → IsSet (T v) (scale c v)
     }
 
 module _ {A : Type l}  {{CR : CRing A}}

@@ -68,7 +68,7 @@ module _{scalar : Type l}{{F : Field scalar}}{vector : Type l'}{{V : VectorSpace
           scale c (T v) ≡⟨ cong (scale c) vNull ⟩
           scale c Ô     ≡⟨ scaleVZ c ⟩
           Ô ∎
-      ; ssSet = λ{v} p q → IsSet (T v) Ô p q
+      ; ssSet = λ v p q → IsSet (T v) Ô p q
       }
 
     -- Actually a generalization of a column space
@@ -91,7 +91,7 @@ module _{scalar : Type l}{{F : Field scalar}}{vector : Type l'}{{V : VectorSpace
          (T (scale c v') ≡⟨ multT v' c ⟩
           scale c (T v') ≡⟨ cong (scale c) vCol ⟩
           scale c v ∎)
-      ; ssSet = λ{v : vector} → squash₁
+      ; ssSet = λ(_ : vector) → squash₁
       }
 
 instance
