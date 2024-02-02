@@ -26,6 +26,7 @@ open Module {{...}} public
 
 module _{scalar : Type l}{vector : Type l'}{{R : Ring scalar}}{{V : Module vector}} where
 
+  -- Zero vector
   Ô : vector
   Ô = e
 
