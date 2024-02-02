@@ -62,7 +62,7 @@ module _{_∙_ : A → A → A} {{M : monoid _∙_}} where
   fullSM : Submonoid (𝓤 {l = l}) _∙_
   fullSM = record { id-closed = lift tt ; op-closed = λ _ _ → lift tt }
 
-  -- Centralizing any subset of a group is a submonoid
+  -- Centralizing any subset of a monoid is a submonoid
   centralizerSM : {H : A → Type l} → Submonoid (centralizer H) _∙_
   centralizerSM {H = H} = record
     { id-closed = λ x x∈H → lIdentity x ⋆ sym (rIdentity x)
