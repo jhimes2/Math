@@ -343,14 +343,19 @@ module _{_∙_ : A → A → A}{{_ : Commutative _∙_}}(a b c : A) where
                       a ∙ ((c ∙ b) ∙ d) ≡⟨ sym ([ab][cd]≡a[[bc]d] a c b d)⟩
                       (a ∙ c) ∙ (b ∙ d) ∎
 
+module _{A : Type l}{_∙_ : A → A → A}{{_ : Associative _∙_}} where
+
 -- https://en.wikipedia.org/wiki/Centralizer_and_normalizer
-module _{A : Type l}{_∙_ : A → A → A}{{_ : Associative _∙_}}(X : A → Type l')(a : A) where
 
- centralizer : Type (l ⊔ l')
- centralizer = ∀ x → x ∈ X → a ∙ x ≡ x ∙ a
+ centralizer : (A → Type l') → A → Type (l ⊔ l')
+ centralizer X a = ∀ x → x ∈ X → a ∙ x ≡ x ∙ a
 
- normalizer : Type (l ⊔ l')
- normalizer = ∀ x → a ∙ x ∈ X ⇔ x ∙ a ∈ X
+ normalizer : (A → Type l') → A → Type (l ⊔ l')
+ normalizer X a = ∀ x → a ∙ x ∈ X ⇔ x ∙ a ∈ X
+
+ -- https://en.wikipedia.org/wiki/Center_(group_theory)
+ center : A → Type l
+ center = centralizer (λ _ → ⊤)
 
 -- Is proposition
 record is-prop (A : Type l) : Type l
