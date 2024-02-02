@@ -248,9 +248,6 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
        y ∙ ((a ∙ inv b) ∙ b) ≡⟨ assoc y (a ∙ inv b) b ⟩
        (y ∙ (a ∙ inv b)) ∙ b ∎
 
- centralizeAbelian : {{Commutative _∙_}} → {H : A → Type l} → ∀ x → x ∈ centralizer H
- centralizeAbelian x y y∈H = comm x y
-
   -- Normalizing any subset of a group is a subgroup
  normalizerSG : {N : A → Type l} → Subgroup (normalizer N)
  normalizerSG {N = N} = record
@@ -282,6 +279,9 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
              F = transport H a in
         η $ (λ x'z∈N → snd F x'z∈N) , λ zx'∈N → fst F zx'∈N
    }
+
+ centralizeAbelian : {{Commutative _∙_}} → {H : A → Type l} → ∀ x → x ∈ centralizer H
+ centralizeAbelian x y y∈H = comm x y
 
 module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
 
@@ -540,6 +540,13 @@ private instance
 module _{_∙_ : A → A → A} {{G : group _∙_}} where
 
  instance
+
+  {- If 'H' is a subgroup of 'G', then the inclusion map 'H → G' sending each element 'a' of 'H'
+     to itself is a homomorphism. -}
+  inclusionMapHM : {H : A → Type l} {{_ : Subgroup H}} → Homomorphism (λ((x , _) : Σ H) → x)
+  inclusionMapHM = record
+      { preserve = λ (u , u') (v , v') → refl }
+ 
   -- Group action homomorphism
   actionHomomorphism : {B : Type bl} {act : A → B → B} → {{R : Action act}}
                      → Homomorphism λ x → act x , ActionBijective act x
