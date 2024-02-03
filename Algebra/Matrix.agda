@@ -326,41 +326,45 @@ module _{{R : Ring A}} where
  idTranspose : I {n = n} ≡ transpose I
  idTranspose = funExt λ{(x , _) → funExt λ{(y , _) → funRed (funRed I∞Transpose x) y}}
  
- MTID : (v : fin n → A) → (a : fin n) → MT I v a ≡ v a 
- MTID {n = Z} v (x , y , p) = ZNotS (sym p) ~> UNREACHABLE
- MTID {n = S n} v (Z , yp) =
-   MT I v (Z , yp) ≡⟨By-Definition⟩
-   v ∙ (I (Z , yp)) ≡⟨By-Definition⟩
-   (head v * 1r) + (tail v ∙ λ _ → 0r) ≡⟨ left _+_ (rIdentity (head v))⟩
-   head v + (tail v ∙ λ _ → 0r) ≡⟨By-Definition⟩
-   head v + (tail v ∙ λ _ → 0r) ≡⟨ right _+_ (dotZR (tail v))⟩
-   head v + 0r ≡⟨ rIdentity (head v)⟩
-   head v ≡⟨ cong v (ΣPathPProp (λ a → finSndIsProp a) refl)⟩
-   v (Z , yp) ∎
- MTID {n = S Z} v (S x , y , p) = ZNotS (sym (SInjective p)) ~> UNREACHABLE
- MTID {n = S (S n)} v (S x , y , p) =
-       let R' : (tail v ∙ λ z → I z (x , y , SInjective p)) ≡ tail v (x , y , SInjective p)
-           R' = MTID (tail v) (x , y , SInjective p) in
-       let R : tail v ∙ I (x , y , SInjective p) ≡ tail v (x , y , SInjective p)
-           R = cong (λ a → tail v ∙ a (x , y , SInjective p)) idTranspose ⋆ R' in
-  MT I v (S x , y , p) ≡⟨By-Definition⟩
-  v ∙ (λ z → I z (S x , y , p)) ≡⟨ cong (λ a → v ∙ λ z → a z (S x , y , p)) idTranspose ⟩
-  v ∙ I (S x , y , p) ≡⟨By-Definition⟩
-  (head v * head (I (S x , y , p))) + (tail v ∙ tail (I (S x , y , p))) ≡⟨By-Definition⟩
-  (head v * (I (S x , y , p)) (Z , (S n) , refl)) + (tail v ∙ tail (I (S x , y , p))) ≡⟨By-Definition⟩
-  (head v * 0r) + (tail v ∙ tail (I (S x , y , p))) ≡⟨ left _+_ (x*0≡0 (head v))⟩
-  0r + (tail v ∙ tail (I (S x , y , p))) ≡⟨ lIdentity (tail v ∙ tail (I (S x , y , p)))⟩
-  tail v ∙ tail (I (S x , y , p)) ≡⟨By-Definition⟩
-  tail v ∙ I (x , y , SInjective p) ≡⟨ R ⟩
-  tail v (x , y , SInjective p) ≡⟨ cong v (ΣPathPProp (λ a → finSndIsProp a) refl)⟩
-  v (S x , y , p) ∎
+ -- Matrix transformation has no effect with the identity matrix
+ MT-ID : (v : fin n → A) → MT I v ≡ v
+ MT-ID v = funExt λ x → aux v x
+  where
+   aux : (v : fin n → A) → (a : fin n) → MT I v a ≡ v a 
+   aux {n = Z} v (x , y , p) = ZNotS (sym p) ~> UNREACHABLE
+   aux {n = S n} v (Z , yp) =
+     MT I v (Z , yp) ≡⟨By-Definition⟩
+     v ∙ (I (Z , yp)) ≡⟨By-Definition⟩
+     (head v * 1r) + (tail v ∙ λ _ → 0r) ≡⟨ left _+_ (rIdentity (head v))⟩
+     head v + (tail v ∙ λ _ → 0r) ≡⟨By-Definition⟩
+     head v + (tail v ∙ λ _ → 0r) ≡⟨ right _+_ (dotZR (tail v))⟩
+     head v + 0r ≡⟨ rIdentity (head v)⟩
+     head v ≡⟨ cong v (ΣPathPProp (λ a → finSndIsProp a) refl)⟩
+     v (Z , yp) ∎
+   aux {n = S Z} v (S x , y , p) = ZNotS (sym (SInjective p)) ~> UNREACHABLE
+   aux {n = S (S n)} v (S x , y , p) =
+         let R' : (tail v ∙ λ z → I z (x , y , SInjective p)) ≡ tail v (x , y , SInjective p)
+             R' = aux (tail v) (x , y , SInjective p) in
+         let R : tail v ∙ I (x , y , SInjective p) ≡ tail v (x , y , SInjective p)
+             R = cong (λ a → tail v ∙ a (x , y , SInjective p)) idTranspose ⋆ R' in
+    MT I v (S x , y , p) ≡⟨By-Definition⟩
+    v ∙ (λ z → I z (S x , y , p)) ≡⟨ cong (λ a → v ∙ λ z → a z (S x , y , p)) idTranspose ⟩
+    v ∙ I (S x , y , p) ≡⟨By-Definition⟩
+    (head v * head (I (S x , y , p))) + (tail v ∙ tail (I (S x , y , p))) ≡⟨By-Definition⟩
+    (head v * (I (S x , y , p)) (Z , (S n) , refl)) + (tail v ∙ tail (I (S x , y , p))) ≡⟨By-Definition⟩
+    (head v * 0r) + (tail v ∙ tail (I (S x , y , p))) ≡⟨ left _+_ (x*0≡0 (head v))⟩
+    0r + (tail v ∙ tail (I (S x , y , p))) ≡⟨ lIdentity (tail v ∙ tail (I (S x , y , p)))⟩
+    tail v ∙ tail (I (S x , y , p)) ≡⟨By-Definition⟩
+    tail v ∙ I (x , y , SInjective p) ≡⟨ R ⟩
+    tail v (x , y , SInjective p) ≡⟨ cong v (ΣPathPProp (λ a → finSndIsProp a) refl)⟩
+    v (S x , y , p) ∎
  
- ILID : (M : B → fin n → A) → mMult I M ≡ M
- ILID M = funExt λ x → funExt λ y → MTID (M x) y
+ IL-ID : (M : B → fin n → A) → mMult I M ≡ M
+ IL-ID M = funExt λ x → MT-ID (M x)
  
- IRID : (M : fin n → B → A) → mMult M I ≡ M
- IRID {n = Z} M = funExt λ (a , b , p) → ZNotS (sym p) ~> UNREACHABLE
- IRID {n = S n} M = funExt λ (x , yp) → funExt λ b → aux M (x , yp) b
+ IR-ID : (M : fin n → B → A) → mMult M I ≡ M
+ IR-ID {n = Z} M = funExt λ (a , b , p) → ZNotS (sym p) ~> UNREACHABLE
+ IR-ID {n = S n} M = funExt λ (x , yp) → funExt λ b → aux M (x , yp) b
   where
    aux : {n : ℕ} → (M : fin n → B → A) → (a : fin n) → (b : B) → mMult M I a b ≡ M a b
    aux {n = Z} M (x , y , p) b = ZNotS (sym p) ~> UNREACHABLE
@@ -407,8 +411,8 @@ module _{{R : Ring A}} where
   sqrMMultMonoid : monoid (mMult {B = fin n} {C = fin n})
   sqrMMultMonoid = record
                  { e = I
-                 ; lIdentity = ILID
-                 ; rIdentity = IRID
+                 ; lIdentity = IL-ID
+                 ; rIdentity = IR-ID
                  }
   sqrMatrix*+ : *+ (Matrix A n n)
   sqrMatrix*+ {n = n} = record
