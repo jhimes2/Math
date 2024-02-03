@@ -100,10 +100,10 @@ instance
       → inclusion (Σ P) (Σ P) l
  sub2 {_≤_ = _≤_} = record { _⊆_ = λ X Y → fst X ≤ fst Y }
 
--- ∩Prop : {X : A → Type al} → {{_ : Property X}}
---       → {Y : A → Type bl} → {{_ : Property Y}}
---       → Property (X ∩ Y)
--- ∩Prop = record { setProp = λ x → isProp× (setProp x) (setProp x) }
+ ∩Prop : {X : A → Type al} → {{_ : Property X}}
+       → {Y : A → Type bl} → {{_ : Property Y}}
+       → Property (X ∩ Y)
+ ∩Prop = record { setProp = λ x → isProp× (setProp x) (setProp x) }
 
  inclusionPre : {A : Type al} → Preorder (λ(X Y : A → Type l) → X ⊆ Y)
  inclusionPre = record
