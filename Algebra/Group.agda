@@ -202,7 +202,7 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
  record Subgroup(H : A → Type bl) : Type (al ⊔ bl) where
    field
      inv-closed : {x : A} → x ∈ H → inv x ∈ H
-     {{subgroupSubmonoid}} : Submonoid H _∙_
+     {{SGSM}} : Submonoid H _∙_
  open Subgroup {{...}} public
 
  -- https://en.wikipedia.org/wiki/Normal_subgroup
@@ -218,7 +218,7 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
    let Q : e ∈ H
        Q = subst H (rInverse x) (P x x x' x') in
    record
-   { subgroupSubmonoid = record
+   { SGSM = record
      { id-closed = Q
      ; op-closed = λ{y z} p q →
         let F : inv z ∈ H
@@ -260,7 +260,7 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
          let F : z ∙ inv x ∈ N ↔ inv x ∙ z ∈ N
              F = transport H a in
         η $ (λ x'z∈N → snd F x'z∈N) , λ zx'∈N → fst F zx'∈N
-   ; subgroupSubmonoid = normalizerSM {N = N}
+   ; SGSM = normalizerSM {N = N}
    }
 
  centralizeAbelian : {{Commutative _∙_}} → {H : A → Type l} → ∀ x → x ∈ centralizer H
@@ -277,7 +277,9 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
 
   -- operator of a subgroup
   _⪀_ : Σ H → Σ H → Σ H
-  (x , x') ⪀ (y , y') = x ∙ y , op-closed x' y'
+  (x , x∈H) ⪀ (y , y∈H) = x ∙ y , Submonoid.op-closed (G .SGSM) x∈H y∈H
+  {- I stated 'Submonoid.op-closed (G .SGSM) x∈H y∈H' instead of 'op-closed x∈H y∈H'
+     for faster compilation (temporary kludge). -}
  
   instance
    ⪀assoc : Associative _⪀_
@@ -286,7 +288,9 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
    -- Group structure of a subgroup
    subgrpStr : group _⪀_
    subgrpStr = record
-       { e = e , id-closed
+       { e = e , Submonoid.id-closed (G .SGSM)
+       {- I stated 'Submonoid.id-closed (G .SGSM)' instead of 'id-closed'
+          for faster compilation (temporary kludge). -}
        ; inverse = λ(a , a') → (inv a , inv-closed a') , ΣPathPProp setProp (lInverse a)
        ; lIdentity = λ(a , a') → ΣPathPProp setProp (lIdentity a)
        ; IsSetGrp = ΣSet
@@ -327,7 +331,7 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
  -- Non-empty generating set is a subgroup
  generatingIsSubgroup : (X : A → Type l) → Σ X → Subgroup ⟨ X ⟩
  generatingIsSubgroup X (x , H) = record
-   { subgroupSubmonoid = record
+   { SGSM = record
      { id-closed = subst ⟨ X ⟩ (lInverse x) (gen-op (gen-inv (gen-intro H)) (gen-intro H))
      ; op-closed = gen-op
      }
