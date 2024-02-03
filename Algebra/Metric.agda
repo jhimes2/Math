@@ -1,4 +1,4 @@
-{-# OPTIONS --safe --cubical --overlapping-instances #-}
+{-# OPTIONS --safe --cubical #-}
 
 module Algebra.Metric where
 

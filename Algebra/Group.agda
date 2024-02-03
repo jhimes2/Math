@@ -403,6 +403,30 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
        h g * inv (h g)         ≡⟨ rInverse (h g)⟩
        e ∎
       }
+ 
+  instance
+   -- The image of a homomorphism is a submonoid
+   image-HM-SM : {h : A → B} → {{_ : Homomorphism h}} → Submonoid (image h) _*_
+   image-HM-SM {h = h} = record
+     { id-closed = η $ e , idToId h
+     ; op-closed = λ{x y} x∈Im y∈Im
+                 → x∈Im >>= λ(a , ha≡x)
+                 → y∈Im >>= λ(b , hb≡y)
+                 → η $ (a ∙ b) ,
+                   (h (a ∙ b) ≡⟨ preserve a b ⟩
+                    h a * h b ≡⟨ cong₂ _*_ ha≡x hb≡y ⟩
+                    x * y ∎)
+     }
+
+   -- The image of a homomorphism is a subgroup
+   image-HM-SG : {h : A → B} → {{_ : Homomorphism h}} → Subgroup (image h)
+   image-HM-SG {h = h} = record
+      { inv-closed = λ{x} x∈Im → x∈Im >>= λ(a , ha≡x)
+                    → η $ inv a ,
+                   (h (inv a) ≡⟨ invToInv h a ⟩
+                    inv (h a) ≡⟨ cong inv ha≡x ⟩
+                    inv x ∎)
+      }
 
  -- https://en.wikipedia.org/wiki/Epimorphism
  record Epimorphism{B : Type bl}(h : A → B) : Type (lsuc(al ⊔ bl))
