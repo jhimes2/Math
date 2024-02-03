@@ -232,8 +232,55 @@ modHomomorphismIsProp {{VS' = VS'}} LT x y i = let set = λ{a b p q} → IsSet a
  }
 
 module _ {scalar : Type l}{{R : Ring scalar}}
+         {A : Type al}{B : Type bl}
          {{V : Module A}}{{U : Module B}}
          (T : A → B){{TLT : moduleHomomorphism T}} where
+
+  -- https://en.wikipedia.org/wiki/Kernel_(linear_algebra)
+  Null : A → Type bl
+  Null = λ x → T x ≡ Ô
+
+  -- The null space is a subspace
+  nullSubspace : Subspace Null
+  nullSubspace = record
+    { ssZero = idToId T
+    ; ssAdd = λ{v u} vNull uNull →
+      T (v [+] u) ≡⟨ preserve v u ⟩
+      T v [+] T u ≡⟨ left _[+]_ vNull ⟩
+      Ô [+] T u   ≡⟨ lIdentity (T u)⟩
+      T u         ≡⟨ uNull ⟩
+      Ô ∎
+    ; ssScale = λ{v} vNull c →
+        T (scale c v) ≡⟨ multT v c ⟩
+        scale c (T v) ≡⟨ cong (scale c) vNull ⟩
+        scale c Ô     ≡⟨ scaleVZ c ⟩
+        Ô ∎
+    ; ssSet = λ v p q → IsSet (T v) Ô p q
+    }
+
+  -- Actually a generalization of a column space
+  Col : B → Type (al ⊔ bl)
+  Col = image T
+
+  -- The column space is a subspace
+  colSubspace : Subspace Col
+  colSubspace = record
+    { ssZero = ∣ Ô , idToId T ∣₁
+    ; ssAdd = λ{v u} vCol uCol →
+       vCol >>= λ(v' , vCol) →
+       uCol >>= λ(u' , uCol) → η $ (v' [+] u') ,
+       (T (v' [+] u') ≡⟨ preserve v' u' ⟩
+        T v' [+] T u' ≡⟨ left _[+]_ vCol ⟩
+        v [+] T u'    ≡⟨ right _[+]_ uCol ⟩
+        v [+] u ∎)
+    ; ssScale = λ{v} vCol c →
+       vCol >>= λ(v' , vCol) → η $ (scale c v') ,
+       (T (scale c v') ≡⟨ multT v' c ⟩
+        scale c (T v') ≡⟨ cong (scale c) vCol ⟩
+        scale c v ∎)
+    ; ssSet = λ(_ : B) → squash₁
+    }
+
 
   -- If 'T' and 'R' are module homomorphisms and are composable, then 'R ∘ T' is
   -- a module homomorphism.

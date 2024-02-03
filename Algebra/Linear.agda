@@ -52,51 +52,6 @@ module _{scalar : Type l}{{F : Field scalar}}{vector : Type l'}{{V : VectorSpace
     LinearMap : (T : vector' → vector) → Type (l ⊔ lsuc(l' ⊔ al))
     LinearMap T = moduleHomomorphism T
 
-    -- https://en.wikipedia.org/wiki/Kernel_(linear_algebra)
-    Null : (T : vector' → vector) → {{TLM : LinearMap T}} → vector' → Type l'
-    Null T x = T x ≡ Ô
-
-    -- The null space is a subspace
-    nullSubspace : (T : vector' → vector) → {{TLM : LinearMap T}} → Subspace (Null T)
-    nullSubspace T = record
-      { ssZero = idToId T
-      ; ssAdd = λ{v u} vNull uNull →
-        T (v [+] u) ≡⟨ preserve v u ⟩
-        T v [+] T u ≡⟨ left _[+]_ vNull ⟩
-        Ô [+] T u   ≡⟨ lIdentity (T u)⟩
-        T u         ≡⟨ uNull ⟩
-        Ô ∎
-      ; ssScale = λ{v} vNull c →
-          T (scale c v) ≡⟨ multT v c ⟩
-          scale c (T v) ≡⟨ cong (scale c) vNull ⟩
-          scale c Ô     ≡⟨ scaleVZ c ⟩
-          Ô ∎
-      ; ssSet = λ v p q → IsSet (T v) Ô p q
-      }
-
-    -- Actually a generalization of a column space
-    Col : (T : vector' → vector) → {{_ : LinearMap T}} → vector → Type (al ⊔ l')
-    Col T = image T
-
-    -- The column space is a subspace
-    colSubspace : (T : vector' → vector) → {{TLM : LinearMap T}} → Subspace (Col T)
-    colSubspace T = record
-      { ssZero = ∣ Ô , idToId T ∣₁
-      ; ssAdd = λ{v u} vCol uCol →
-         vCol >>= λ(v' , vCol) →
-         uCol >>= λ(u' , uCol) → η $ (v' [+] u') ,
-         (T (v' [+] u') ≡⟨ preserve v' u' ⟩
-          T v' [+] T u' ≡⟨ left _[+]_ vCol ⟩
-          v [+] T u'    ≡⟨ right _[+]_ uCol ⟩
-          v [+] u ∎)
-      ; ssScale = λ{v} vCol c →
-         vCol >>= λ(v' , vCol) → η $ (scale c v') ,
-         (T (scale c v') ≡⟨ multT v' c ⟩
-          scale c (T v') ≡⟨ cong (scale c) vCol ⟩
-          scale c v ∎)
-      ; ssSet = λ(_ : vector) → squash₁
-      }
-
 instance
     FieldToVectorSpace : {A : Type l} → {{F : Field A}} → VectorSpace A
     FieldToVectorSpace {A = A} = record
