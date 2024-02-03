@@ -9,9 +9,8 @@ open import Data.Natural
 open import Data.Finite
 open import Cubical.Foundations.HLevels
 
-variable
-  dl : Level
-  D : Type dl
+transpose : (A → B → C) → B → A → C
+transpose f x y = f y x
 
 -- Finite vector
 -- `[ Bool ^ n ]` would be a vector of booleans of length `n`.

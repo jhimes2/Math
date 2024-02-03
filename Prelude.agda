@@ -236,10 +236,6 @@ fiber f y = λ x → f x ≡ y
 embedding : {A : Type al}{B : Type bl} → (A → B) → Type(al ⊔ bl)
 embedding f = ∀ y → isProp (Σ(fiber f y))
 
--- https://en.wikipedia.org/wiki/Transpose
-transpose : (A → B → C) → B → A → C
-transpose f x y = f y x
-
 -- Propositional Extensionality
 propExt : isProp A → isProp B → (A → B) → (B → A) → A ≡ B
 propExt pA pB ab ba = isoToPath (iso ab ba (λ b → pB (ab (ba b)) b) λ a → pA (ba (ab a)) a)
