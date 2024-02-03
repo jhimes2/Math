@@ -17,7 +17,10 @@ VectorSpace vector = Module vector
 module _{scalar : Type l}{{F : Field scalar}}{vector : Type l'}{{V : VectorSpace vector}} where
 
   instance
-   scaleAction : Action λ ((x , _) : Σ λ x → x ≢ 0r) → scale x 
+   -- Non-zero scalar multiplication is a group action
+   {- Agda accepts this proof because we already proved that non-zero multiplication
+      from a field forms a group in Algebra/Field.agda -}
+   scaleAction : Action λ ((x , _) : nonZero) → scale x 
    scaleAction = record
      { act-identity = scaleId
      ; act-compatibility = λ v (a , _) (b , _) → scalarAssoc v a b
