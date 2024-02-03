@@ -45,6 +45,9 @@ instance
  centralizerProperty {_∙_ = _∙_} =
      record { setProp = λ x → isPropΠ λ y → isProp→ (IsSet (x ∙ y) (y ∙ x)) }
 
+ imageProp : {f : A → B} → Property (image f)
+ imageProp = record { setProp = λ x → squash₁ }
+
 normalizerProperty : {_∙_ : A → A → A} → {{_ : Associative _∙_}}
                     → {H : A → Type l} → Property (normalizer H)
 normalizerProperty =
