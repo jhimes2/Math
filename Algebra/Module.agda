@@ -238,7 +238,7 @@ module _ {scalar : Type l}{{R : Ring scalar}}
 
   -- https://en.wikipedia.org/wiki/Kernel_(linear_algebra)
   Null : A → Type bl
-  Null = λ x → T x ≡ Ô
+  Null = Kernel T
 
   -- The null space is a subspace
   nullSubspace : Subspace Null
@@ -280,7 +280,6 @@ module _ {scalar : Type l}{{R : Ring scalar}}
         scale c v ∎)
     ; ssSet = λ(_ : B) → squash₁
     }
-
 
   -- If 'T' and 'R' are module homomorphisms and are composable, then 'R ∘ T' is
   -- a module homomorphism.

@@ -337,77 +337,95 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
  cyclicIsSubGroup : (x : A) → Subgroup ⟨ x ⟩
  cyclicIsSubGroup x = generatingIsSubgroup (λ z → z ≡ x) (x , refl)
 
- module _{B : Type bl}{_*_ : B → B → B}{{H : group _*_}} 
-         (h : A → B) where
+ module _{B : Type bl}{_*_ : B → B → B}{{H : group _*_}} where
 
   -- https://en.wikipedia.org/wiki/Group_homomorphism
-  record Homomorphism : Type (lsuc(al ⊔ bl))
+  record Homomorphism(h : A → B) : Type (lsuc(al ⊔ bl))
     where field
      preserve : (u v : A) → h (u ∙ v) ≡ h u * h v
   open Homomorphism {{...}} public
 
   -- https://en.wikipedia.org/wiki/Monomorphism
-  record Monomorphism : Type (lsuc(al ⊔ bl))
+  record Monomorphism(h : A → B) : Type (lsuc(al ⊔ bl))
     where field
-     {{homo}} : Homomorphism
+     {{homo}} : Homomorphism h
      inject : injective h
   open Monomorphism {{...}} public
 
   -- A group homomorphism maps identity elements to identity elements
-  idToId : {{X : Homomorphism}} → h e ≡ e
-  idToId = let P : h e ≡ h e * h e → h e ≡ e
-               P = grp.lemma3 in P $
+  idToId : (h : A → B) → {{X : Homomorphism h}} → h e ≡ e
+  idToId h = let P : h e ≡ h e * h e → h e ≡ e
+                 P = grp.lemma3 in P $
            h e       ≡⟨ cong h (sym (lIdentity e))⟩
            h (e ∙ e) ≡⟨ preserve e e ⟩
            h e * h e ∎
 
   -- A group homomorphism maps inverse elements to inverse elements
-  inverseToInverse : {{X : Homomorphism}} → ∀ a → h (inv a) ≡ inv (h a)
-  inverseToInverse a =
+  invToInv : (h : A → B) → {{X : Homomorphism h}} → ∀ a → h (inv a) ≡ inv (h a)
+  invToInv h a =
       let P : h (inv a) * h a ≡ inv (h a) * h a → h (inv a) ≡ inv (h a)
           P = grp.lcancel (h a) in P $
       h (inv a) * h a ≡⟨ sym (preserve (inv a) a)⟩
       h (inv a ∙ a)   ≡⟨ cong h (lInverse a)⟩
-      h e             ≡⟨ idToId ⟩
+      h e             ≡⟨ idToId h ⟩
       e               ≡⟨ sym (lInverse (h a))⟩
       inv (h a) * h a ∎
 
-  kernel : {{_ : Homomorphism}} → A → Type bl
-  kernel u = h u ≡ e
+  Kernel : (h : A → B) → {{_ : Homomorphism h}} → A → Type bl
+  Kernel h u = h u ≡ e
 
-  instance
-   kernelProperty : {{_ : Homomorphism}} → Property kernel
-   kernelProperty = record { setProp = λ x → IsSet (h x) e }
+  module ker{h : A → B}{{X : Homomorphism h}} where
 
-  -- If the kernel only contains the identity element, then the homomorphism is injective
-  kerOnlyId1-1 : {{X : Homomorphism}} → (∀ x → x ∈ kernel → x ≡ e) → injective h
-  kerOnlyId1-1 =
-         λ(p : ∀ x → h x ≡ e → x ≡ e)
-          x y
-          (q : h x ≡ h y)
-         → let P = h (x ∙ inv y)   ≡⟨ preserve x (inv y)⟩
-                   h x * h (inv y) ≡⟨ right _*_ (inverseToInverse y)⟩
-                   h x * inv (h y) ≡⟨ right _*_ (cong inv (sym q))⟩
-                   h x * inv (h x) ≡⟨ rInverse (h x)⟩
-                   e ∎ in
-           let Q : x ∙ inv y ≡ e
-               Q = p (x ∙ inv y) P in grp.uniqueInv Q
-
-  -- A kernel is a subgroup
-  kerSubgroup : {{X : Homomorphism}} → Subgroup kernel
-  kerSubgroup = record
-     { subgroupSubmonoid = record
-       { id-closed = idToId
-       ; op-closed = λ{x y} (p : h x ≡ e) (q : h y ≡ e) → h (x ∙ y) ≡⟨ preserve x y ⟩
-                                                          h x * h y ≡⟨ cong₂ _*_ p q ⟩
-                                                          e * e     ≡⟨ lIdentity e ⟩
-                                                          e ∎
+   -- If the kernel only contains the identity element, then the homomorphism is injective
+   onlyId1-1 : (∀ x → x ∈ Kernel h → x ≡ e) → injective h
+   onlyId1-1 =
+     λ(p : ∀ x → h x ≡ e → x ≡ e)
+      x y
+      (q : h x ≡ h y)
+     → let P = h (x ∙ inv y)   ≡⟨ preserve x (inv y)⟩
+               h x * h (inv y) ≡⟨ right _*_ (invToInv h y)⟩
+               h x * inv (h y) ≡⟨ right _*_ (cong inv (sym q))⟩
+               h x * inv (h x) ≡⟨ rInverse (h x)⟩
+               e ∎ in
+       let Q : x ∙ inv y ≡ e
+           Q = p (x ∙ inv y) P in grp.uniqueInv Q
+ 
+   instance
+    property : Property (Kernel h)
+    property = record { setProp = λ x → IsSet (h x) e }
+ 
+    -- The kernel is a submonoid
+    SM : Submonoid (Kernel h) _∙_
+    SM = record
+       { id-closed = idToId h
+       ; op-closed = λ{x y} (p : h x ≡ e) (q : h y ≡ e)
+                   → h (x ∙ y) ≡⟨ preserve x y ⟩
+                     h x * h y ≡⟨ cong₂ _*_ p q ⟩
+                     e * e     ≡⟨ lIdentity e ⟩
+                     e ∎
        }
-     ; inv-closed = λ{x} (p : h x ≡ e) → h (inv x) ≡⟨ inverseToInverse x ⟩
-                                          inv (h x) ≡⟨ cong inv p ⟩
-                                          inv e     ≡⟨ grp.lemma4 ⟩
-                                          e ∎
-     }
+
+    -- The kernel is a subgroup
+    SG : Subgroup (Kernel h)
+    SG = record
+       { inv-closed = λ{x} (p : h x ≡ e)
+                    → h (inv x) ≡⟨ invToInv h x ⟩
+                      inv (h x) ≡⟨ cong inv p ⟩
+                      inv e     ≡⟨ grp.lemma4 ⟩
+                      e ∎
+       }
+
+    -- The kernel is a normal subgroup
+    NG : NormalSG (Kernel h)
+    NG = record { gng' = λ n n∈Ker g →
+       h ((g ∙ n) ∙ inv g)     ≡⟨ preserve (g ∙ n) (inv g)⟩
+       h (g ∙ n) * h (inv g)   ≡⟨ left _*_ (preserve g n)⟩
+       (h g * h n) * h (inv g) ≡⟨ left _*_ (right _*_ n∈Ker)⟩
+       (h g * e) * h (inv g)   ≡⟨ left _*_ (rIdentity (h g))⟩
+       h g * h (inv g)         ≡⟨ right _*_ (invToInv h g)⟩
+       h g * inv (h g)         ≡⟨ rInverse (h g)⟩
+       e ∎
+      }
 
  -- https://en.wikipedia.org/wiki/Epimorphism
  record Epimorphism{B : Type bl}(h : A → B) : Type (lsuc(al ⊔ bl))
