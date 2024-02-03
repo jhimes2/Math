@@ -9,7 +9,7 @@ open import Algebra.CRing public
 record Field (A : Type l) : Type (lsuc l) where
   field
     {{fring}} : CRing A
-    oneNotZero : 1r ≢ 0r
+    1≢0 : 1r ≢ 0r
     reciprocal : nonZero → A
     recInv : (a : nonZero) → fst a * reciprocal a ≡ 1r
 open Field {{...}} public
@@ -17,7 +17,7 @@ open Field {{...}} public
 module _{{F : Field A}} where
 
  1f : nonZero
- 1f = (1r , oneNotZero)
+ 1f = (1r , 1≢0)
  
  _/_ : A → nonZero → A
  a / b = a * reciprocal b
@@ -29,7 +29,7 @@ module _{{F : Field A}} where
    let G : 1r ≡ a * 0r 
        G = sym (recInv (a , p)) ⋆ H in
    let F : 1r ≡ 0r 
-       F = G ⋆ (x*0≡0 a) in oneNotZero F
+       F = G ⋆ (x*0≡0 a) in 1≢0 F
  
  -- Multiplying two nonzero values gives a nonzero value
  nonZeroMult : (a b : nonZero) → (fst a * fst b) ≢ 0r 
@@ -52,7 +52,7 @@ module _{{F : Field A}} where
  
  negOneNotZero : neg 1r ≢ 0r 
  negOneNotZero =
-   λ(contra : neg 1r ≡ 0r ) → oneNotZero $
+   λ(contra : neg 1r ≡ 0r ) → 1≢0 $
                           grp.invInjective $
                               neg 1r ≡⟨ contra ⟩
                               0r     ≡⟨ sym (grp.lemma4) ⟩
@@ -72,7 +72,7 @@ instance
   -- Non-zero multiplication is a group
   NZMultGroup : {{F : Field A}} → group NZMult
   NZMultGroup {{F}} =
-    record { e = 1r , oneNotZero
+    record { e = 1r , 1≢0
            ; inverse = λ a → ((reciprocal a) , x⁻¹≢0 a)
                                , ΣPathPProp (λ w x y → funExt λ p → y p ~> UNREACHABLE)
                                (reciprocal a * fst a ≡⟨ comm (reciprocal a) (fst a)⟩

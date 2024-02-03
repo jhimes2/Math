@@ -120,7 +120,7 @@ module _{{_ : Field A}}{{OF : OrderedRng l A}} where
            ~> transport (λ i → 0r < x*-1≡-x (neg 1r) i)
            ~> transport (λ i → 0r < grp.doubleInv 1r i)
            ~> λ(p : 0r < 1r) → (fst p)
-      in oneNotZero $ antiSymmetric contra $ G
+      in 1≢0 $ antiSymmetric contra $ G
 
   0≰-1 : ¬(0r ≤ neg 1r)
   0≰-1 contra = addLe contra 1r ~>

@@ -90,7 +90,7 @@ instance
   boolCRing = record {}
   boolField : Field Bool
   boolField = record
-      { oneNotZero = YesNEqNo
+      { 1≢0 = YesNEqNo
       ; reciprocal = fst
       ; recInv = λ{ (Yes , x) → refl
                   ; (No , x) → x refl ~> UNREACHABLE }
