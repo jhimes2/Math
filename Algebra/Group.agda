@@ -380,19 +380,21 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
 
   module ker{h : A → B}{{X : Homomorphism h}} where
 
-   -- If the kernel only contains the identity element, then the homomorphism is injective
-   onlyId1-1 : (∀ x → x ∈ Kernel h → x ≡ e) → injective h
-   onlyId1-1 =
-     λ(p : ∀ x → h x ≡ e → x ≡ e)
-      x y
-      (q : h x ≡ h y)
-     → let P = h (x ∙ inv y)   ≡⟨ preserve x (inv y)⟩
-               h x * h (inv y) ≡⟨ right _*_ (invToInv h y)⟩
-               h x * inv (h y) ≡⟨ right _*_ (cong inv (sym q))⟩
-               h x * inv (h x) ≡⟨ rInverse (h x)⟩
-               e ∎ in
-       let Q : x ∙ inv y ≡ e
-           Q = p (x ∙ inv y) P in grp.uniqueInv Q
+   {- If the kernel only contains the identity element, then the
+      homomorphism is a monomorphism -}
+   onlyId1-1 : (∀ x → x ∈ Kernel h → x ≡ e) → Monomorphism h
+   onlyId1-1 = λ (p : ∀ x → h x ≡ e → x ≡ e) → record
+    { inject =
+       λ x y
+        (q : h x ≡ h y)
+       → let P = h (x ∙ inv y)   ≡⟨ preserve x (inv y)⟩
+                 h x * h (inv y) ≡⟨ right _*_ (invToInv h y)⟩
+                 h x * inv (h y) ≡⟨ right _*_ (cong inv (sym q))⟩
+                 h x * inv (h x) ≡⟨ rInverse (h x)⟩
+                 e ∎ in
+         let Q : x ∙ inv y ≡ e
+             Q = p (x ∙ inv y) P in grp.uniqueInv Q
+    }
  
    instance
     property : Property (Kernel h)
