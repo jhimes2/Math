@@ -23,10 +23,6 @@ head v = v finZ
 tail : [ A ^ S n ] → [ A ^ n ]
 tail v x = v (finS x)
 
- where
-  aux : (u v : A → B) → {x y : A} → u x ≡ v x → x ≡ y → u y ≡ v y
-  aux u v p x≡y = transport (λ i → u (x≡y i) ≡ v (x≡y i)) p
-
 pointwise : (A → B → C) → {D : Type l} → (D → A) → (D → B) → (D → C)
 pointwise f u v x = f (u x) (v x)
 
