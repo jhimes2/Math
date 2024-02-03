@@ -1,13 +1,10 @@
 .PHONY: all
-all: Trigonometry/Trigonomtry.agdai ClassicalTopology/Topology.agdai NumberTheory/Finite.agdai NumberTheory/Integer.agdai Algebra/Matrix.agdai Algebra/Metric.agdai experiments.agdai
+all: Trigonometry/Trigonometry.agdai ClassicalTopology/Topology.agdai NumberTheory/Finite.agdai Algebra/Matrix.agdai Algebra/Metric.agdai
 
-experiments.agdai: experiments.agda Data/Integer.agdai Data/Bool.agdai Data/Finite.agdai NumberTheory/Natural.agda
-	agda $<
+#NumberTheory/Integer.agdai: NumberTheory/Integer.agda NumberTheory/Natural.agdai Data/Integer.agdai
+#	agda $<
 
 NumberTheory/Finite.agdai: NumberTheory/Finite.agda NumberTheory/Natural.agdai Data/Bool.agdai Data/Finite.agdai
-	agda $<
-
-NumberTheory/Integer.agdai: NumberTheory/Integer.agda NumberTheory/Natural.agdai Data/Integer.agdai
 	agda $<
 
 NumberTheory/Natural.agdai: NumberTheory/Natural.agda NumberTheory/Overloads.agdai
@@ -16,7 +13,7 @@ NumberTheory/Natural.agdai: NumberTheory/Natural.agda NumberTheory/Overloads.agd
 NumberTheory/Overloads.agdai: NumberTheory/Overloads.agda Data/Natural.agdai
 	agda $<
 
-Trigonometry/Trigonomtry.agdai: Trigonometry/Trigonometry.agda Algebra/Field.agdai
+Trigonometry/Trigonometry.agdai: Trigonometry/Trigonometry.agda Algebra/Field.agdai
 	agda $<
 
 ClassicalTopology/Topology.agdai: ClassicalTopology/Topology.agda Set.agdai
