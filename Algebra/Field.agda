@@ -17,7 +17,7 @@ open Field {{...}} public
 module _{{F : Field A}} where
 
  1f : nonZero
- 1f = (multStr .e , oneNotZero)
+ 1f = (1r , oneNotZero)
  
  _/_ : A → nonZero → A
  a / b = a * reciprocal b
