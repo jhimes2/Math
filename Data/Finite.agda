@@ -52,32 +52,6 @@ finDiscrete = discreteΣ natDiscrete (λ a x y → yes (finSndIsProp a x y))
 finIsSet : isSet (fin n)
 finIsSet = Discrete→isSet finDiscrete
 
--- Finite vector
--- `[ Bool ^ n ]` would be a vector of booleans of length `n`.
-[_^_] : Type l → ℕ → Type l
-[_^_] A n = fin n → A
-
-head : [ A ^ S n ] → A
-head {n = n} v = v finZ
-
-tail : [ A ^ S n ] → [ A ^ n ]
-tail {n = n} v x = v (finS x)
-
-[] : [ A ^ Z ]
-[] (_ , _ , absurd) = ZNotS (sym absurd) ~> UNREACHABLE
-
-cons : (A → [ A ^ n ] → B) → [ A ^ S n ] → B
-cons f v = f (head v) (tail v)
-
-headTail≡ : (u v : [ A ^ S n ]) → head u ≡ head v → tail u ≡ tail v → u ≡ v
-headTail≡ {n = n} u v headEq tailEq = funExt λ{ (Z , p) →
-         aux u v headEq (ΣPathPProp (λ a → finSndIsProp a) refl)
-                                      ; (S x , y , p) → aux u v (funRed tailEq (x , y , (SInjective p)))
-                                           (ΣPathPProp (λ a → finSndIsProp a) refl)}
- where
-  aux : (u v : A → B) → {x y : A} → u x ≡ v x → x ≡ y → u y ≡ v y
-  aux u v p x≡y = transport (λ i → u (x≡y i) ≡ v (x≡y i)) p
-
 is-finite : Type l → Type l
 is-finite A = Σ λ n → Σ λ(f : A → fin n) → bijective f
 
@@ -135,18 +109,3 @@ pigeonhole {n = S n} {m} f contra = let (g , gInj) = finDecrInjFun (f , contra) 
     ...                       | (no r) = finS≢finZ (fInj (finS x) finZ (finDecrInj a r p))
                                        ~> UNREACHABLE
     decrInj x y p | (no a)  | (no b) = finSInj (fInj (finS x) (finS y) (finDecrInj a b p))
-
- 
-distinguishingOutput : (xs : [ A ^ n ]) → {a : A}
-                     → ((x : A) → Dec (x ≡ a))
-                     → xs ≢ (λ _ → a) → Σ λ i → xs i ≢ a
-distinguishingOutput {n = Z} xs {a} decide p =
-         p (funExt λ (x , y , p) → ZNotS (sym p) ~> UNREACHABLE) ~> UNREACHABLE
-distinguishingOutput {n = S n} xs {a} decide p = decide (head xs)
-  ~> λ{(yes y) → let H : tail xs ≢ (λ _ → a)
-                     H = λ absurd → p (headTail≡ xs (λ _ → a) y absurd)
-                   in distinguishingOutput {n = n} (tail xs) decide H
-                     ~> λ(r , p) →
-                     (finS r) , (λ x → p x)
-     ; (no y) → ( Z , n , refl) , (λ x → y x) }
-

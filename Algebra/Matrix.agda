@@ -13,6 +13,21 @@ variable
   dl : Level
   D : Type dl
 
+-- Finite vector
+-- `[ Bool ^ n ]` would be a vector of booleans of length `n`.
+[_^_] : Type l → ℕ → Type l
+[ A ^ n ] = fin n → A
+
+head : [ A ^ S n ] → A
+head {n = n} v = v finZ
+
+tail : [ A ^ S n ] → [ A ^ n ]
+tail {n = n} v x = v (finS x)
+
+ where
+  aux : (u v : A → B) → {x y : A} → u x ≡ v x → x ≡ y → u y ≡ v y
+  aux u v p x≡y = transport (λ i → u (x≡y i) ≡ v (x≡y i)) p
+
 zip : (A → B → C) → {D : Type l} → (D → A) → (D → B) → (D → C)
 zip f u v x = f (u x) (v x)
 
