@@ -27,8 +27,8 @@ open Module {{...}} public
 module _{scalar : Type l}{vector : Type l'}{{R : Ring scalar}}{{V : Module vector}} where
 
   -- Zero vector
-  Ô : vector
-  Ô = e
+  Ô : vector
+  Ô = e
 
   negV : vector → vector
   negV = inv
@@ -37,37 +37,37 @@ module _{scalar : Type l}{vector : Type l'}{{R : Ring scalar}}{{V : Module vecto
   a [-] b = a [+] (negV b)
 
   -- Vector scaled by 0r is zero vector
-  scaleZ : (v : vector) → scale 0r v ≡ Ô
+  scaleZ : (v : vector) → scale 0r v ≡ Ô
   scaleZ v =
-    let H : scale 0r v [+] scale 0r v ≡ (scale 0r v [+] Ô)
-                         → scale 0r v ≡ Ô
+    let H : scale 0r v [+] scale 0r v ≡ (scale 0r v [+] Ô)
+                         → scale 0r v ≡ Ô
         H = grp.cancel (scale 0r v) in H $
     scale 0r v [+] scale 0r v ≡⟨ sym (vectorDistribute v 0r 0r)⟩
     scale (0r + 0r) v         ≡⟨ left scale (lIdentity 0r)⟩
     scale 0r v                ≡⟨ sym (rIdentity (scale 0r v))⟩
-    scale 0r v [+] Ô ∎
+    scale 0r v [+] Ô ∎
 
   -- zero vector scaled is 0r vector
-  scaleVZ : (c : scalar) → scale c Ô ≡ Ô
+  scaleVZ : (c : scalar) → scale c Ô ≡ Ô
   scaleVZ c =
-    let H : scale c Ô [+] scale c Ô ≡ scale c Ô [+] Ô
-                        → scale c Ô ≡ Ô
-        H = grp.cancel (scale c Ô) in H $
-    scale c Ô [+] scale c Ô ≡⟨ sym (scalarDistribute c Ô Ô)⟩
-    scale c (Ô [+] Ô)       ≡⟨ right scale (lIdentity Ô)⟩
-    scale c Ô               ≡⟨ sym (rIdentity (scale c Ô))⟩
-    scale c Ô [+] Ô ∎
+    let H : scale c Ô [+] scale c Ô ≡ scale c Ô [+] Ô
+                        → scale c Ô ≡ Ô
+        H = grp.cancel (scale c Ô) in H $
+    scale c Ô [+] scale c Ô ≡⟨ sym (scalarDistribute c Ô Ô)⟩
+    scale c (Ô [+] Ô)       ≡⟨ right scale (lIdentity Ô)⟩
+    scale c Ô               ≡⟨ sym (rIdentity (scale c Ô))⟩
+    scale c Ô [+] Ô ∎
 
   scaleInv : (v : vector) → (c : scalar) → scale (neg c) v ≡ negV (scale c v)
   scaleInv v c =
-    let H : scale (neg c) v [+] negV(negV(scale c v)) ≡ Ô
+    let H : scale (neg c) v [+] negV(negV(scale c v)) ≡ Ô
                                     → scale (neg c) v ≡ negV (scale c v)
         H = grp.uniqueInv in H $
     scale (neg c) v [+] negV(negV(scale c v)) ≡⟨ right _[+]_ (grp.doubleInv (scale c v))⟩
     scale (neg c) v [+] (scale c v)           ≡⟨ sym (vectorDistribute v (neg c) c)⟩
     scale ((neg c) + c) v                     ≡⟨ left scale (lInverse c)⟩
     scale 0r v                                ≡⟨ scaleZ v ⟩
-    Ô ∎
+    Ô ∎
 
   scaleNegOneInv : (v : vector) → scale (neg 1r) v ≡ negV v
   scaleNegOneInv v =
@@ -134,7 +134,7 @@ module _{scalar : Type l}{vector : Type l'}{{R : Ring scalar}}{{V : Module vecto
   -- This is a more general definition that uses a module instead of a vector space
   record Subspace (X : vector → Type al) : Type (lsuc (al ⊔ l ⊔ l'))
     where field
-        ssZero : Ô ∈ X 
+        ssZero : Ô ∈ X 
         ssAdd : {v u : vector} → v ∈ X → u ∈ X → v [+] u ∈ X
         ssScale : {v : vector} → v ∈ X → (c : scalar) → scale c v ∈ X
         ssSet : (v : vector) → isProp (v ∈ X)
@@ -214,6 +214,7 @@ record moduleHomomorphism {A : Type l}
   multT : ∀ u → (c : A) → T (scale c u) ≡ scale c (T u)
 open moduleHomomorphism {{...}} public 
 
+-- I need this for defining a dual space
 modHomomorphismIsProp : {{F : Ring A}}
                       → {{VS : Module B}}
                       → {{VS' : Module C}}
@@ -247,15 +248,15 @@ module _ {scalar : Type l}{{R : Ring scalar}}
     ; ssAdd = λ{v u} vNull uNull →
       T (v [+] u) ≡⟨ preserve v u ⟩
       T v [+] T u ≡⟨ left _[+]_ vNull ⟩
-      Ô [+] T u   ≡⟨ lIdentity (T u)⟩
+      Ô [+] T u   ≡⟨ lIdentity (T u)⟩
       T u         ≡⟨ uNull ⟩
-      Ô ∎
+      Ô ∎
     ; ssScale = λ{v} vNull c →
         T (scale c v) ≡⟨ multT v c ⟩
         scale c (T v) ≡⟨ cong (scale c) vNull ⟩
-        scale c Ô     ≡⟨ scaleVZ c ⟩
-        Ô ∎
-    ; ssSet = λ v p q → IsSet (T v) Ô p q
+        scale c Ô     ≡⟨ scaleVZ c ⟩
+        Ô ∎
+    ; ssSet = λ v p q → IsSet (T v) Ô p q
     }
 
   -- Actually a generalization of a column space
@@ -265,7 +266,7 @@ module _ {scalar : Type l}{{R : Ring scalar}}
   -- The column space is a subspace
   colSubspace : Subspace Col
   colSubspace = record
-    { ssZero = ∣ Ô , idToId T ∣₁
+    { ssZero = ∣ Ô , idToId T ∣₁
     ; ssAdd = λ{v u} vCol uCol →
        vCol >>= λ(v' , vCol) →
        uCol >>= λ(u' , uCol) → η $ (v' [+] u') ,
@@ -296,9 +297,9 @@ week7 : {{CR : CRing A}} → {{V : Module B}}
       → (T : B → B) → {{TLT : moduleHomomorphism T}}
       → (c : A) → Subspace (λ x → T x ≡ scale c x)
 week7 T c = record
-    { ssZero = T Ô ≡⟨ idToId T ⟩
-               Ô   ≡⟨ sym (scaleVZ c)⟩
-               scale c Ô ∎
+    { ssZero = T Ô ≡⟨ idToId T ⟩
+               Ô   ≡⟨ sym (scaleVZ c)⟩
+               scale c Ô ∎
     ; ssAdd = λ {v} {u} (p : T v ≡ scale c v) (q : T u ≡ scale c u) →
                    T (v [+] u)             ≡⟨ preserve v u ⟩
                    T v [+] T u             ≡⟨ cong₂ _[+]_ p q ⟩
@@ -327,13 +328,13 @@ module _ {A : Type l}  {{CR : CRing A}}
    rLinear : (w : W) → moduleHomomorphism (λ x → B x w)
  open Bilinear {{...}}
 
- bilinearLZ : {B : V → W → X} → {{BL : Bilinear B}} → (v : V) → B v Ô ≡ Ô
+ bilinearLZ : {B : V → W → X} → {{BL : Bilinear B}} → (v : V) → B v Ô ≡ Ô
  bilinearLZ {B = B} v = idToId (B v)
    where instance
        H : Homomorphism (B v)
        H = moduleHomomorphism.addT (lLinear v)
 
- bilinearRZ : {B : V → W → X} → {{BL : Bilinear B}} → (w : W) → B Ô w ≡ Ô
+ bilinearRZ : {B : V → W → X} → {{BL : Bilinear B}} → (w : W) → B Ô w ≡ Ô
  bilinearRZ {B = B} w = idToId (λ x → B x w)
    where instance
        H : Homomorphism λ x → B x w

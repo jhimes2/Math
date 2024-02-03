@@ -259,7 +259,7 @@ module _{A : Type al} {{R : Ring A}} where
  OC-subspace : (W : [ A ^ n ] → Type l) → {{SS : Subspace W}}
              → Subspace (orthogonal-complement W)
  OC-subspace {n = n} W = record
-    { ssZero = let H : ∀ v → v ∈ W → orthogonal Ô v
+    { ssZero = let H : ∀ v → v ∈ W → orthogonal Ô v
                    H = λ v p → dotZL v in H
     ; ssAdd = λ{u v} uPerp vPerp y yW →
          (u [+] v) ∙ y     ≡⟨ dotDistribute y u v ⟩
@@ -362,6 +362,7 @@ MTID {n = S (S n)} v (S x , y , p) =
 ILID : {{R : Ring A}} (M : B → fin n → A) → mMult I M ≡ M
 ILID {n = n} M = funExt λ x → funExt λ y → MTID (M x) y
 
+-- Note that since the ring is not commutative, we can't use 'transposeMMult'
 IRID : {{R : Ring A}} (M : fin n → B → A) → mMult M I ≡ M
 IRID {n = Z} M = funExt λ (a , b , p) → ZNotS (sym p) ~> UNREACHABLE
 IRID {n = S n} M = funExt λ (x , yp) → funExt λ b → aux M (x , yp) b

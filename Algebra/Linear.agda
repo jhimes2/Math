@@ -30,7 +30,7 @@ module _{scalar : Type l}{{F : Field scalar}}{vector : Type l'}{{V : VectorSpace
   record LinearlyIndependent (X : vector → Type(l ⊔ l')) : Type (lsuc (l ⊔ l'))
     where field
         {{linInd}} : Independent X
-        noZero : Ô ∉ X
+        noZero : Ô ∉ X
   open LinearlyIndependent {{...}} public
 
   -- https://en.wikipedia.org/wiki/Basis_(linear_algebra)
@@ -97,8 +97,8 @@ dualSum {l} {vector = vector} {{F}} VS =
     V = VS
 
 dualZero : {A : Type l}{{F : Field A}}{vector : Type l'}(VS : VectorSpace vector) → linearForm VS
-dualZero {A = A}{{F}} {vector} VS = (λ _ → Ô) , record
-                         { addT = record { preserve = λ u v → sym (lIdentity Ô) }
+dualZero {A = A}{{F}} {vector} VS = (λ _ → Ô) , record
+                         { addT = record { preserve = λ u v → sym (lIdentity Ô) }
                                       ; multT = λ v c → sym (x*0≡0 c) }
  where
   instance
