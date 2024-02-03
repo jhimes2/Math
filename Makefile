@@ -7,7 +7,7 @@ experiments.agdai: experiments.agda Data/Integer.agdai Data/Bool.agdai Data/Fini
 NumberTheory/Finite.agdai: NumberTheory/Finite.agda NumberTheory/Natural.agdai Data/Bool.agdai Data/Finite.agdai
 	agda $<
 
-NumberTheory/Integer.agdai: NumberTheory/Integer.agda NumberTheory/Natural.agdai
+NumberTheory/Integer.agdai: NumberTheory/Integer.agda NumberTheory/Natural.agdai Data/Integer.agdai
 	agda $<
 
 NumberTheory/Natural.agdai: NumberTheory/Natural.agda NumberTheory/Overloads.agdai
