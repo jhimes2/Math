@@ -23,8 +23,16 @@ head v = v finZ
 tail : [ A ^ S n ] → [ A ^ n ]
 tail v x = v (finS x)
 
+_∷_ : A → [ A ^ n ] → [ A ^ S n ]
+(a ∷ _) (Z , _) = a
+(a ∷ v) (S x , x' , P) = v (x , x' , SInjective P)
+
 pointwise : (A → B → C) → {D : Type l} → (D → A) → (D → B) → (D → C)
 pointwise f u v d = f (u d) (v d)
+
+pointwiseHead : (f : [ A ^ S n ] → [ B ^ S n ] → [ C ^ S n ])
+              → ∀ x y → head {n = n} (pointwise f x y) ≡ f (head x) (head y)
+pointwiseHead f x y = funExt λ z → refl
 
 Matrix : Type l → ℕ → ℕ → Type l
 Matrix A n m = [ [ A ^ n ] ^ m ]
@@ -411,6 +419,28 @@ module _{C : Type cl} {{R : Ring C}} where
   sqrMatrixRng = record {}
   sqrMatrixRing : Ring (Matrix C n n)
   sqrMatrixRing = record {}
+
+{- The function 'withoutEach' is used as part of the definition of the determinant.
+   If you give it a vector
+      [a b c d e]
+   then it outputs the matrix
+    [[ b c d e ]
+     [ a c d e ]
+     [ a b d e ]
+     [ a b c e ]
+     [ a b c d ]]
+
+-}
+withoutEach : [ C ^ S n ] → Matrix C n (S n)
+withoutEach {n = Z} v u _ = v u
+withoutEach {n = S n} v = tail v ∷ map (head v ∷_) (withoutEach (tail v))
+
+-- Determinant
+det : {{Ring C}} → Matrix C n n → C
+det {n = Z} M = 1r
+det {n = S n} M = foldr _-_ 0r $ pointwise (λ a x → a * det x)
+                                           (head M)
+                                           (withoutEach (transpose (tail M)))
 
 module _ {{R : CRing C}} where
 
