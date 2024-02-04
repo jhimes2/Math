@@ -292,11 +292,11 @@ module _ {scalar : Type l}{{R : Ring scalar}}
      record { addT = record { preserve = λ u v → cong R (preserve u v) ⋆ preserve (T u) (T v) }
             ; multT = λ u c → cong R (multT u c) ⋆ multT (T u) c }
 
--- Bad name. I don't know what else to call this theorem.
-week7 : {{CR : CRing A}} → {{V : Module B}}
+-- The set of eigenvectors for a module endomorphism 'T' and eigenvalue 'c' is a subspace
+eigenEndoProperty : {{CR : CRing A}} → {{V : Module B}}
       → (T : B → B) → {{TLT : moduleHomomorphism T}}
       → (c : A) → Subspace (λ x → T x ≡ scale c x)
-week7 T c = record
+eigenEndoProperty T c = record
     { ssZero = T Ô ≡⟨ idToId T ⟩
                Ô   ≡⟨ sym (scaleVZ c)⟩
                scale c Ô ∎
