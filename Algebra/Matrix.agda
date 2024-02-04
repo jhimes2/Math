@@ -70,11 +70,11 @@ module _{C : Type cl}{{R : Rng C}} where
 
  -- Matrix Transformation
  MT : (fin n → A → C) → [ C ^ n ] → (A → C)
- MT M v x =  v ∙ λ y → M y x
+ MT M v a =  v ∙ λ y → M y a
 
  -- Matrix Multiplication
  mMult : (fin n → B → C) → (A → fin n → C) → (A → B → C)
- mMult M N c = MT M (N c)
+ mMult M N a = MT M (N a)
  
  orthogonal : [ C ^ n ] → [ C ^ n ] → Type cl
  orthogonal u v = u ∙ v ≡ 0r
@@ -82,22 +82,22 @@ module _{C : Type cl}{{R : Rng C}} where
  orthogonal-set : ([ C ^ n ] → Type cl) → Type cl
  orthogonal-set X = ∀ u v → u ∈ X → v ∈ X → u ≢ v → orthogonal u v
 
- dotZL : (V : fin n → C)
+ dotZL : (V : [ C ^ n ])
        → (λ _ → 0r) ∙ V ≡ 0r
  dotZL {n = Z} V = refl
  dotZL {n = S n} V =
   (0r * head V) + ((λ (_ : fin n) → 0r) ∙ tail V) ≡⟨ left _+_ (0*x≡0 (head V))⟩
-  0r + ((λ (_ : fin n) → 0r) ∙ tail V) ≡⟨ lIdentity ((λ (_ : fin n) → 0r) ∙ tail V)⟩
-  (λ (_ : fin n) → 0r) ∙ tail V ≡⟨ dotZL (tail V)⟩
+  0r + ((λ _ → 0r) ∙ tail V)                      ≡⟨ lIdentity ((λ (_ : fin n) → 0r) ∙ tail V)⟩
+  (λ (_ : fin n) → 0r) ∙ tail V                   ≡⟨ dotZL (tail V)⟩
   0r ∎
  
- dotZR : (V : fin n → C)
+ dotZR : (V : [ C ^ n ])
        → V ∙ (λ _ → 0r) ≡ 0r
  dotZR {n = Z} V = refl
  dotZR {n = S n} V =
   (head V * 0r) + (tail V ∙ λ (_ : fin n) → 0r) ≡⟨ left _+_ (x*0≡0 (head V))⟩
-  0r + (tail V ∙ λ (_ : fin n) → 0r)  ≡⟨ lIdentity (tail V ∙ λ (_ : fin n) → 0r)⟩
-  tail V ∙ (λ (_ : fin n) → 0r) ≡⟨ dotZR (tail V)⟩
+  0r + (tail V ∙ λ _ → 0r)                      ≡⟨ lIdentity (tail V ∙ λ (_ : fin n) → 0r)⟩
+  tail V ∙ (λ (_ : fin n) → 0r)                 ≡⟨ dotZR (tail V)⟩
   0r ∎
 
  scalar-distributivity : (x y : C)(v : A → C) → scaleV (x + y) v ≡ addv (scaleV x v) (scaleV y v)
@@ -129,7 +129,7 @@ instance
 
   -- A function whose codomain is an underlying set for a ring is a vector for a module.
   -- If the codomain is an underlying set for a field, then the function is a vector for a linear space.
- vectMod : {A : Type l}{B : Type l'} → {{R : Ring A}} → Module (B → A)
+ vectMod : {{R : Ring A}} → Module (B → A)
  vectMod = record
             { _[+]_ = addv
             ; scale = scaleV
@@ -140,15 +140,15 @@ instance
             }
 
  -- https://en.wikipedia.org/wiki/Function_space
- functionSpace : {A : Type l}{B : Type l'} → {{F : Field A}} → VectorSpace (B → A)
+ functionSpace : {{F : Field A}} → VectorSpace (B → A)
  functionSpace = vectMod
 
 foldrMC : {_∗_ : A → A → A}{{M : monoid _∗_}}{{C : Commutative _∗_}} → (u v : [ A ^ n ])
-     → foldr _∗_ e (pointwise _∗_ u v) ≡ foldr _∗_ e u ∗ foldr _∗_ e v
+        → foldr _∗_ e (pointwise _∗_ u v) ≡ foldr _∗_ e u ∗ foldr _∗_ e v
 foldrMC {n = Z} u v = sym(lIdentity e)
 foldrMC {n = S n} {_∗_ = _∗_} u v =
-      right _∗_ (foldrMC {n = n} (tail u) (tail v)) ⋆ [ab][cd]≡[ac][bd] (head u)
-                   (head v) (foldr _∗_ e (tail u)) (foldr _∗_ e (tail v))
+ right _∗_ (foldrMC (tail u) (tail v))
+           ⋆ [ab][cd]≡[ac][bd] (head u) (head v) (foldr _∗_ e (tail u)) (foldr _∗_ e (tail v))
 
 instance
   -- Matrix transformation over a ring is a module homomorphism.
@@ -260,8 +260,8 @@ module _{C : Type cl} {{R : Ring C}} where
          0r ∎
     ; ssScale = λ {v} x c u uW →
        scale c v ∙ u ≡⟨ dotScale c v u ⟩
-       c * (v ∙ u)       ≡⟨ right _*_ (x u uW)⟩
-       c * 0r            ≡⟨ x*0≡0 c ⟩
+       c * (v ∙ u)   ≡⟨ right _*_ (x u uW)⟩
+       c * 0r        ≡⟨ x*0≡0 c ⟩
        0r ∎
     ; ssSet = λ v (p q : ∀ u → u ∈ W → v ∙ u ≡ 0r)
        → funExt λ u → funExt λ uW → IsSet (v ∙ u) 0r (p u uW) (q u uW)
@@ -429,7 +429,6 @@ module _{C : Type cl} {{R : Ring C}} where
      [ a b d e ]
      [ a b c e ]
      [ a b c d ]]
-
 -}
 withoutEach : [ C ^ S n ] → Matrix C n (S n)
 withoutEach {n = Z} v u _ = v u
