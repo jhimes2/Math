@@ -293,19 +293,19 @@ module _ {scalar : Type l}{{R : Ring scalar}}
             ; multT = λ u c → cong R (multT u c) ⋆ multT (T u) c }
 
 -- The set of eigenvectors for a module endomorphism 'T' and eigenvalue 'c' is a subspace
-eigenEndoProperty : {{CR : CRing A}} → {{V : Module B}}
+eigenvectorSubspace : {{CR : CRing A}} → {{V : Module B}}
       → (T : B → B) → {{TLT : moduleHomomorphism T}}
-      → (c : A) → Subspace (λ x → T x ≡ scale c x)
-eigenEndoProperty T c = record
+      → (c : A) → Subspace (λ v → T v ≡ scale c v)
+eigenvectorSubspace T c = record
     { ssZero = T Ô ≡⟨ idToId T ⟩
                Ô   ≡⟨ sym (scaleVZ c)⟩
                scale c Ô ∎
-    ; ssAdd = λ {v} {u} (p : T v ≡ scale c v) (q : T u ≡ scale c u) →
+    ; ssAdd = λ{v}{u} (p : T v ≡ scale c v) (q : T u ≡ scale c u) →
                    T (v [+] u)             ≡⟨ preserve v u ⟩
                    T v [+] T u             ≡⟨ cong₂ _[+]_ p q ⟩
                    scale c v [+] scale c u ≡⟨ sym (scalarDistribute c v u)⟩
                    scale c (v [+] u) ∎
-    ; ssScale = λ {v} (p : T v ≡ scale c v) d →
+    ; ssScale = λ{v} (p : T v ≡ scale c v) d →
                    T (scale d v)       ≡⟨ multT v d ⟩
                    scale d (T v)       ≡⟨ right scale p ⟩
                    scale d (scale c v) ≡⟨ scalarAssoc v d c ⟩
