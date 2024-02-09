@@ -1,4 +1,4 @@
-{-# OPTIONS --guardedness --allow-unsolved-metas --cubical --overlapping-instances #-}
+{-# OPTIONS --allow-unsolved-metas --cubical --overlapping-instances --hidden-argument-pun #-}
 
 open import Prelude
 open import Relations
@@ -85,9 +85,18 @@ zorn' {A = A} {_≤_ = _≤_} ch contra =
   let H : x < y
       H = {!!} in {!!}
 
+{-# TERMINATING #-}
+distinguish : (f : ℕ → Bool) → f ≢ (λ x → Yes) → Σ λ x → f x ≢ Yes
+distinguish f H = aux Z
+ where
+  aux : (n : ℕ) → Σ λ x → f x ≢ Yes
+  aux n with boolDiscrete (f n) Yes
+  ...    |  (yes p) = aux (S n)
+  ...    |  (no p)  = n , p
+
 zorn : {_≤_ : A → A → Type} → {{_ : Poset _≤_}}
      → ((C : A → Type al) → chain C → Σ λ g → ∀ x → x ∈ C → g ≤ x → g ≡ x)
-     → ¬(¬ Σ λ g → ∀ x → g ≤ x → g ≡ x)
+     → ∃ λ g → ∀ x → g ≤ x → g ≡ x
 zorn {A = A} {_≤_ = _≤_} = let H = LEM A in λ x y → H (λ y → {!!})
 
 test2 : Dec ((A : Type al) → Dec A)
@@ -108,17 +117,6 @@ data klein4 : Type where
   k-1 : a4 ∙ a4 ≡ e4
   k-2 : b4 ∙ b4 ≡ e4
   k-3 : (a4 ∙ b4) ∙ (a4 ∙ b4) ≡ e4
-
-record Stream (A : Type) : Type where
-  coinductive
-  field
-    hd : A
-    tl : Stream A
-open Stream
-
-repeat : {A : Set} (a : A) -> Stream A
-hd (repeat a) = a
-tl (repeat a) = repeat a
 
 open import Algebra.CRing
 

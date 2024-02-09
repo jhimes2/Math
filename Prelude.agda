@@ -1,4 +1,4 @@
-{-# OPTIONS  --without-K --cubical --safe #-}
+{-# OPTIONS  --cubical --safe --hidden-argument-pun #-}
 
 open import Agda.Primitive public
 open import Cubical.Foundations.Prelude
@@ -98,8 +98,25 @@ _⇔_ : Type l → Type l' → Type (l ⊔ l')
 A ⇔ B = ∥ A ↔ B ∥₁
 infixr 0 _⇔_ 
 
+{- Syntax to show the goal as we apply proofs which allows
+   the code to be more human readable. -}
+[_]_ : (A : Type l) → A → A
+[ _ ] a = a
+infixr 0 [_]_
+
+-- Also contrapositive
 modusTollens : (A → B) → ¬ B → ¬ A
-modusTollens f Bn a = Bn (f a)
+modusTollens {A}{B} =
+ [((A → B) → ¬ B → ¬ A)]       -- unnecessary line
+ [((A → B) → (B → ⊥) → A → ⊥)] -- unnecessary line
+ λ(f : A → B)
+  (H : B → ⊥)
+  (a : A)
+  → [ ⊥ ] H
+  $ [ B ] f
+  $ [ A ] a
+
+-- Although we could have proven 'modusTollens' by `λ f H a → H (f a)`.
 
 -- https://en.wikipedia.org/wiki/De_Morgan's_laws
 DeMorgan : (¬ A) ＋ (¬ B) → ¬(A × B)
