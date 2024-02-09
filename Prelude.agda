@@ -363,8 +363,8 @@ module _{A : Type l}{_∙_ : A → A → A}{{_ : Associative _∙_}} where
  centralizer : (A → Type l') → A → Type (l ⊔ l')
  centralizer X a = ∀ x → x ∈ X → a ∙ x ≡ x ∙ a
 
- normalizer : (A → Type l') → A → Type (l ⊔ l')
- normalizer X a = ∀ x → a ∙ x ∈ X ⇔ x ∙ a ∈ X
+ normalizer : (H : A → Type l') → A → Type (l ⊔ lsuc l')
+ normalizer X a = ∀ x → a ∙ x ∈ X ≡ x ∙ a ∈ X
 
  -- https://en.wikipedia.org/wiki/Center_(group_theory)
  center : A → Type l

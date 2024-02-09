@@ -1,4 +1,4 @@
-{-# OPTIONS --cubical --safe #-}
+{-# OPTIONS --cubical --safe --hidden-argument-pun #-}
 
 module Set where
 
@@ -42,16 +42,24 @@ instance
 
  centralizerProperty : {{_ : is-set A}} → {_∙_ : A → A → A} → {{_ : Associative _∙_}}
                      → {H : A → Type l} → Property (centralizer H)
- centralizerProperty {_∙_ = _∙_} =
+ centralizerProperty {_∙_} =
      record { setProp = λ x → isPropΠ λ y → isProp→ (IsSet (x ∙ y) (y ∙ x)) }
 
  imageProp : {f : A → B} → Property (image f)
  imageProp = record { setProp = λ x → squash₁ }
 
 normalizerProperty : {_∙_ : A → A → A} → {{_ : Associative _∙_}}
-                    → {H : A → Type l} → Property (normalizer H)
-normalizerProperty =
-    record { setProp = λ x p q → funExt λ y → squash₁ (p y) (q y) }
+                   → {H : A → Type l} → {{M : Property H}} → Property (normalizer H)
+normalizerProperty {_∙_} {H} {{M}} = record { setProp = λ x a b → funExt λ c →
+  let P = M .setProp (x ∙ c) in
+  let Q = M .setProp (c ∙ x) in
+  let A = a c in let B = b c in
+  let R = isOfHLevel≡ (suc zero) P Q in
+  R A B
+  }
+ where
+  open import Cubical.Data.Nat
+
 
 data Support{A : Type al}(X : A → Type l) : A → Type(al ⊔ l) where
   supportIntro : ∀ x → x ∈ X → x ∈ Support X 

@@ -1,4 +1,4 @@
-{-# OPTIONS --cubical --safe #-}
+{-# OPTIONS --cubical --safe --hidden-argument-pun #-}
 
 module Algebra.Monoid where
 
@@ -55,7 +55,6 @@ module _{_∙_ : A → A → A} {{M : monoid _∙_}} where
   intersectionSM = record
     { id-closed = id-closed , id-closed
     ; op-closed = λ{x y} (x∈X , y∈Y) (x∈X' , y∈Y') → op-closed x∈X x∈X' , op-closed y∈Y y∈Y'
-    ; submonoid-set = record { setProp = λ x → isProp× (setProp x) (setProp x) }
     }
 
   -- The full set is a submonoid
@@ -64,7 +63,7 @@ module _{_∙_ : A → A → A} {{M : monoid _∙_}} where
 
   -- Centralizing any subset of a monoid is a submonoid
   centralizerSM : {H : A → Type l} → Submonoid (centralizer H) _∙_
-  centralizerSM {H = H} = record
+  centralizerSM {H} = record
     { id-closed = λ x x∈H → lIdentity x ⋆ sym (rIdentity x)
     ; op-closed = λ{x y} x∈Cent y∈Cent z z∈H →
       let P : y ∙ z ≡ z ∙ y
@@ -80,27 +79,32 @@ module _{_∙_ : A → A → A} {{M : monoid _∙_}} where
     }
 
   -- Normalizing any subset of a monoid is a submonoid
-  normalizerSM : {N : A → Type l} → Submonoid (normalizer N) _∙_
-  normalizerSM {N = N} = record
-     { id-closed = λ x → η $ (λ p → subst N (sym (rIdentity x)) (subst N (lIdentity x) p))
-                           ,  λ p → subst N (sym (lIdentity x)) (subst N (rIdentity x) p)
-     ; op-closed = λ{x y} x∈Norm y∈Norm z →
-              x∈Norm (y ∙ z) >>= λ(p : x ∙ (y ∙ z) ∈ N ↔ (y ∙ z) ∙ x ∈ N) →
-              y∈Norm (z ∙ x) >>= λ(q : y ∙ (z ∙ x) ∈ N ↔ (z ∙ x) ∙ y ∈ N) →
-                 η $ (λ xyz∈N →
-              subst N (sym (assoc z x y)) $ fst q
-            $ subst N (sym (assoc y z x)) $ fst p
-            $ subst N (sym (assoc x y z)) xyz∈N)
-            , λ zxy∈N → subst N (assoc x y z) $ snd p
-                      $ subst N (assoc y z x) $ snd q
-                        (subst N (assoc z x y) zxy∈N)
-     ; submonoid-set = normalizerProperty {H = N}
-     }
-
+  normalizerSM : {N : A → Type l} → {{Property N}} → Submonoid (normalizer N) _∙_
+  normalizerSM {N} = record
+    { id-closed = λ x →  e ∙ x ∈ N ≡⟨ cong N (lIdentity x)⟩
+                             x ∈ N ≡⟨ cong N (sym (rIdentity x))⟩
+                         x ∙ e ∈ N ∎
+    ; op-closed = λ{x y} (X : x ∈ normalizer N) (Y : y ∈ normalizer N) z
+           → let p : x ∙ (y ∙ z) ∈ N ≡ (y ∙ z) ∙ x ∈ N
+                 p = X (y ∙ z) in
+             let q : y ∙ (z ∙ x) ∈ N ≡ (z ∙ x) ∙ y ∈ N
+                 q = Y (z ∙ x) in
+             (x ∙ y) ∙ z ∈ N ≡⟨ cong N (sym (assoc x y z))⟩
+             x ∙ (y ∙ z) ∈ N ≡⟨ p ⟩
+             (y ∙ z) ∙ x ∈ N ≡⟨ cong N (sym(assoc y z x))⟩
+             y ∙ (z ∙ x) ∈ N ≡⟨ q ⟩
+             (z ∙ x) ∙ y ∈ N ≡⟨ cong N (sym(assoc z x y))⟩
+               z ∙ (x ∙ y) ∈ N ∎
+    ; submonoid-set = record { setProp = λ x a b → funExt λ c →
+         isOfHLevel≡ (suc zero) (setProp (x ∙ c)) (setProp (c ∙ x)) (a c) (b c)
+      }
+    }
+   where
+    open import Cubical.Data.Nat
 
 -- Every operator can only be part of at most one monoid
 monoidIsProp : (_∙_ : A → A → A) → isProp (monoid _∙_)
-monoidIsProp {A = A} _∙_ M1 M2 i =
+monoidIsProp {A} _∙_ M1 M2 i =
        let set = λ{a b : A}{p q : a ≡ b} → M1 .IsSetm .IsSet a b p q in
        let E = idUnique ⦃ M2 ⦄ (M1 .lIdentity) in
   record {
@@ -117,4 +121,3 @@ monoidIsProp {A = A} _∙_ M1 M2 i =
       ; mAssoc = record { assoc = λ a b c → set {p = M1 .mAssoc .assoc a b c}
                                                     {M2 .mAssoc .assoc a b c} i }
           }
-

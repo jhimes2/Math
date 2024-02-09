@@ -98,16 +98,14 @@ module _{_∙_ : A → A → A} {{G : group _∙_}}(a b : A) where
 module grp {_∙_ : A → A → A}{{G : group _∙_}} where
 
   cancel : (a : A) → {x y : A} → a ∙ x ≡ a ∙ y → x ≡ y
-  cancel a {x}{y} =
-    λ(p : a ∙ x ≡ a ∙ y) →
+  cancel a {x}{y} = λ(p : a ∙ x ≡ a ∙ y) →
       x               ≡⟨ sym (a'[ab]≡b a x)⟩
       inv a ∙ (a ∙ x) ≡⟨ right _∙_ p ⟩
       inv a ∙ (a ∙ y) ≡⟨ a'[ab]≡b a y ⟩
       y ∎
 
   lcancel : (a : A) → {x y : A} → x ∙ a ≡ y ∙ a → x ≡ y
-  lcancel a {x}{y} =
-    λ(p : x ∙ a ≡ y ∙ a) →
+  lcancel a {x}{y} = λ(p : x ∙ a ≡ y ∙ a) →
       x               ≡⟨ sym ([ab]b'≡a x a)⟩
       (x ∙ a) ∙ inv a ≡⟨ left _∙_ p ⟩
       (y ∙ a) ∙ inv a ≡⟨ [ab]b'≡a y a ⟩
@@ -120,43 +118,37 @@ module grp {_∙_ : A → A → A}{{G : group _∙_}} where
     x ∎
 
   invInjective : {x y : A} → inv x ≡ inv y → x ≡ y
-  invInjective {x}{y} =
-    λ(p : inv x ≡ inv y) →
+  invInjective {x}{y} = λ(p : inv x ≡ inv y) →
       x          ≡⟨ sym (doubleInv x)⟩
       inv(inv x) ≡⟨ cong inv p ⟩
       inv(inv y) ≡⟨ doubleInv y ⟩
       y ∎
 
   uniqueInv : {x y : A} → x ∙ (inv y) ≡ e → x ≡ y
-  uniqueInv {x}{y} =
-    λ(p : x ∙ inv y ≡ e) →
+  uniqueInv {x}{y} = λ(p : x ∙ inv y ≡ e) →
       x               ≡⟨ sym([ab']b≡a x y)⟩
       (x ∙ inv y) ∙ y ≡⟨ left _∙_ p ⟩
       e ∙ y           ≡⟨ lIdentity y ⟩
       y ∎
 
   lemma1 : (a b : A) → inv b ∙ inv a ≡ inv (a ∙ b)
-  lemma1 a b =
-    {- We can prove `inv b ∙ inv a ≡ inv (a ∙ b)`
-       by proving `(inv b ∙ inv a) ∙ inv(inv(a ∙ b))` -}
-   [ inv b ∙ inv a ≡ inv (a ∙ b)] uniqueInv $
-   [(inv b ∙ inv a) ∙ inv(inv(a ∙ b)) ≡ e ]
-    (inv b ∙ inv a) ∙ inv(inv(a ∙ b)) ≡⟨ right _∙_ (doubleInv (a ∙ b))⟩
-    (inv b ∙ inv a) ∙ (a ∙ b)         ≡⟨ sym (assoc (inv b) (inv a) (a ∙ b))⟩
-    inv b ∙ (inv a ∙ (a ∙ b))         ≡⟨ right _∙_ (a'[ab]≡b a b)⟩
-    inv b ∙ b                         ≡⟨ lInverse b ⟩
-    e ∎
+  lemma1 = λ(a b : A)
+   → [ inv b ∙ inv a ≡ inv (a ∙ b)] uniqueInv
+   $ [(inv b ∙ inv a) ∙ inv(inv(a ∙ b)) ≡ e ]
+      (inv b ∙ inv a) ∙ inv(inv(a ∙ b)) ≡⟨ right _∙_ (doubleInv (a ∙ b))⟩
+      (inv b ∙ inv a) ∙ (a ∙ b)         ≡⟨ sym (assoc (inv b) (inv a) (a ∙ b))⟩
+      inv b ∙ (inv a ∙ (a ∙ b))         ≡⟨ right _∙_ (a'[ab]≡b a b)⟩
+      inv b ∙ b                         ≡⟨ lInverse b ⟩
+      e ∎
   
   lemma2 : {a b c : A} → c ≡ a ∙ b → inv a ∙ c ≡ b
-  lemma2 {a}{b}{c} =
-    λ(p : c ≡ a ∙ b) →
+  lemma2 {a}{b}{c} = λ(p : c ≡ a ∙ b) →
       inv a ∙ c       ≡⟨ right _∙_ p ⟩
       inv a ∙ (a ∙ b) ≡⟨ a'[ab]≡b a b ⟩
       b ∎
 
   lemma3 : {a : A} → a ≡ a ∙ a → a ≡ e
-  lemma3 {a} =
-    λ(p : a ≡ a ∙ a) →
+  lemma3 {a} = λ(p : a ≡ a ∙ a) →
       a         ≡⟨ sym (lemma2 p)⟩
       inv a ∙ a ≡⟨ lInverse a ⟩
       e ∎
@@ -185,7 +177,7 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
 
  SG-Criterion : {H : A → Type l} → {{Property H}} → Σ H → (∀ x y → x ∈ H → y ∈ H → x ∙ inv y ∈ H)
               → Subgroup H
- SG-Criterion {H = H} (x , x') P =
+ SG-Criterion {H} (x , x') P =
    let Q : e ∈ H
        Q = subst H (rInverse x) (P x x x' x') in
    record
@@ -205,32 +197,26 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
 
  -- Centralizing any subset of a group is a subgroup
  centralizerSG : {H : A → Type l} → Subgroup (centralizer H)
- centralizerSG = record
-    { inv-closed = λ{x} x∈Cent z z∈H →
-      grp.cancel x $
-      x ∙ (inv x ∙ z) ≡⟨ a[a'b]≡b x z ⟩
-      z               ≡⟨ sym ([ab]b'≡a z x)⟩
-      (z ∙ x) ∙ inv x ≡⟨ left _∙_ (sym (x∈Cent z z∈H))⟩
-      (x ∙ z) ∙ inv x ≡⟨ sym (assoc x z (inv x))⟩
-      x ∙ (z ∙ inv x) ∎
+ centralizerSG {H} = record
+    { inv-closed = λ{x} (X : x ∈ centralizer H) z z∈H
+     → [ inv x ∙ z ≡ z ∙ inv x ] (grp.cancel x)
+     $ x ∙ (inv x ∙ z) ≡⟨ a[a'b]≡b x z ⟩
+       z               ≡⟨ sym ([ab]b'≡a z x)⟩
+       (z ∙ x) ∙ inv x ≡⟨ left _∙_ (sym (X z z∈H))⟩
+       (x ∙ z) ∙ inv x ≡⟨ sym (assoc x z (inv x))⟩
+       x ∙ (z ∙ inv x) ∎
     }
 
   -- Normalizing any subset of a group is a subgroup
- normalizerSG : {N : A → Type l} → Subgroup (normalizer N)
+ normalizerSG : {N : A → Type l} → {{Property N}} → Subgroup (normalizer N)
  normalizerSG {N} =
    record
-   { inv-closed = λ{x} x∈Norm z
-      → let H = (x ∙ ((inv x ∙ z) ∙ inv x) ∈ N ↔ ((inv x ∙ z) ∙ inv x) ∙ x ∈ N)
-                            ≡⟨ left _↔_ (cong N (assoc x (inv x ∙ z) (inv x)))⟩
-                ((x ∙ (inv x ∙ z)) ∙ inv x ∈ N ↔ ((inv x ∙ z) ∙ inv x) ∙ x ∈ N)
-                            ≡⟨ left _↔_ (cong N (left _∙_ (a[a'b]≡b x z)))⟩
-                (z ∙ inv x ∈ N ↔ ((inv x ∙ z) ∙ inv x) ∙ x ∈ N)
-                            ≡⟨ right _↔_ (cong N ([ab']b≡a (inv x ∙ z) x))⟩
-                (z ∙ inv x ∈ N ↔ inv x ∙ z ∈ N) ∎ in
-        x∈Norm ((inv x ∙ z) ∙ inv x) >>= λ a →
-         let F : z ∙ inv x ∈ N ↔ inv x ∙ z ∈ N
-             F = transport H a in
-        η $ (λ x'z∈N → snd F x'z∈N) , λ zx'∈N → fst F zx'∈N
+   { inv-closed = λ{x} (X : x ∈ normalizer N) z
+      → inv x ∙ z ∈ N                 ≡⟨ cong N (sym ([ab']b≡a (inv x ∙ z) x))⟩
+        ((inv x ∙ z) ∙ inv x) ∙ x ∈ N ≡⟨ sym (X ((inv x ∙ z) ∙ inv x))⟩
+        x ∙ ((inv x ∙ z) ∙ inv x) ∈ N ≡⟨ cong N (assoc x (inv x ∙ z) (inv x))⟩
+        (x ∙ (inv x ∙ z)) ∙ inv x ∈ N ≡⟨ cong N (left _∙_ (a[a'b]≡b x z))⟩
+        z ∙ inv x ∈ N ∎
    ; SGSM = normalizerSM {N = N}
    }
 
@@ -252,6 +238,7 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
   {- I stated 'Submonoid.op-closed (G .SGSM) x∈H y∈H' instead of 'op-closed x∈H y∈H'
      for faster compilation (temporary kludge). -}
  
+
   instance
    ⪀assoc : Associative _⪀_
    ⪀assoc = record { assoc = λ (a , a') (b , b') (c , c') → ΣPathPProp setProp (assoc a b c) }
@@ -266,7 +253,7 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
        ; lIdentity = λ(a , a') → ΣPathPProp setProp (lIdentity a)
        ; IsSetGrp = ΣSet
        }
- 
+         
   -- Every subgroup of an abelian group is normal
   abelian≥→⊵ : {{Commutative _∙_}} → NormalSG H
   abelian≥→⊵ = record
@@ -329,17 +316,17 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
 
   -- A group homomorphism maps identity elements to identity elements
   idToId : (h : A → B) → {{X : Homomorphism h}} → h e ≡ e
-  idToId h = [ h e ≡ e ] grp.lemma3 $
-             [ h e ≡ h e * h e ]
+  idToId h = [ h e ≡ e ] grp.lemma3
+           $ [ h e ≡ h e * h e ]
                h e       ≡⟨ cong h (sym (lIdentity e))⟩
                h (e ∙ e) ≡⟨ preserve e e ⟩
                h e * h e ∎
 
   -- A group homomorphism maps inverse elements to inverse elements
   invToInv : (h : A → B) → {{X : Homomorphism h}} → ∀ a → h (inv a) ≡ inv (h a)
-  invToInv h a =
-   [ h (inv a) ≡ inv (h a) ] grp.lcancel (h a) $
-   [ h (inv a) * h a ≡ inv (h a) * h a ]
+  invToInv = λ h a
+   → [ h (inv a) ≡ inv (h a) ] grp.lcancel (h a)
+   $ [ h (inv a) * h a ≡ inv (h a) * h a ]
      h (inv a) * h a ≡⟨ sym (preserve (inv a) a)⟩
      h (inv a ∙ a)   ≡⟨ cong h (lInverse a)⟩
      h e             ≡⟨ idToId h ⟩
