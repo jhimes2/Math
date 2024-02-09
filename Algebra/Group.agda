@@ -211,12 +211,12 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
  normalizerSG : {N : A → Type l} → {{Property N}} → Subgroup (normalizer N)
  normalizerSG {N} =
    record
-   { inv-closed = λ{x} (X : x ∈ normalizer N) z
-      → inv x ∙ z ∈ N                 ≡⟨ cong N (sym ([ab']b≡a (inv x ∙ z) x))⟩
-        ((inv x ∙ z) ∙ inv x) ∙ x ∈ N ≡⟨ sym (X ((inv x ∙ z) ∙ inv x))⟩
-        x ∙ ((inv x ∙ z) ∙ inv x) ∈ N ≡⟨ cong N (assoc x (inv x ∙ z) (inv x))⟩
-        (x ∙ (inv x ∙ z)) ∙ inv x ∈ N ≡⟨ cong N (left _∙_ (a[a'b]≡b x z))⟩
-        z ∙ inv x ∈ N ∎
+   { inv-closed = λ{x} (X : x ∈ normalizer N) z →
+       inv x ∙ z ∈ N                 ≡⟨ cong N (sym ([ab']b≡a (inv x ∙ z) x))⟩
+       ((inv x ∙ z) ∙ inv x) ∙ x ∈ N ≡⟨ sym (X ((inv x ∙ z) ∙ inv x))⟩
+       x ∙ ((inv x ∙ z) ∙ inv x) ∈ N ≡⟨ cong N (assoc x (inv x ∙ z) (inv x))⟩
+       (x ∙ (inv x ∙ z)) ∙ inv x ∈ N ≡⟨ cong N (left _∙_ (a[a'b]≡b x z))⟩
+       z ∙ inv x ∈ N ∎
    ; SGSM = normalizerSM {N = N}
    }
 
@@ -290,7 +290,11 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
  generatingIsSubgroup : (X : A → Type l) → Σ X → Subgroup ⟨ X ⟩
  generatingIsSubgroup X (x , H) = record
    { SGSM = record
-     { id-closed = subst ⟨ X ⟩ (lInverse x) (gen-op (gen-inv (gen-intro H)) (gen-intro H))
+     { id-closed = [ e ∈ ⟨ X ⟩ ] subst ⟨ X ⟩ (lInverse x)
+                 $ [ inv x ∙ x ∈ ⟨ X ⟩ ] gen-op
+                   (  [ inv x ∈ ⟨ X ⟩ ] gen-inv
+                    $ [ x ∈ ⟨ X ⟩ ] gen-intro H)
+                   (  [ x ∈ ⟨ X ⟩ ] gen-intro H)
      ; op-closed = gen-op
      }
    ; inv-closed = gen-inv
