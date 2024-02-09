@@ -29,33 +29,33 @@ module _(oddFunction : ∀ θ → neg(sin θ) ≡ sin(neg θ))
 
  sin0≡0 : sin 0r ≡ 0r
  sin0≡0 =
-   -- We can prove sin(0)=0 by proving sin(0)=sin(0)+sin(0)
-   let H : sin 0r ≡ sin 0r + sin 0r → sin 0r ≡ 0r
-       H = grp.lemma3 in H $
-  sin 0r                                       ≡⟨ cong sin(sym (lIdentity 0r))⟩
-  sin(0r + 0r)                                 ≡⟨ sinAngleAdd 0r 0r ⟩
-  (sin 0r * cos 0r) + (sin 0r * cos 0r)        ≡⟨By-Definition⟩
-  (sin 0r * sin(π/2 + 0r)) + (sin 0r * cos 0r) ≡⟨ left _+_ (right _*_ (cong sin(rIdentity π/2)))⟩
-  (sin 0r * sin π/2) + (sin 0r * cos 0r)       ≡⟨ left _+_ (right _*_ evaluation)⟩
-  (sin 0r * 1r) + (sin 0r * cos 0r)            ≡⟨ left _+_ (rIdentity (sin 0r))⟩
-  sin 0r + (sin 0r * cos 0r)                   ≡⟨By-Definition⟩
-  sin 0r + (sin 0r * sin(π/2 + 0r))            ≡⟨ right _+_ (right _*_ (cong sin(rIdentity π/2)))⟩
-  sin 0r + (sin 0r * sin π/2)                  ≡⟨ right _+_ (right _*_ evaluation)⟩
-  sin 0r + (sin 0r * 1r)                       ≡⟨ right _+_ (rIdentity (sin 0r))⟩
-  sin 0r + sin 0r ∎
+  -- We can prove sin(0)=0 by proving sin(0)=sin(0)+sin(0)
+  [ sin 0r ≡ 0r ] grp.lemma3 $
+  [ sin 0r ≡ sin 0r + sin 0r ]
+    sin 0r                                       ≡⟨ cong sin(sym (lIdentity 0r))⟩
+    sin(0r + 0r)                                 ≡⟨ sinAngleAdd 0r 0r ⟩
+    (sin 0r * cos 0r) + (sin 0r * cos 0r)        ≡⟨By-Definition⟩
+    (sin 0r * sin(π/2 + 0r)) + (sin 0r * cos 0r) ≡⟨ left _+_ (right _*_ (cong sin(rIdentity π/2)))⟩
+    (sin 0r * sin π/2) + (sin 0r * cos 0r)       ≡⟨ left _+_ (right _*_ evaluation)⟩
+    (sin 0r * 1r) + (sin 0r * cos 0r)            ≡⟨ left _+_ (rIdentity (sin 0r))⟩
+    sin 0r + (sin 0r * cos 0r)                   ≡⟨By-Definition⟩
+    sin 0r + (sin 0r * sin(π/2 + 0r))            ≡⟨ right _+_ (right _*_ (cong sin(rIdentity π/2)))⟩
+    sin 0r + (sin 0r * sin π/2)                  ≡⟨ right _+_ (right _*_ evaluation)⟩
+    sin 0r + (sin 0r * 1r)                       ≡⟨ right _+_ (rIdentity (sin 0r))⟩
+    sin 0r + sin 0r ∎
 
  cosπ/2≡0 : cos π/2 ≡ 0r
  cosπ/2≡0 =
-   -- We can prove cos(π/2)=0 by proving cos(π/2)=cos(π/2)+cos(π/2)
-   let H : cos π/2 ≡ cos π/2 + cos π/2 → cos π/2 ≡ 0r
-       H = grp.lemma3 in H $
-   cos π/2                                 ≡⟨By-Definition⟩
-   sin(π/2 + π/2)                          ≡⟨ sinAngleAdd π/2 π/2 ⟩
-   (sin π/2 * cos π/2)+(sin π/2 * cos π/2) ≡⟨ left _+_ (left _*_ evaluation)⟩
-   (1r * cos π/2)+(sin π/2 * cos π/2)      ≡⟨ left _+_ (lIdentity (cos π/2))⟩
-   cos π/2 + (sin π/2 * cos π/2)           ≡⟨ right _+_ (left _*_ evaluation)⟩
-   cos π/2 + (1r * cos π/2)                ≡⟨ right _+_ (lIdentity (cos π/2))⟩
-   cos π/2 + cos π/2 ∎
+  -- We can prove cos(π/2)=0 by proving cos(π/2)=cos(π/2)+cos(π/2)
+  [ cos π/2 ≡ 0r ] grp.lemma3 $
+  [ cos π/2 ≡ cos π/2 + cos π/2 ]
+    cos π/2                                 ≡⟨By-Definition⟩
+    sin(π/2 + π/2)                          ≡⟨ sinAngleAdd π/2 π/2 ⟩
+    (sin π/2 * cos π/2)+(sin π/2 * cos π/2) ≡⟨ left _+_ (left _*_ evaluation)⟩
+    (1r * cos π/2)+(sin π/2 * cos π/2)      ≡⟨ left _+_ (lIdentity (cos π/2))⟩
+    cos π/2 + (sin π/2 * cos π/2)           ≡⟨ right _+_ (left _*_ evaluation)⟩
+    cos π/2 + (1r * cos π/2)                ≡⟨ right _+_ (lIdentity (cos π/2))⟩
+    cos π/2 + cos π/2 ∎
 
  sin-π/2≡-1 : sin(neg π/2) ≡ neg 1r
  sin-π/2≡-1 = sin(neg π/2) ≡⟨ sym(oddFunction π/2)⟩
@@ -80,9 +80,8 @@ module _(oddFunction : ∀ θ → neg(sin θ) ≡ sin(neg θ))
 
  sinπ/2-θ≡cosθ : ∀ θ → sin(π/2 - θ) ≡ cos θ
  sinπ/2-θ≡cosθ θ =
-    -- -a ≡ -b → a ≡ b
-    let H : neg(sin(π/2 - θ)) ≡ neg(cos θ) → sin(π/2 - θ) ≡ cos θ
-        H = grp.invInjective in H $
+  [ sin(π/2 - θ) ≡ cos θ ] grp.invInjective $
+  [ neg(sin(π/2 - θ)) ≡ neg(cos θ) ]
     neg(sin(π/2 - θ))           ≡⟨ oddFunction (π/2 - θ)⟩
     sin(neg(π/2 - θ))           ≡⟨By-Definition⟩
     sin(neg(π/2 + neg θ))       ≡⟨ cong sin(sym (grp.lemma1 π/2 (neg θ)))⟩

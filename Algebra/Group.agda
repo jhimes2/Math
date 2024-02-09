@@ -1,4 +1,4 @@
-{-# OPTIONS --cubical --safe --overlapping-instances #-}
+{-# OPTIONS --cubical --safe --overlapping-instances --hidden-argument-pun #-}
 
 module Algebra.Group where
 
@@ -43,7 +43,7 @@ module _{_∙_ : A → A → A} {{G : group _∙_}} where
 
 instance
   grpIsMonoid : {_∙_ : A → A → A}{{G : group _∙_}} → monoid _∙_
-  grpIsMonoid {_∙_ = _∙_} {{G}} =
+  grpIsMonoid {_∙_} {{G}} =
    record
     { e = e
     ; lIdentity = lIdentity
@@ -139,8 +139,8 @@ module grp {_∙_ : A → A → A}{{G : group _∙_}} where
   lemma1 a b =
     {- We can prove `inv b ∙ inv a ≡ inv (a ∙ b)`
        by proving `(inv b ∙ inv a) ∙ inv(inv(a ∙ b))` -}
-    let H : (inv b ∙ inv a) ∙ inv(inv(a ∙ b)) ≡ e → inv b ∙ inv a ≡ inv (a ∙ b)
-        H = uniqueInv in H $
+   [ inv b ∙ inv a ≡ inv (a ∙ b)] uniqueInv $
+   [(inv b ∙ inv a) ∙ inv(inv(a ∙ b)) ≡ e ]
     (inv b ∙ inv a) ∙ inv(inv(a ∙ b)) ≡⟨ right _∙_ (doubleInv (a ∙ b))⟩
     (inv b ∙ inv a) ∙ (a ∙ b)         ≡⟨ sym (assoc (inv b) (inv a) (a ∙ b))⟩
     inv b ∙ (inv a ∙ (a ∙ b))         ≡⟨ right _∙_ (a'[ab]≡b a b)⟩
@@ -155,7 +155,7 @@ module grp {_∙_ : A → A → A}{{G : group _∙_}} where
       b ∎
 
   lemma3 : {a : A} → a ≡ a ∙ a → a ≡ e
-  lemma3 {a = a} =
+  lemma3 {a} =
     λ(p : a ≡ a ∙ a) →
       a         ≡⟨ sym (lemma2 p)⟩
       inv a ∙ a ≡⟨ lInverse a ⟩
@@ -217,7 +217,7 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
 
   -- Normalizing any subset of a group is a subgroup
  normalizerSG : {N : A → Type l} → Subgroup (normalizer N)
- normalizerSG {N = N} =
+ normalizerSG {N} =
    record
    { inv-closed = λ{x} x∈Norm z
       → let H = (x ∙ ((inv x ∙ z) ∙ inv x) ∈ N ↔ ((inv x ∙ z) ∙ inv x) ∙ x ∈ N)
@@ -329,22 +329,22 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
 
   -- A group homomorphism maps identity elements to identity elements
   idToId : (h : A → B) → {{X : Homomorphism h}} → h e ≡ e
-  idToId h = let P : h e ≡ h e * h e → h e ≡ e
-                 P = grp.lemma3 in P $
-           h e       ≡⟨ cong h (sym (lIdentity e))⟩
-           h (e ∙ e) ≡⟨ preserve e e ⟩
-           h e * h e ∎
+  idToId h = [ h e ≡ e ] grp.lemma3 $
+             [ h e ≡ h e * h e ]
+               h e       ≡⟨ cong h (sym (lIdentity e))⟩
+               h (e ∙ e) ≡⟨ preserve e e ⟩
+               h e * h e ∎
 
   -- A group homomorphism maps inverse elements to inverse elements
   invToInv : (h : A → B) → {{X : Homomorphism h}} → ∀ a → h (inv a) ≡ inv (h a)
   invToInv h a =
-      let P : h (inv a) * h a ≡ inv (h a) * h a → h (inv a) ≡ inv (h a)
-          P = grp.lcancel (h a) in P $
-      h (inv a) * h a ≡⟨ sym (preserve (inv a) a)⟩
-      h (inv a ∙ a)   ≡⟨ cong h (lInverse a)⟩
-      h e             ≡⟨ idToId h ⟩
-      e               ≡⟨ sym (lInverse (h a))⟩
-      inv (h a) * h a ∎
+   [ h (inv a) ≡ inv (h a) ] grp.lcancel (h a) $
+   [ h (inv a) * h a ≡ inv (h a) * h a ]
+     h (inv a) * h a ≡⟨ sym (preserve (inv a) a)⟩
+     h (inv a ∙ a)   ≡⟨ cong h (lInverse a)⟩
+     h e             ≡⟨ idToId h ⟩
+     e               ≡⟨ sym (lInverse (h a))⟩
+     inv (h a) * h a ∎
 
   Kernel : (h : A → B) → {{_ : Homomorphism h}} → A → Type bl
   Kernel h u = h u ≡ e

@@ -38,21 +38,19 @@ module _{A : Type l}{{R : Rng A}} where
 
  x*0≡0 : (x : A) → x * 0r ≡ 0r
  x*0≡0 x =
-   let H : (x * 0r) ≡ (x * 0r) + (x * 0r)
-         → (x * 0r) ≡ 0r
-       H = grp.lemma3 in H $
-   x * 0r              ≡⟨ right _*_ (sym (rIdentity 0r))⟩
-   (x * (0r + 0r))     ≡⟨ lDistribute x 0r 0r ⟩
-   (x * 0r) + (x * 0r) ∎
+  [ x * 0r ≡ 0r ] grp.lemma3 $
+  [ x * 0r ≡ (x * 0r) + (x * 0r)]
+    x * 0r              ≡⟨ right _*_ (sym (rIdentity 0r))⟩
+    x * (0r + 0r)       ≡⟨ lDistribute x 0r 0r ⟩
+    (x * 0r) + (x * 0r) ∎
  
  0*x≡0 : (x : A) → 0r * x ≡ 0r
  0*x≡0 x =
-   let H : (0r * x) ≡ (0r * x) + (0r * x)
-         → (0r * x) ≡ 0r
-       H = grp.lemma3 in H $
-   0r * x              ≡⟨ left _*_ (sym (rIdentity 0r))⟩
-   ((0r + 0r) * x)     ≡⟨ rDistribute x 0r 0r ⟩
-   (0r * x) + (0r * x) ∎
+  [ 0r * x ≡ 0r ] grp.lemma3 $
+  [ 0r * x ≡ (0r * x) + (0r * x)]
+    0r * x              ≡⟨ left _*_ (sym (rIdentity 0r))⟩
+    (0r + 0r) * x       ≡⟨ rDistribute x 0r 0r ⟩
+    (0r * x) + (0r * x) ∎
  
  module _(x y : A) where
 
@@ -81,9 +79,8 @@ module _{A : Type l}{{R : Rng A}} where
              0r ∎
  
   -x*y≡x*-y =
-    let H : (x * y)+(neg x * y) ≡ (x * y)+(x * neg y)
-                    → neg x * y ≡ x * neg y
-        H = grp.cancel (x * y) in H $
+   [ neg x * y ≡ x * neg y ] grp.cancel (x * y) $
+   [(x * y)+(neg x * y) ≡ (x * y)+(x * neg y)]
     (x * y)+(neg x * y) ≡⟨ sym(rDistribute y x (neg x))⟩
     (x - x) * y         ≡⟨ [x-x]y≡0 ⟩
     0r                  ≡⟨ sym x[y-y]≡0 ⟩
@@ -91,9 +88,8 @@ module _{A : Type l}{{R : Rng A}} where
     (x * y)+(x * neg y) ∎
   
   -x*y≡-[x*y] =
-    let H : (x * y)+(neg x * y) ≡ (x * y) + neg(x * y)
-                    → neg x * y ≡ neg(x * y)
-        H = grp.cancel (x * y) in H $
+   [ neg x * y ≡ neg(x * y)] grp.cancel (x * y) $
+   [(x * y)+(neg x * y) ≡ (x * y) + neg(x * y)]
     (x * y)+(neg x * y) ≡⟨ sym(rDistribute y x (neg x))⟩
     (x - x) * y         ≡⟨ [x-x]y≡0 ⟩
     0r                  ≡⟨ sym (rInverse (x * y))⟩
