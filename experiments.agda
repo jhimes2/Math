@@ -4,7 +4,6 @@ open import Prelude
 open import Relations
 open import Data.Natural
 open import Cubical.Foundations.Isomorphism
-open import Data.Integer
 open import Cubical.HITs.PropositionalTruncation renaming (rec to recTrunc)
 open import Data.Finite
 open import NumberTheory.Natural
@@ -120,9 +119,13 @@ data klein4 : Type where
 
 open import Algebra.CRing
 
-fermat'sLittleTheorem : {p : ℕ} → {{_ : TwoLessP p}}
-                      → (a : ℕ) → paste (pow a (S(S p))) (S p) ≡ paste a (S p)
-fermat'sLittleTheorem {p} x =
- paste (pow x (S(S p))) (S p) ≡⟨By-Definition⟩
- paste (x * (x * (pow x p))) (S p) ≡⟨ {!!} ⟩
- paste x (S p) ∎
+-- https://en.wikipedia.org/wiki/Paraconsistent_logic
+-- An absurdity that does not entail everything?
+data ∞ : Type where
+  ff : ∞ → ∞
+
+test∞ : (A → ⊥) → (A → ∞)
+test∞ x y = UNREACHABLE (x y)
+
+test∞2 : ((A → ∞) → ⊥) → ((A → ⊥) → ∞)
+test∞2 x y = UNREACHABLE (x (λ a → UNREACHABLE (y a)))
