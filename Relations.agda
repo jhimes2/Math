@@ -33,6 +33,12 @@ a<b→b≤c→a≢c : {_≤_ : A → A → Type l} {{O : Poset _≤_}} → {a b 
 a<b→b≤c→a≢c {_≤_ = _≤_} {a = a} {b} {c} (q , p) b<c contra = p
      $ antiSymmetric q $ transport (λ i → b ≤ contra (~ i)) b<c
 
+minimal : {A : Type al}{_≤_ : A → A → Type l} → {{P : Poset _≤_}} → A → Type (l ⊔ al)
+minimal {_≤_ = _≤_} a = ∀ x → x ≤ a → a ≤ x
+
+maximal : {A : Type al}{_≤_ : A → A → Type l} → {{P : Poset _≤_}} → A → Type (l ⊔ al)
+maximal {_≤_ = _≤_} a = ∀ x → a ≤ x → x ≤ a
+
 -- https://en.wikipedia.org/wiki/Total_order
 record TotalOrder (l : Level) (A : Type al) : Type (lsuc (l ⊔ al))
   where field
