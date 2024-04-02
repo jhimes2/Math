@@ -39,6 +39,9 @@ minimal {_≤_ = _≤_} a = ∀ x → x ≤ a → a ≤ x
 maximal : {A : Type al}{_≤_ : A → A → Type l} → {{P : Poset _≤_}} → A → Type (l ⊔ al)
 maximal {_≤_ = _≤_} a = ∀ x → a ≤ x → x ≤ a
 
+chain : {A : Type al} {_≤_ : A → A → Type} → {{_ : Poset _≤_}} → (A → Type al) → Type al
+chain {_≤_ = _≤_} C = ∀ a b → a ∈ C → b ∈ C → ¬(a ≤ b) → b ≤ a
+
 -- https://en.wikipedia.org/wiki/Total_order
 record TotalOrder (l : Level) (A : Type al) : Type (lsuc (l ⊔ al))
   where field

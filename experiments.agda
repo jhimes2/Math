@@ -70,9 +70,6 @@ Schröder–Bernstein f (f' , finv) g (g' , ginv) = {!!}
 S1Equiv : Interval → Interval → Type
 S1Equiv i j = {!!}
 
-chain : {A : Type al} {_≤_ : A → A → Type} → {{_ : Poset _≤_}} → (A → Type al) → Type al
-chain {_≤_ = _≤_} C = ∀ a b → a ∈ C → b ∈ C → ¬(a ≤ b) → b ≤ a
-
 zorn' : {_≤_ : A → A → Type} → {{_ : Poset _≤_}}
       → ((C : A → Type al) → chain C → Σ λ g → ∀ x → x ∈ C → g ≤ x → g ≡ x)
       → ¬((x : A) → Σ λ g → x < g)
