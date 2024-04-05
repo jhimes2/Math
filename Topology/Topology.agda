@@ -5,7 +5,7 @@ open import Cubical.HITs.PropositionalTruncation renaming (rec to truncRec)
 open import Set
 open import Relations
 
-module ClassicalTopology.Topology where
+module Topology.Topology where
 
 -- https://en.wikipedia.org/wiki/Topological_space
 record topology {A : Type al} (T : (A → Type l') → Type l) : Type (l ⊔ lsuc l' ⊔ al) where
