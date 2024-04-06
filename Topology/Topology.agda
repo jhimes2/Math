@@ -74,6 +74,9 @@ module _{A : Type al}(τ : (A → Type l') → Type l){{T : topology τ}} where
 restrict : (f : A → B) → (S : A → Type l) → Σ S → B
 restrict f S = λ(x : Σ S) → f (fst x)
 
+UNION : {A : Type al} → ((A → Type l) → Type l') → A → Type(lsuc l ⊔ l' ⊔ al)
+UNION H a = Σ λ X → X ∈ H → a ∈ X
+
 module _{A : Type al}{B : Type bl}
         {τ : (A → Type l') → Type l}{{T : topology τ}} where
 
@@ -114,4 +117,8 @@ module _{A : Type al}{B : Type bl}
                     → continuous (ssTopology τ S) τ₁ λ(x , _) → f x
  restrictDomainContinuous {f = f} x S y V = let H = x y V in f ⁻¹[ y ] , H , λ _ _ a → a
 
- 
+ record Base (base : (A → Type l') → Type l) : Type(lsuc(lsuc l') ⊔ lsuc l ⊔ (lsuc al)) where
+  field
+    BaseAxiom1 : base ⊆ τ
+    BaseAxiom2 : (S : A → Type l') → S ∈ τ
+               → Σ λ(X : (A → Type l') → Type l) → X ⊆ base → (λ x → Lift (S x)) ≡ UNION X
