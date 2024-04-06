@@ -65,10 +65,14 @@ closed {τ = τ} s = s ᶜ ∈ τ
 module _{A : Type al}(τ : (A → Type l') → Type l){{T : topology τ}} where
 
  continuous : {B : Type bl}(τ₁ : (B → Type l') → Type cl){{T1 : topology τ₁}} → (A → B) → Type (lsuc l' ⊔ l ⊔ bl ⊔ cl)
- continuous {B = B} τ₁ f = {V : B → Type l'} → V ∈ τ₁ → f ⁻¹[ V ] ∈ τ
+ continuous {B = B} τ₁ f = (V : B → Type l') → V ∈ τ₁ → f ⁻¹[ V ] ∈ τ
 
- ssTopology : (S : A → Type bl) → (Σ S → Type (bl ⊔ l') ) → Type( al ⊔ lsuc l' ⊔ l ⊔ bl)
+ -- https://en.wikipedia.org/wiki/Subspace_topology
+ ssTopology : (S : A → Type bl) → (Σ S → Type (bl ⊔ l') ) → Type(al ⊔ lsuc l' ⊔ l ⊔ bl)
  ssTopology S H = Σ λ U → (U ∈ τ) × ∀ x → (P : x ∈ S) → (x , P) ∈ H → x ∈ U
+
+restrict : (f : A → B) → (S : A → Type l) → Σ S → B
+restrict f S = λ(x : Σ S) → f (fst x)
 
 module _{A : Type al}{B : Type bl}
         {τ : (A → Type l') → Type l}{{T : topology τ}} where
@@ -86,14 +90,14 @@ module _{A : Type al}{B : Type bl}
      }
 
  discreteDomainContinuous : (f : B → A) → continuous (discrete (bl ⊔ l')) τ f
- discreteDomainContinuous f = λ _ → lift tt
+ discreteDomainContinuous f = λ _ _ → lift tt
 
  indiscreteCodomainContinuous : (f : A → B) → continuous τ indiscrete f
- indiscreteCodomainContinuous f {V} (inl p) =
+ indiscreteCodomainContinuous f V (inl p) =
    let H : 𝓤 ≡ f ⁻¹[ V ]
        H = cong (f ⁻¹[_]) (sym p) in
         subst τ H tfull
- indiscreteCodomainContinuous f {V} (inr p) =
+ indiscreteCodomainContinuous f V (inr p) =
    let H : ∅ ≡ f ⁻¹[ V ]
        H = cong (f ⁻¹[_]) (sym p) in
         subst τ H tempty
@@ -102,4 +106,12 @@ module _{A : Type al}{B : Type bl}
                   {τ₂ : (C → Type l') → Type cl}{{T2 : topology τ₂}}
       → {f : A → B} → continuous τ τ₁ f
       → {g : B → C} → continuous τ₁ τ₂ g → continuous τ τ₂ (g ∘ f)
- continuousComp = λ x y z → x (y z)
+ continuousComp {f = f} H {g = g} x y = λ z → H (λ z₁ → y (g z₁)) (x y z)
+
+ restrictDomainContinuous : {τ₁ : (B → Type l') → Type bl}{{T1 : topology τ₁}} → {f : A → B}
+                    → continuous τ τ₁ f
+                    → (S : A → Type l')
+                    → continuous (ssTopology τ S) τ₁ λ(x , _) → f x
+ restrictDomainContinuous {f = f} x S y V = let H = x y V in f ⁻¹[ y ] , H , λ _ _ a → a
+
+ 
