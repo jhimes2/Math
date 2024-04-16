@@ -22,8 +22,8 @@ and : Bool → Bool → Bool
 and Yes b = b
 and No _ = No
 
-YesNEqNo : Yes ≢ No
-YesNEqNo p = eqToSetoid p
+Yes≢No : Yes ≢ No
+Yes≢No p = eqToSetoid p
  where
     setoid : Bool → Bool → Type₀
     setoid Yes Yes = ⊤
@@ -35,9 +35,13 @@ YesNEqNo p = eqToSetoid p
 
 boolDiscrete : Discrete Bool
 boolDiscrete Yes Yes = yes refl
-boolDiscrete Yes No = no YesNEqNo
-boolDiscrete No Yes = no (λ x → YesNEqNo (sym x))
+boolDiscrete Yes No = no Yes≢No
+boolDiscrete No Yes = no (λ x → Yes≢No (sym x))
 boolDiscrete No No = yes refl
+
+B≢notB : ∀ b → b ≢ not b
+B≢notB Yes x = Yes≢No x
+B≢notB No x = Yes≢No (sym x)
 
 instance
 
@@ -90,7 +94,7 @@ instance
   boolCRing = record {}
   boolField : Field Bool
   boolField = record
-      { 1≢0 = YesNEqNo
+      { 1≢0 = Yes≢No
       ; reciprocal = fst
       ; recInv = λ{ (Yes , x) → refl
                   ; (No , x) → x refl ~> UNREACHABLE }
@@ -164,3 +168,18 @@ module _{_∙_ : A → A → A}{{_ : Commutative _∙_}}{{G : group _∙_}} wher
   group.inverse dihedralGroup (r , No) = (inv r , No) , ≡-× (lInverse r) refl
   group.lIdentity dihedralGroup (r , Yes) = ≡-× (lIdentity r) refl
   group.lIdentity dihedralGroup (r , No) = ≡-× (lIdentity r) refl
+
+open import Data.Natural
+
+ℕ→𝔹notSurjℕ : ¬(Σ λ(f : ℕ → (ℕ → Bool)) → surjective f)
+ℕ→𝔹notSurjℕ (f , surj) =
+   let g : ℕ → Bool
+       g = λ n → not (f n n) in
+       surj g ~>
+      λ((n , H) : Σ λ n → f n ≡ g) → 
+   let G : f n n ≡ not (f n n)
+       G = funRed H n in
+   B≢notB (f n n) G
+
+ℕ→𝔹¬≅ℕ : ¬((ℕ → Bool) ≅ ℕ)
+ℕ→𝔹¬≅ℕ (f , _ , surj) = ℕ→𝔹notSurjℕ (f , surj)
