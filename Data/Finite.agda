@@ -113,8 +113,8 @@ pigeonhole {n = S n} {m} f contra = let (g , gInj) = G (f , contra) in
 ℕ→Fin¬Inj : ¬(Σ λ(f : ℕ → fin n) → injective f)
 ℕ→Fin¬Inj {n = n} F =
     let G : Σ λ(g : fin (S n) → fin n) → injective g
-        G = injectiveComp ((λ x → fst x) , (λ x y p → ΣPathPProp finSndIsProp p))
-                     F in
+        G = ((fst F) ∘ (λ x → fst x)) , injectiveComp (λ x y p → ΣPathPProp finSndIsProp p)
+                                                      (snd F) in
     let G2 = Σ λ(g : fin (S n + Z) → fin n) → injective g
         G2 = transport (λ i → Σ λ (g : fin (addZ (S n) (~ i)) → fin n) → injective g) G in 
   pigeonhole (fst G2) (snd G2)

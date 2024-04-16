@@ -215,20 +215,20 @@ bijective f = injective f × surjective f
 _≅_ : (A : Type l)(B : Type l') → Type (l ⊔ l')
 A ≅ B = Σ λ (f : B → A) → bijective f
 
-injectiveComp : (Σ λ(f : A → B) → injective f)
-              → (Σ λ(g : B → C) → injective g)
-              → Σ λ(h : A → C) → injective h
-injectiveComp (f , f') (g , g') = g ∘ f , λ x y z → f' x y (g' (f x) (f y) z)
+injectiveComp : {f : A → B} → injective f
+              → {g : B → C} → injective g
+                            → injective (g ∘ f)
+injectiveComp {f = f} fInj {g} gInj = λ x y z → fInj x y (gInj (f x) (f y) z)
 
-surjectiveComp : (Σ λ(f : A → B) → surjective f)
-               → (Σ λ(g : B → C) → surjective g)
-               → (Σ λ(h : A → C) → surjective h)
-surjectiveComp (f , f') (g , g') = g ∘ f , λ b → g' b ~> λ(x , x')
-                  → f' x ~> λ(y , y') → y , (cong g y' ⋆ x')
+surjectiveComp : {f : A → B} → surjective f
+               → {g : B → C} → surjective g
+                             → surjective (g ∘ f)
+surjectiveComp {f = f} fSurj {g} gSurj =
+  λ b → gSurj b ~> λ(x , x') → fSurj x ~> λ(y , y') → y , (cong g y' ⋆ x')
 
 ≅transitive : A ≅ B → B ≅ C → A ≅ C
-≅transitive (g , Ginj , Gsurj) (f , Finj , Fsurj) = g ∘ f , (λ x y z → Finj x y (Ginj (f x) (f y) z))
-                                       , (snd (surjectiveComp (f , Fsurj) (g , Gsurj)))
+≅transitive (g , Ginj , Gsurj) (f , Finj , Fsurj) =
+  g ∘ f , (λ x y z → Finj x y (Ginj (f x) (f y) z)) , surjectiveComp Fsurj Gsurj
 
 -- https://en.wikipedia.org/wiki/Inverse_function#Left_and_right_inverses
 
