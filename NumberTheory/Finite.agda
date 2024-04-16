@@ -124,7 +124,7 @@ instance
 -- https://en.wikipedia.org/wiki/Dihedral_group
 
 -- Dihedral element
-D = λ(n : ℕ) → Fin n × Bool
+D = λ(n : ℕ) → Fin n × 𝔹
 
 {- For a dihedral group 'D n', 'n' is one less than the geometric convention.
    So 'D 2' is the symmetry group of an equilateral triangle.

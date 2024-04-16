@@ -6,34 +6,34 @@ open import Prelude
 open import Algebra.Field
 open import Relations
 
-data Bool : Type where
-  Yes : Bool
-  No : Bool
+data 𝔹 : Type where
+  Yes : 𝔹
+  No : 𝔹
 
-not : Bool → Bool
+not : 𝔹 → 𝔹
 not Yes = No
 not No = Yes
 
-xor : Bool → Bool → Bool
+xor : 𝔹 → 𝔹 → 𝔹
 xor Yes b = not b
 xor No b = b
 
-and : Bool → Bool → Bool
+and : 𝔹 → 𝔹 → 𝔹
 and Yes b = b
 and No _ = No
 
 Yes≢No : Yes ≢ No
 Yes≢No p = eqToSetoid p
  where
-    setoid : Bool → Bool → Type₀
+    setoid : 𝔹 → 𝔹 → Type₀
     setoid Yes Yes = ⊤
     setoid No No = ⊤
     setoid _ _ = ⊥
-    eqToSetoid : {a b : Bool} → a ≡ b → setoid a b
+    eqToSetoid : {a b : 𝔹} → a ≡ b → setoid a b
     eqToSetoid {Yes} p = transport (λ i → setoid Yes (p i)) tt
     eqToSetoid {No} p = transport (λ i → setoid No (p i)) tt
 
-boolDiscrete : Discrete Bool
+boolDiscrete : Discrete 𝔹
 boolDiscrete Yes Yes = yes refl
 boolDiscrete Yes No = no Yes≢No
 boolDiscrete No Yes = no (λ x → Yes≢No (sym x))
@@ -45,8 +45,8 @@ B≢notB No x = Yes≢No (sym x)
 
 instance
 
-  BoolIsSet : is-set Bool
-  BoolIsSet = record { IsSet = Discrete→isSet boolDiscrete }
+  𝔹IsSet : is-set 𝔹
+  𝔹IsSet = record { IsSet = Discrete→isSet boolDiscrete }
 
   andAssoc : Associative and
   andAssoc = record { assoc = λ{ Yes _ _ → refl
@@ -76,7 +76,7 @@ instance
                                    ; Yes No → refl
                                    ; No Yes → refl
                                    ; No No → refl}}
-  bool*+ : *+ Bool
+  bool*+ : *+ 𝔹
   bool*+ = record { _+_ = xor
                   ; _*_ = and
                   ; lDistribute = λ{ Yes _ _ → refl
@@ -86,13 +86,13 @@ instance
                                    ; No Yes Yes → refl
                                    ; No Yes No → refl
                                    ; _ No _ → refl}}
-  boolRng : Rng Bool
+  boolRng : Rng 𝔹
   boolRng = record {}
-  boolRing : Ring Bool
+  boolRing : Ring 𝔹
   boolRing = record {}
-  boolCRing : CRing Bool
+  boolCRing : CRing 𝔹
   boolCRing = record {}
-  boolField : Field Bool
+  boolField : Field 𝔹
   boolField = record
       { 1≢0 = Yes≢No
       ; reciprocal = fst
@@ -101,7 +101,7 @@ instance
       }
 
 private
- le : Bool → Bool → Type
+ le : 𝔹 → 𝔹 → Type
  le No _ = ⊤
  le Yes No = ⊥
  le Yes Yes = ⊤
@@ -113,14 +113,14 @@ instance
        ; reflexive = λ a → auxRefl a
        ; isRelation = auxRel }
    where
-    auxTrans : (a b c : Bool) → le a b → le b c → le a c
+    auxTrans : (a b c : 𝔹) → le a b → le b c → le a c
     auxTrans Yes Yes c _ z = z
     auxTrans Yes No _ absurd = absurd ~> UNREACHABLE
     auxTrans No _ _ _ _ = tt
-    auxRefl : (a : Bool) → le a a
+    auxRefl : (a : 𝔹) → le a a
     auxRefl Yes = tt
     auxRefl No = tt
-    auxRel : (a b : Bool) → isProp (le a b)
+    auxRel : (a b : 𝔹) → isProp (le a b)
     auxRel Yes Yes tt tt = refl
     auxRel Yes No = isProp⊥
     auxRel No _ tt tt = refl
@@ -134,7 +134,7 @@ instance
     auxAS No Yes p q = q ~> UNREACHABLE
     auxAS No No p q = refl
 
-  boolTotalOrder : TotalOrder _ Bool
+  boolTotalOrder : TotalOrder _ 𝔹
   boolTotalOrder = record { _≤_ = le
         ; stronglyConnected = λ{ Yes Yes → inl tt ; Yes No → inr tt ; No b → inl tt}}
 
@@ -143,7 +143,7 @@ instance
 module _{_∙_ : A → A → A}{{_ : Commutative _∙_}}{{G : group _∙_}} where
 
   -- Generalized Dihedral operator
- _●_ : (A × Bool) → (A × Bool) → (A × Bool)
+ _●_ : (A × 𝔹) → (A × 𝔹) → (A × 𝔹)
  (r , No) ● (r' , s) = (r ∙ r') , s
  (r , Yes) ● (r' , s) = (r ∙ inv r') , not s
 
@@ -151,7 +151,7 @@ module _{_∙_ : A → A → A}{{_ : Commutative _∙_}}{{G : group _∙_}} wher
   dihedralAssoc : Associative _●_
   dihedralAssoc = record { assoc = aux }
    where
-    aux : (a b c : (A × Bool)) → a ● (b ● c) ≡ (a ● b) ● c
+    aux : (a b c : (A × 𝔹)) → a ● (b ● c) ≡ (a ● b) ● c
     aux (r1 , Yes) (r2 , Yes) (r3 , Yes) =
           ≡-× (a[bc]'≡[ab']c' r1 r2 (inv r3)
                ⋆ cong ((r1 ∙ (inv r2)) ∙_) (grp.doubleInv r3)) refl
@@ -171,9 +171,9 @@ module _{_∙_ : A → A → A}{{_ : Commutative _∙_}}{{G : group _∙_}} wher
 
 open import Data.Natural
 
-ℕ→𝔹notSurjℕ : ¬(Σ λ(f : ℕ → (ℕ → Bool)) → surjective f)
+ℕ→𝔹notSurjℕ : ¬(Σ λ(f : ℕ → (ℕ → 𝔹)) → surjective f)
 ℕ→𝔹notSurjℕ (f , surj) =
-   let g : ℕ → Bool
+   let g : ℕ → 𝔹
        g = λ n → not (f n n) in
        surj g ~>
       λ((n , H) : Σ λ n → f n ≡ g) → 
@@ -181,5 +181,5 @@ open import Data.Natural
        G = funRed H n in
    B≢notB (f n n) G
 
-ℕ→𝔹¬≅ℕ : ¬((ℕ → Bool) ≅ ℕ)
+ℕ→𝔹¬≅ℕ : ¬((ℕ → 𝔹) ≅ ℕ)
 ℕ→𝔹¬≅ℕ (f , _ , surj) = ℕ→𝔹notSurjℕ (f , surj)
