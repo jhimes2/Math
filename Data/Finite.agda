@@ -75,16 +75,15 @@ finDecrInj {x = S x , y , z} {S a , b , c} p q H = ΣPathPProp finSndIsProp (con
 -- A mapping from a finite set to a smaller set is not injective.
 pigeonhole : (f : fin (S n + m) → fin n) → ¬(injective f)
 pigeonhole {n = Z} {m} f _ = ¬finZ (f finZ) ~> UNREACHABLE
-pigeonhole {n = S n} {m} f contra = let (g , gInj) = finDecrInjFun (f , contra) in
+pigeonhole {n = S n} {m} f contra = let (g , gInj) = G (f , contra) in
    pigeonhole {n} {m} g gInj
  where
-  finDecrInjFun : {n m : ℕ}
-                → (Σ λ(f : fin (S n) → fin (S m)) → injective f)
+  G : {n m : ℕ} → (Σ λ(f : fin (S n) → fin (S m)) → injective f)
                 →  Σ λ(g : fin n     → fin m    ) → injective g
-  finDecrInjFun {Z} {m} (f , fInj) = (λ x → ¬finZ x ~> UNREACHABLE) , λ x → ¬finZ x ~> UNREACHABLE
-  finDecrInjFun {S n} {Z} (f , fInj) = finS≢finZ (fInj (finS finZ) finZ $ isPropFinSZ (f (finS finZ)) (f finZ))
+  G {Z} {m} (f , fInj) = (λ x → ¬finZ x ~> UNREACHABLE) , λ x → ¬finZ x ~> UNREACHABLE
+  G {S n} {Z} (f , fInj) = finS≢finZ (fInj (finS finZ) finZ $ isPropFinSZ (f (finS finZ)) (f finZ))
                                  ~> UNREACHABLE
-  finDecrInjFun {S n} {S m} (f , fInj) = decr , decrInj
+  G {S n} {S m} (f , fInj) = decr , decrInj
    where
     decr : fin (S n) → fin (S m)
     decr x with finDiscrete finZ (f (finS x))
@@ -109,3 +108,17 @@ pigeonhole {n = S n} {m} f contra = let (g , gInj) = finDecrInjFun (f , contra) 
     ...                       | (no r) = finS≢finZ (fInj (finS x) finZ (finDecrInj a r p))
                                        ~> UNREACHABLE
     decrInj x y p | (no a)  | (no b) = finSInj (fInj (finS x) (finS y) (finDecrInj a b p))
+
+-- There does not exist an injective mapping from ℕ to a finite set
+ℕ→Fin¬Inj : ¬(Σ λ(f : ℕ → fin n) → injective f)
+ℕ→Fin¬Inj {n = n} F =
+    let G : Σ λ(g : fin (S n) → fin n) → injective g
+        G = injectiveComp ((λ x → fst x) , (λ x y p → ΣPathPProp finSndIsProp p))
+                     F in
+    let G2 = Σ λ(g : fin (S n + Z) → fin n) → injective g
+        G2 = transport (λ i → Σ λ (g : fin (addZ (S n) (~ i)) → fin n) → injective g) G in 
+  pigeonhole (fst G2) (snd G2)
+
+-- A finite set is not equivalent to ℕ
+¬ℕ≅Fin : ¬ fin n ≅ ℕ
+¬ℕ≅Fin (f , inj , surj) = ℕ→Fin¬Inj (f , inj)
