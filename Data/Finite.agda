@@ -122,3 +122,26 @@ pigeonhole {n = S n} {m} f contra = let (g , gInj) = G (f , contra) in
 -- A finite set is not equivalent to ℕ
 ¬ℕ≅Fin : ¬ fin n ≅ ℕ
 ¬ℕ≅Fin (f , inj , surj) = ℕ→Fin¬Inj (f , inj)
+
+fin* : fin n → fin m → fin (n * m)
+fin* {n}{m} (a , y , H) (b , z , G) = (a * b) ,
+             ((b + z) + ((a + y) + ((y * b) + ((a + y) * z)))) ,
+ (S (a * b) + ((b + z) + ((a + y) + ((y * b) + ((a + y) * z)))) ≡⟨ cong S (
+  (a * b) + ((b + z) + ((a + y) + ((y * b) + ((a + y) * z))))
+             ≡⟨ a[bc]≡b[ac] (a * b) (b + z) ((a + y) + ((y * b) + ((a + y) * z))) ⟩
+  (b + z) + ((a * b) + ((a + y) + ((y * b) + ((a + y) * z)))) ≡⟨ right _+_ (
+     (a * b) + ((a + y) + ((y * b) + ((a + y) * z)))
+     ≡⟨ a[bc]≡b[ac] (a * b) (a + y) ((y * b) + ((a + y) * z)) ⟩
+     (a + y) + ((a * b) + ((y * b) + ((a + y) * z))) ≡⟨ right _+_ (
+      (a * b) + ((y * b) + ((a + y) * z))    ≡⟨ refl ⟩
+      (a * b) + ((y * b) + ((a + y) * z)) ≡⟨ assoc (a * b) (y * b) ((a + y) * z)⟩
+      ((a * b) + (y * b)) + ((a + y) * z) ≡⟨ left _+_ (sym (rDistribute b a y)) ⟩
+      ((a + y) * b) + ((a + y) * z) ≡⟨ sym (lDistribute (a + y) b z) ⟩
+      (a + y) * (b + z) ≡⟨ comm (a + y) (b + z)⟩
+      (b + z) * (a + y) ∎
+       ) ⟩
+     (a + y) + ((b + z) * (a + y)) ≡⟨ comm (S b + z) (a + y)⟩
+      (a + y) * S(b + z) ∎ ) ⟩
+  (b + z) + ((a + y) * S(b + z)) ∎ ) ⟩
+ S(b + z) + ((a + y) * S(b + z)) ≡⟨ cong₂ _*_  H G ⟩
+  n * m ∎)
