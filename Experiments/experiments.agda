@@ -1,5 +1,7 @@
 {-# OPTIONS --allow-unsolved-metas --cubical --overlapping-instances --hidden-argument-pun #-}
 
+module Experiments.experiments where
+
 open import Prelude
 open import Relations
 open import Data.Natural
@@ -29,14 +31,14 @@ data circle : Type where
   base : circle
   loop : base ≡ base
 
-flipPath : Bool ≡ Bool
+flipPath : 𝔹 ≡ 𝔹
 flipPath = isoToPath (iso (λ{ Yes → No ; No → Yes})
                      (λ{ Yes → No ; No → Yes})
                      (λ{ Yes → refl ; No → refl})
                      λ{ Yes → refl ; No → refl})
 
 doubleCover : circle → Type
-doubleCover base = Bool
+doubleCover base = 𝔹
 doubleCover (loop i) = flipPath i
 
 endPtOfYes : base ≡ base → doubleCover base
@@ -45,13 +47,13 @@ endPtOfYes p = transport (λ i → doubleCover (p i)) Yes
 retYes : doubleCover base
 retYes = transport (λ i → doubleCover base) Yes
 
-retYes' : Bool
-retYes' = transport (λ i → Bool) Yes
+retYes' : 𝔹
+retYes' = transport (λ i → 𝔹) Yes
 
 retNo : doubleCover base
 retNo = transport (λ i → doubleCover (loop i)) Yes
 
-retNo' : Bool
+retNo' : 𝔹
 retNo' = transport (λ i → flipPath i) Yes
 
 reflLoopF : ((λ i → base) ≡ loop) → Yes ≡ No
@@ -82,7 +84,7 @@ zorn' {A = A} {_≤_ = _≤_} ch contra =
       H = {!!} in {!!}
 
 {-# TERMINATING #-}
-distinguish : (f : ℕ → Bool) → f ≢ (λ x → Yes) → Σ λ x → f x ≢ Yes
+distinguish : (f : ℕ → 𝔹) → f ≢ (λ x → Yes) → Σ λ x → f x ≢ Yes
 distinguish f H = aux Z
  where
   aux : (n : ℕ) → Σ λ x → f x ≢ Yes
@@ -100,7 +102,7 @@ test2 {al} = no λ x → (LEM (Dec ((A : Type al) → Dec A))) ~> λ{x → {!!}}
 
 DNElimF : ¬ ((l : Level) → (A : Type) → ¬(¬ A) → A)
 DNElimF dn =
-  let f = dn lzero Bool in
+  let f = dn lzero 𝔹 in
   let isEq : (A : Type) → Discrete A
       isEq = {!!}
   in {!!}

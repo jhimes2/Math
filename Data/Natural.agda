@@ -5,7 +5,7 @@ module Data.Natural where
 open import Relations
 open import Prelude
 open import Algebra.Monoid
-open import Algebra.MultAdd
+open import Algebra.MultAdd public
 
 data ℕ : Type where
   Z : ℕ
