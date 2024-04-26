@@ -26,25 +26,6 @@ module _{scalar : Type l}{{F : Field scalar}}{vector : Type l'}{{V : VectorSpace
      ; act-compatibility = λ v (a , _) (b , _) → scalarAssoc v a b
      }
 
-  -- https://en.wikipedia.org/wiki/Linear_independence
-  record LinearlyIndependent (X : vector → Type(l ⊔ l')) : Type (lsuc (l ⊔ l'))
-    where field
-        {{linInd}} : Independent X
-        noZero : Ô ∉ X
-  open LinearlyIndependent {{...}} public
-
-  -- https://en.wikipedia.org/wiki/Basis_(linear_algebra)
-  -- A basis is defined as a maximal element of the family of linearly independent sets
-  -- by the order of set inclusion.
-  Basis : Σ LinearlyIndependent → Type(lsuc (l ⊔ l'))
-  Basis X = (Y : Σ LinearlyIndependent) → X ⊆ Y → X ≡ Y
- 
-  record Basis_for_ (X : vector → Type(l ⊔ l')) (H : Σ Subspace) : Type (lsuc (l ⊔ l'))
-    where field
-    overlap {{bfLI}} : LinearlyIndependent X
-    spanEq : Span X ≡ fst H
-  open Basis_for_ {{...}} hiding (bfLI) public
-
   module _{vector' : Type al}{{U : VectorSpace vector'}} where
 
     -- https://en.wikipedia.org/wiki/Linear_map

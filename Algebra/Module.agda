@@ -83,6 +83,7 @@ module _{scalar : Type l}{vector : Type l'}{{R : Ring scalar}}{{V : Module vecto
 
   -- This is a more general definition that uses a module instead of a vector space
   data Span (X : vector → Type al) : vector → Type (l ⊔ l' ⊔ al) where
+    spanÔ : Ô ∈ Span X
     intro : ∀{v} → v ∈ X → v ∈ Span X
     spanAdd : ∀{u v} → u ∈ Span X → v ∈ Span X → u [+] v ∈ Span X
     spanScale : ∀{v} → v ∈ Span X → (c : scalar) → scale c v ∈ Span X
@@ -96,6 +97,7 @@ module _{scalar : Type l}{vector : Type l'}{{R : Ring scalar}}{{V : Module vecto
   spanIdempotent = funExt λ X → funExt λ x → propExt spanSet spanSet (aux X x) intro
    where
     aux : (X : vector → Type al) → (x : vector) → x ∈ (Span ∘ Span) X → x ∈ Span X
+    aux X x spanÔ = spanÔ
     aux X x (intro p) = p
     aux X x (spanAdd {v} {u} p q) = spanAdd (aux X v p) (aux X u q)
     aux X x (spanScale {v} p c) = spanScale (aux X v p) c
@@ -109,17 +111,20 @@ module _{scalar : Type l}{vector : Type l'}{{R : Ring scalar}}{{V : Module vecto
   spanSupport X = funExt λ v → propExt spanSet spanSet (aux1 v) (aux2 v)
     where
      aux1 : ∀ v → v ∈ Span (Support X) → v ∈ Span X
+     aux1 v spanÔ = spanÔ
      aux1 v (intro x) = support→span X v x
      aux1 v (spanAdd {u} {w} x y) = spanAdd (aux1 u x) (aux1 w y)
      aux1 v (spanScale {u} x c) = spanScale (aux1 u x) c
      aux1 v (spanSet {u} x y i) = spanSet (aux1 v x) (aux1 v y) i
      aux2 : ∀ v → v ∈ Span X → v ∈ Span (Support X)
+     aux2 v spanÔ = spanÔ
      aux2 v (intro x) = intro (supportIntro v x)
      aux2 v (spanAdd {u} {w} x y) = spanAdd (aux2 u x) (aux2 w y)
      aux2 v (spanScale {u} x c) = spanScale (aux2 u x) c
      aux2 v (spanSet x y i) = spanSet (aux2 v x) (aux2 v y) i
 
   span⊆preserve : ∀ {X Y : vector → Type al} → X ⊆ Y → Span X ⊆ Span Y
+  span⊆preserve {X = X} {Y} p v spanÔ = η spanÔ
   span⊆preserve {X = X} {Y} p v (intro x) = truncRec squash₁ (λ z → η (intro z)) (p v x)
   span⊆preserve {X = X} {Y} p v (spanAdd {u} {w} x y) =
      span⊆preserve p u x >>= λ H →
@@ -128,7 +133,7 @@ module _{scalar : Type l}{vector : Type l'}{{R : Ring scalar}}{{V : Module vecto
   span⊆preserve {X = X} {Y} p v (spanSet x y i) = squash₁ (span⊆preserve p v x)
                                                           (span⊆preserve p v y) i
 
-  ⊆span : (X : vector → Type(l' ⊔ l)) → X ⊆ Span X
+  ⊆span : (X : vector → Type al) → X ⊆ Span X
   ⊆span X x P = η (intro P)
 
   -- This is a more general definition that uses a module instead of a vector space
@@ -163,43 +168,39 @@ module _{scalar : Type l}{vector : Type l'}{{R : Ring scalar}}{{V : Module vecto
             transport H F
       }
 
-  -- The span of a non-empty set of vectors is a subspace
-  NonEmptySpanIsSubspace :{X : vector → Type al}
-                        → Σ X
-                        → Subspace (Span X)
-  NonEmptySpanIsSubspace {X = X} (v , v') =
-      record { ssZero = scaleZ v ~> λ p → subst (Span X) p (spanScale (intro v') 0r)
+  -- The span of a set of vectors is a subspace
+  spanIsSubspace : {X : vector → Type al} → Subspace (Span X)
+  spanIsSubspace =
+      record { ssZero = spanÔ
              ; ssAdd = λ x y → spanAdd x y
              ; ssScale = λ x c → spanScale x c
              ; ssSet = λ v → spanSet
              }
 
-  {- This is almost the definition of linear independence except that the set which contains
-     only the zero vector is a member. -}
-  record Independent (X : vector → Type al) : Type (lsuc (l ⊔ l' ⊔ al))
-    where field
-        Ind : ∀ Y → Span Y ≡ Span X → Y ⊆ X → Y ≡ X
-  open Independent {{...}} public
+  record LinearlyIndependent (X : vector → Type al) : Type (lsuc (l ⊔ l' ⊔ al))
+   where field
+     li : ∀ Y → Span Y ≡ Span X → Y ⊆ X → Y ≡ X
+  open LinearlyIndependent {{...}} public
 
   instance
-   IndSet : {X : vector → Type l'} → {{_ : Independent X}} → Property X
+   IndSet : {X : vector → Type (al ⊔ l')} → {{Y : LinearlyIndependent X}} → Property X
    IndSet {X = X} =
-      let H : Support X ≡ X
-          H = Ind (Support X) (spanSupport X)
-                  λ x → supportRec squash₁ x λ y → η y
-       in record { setProp = λ v → transport (λ i → isProp (v ∈ H i)) (supportProp v) }
+      let H = li (Support X) (spanSupport X) λ x → supportRec squash₁ x λ y → η y
+      in
+      record { setProp = λ v → transport (λ i → isProp (v ∈ H i)) (supportProp v) }
 
-  record  MaxInd (X : vector → Type al) : Type (lsuc (l ⊔ l' ⊔ al))  where
-   field
-    {{independent}} : Independent X
-    maxInd : ∀ Y → {{Independent Y}} → X ⊆ Y → X ≡ Y
-  open MaxInd {{...}} public
+  -- https://en.wikipedia.org/wiki/Basis_(linear_algebra)
+  -- A basis is defined as a maximal element of the family of linearly independent sets
+  -- by the order of set inclusion.
+  Basis : Σ (LinearlyIndependent {al = al}) → Type(lsuc (l ⊔ l' ⊔ al))
+  Basis X = (Y : Σ LinearlyIndependent) → X ⊆ Y → Y ⊆ X
 
-  completeSpan : (X : vector → Type l') → {{I : Independent X}} → (∀ v → v ∈ Span X) → MaxInd X
-  completeSpan X f = record { maxInd = λ Y (y : X ⊆ Y) →
+  completeSpan : (X : vector → Type(l ⊔ l')) {{LI : LinearlyIndependent X}} → (∀ v → v ∈ Span X) → Basis (X , LI)
+  completeSpan X f (Z , LI2) = λ (y : X ⊆ Z) x x∈Z →
        let H = span⊆preserve y in
-       Ind X (funExt λ z → propExt spanSet spanSet (λ x → truncRec spanSet (λ w → w) (H z x)) λ _ → f z) y
-       }
+       let G = LinearlyIndependent.li LI2 X (funExt (λ z → propExt spanSet spanSet (λ F → truncRec spanSet id (H z F))
+               λ T → f z)) y in
+           η $ transport (λ i → x ∈ G (~ i)) x∈Z
 
 -- https://en.wikipedia.org/wiki/Module_homomorphism
 record moduleHomomorphism {A : Type l}
