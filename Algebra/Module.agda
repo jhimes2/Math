@@ -78,69 +78,99 @@ module _{scalar : Type l}{vector : Type l'}{{R : Ring scalar}}{{V : Module vecto
   scaleNeg : (v : vector) → (c : scalar) → scale (neg c) v ≡ scale c (negV v)
   scaleNeg v c = scale (neg c) v             ≡⟨ left scale (sym(x*-1≡-x c))⟩
                  scale (c * neg 1r) v        ≡⟨ sym (scalarAssoc v c (neg 1r))⟩
-                 scale c  (scale (neg 1r) v) ≡⟨ right scale (scaleNegOneInv v)⟩
+                 scale c (scale (neg 1r) v)  ≡⟨ right scale (scaleNegOneInv v)⟩
                  scale c (negV v) ∎
 
   -- This is a more general definition that uses a module instead of a vector space
   data Span (X : vector → Type al) : vector → Type (l ⊔ l' ⊔ al) where
     spanÔ : Ô ∈ Span X
-    intro : ∀{v} → v ∈ X → v ∈ Span X
-    spanAdd : ∀{u v} → u ∈ Span X → v ∈ Span X → u [+] v ∈ Span X
-    spanScale : ∀{v} → v ∈ Span X → (c : scalar) → scale c v ∈ Span X
+    spanStep : ∀{u v} → u ∈ X → v ∈ Span X → (c : scalar) → scale c u [+] v ∈ Span X
     spanSet : ∀{v} → isProp (v ∈ Span X)
 
   instance
     spanIsSet : {X : vector → Type al} → Property (Span X)
     spanIsSet = record { setProp = λ x y z → spanSet y z }
 
+  spanIntro : {X : vector → Type al} → ∀ v → v ∈ X → v ∈ Span X
+  spanIntro {X = X} v v∈X =
+     transport (λ i → (scale 1r v [+] Ô ≡⟨ rIdentity (scale 1r v)⟩
+                       scale 1r v       ≡⟨ scaleId v ⟩
+                       v ∎) i ∈ Span X)
+     (spanStep v∈X spanÔ 1r)
+
+  spanScale : {X : vector → Type al} → ∀ v → v ∈ X → (c : scalar) → scale c v ∈ Span X
+  spanScale {X = X} v v∈X c =
+     transport (λ i → (scale c v [+] Ô ≡⟨ rIdentity (scale c v)⟩
+                       scale c v ∎) i ∈ Span X)
+     (spanStep v∈X spanÔ c)
+
+  spanAdd : {X : vector → Type al} → ∀ u v → u ∈ X → v ∈ Span X → u [+] v ∈ Span X
+  spanAdd {X = X} u v u∈X v∈X =
+    transport (λ i → (scaleId u i) [+] v ∈ Span X) (spanStep u∈X v∈X 1r)
+
+  spanStep2 : {X : vector → Type al} → ∀{u v} → u ∈ Span X → v ∈ Span X → (c : scalar) → scale c u [+] v ∈ Span X
+  spanStep2 {X = X} {w} {v} spanÔ q c = transport (λ i → ((v ≡⟨ sym (lIdentity v)⟩
+                                                     Ô [+] v ≡⟨ sym (left _[+]_ (scaleVZ c))⟩
+                                                      scale c Ô [+] v ∎) i) ∈ Span X) q
+  spanStep2 {X = X} {w} {v} (spanStep {x} {y} x' y' d) q c =
+             transport (λ i → (
+                (scale(c * d) x [+] (scale c y [+] v)     ≡⟨ left _[+]_ (sym (scalarAssoc x c d))⟩
+                scale c (scale d x) [+] (scale c y [+] v) ≡⟨ assoc (scale c (scale d x)) (scale c y) v ⟩
+                (scale c (scale d x) [+] scale c y) [+] v ≡⟨ left _[+]_ (sym (scalarDistribute c (scale d x) y))⟩
+                scale c (scale d x [+] y) [+] v ∎
+              ) i) ∈ Span X) (spanStep x' (spanStep2 y' q c) (c * d))
+  spanStep2 {X = X} {u} {v} (spanSet {w} a b i) q c = spanSet (spanStep2 a q c)
+                                                              (spanStep2 b q c) i
+
+  spanScale2 : {X : vector → Type al} → ∀ v → v ∈ Span X → (c : scalar) → scale c v ∈ Span X
+  spanScale2 {X = X} v H c =
+     transport (λ i → (scale c v [+] Ô ≡⟨ rIdentity (scale c v)⟩
+                       scale c v ∎) i ∈ Span X)
+     (spanStep2 H spanÔ c)
+
+  spanAdd2 : {X : vector → Type al} → ∀ u v → u ∈ Span X → v ∈ Span X → u [+] v ∈ Span X
+  spanAdd2 {X = X} u v p q =
+    transport (λ i → (scaleId u i) [+] v ∈ Span X) (spanStep2 p q 1r)
+
   spanIdempotent : (Span ∘ Span) ≡ Span {al}
-  spanIdempotent = funExt λ X → funExt λ x → propExt spanSet spanSet (aux X x) intro
+  spanIdempotent = funExt λ X → funExt λ x → propExt spanSet spanSet (aux X x) (spanIntro x)
    where
     aux : (X : vector → Type al) → (x : vector) → x ∈ (Span ∘ Span) X → x ∈ Span X
     aux X x spanÔ = spanÔ
-    aux X x (intro p) = p
-    aux X x (spanAdd {v} {u} p q) = spanAdd (aux X v p) (aux X u q)
-    aux X x (spanScale {v} p c) = spanScale (aux X v p) c
-    aux X x (spanSet {v} p q H) = spanSet (aux X v p) (aux X v q) H
+    aux X x (spanStep {u} {v} p q c) = spanStep2 p (aux X v q) c
+    aux X x (spanSet p q i) = spanSet (aux X x p) (aux X x q) i
 
   support→span : (X : vector → Type al) → ∀ v → v ∈ Support X → v ∈ Span X
-  support→span X v (supportIntro .v x) = intro x
+  support→span X v (supportIntro .v x) = spanIntro v x
   support→span X v (supportProp .v x y i) = spanSet (support→span X v x) (support→span X v y) i
 
   spanSupport : (X : vector → Type al) → Span (Support X) ≡ Span X
   spanSupport X = funExt λ v → propExt spanSet spanSet (aux1 v) (aux2 v)
     where
      aux1 : ∀ v → v ∈ Span (Support X) → v ∈ Span X
-     aux1 v spanÔ = spanÔ
-     aux1 v (intro x) = support→span X v x
-     aux1 v (spanAdd {u} {w} x y) = spanAdd (aux1 u x) (aux1 w y)
-     aux1 v (spanScale {u} x c) = spanScale (aux1 u x) c
-     aux1 v (spanSet {u} x y i) = spanSet (aux1 v x) (aux1 v y) i
+     aux1 z spanÔ = spanÔ
+     aux1 z (spanStep {u} {v} p q c) = spanStep2 (supportRec spanSet u (spanIntro u) p) (aux1 v q) c
+     aux1 v (spanSet x y i) = spanSet (aux1 v x) (aux1 v y) i
      aux2 : ∀ v → v ∈ Span X → v ∈ Span (Support X)
-     aux2 v spanÔ = spanÔ
-     aux2 v (intro x) = intro (supportIntro v x)
-     aux2 v (spanAdd {u} {w} x y) = spanAdd (aux2 u x) (aux2 w y)
-     aux2 v (spanScale {u} x c) = spanScale (aux2 u x) c
+     aux2 z spanÔ = spanÔ
+     aux2 z (spanStep {u} {v} x y c) = spanStep (supportIntro u x) (aux2 v y) c
      aux2 v (spanSet x y i) = spanSet (aux2 v x) (aux2 v y) i
 
   span⊆preserve : ∀ {X Y : vector → Type al} → X ⊆ Y → Span X ⊆ Span Y
-  span⊆preserve {X = X} {Y} p v spanÔ = η spanÔ
-  span⊆preserve {X = X} {Y} p v (intro x) = truncRec squash₁ (λ z → η (intro z)) (p v x)
-  span⊆preserve {X = X} {Y} p v (spanAdd {u} {w} x y) =
-     span⊆preserve p u x >>= λ H →
-     span⊆preserve p w y >>= λ G → η $ spanAdd H G
-  span⊆preserve {X = X} {Y} p v (spanScale {u} x c) = span⊆preserve p u x >>= λ z → η (spanScale z c)
+  span⊆preserve {X = X} {Y} p _ spanÔ = η spanÔ
+  span⊆preserve {X = X} {Y} p _ (spanStep {u} {v} x y c) =
+     span⊆preserve p v y >>= λ H →
+       truncRec squash₁ (λ G →
+      η $ spanAdd2 (scale c u) v (spanScale u G c) H) (p u x)
   span⊆preserve {X = X} {Y} p v (spanSet x y i) = squash₁ (span⊆preserve p v x)
                                                           (span⊆preserve p v y) i
 
   ⊆span : (X : vector → Type al) → X ⊆ Span X
-  ⊆span X x P = η (intro P)
+  ⊆span X x P = η (spanIntro x P)
 
   SpanX-Ô→SpanX : {X : vector → Type al} → ∀ v → v ∈ Span (λ x → (x ∈ X) × (x ≢ Ô)) → v ∈ Span X
-  SpanX-Ô→SpanX v spanÔ = spanÔ
-  SpanX-Ô→SpanX v (intro x) = intro (fst x)
-  SpanX-Ô→SpanX v (spanAdd {u}{w} p q) = spanAdd (SpanX-Ô→SpanX u p) (SpanX-Ô→SpanX w q)
-  SpanX-Ô→SpanX v (spanScale {u} x c) = spanScale (SpanX-Ô→SpanX u x) c
+  SpanX-Ô→SpanX .Ô spanÔ = spanÔ
+  SpanX-Ô→SpanX .((V Module.[+] Module.scale V c u) v) (spanStep {u} {v} x y c) = spanStep (fst x) (SpanX-Ô→SpanX v y) c
   SpanX-Ô→SpanX v (spanSet x y i) = spanSet (SpanX-Ô→SpanX v x) (SpanX-Ô→SpanX v y) i
 
   -- This is a more general definition that uses a module instead of a vector space
@@ -179,9 +209,9 @@ module _{scalar : Type l}{vector : Type l'}{{R : Ring scalar}}{{V : Module vecto
   spanIsSubspace : {X : vector → Type al} → Subspace (Span X)
   spanIsSubspace =
       record { ssZero = spanÔ
-             ; ssAdd = λ x y → spanAdd x y
-             ; ssScale = λ x c → spanScale x c
-             ; ssSet = λ v → spanSet
+             ; ssAdd = λ {v} {u} x y → spanAdd2 v u x y
+             ; ssScale = λ {v} x c → spanScale2 v x c
+             ; ssSet = λ _ → spanSet
              }
 
   record LinearlyIndependent (X : vector → Type al) : Type (lsuc (l ⊔ l' ⊔ al))
