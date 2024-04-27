@@ -131,6 +131,11 @@ module grp {_∙_ : A → A → A}{{G : group _∙_}} where
       e ∙ y           ≡⟨ lIdentity y ⟩
       y ∎
 
+  discreteId : ((x : A) → (x ≡ e) ＋ (x ≢ e)) → Discrete A
+  discreteId H x y with H (x ∙ inv y)
+  ...          | (inl p) = yes (uniqueInv p)
+  ...          | (inr p) = no λ q → p (left _∙_ q ⋆ rInverse y)
+
   lemma1 : (a b : A) → inv b ∙ inv a ≡ inv (a ∙ b)
   lemma1 = λ(a b : A)
    → [ inv b ∙ inv a ≡ inv (a ∙ b)] uniqueInv
