@@ -136,6 +136,13 @@ module _{scalar : Type l}{vector : Type l'}{{R : Ring scalar}}{{V : Module vecto
   ⊆span : (X : vector → Type al) → X ⊆ Span X
   ⊆span X x P = η (intro P)
 
+  SpanX-Ô→SpanX : {X : vector → Type al} → ∀ v → v ∈ Span (λ x → (x ∈ X) × (x ≢ Ô)) → v ∈ Span X
+  SpanX-Ô→SpanX v spanÔ = spanÔ
+  SpanX-Ô→SpanX v (intro x) = intro (fst x)
+  SpanX-Ô→SpanX v (spanAdd {u}{w} p q) = spanAdd (SpanX-Ô→SpanX u p) (SpanX-Ô→SpanX w q)
+  SpanX-Ô→SpanX v (spanScale {u} x c) = spanScale (SpanX-Ô→SpanX u x) c
+  SpanX-Ô→SpanX v (spanSet x y i) = spanSet (SpanX-Ô→SpanX v x) (SpanX-Ô→SpanX v y) i
+
   -- This is a more general definition that uses a module instead of a vector space
   record Subspace (X : vector → Type al) : Type (lsuc (al ⊔ l ⊔ l'))
     where field
