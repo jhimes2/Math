@@ -39,12 +39,12 @@ open FA {{...}} public
 module _{Q Σ : ℕ}{{M : FA Q Σ}} where
 
  -- Extended transition function: Definition 2.12
- δ* : [ fin Σ ^ n ] → fin Q → fin Q
- δ* x q = foldr δ q x
+ δ* : [ fin Σ ^ n ] → fin Q
+ δ* x = foldr δ q₀ x
 
 -- Acceptance by a Finite Automaton: Definition 2.14
 L : {Q : ℕ}{Σ : ℕ}(M : FA Q Σ) → [ fin Σ ^ n ] → Type
-L {Q}{Σ} M x with accepting $ δ* x q₀
+L {Q}{Σ} M x with accepting $ δ* x
  where instance
    _ : FA Q Σ
    _ = M
