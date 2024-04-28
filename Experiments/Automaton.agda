@@ -23,31 +23,51 @@ module Ambigiguity where
 --  parse-2 : <expr>
 --  parse-2 = (<ℕ> Z + <ℕ>(S Z)) * <ℕ>(S(S Z))
 
--- From here, I'm referencing the book:
--- Introduction to Languages and the Theory of Computation (ISBN 978–0–07–319146–1)
-
--- Finite Automaton: Definition 2.11
--- Q is the number of states
--- Σ is the size of the alphabet
-record FA (Q : ℕ)(Σ : ℕ) : Type where
+-- Note that this definition also includes infinite automata
+record Automaton (Σ Q : Type) : Type₁ where
  field
-  q₀ : fin Q                 -- Initial state
-  accepting : fin Q → 𝔹      -- Indicator function that determines accepting states
-  δ :  fin Σ → fin Q → fin Q -- transition function
-open FA {{...}} public
+  q₀ : Q                -- Initial state
+  δ :  Σ → Q → Q        -- transition function
+  accepts : Q → Type
+open Automaton {{...}} public
 
-module _{Q Σ : ℕ}{{M : FA Q Σ}} where
+module _{Σ Q₁ : Type}{{M₁ : Automaton Σ Q₁}} where
 
- -- Extended transition function: Definition 2.12
- δ* : [ fin Σ ^ n ] → fin Q
+ -- Extended transition function
+ δ* : [ Σ ^ n ] → Q₁
  δ* x = foldr δ q₀ x
 
- -- Acceptance by a Finite Automaton: Definition 2.14
- L : [ fin Σ ^ n ] → Type
- L x with accepting $ δ* x
- ... | Yes = ⊤
- ... | No  = ⊥
+-----------------------------------------------------------------------------------------------------------------
+-- Note that since I find it easier to prove with 'foldr' instead of 'foldl', the extended transition function --
+-- is defined using 'foldr'. This causes the automaton starting from the highest index down to the lowest.     --
+-- This means that the use of the concatenation operator '++' is transposed from standard definitions.         --
+-----------------------------------------------------------------------------------------------------------------
 
- -- Strings Indistinguishable with Respect to L : Definition 2.20
- L-indistinguishable : [ fin Σ ^ n ] → [ fin Σ ^ m ] → Type₁
- L-indistinguishable x y = ∀{p} → (z : [ fin Σ ^ p ]) → L (x ++ z) ≡ L (y ++ z)
+ -- Acceptance by an Automaton
+ L : [ Σ ^ n ] → Type
+ L x = accepts $ δ* x
+
+ -- Strings Indistinguishable with Respect to L
+ L-indistinguishable : [ Σ ^ n ] → [ Σ ^ m ] → Type₁
+ L-indistinguishable x y = ∀{p} → (z : [ Σ ^ p ]) → L (z ++ x) ≡ L (z ++ y)
+
+ autoLemma1 : (x : [ Σ ^ n ]) → (y : [ Σ ^ m ]) → δ* x ≡ δ* y → L-indistinguishable x y
+ autoLemma1 x y = λ (p : foldr δ q₀ x ≡ foldr δ q₀ y) →
+                  λ z →
+  L (z ++ x)                         ≡⟨By-Definition⟩
+  accepts (δ* (z ++ x))              ≡⟨By-Definition⟩
+  accepts (foldr δ q₀ (z ++ x))      ≡⟨ cong accepts (foldr++ δ q₀ z x)⟩
+  accepts (foldr δ (foldr δ q₀ x) z) ≡⟨ cong (λ i → accepts (foldr δ i z)) p ⟩
+  accepts (foldr δ (foldr δ q₀ y) z) ≡⟨ sym (cong accepts (foldr++ δ q₀ z y))⟩
+  accepts (foldr δ q₀ (z ++ y))      ≡⟨By-Definition⟩
+  accepts (δ* (z ++ y))              ≡⟨By-Definition⟩
+  L (z ++ y) ∎
+
+ module _{Q₂ : Type}{{M₂ : Automaton Σ Q₂}} where
+  AutomatonProduct : (Q₁ × Q₂ → Type) → Automaton Σ (Q₁ × Q₂)
+  AutomatonProduct f = record
+    {
+      q₀ = q₀ , q₀
+    ; δ = λ x (p , q) → δ x p , δ x q
+    ; accepts = f
+    }
