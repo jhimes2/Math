@@ -440,7 +440,7 @@ withoutEach {n = Z} v u _ = v u
 withoutEach {n = S n} v = tail v ∷ map (head v ∷_) (withoutEach (tail v))
 
 -- Determinant
-det : {{Ring C}} → Matrix C n n → C
+det : {{CRing C}} → Matrix C n n → C
 det {n = Z} M = 1r
 det {n = S n} M = foldr _-_ 0r $ pointwise (λ a x → a * det x)
                                            (head M)
@@ -465,3 +465,19 @@ module _ {{R : CRing C}} where
      N b ∙ (λ x → M x c)       ≡⟨ comm (N b) (λ x → M x c)⟩
      (λ x → M x c) ∙ N b       ≡⟨By-Definition⟩
      mMult (transpose N) (transpose M) c b ∎
+
+++lId : {id : [ A ^ Z ]} → (u : [ A ^ n ]) → id ++ u ≡ u
+++lId {id = id} u = refl
+
+instance
+ id++Prop : is-prop [ A ^ Z ]
+ id++Prop = record { IsProp = λ x y → funExt λ(_ , _ , p) → UNREACHABLE (ZNotS (sym p)) }
+
+
+tail++ : (u : [ A ^ S n ]) → (v : [ A ^ m ]) → tail u ++ v ≡ tail (u ++ v)
+tail++ u v = funExt λ z → aux u v z
+ where
+  aux : (u : [ A ^ S n ]) → (v : [ A ^ m ]) → (x : fin (n + m)) → (tail u ++ v) x ≡ tail (u ++ v) x
+  aux {n = Z} {m} u v (x , y , p) = cong v (ΣPathPProp finSndIsProp refl)
+  aux {n = S n} {m} u v (Z , y , p) = refl
+  aux {n = S n} {m} u v (S x , y , p) = aux (tail u) v (x , y , SInjective p)
