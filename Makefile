@@ -1,5 +1,5 @@
 .PHONY: all
-all: Trigonometry/Trigonometry.agdai Topology/Topology.agdai NumberTheory/Finite.agdai Algebra/Matrix.agdai Algebra/Metric.agdai
+all: Trigonometry/Trigonometry.agdai Topology/Topology.agdai NumberTheory/Finite.agdai Data/Matrix.agdai Algebra/Metric.agdai
 
 #NumberTheory/Integer.agdai: NumberTheory/Integer.agda NumberTheory/Natural.agdai Data/Integer.agdai
 #	agda $<
@@ -25,7 +25,7 @@ Data/Bool.agdai: Data/Bool.agda Algebra/Field.agdai Relations.agdai
 Data/Integer.agdai: Data/Integer.agda Data/Natural.agdai Algebra/CRing.agdai
 	agda $<
 
-Algebra/Matrix.agdai: Algebra/Matrix.agda Algebra/Linear.agdai Data/Finite.agdai
+Data/Matrix.agdai: Data/Matrix.agda Algebra/Linear.agdai Data/Finite.agdai
 	agda $<
 
 Data/Finite.agdai: Data/Finite.agda Data/Natural.agdai

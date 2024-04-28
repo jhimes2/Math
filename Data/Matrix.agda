@@ -1,6 +1,6 @@
 {-# OPTIONS --cubical --safe --overlapping-instances #-}
 
-module Algebra.Matrix where
+module Data.Matrix where
 
 open import Prelude
 open import Relations
