@@ -26,12 +26,12 @@ _∷_ : A → [ A ^ n ] → [ A ^ S n ]
 (a ∷ _) (Z , _) = a
 (a ∷ v) (S x , x' , P) = v (x , x' , SInjective P)
 
-pointwise : (A → B → C) → {D : Type l} → (D → A) → (D → B) → (D → C)
-pointwise f u v d = f (u d) (v d)
+zip : (A → B → C) → {D : Type l} → (D → A) → (D → B) → (D → C)
+zip f u v d = f (u d) (v d)
 
-pointwiseHead : (f : [ A ^ S n ] → [ B ^ S n ] → [ C ^ S n ])
-              → ∀ x y → head {n = n} (pointwise f x y) ≡ f (head x) (head y)
-pointwiseHead f x y = funExt λ z → refl
+zipHead : (f : [ A ^ S n ] → [ B ^ S n ] → [ C ^ S n ])
+              → ∀ x y → head {n = n} (zip f x y) ≡ f (head x) (head y)
+zipHead f x y = funExt λ z → refl
 
 Matrix : Type l → ℕ → ℕ → Type l
 Matrix A n m = [ [ A ^ n ] ^ m ]
@@ -80,7 +80,6 @@ foldr++ {n = S n} f q x y =
    f H (foldr f q (tail x ++ y)) ≡⟨ right f (foldr++ f q (tail x) y) ⟩
    foldr f (foldr f q y) x ∎
 
-
 foldl++ : (f : A → B → B) → (q : B) → (x : [ A ^ n ]) → (y : [ A ^ m ])
         → foldl f q (x ++ y) ≡ foldl f (foldl f q x) y
 foldl++ {n = Z} f q x y = refl
@@ -92,20 +91,20 @@ foldl++ {n = S n} f q x y =
 module _{C : Type cl}{{R : Rng C}} where
 
  addv : (A → C) → (A → C) → (A → C)
- addv = pointwise _+_
+ addv = zip _+_
  
  negv : (A → C) → (A → C)
  negv v a = neg (v a)
  
  multv : (A → C) → (A → C) → (A → C)
- multv = pointwise _*_
+ multv = zip _*_
  
  scaleV : C → (A → C) → (A → C)
  scaleV c v a = c * (v a)
 
  -- https://en.wikipedia.org/wiki/Dot_product
  _∙_ : [ C ^ n ] → [ C ^ n ] → C
- _∙_ u v = foldr _+_ 0r (pointwise _*_ u v)
+ _∙_ u v = foldr _+_ 0r (zip _*_ u v)
 
  -- Matrix Transformation
  MT : (fin n → A → C) → [ C ^ n ] → (A → C)
@@ -147,21 +146,21 @@ module _{C : Type cl}{{R : Rng C}} where
 
 instance
 
- comf : {_∗_ : A → A → A} → {{Commutative _∗_}} → Commutative (pointwise _∗_ {B})
+ comf : {_∗_ : A → A → A} → {{Commutative _∗_}} → Commutative (zip _∗_ {B})
  comf = record { comm = λ u v → funExt λ x → comm (u x) (v x) }
 
- assocf : {_∗_ : A → A → A} → {{Associative _∗_}} → Associative (pointwise _∗_ {B})
+ assocf : {_∗_ : A → A → A} → {{Associative _∗_}} → Associative (zip _∗_ {B})
  assocf = record { assoc = λ u v w → funExt λ x → assoc (u x) (v x) (w x) }
 
  IsSet→ : {{_ : is-set B}} → is-set (A → B)
  IsSet→ = record { IsSet = isSet→ IsSet }
 
- monoidf : {_∗_ : A → A → A} → {{monoid _∗_}} → monoid (pointwise _∗_ {B})
+ monoidf : {_∗_ : A → A → A} → {{monoid _∗_}} → monoid (zip _∗_ {B})
  monoidf = record { e = λ _ → e
                      ; lIdentity = λ v → funExt (λ x → lIdentity (v x))
                      ; rIdentity = λ v → funExt (λ x → rIdentity (v x)) }
 
- groupf : {_∗_ : A → A → A} → {{group _∗_}} → group (pointwise _∗_ {B})
+ groupf : {_∗_ : A → A → A} → {{group _∗_}} → group (zip _∗_ {B})
  groupf = record { e = λ _ → e
                      ; inverse = λ v → map inv v , funExt λ x → lInverse (v x)
                      ; lIdentity = λ v → funExt (λ x → lIdentity (v x)) }
@@ -183,7 +182,7 @@ instance
  functionSpace = vectMod
 
 foldrMC : {_∗_ : A → A → A}{{M : monoid _∗_}}{{C : Commutative _∗_}} → (u v : [ A ^ n ])
-        → foldr _∗_ e (pointwise _∗_ u v) ≡ foldr _∗_ e u ∗ foldr _∗_ e v
+        → foldr _∗_ e (zip _∗_ u v) ≡ foldr _∗_ e u ∗ foldr _∗_ e v
 foldrMC {n = Z} u v = sym(lIdentity e)
 foldrMC {n = S n} {_∗_ = _∗_} u v =
  right _∗_ (foldrMC (tail u) (tail v))
@@ -198,7 +197,7 @@ instance
        λ u v → funExt λ x →
      MT M (addv u v) x
        ≡⟨By-Definition⟩
-     foldr _+_ 0r (pointwise _*_ (addv u v) (transpose M x))
+     foldr _+_ 0r (zip _*_ (addv u v) (transpose M x))
        ≡⟨By-Definition⟩
      foldr _+_ 0r (λ y → (addv u v) y * transpose M x y)
        ≡⟨By-Definition⟩
@@ -210,7 +209,7 @@ instance
        ≡⟨ foldrMC (multv u (transpose M x)) (multv v (transpose M x))⟩
      foldr _+_ 0r (multv u (transpose M x)) + foldr _+_ 0r  (multv v (transpose M x))
        ≡⟨By-Definition⟩
-     foldr _+_ 0r (pointwise _*_ u (transpose M x)) + foldr _+_ 0r  (pointwise _*_ v (transpose M x))
+     foldr _+_ 0r (zip _*_ u (transpose M x)) + foldr _+_ 0r  (zip _*_ v (transpose M x))
        ≡⟨By-Definition⟩
      addv (MT M u) (MT M v) x ∎ }
    ; multT = λ u c → funExt λ x →
@@ -476,7 +475,7 @@ withoutEach {n = S n} v = tail v ∷ map (head v ∷_) (withoutEach (tail v))
 -- Determinant
 det : {{CRing C}} → Matrix C n n → C
 det {n = Z} M = 1r
-det {n = S n} M = foldr _-_ 0r $ pointwise (λ a x → a * det x)
+det {n = S n} M = foldr _-_ 0r $ zip (λ a x → a * det x)
                                            (head M)
                                            (withoutEach (transpose (tail M)))
 
