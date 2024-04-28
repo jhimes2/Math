@@ -169,8 +169,8 @@ module _{scalar : Type l}{vector : Type l'}{{R : Ring scalar}}{{V : Module vecto
   ⊆span X x P = η (spanIntro x P)
 
   SpanX-Ô→SpanX : {X : vector → Type al} → ∀ v → v ∈ Span (λ x → (x ∈ X) × (x ≢ Ô)) → v ∈ Span X
-  SpanX-Ô→SpanX .Ô spanÔ = spanÔ
-  SpanX-Ô→SpanX .((V Module.[+] Module.scale V c u) v) (spanStep {u} {v} x y c) = spanStep (fst x) (SpanX-Ô→SpanX v y) c
+  SpanX-Ô→SpanX _ spanÔ = spanÔ
+  SpanX-Ô→SpanX _ (spanStep {u} {v} x y c) = spanStep (fst x) (SpanX-Ô→SpanX v y) c
   SpanX-Ô→SpanX v (spanSet x y i) = spanSet (SpanX-Ô→SpanX v x) (SpanX-Ô→SpanX v y) i
 
   -- This is a more general definition that uses a module instead of a vector space
@@ -216,28 +216,22 @@ module _{scalar : Type l}{vector : Type l'}{{R : Ring scalar}}{{V : Module vecto
 
   record LinearlyIndependent (X : vector → Type al) : Type (lsuc (l ⊔ l' ⊔ al))
    where field
-     li : ∀ Y → Span Y ≡ Span X → Y ⊆ X → Y ≡ X
+     li : (Y : vector → Type al) → Span X ⊆ Span Y → Y ⊆ X → X ⊆ Y
+     {{liProp}} : Property X
   open LinearlyIndependent {{...}} public
 
-  instance
-   IndSet : {X : vector → Type (al ⊔ l')} → {{Y : LinearlyIndependent X}} → Property X
-   IndSet {X = X} =
-      let H = li (Support X) (spanSupport X) λ x → supportRec squash₁ x λ y → η y
-      in
-      record { setProp = λ v → transport (λ i → isProp (v ∈ H i)) (supportProp v) }
-
   -- https://en.wikipedia.org/wiki/Basis_(linear_algebra)
-  -- A basis is defined as a maximal element of the family of linearly independent sets
+  -- In this program, a basis is defined as a maximal element of the family of linearly independent sets
   -- by the order of set inclusion.
   Basis : Σ (LinearlyIndependent {al = al}) → Type(lsuc (l ⊔ l' ⊔ al))
   Basis X = (Y : Σ LinearlyIndependent) → X ⊆ Y → Y ⊆ X
 
   completeSpan : (X : vector → Type(l ⊔ l')) {{LI : LinearlyIndependent X}} → (∀ v → v ∈ Span X) → Basis (X , LI)
-  completeSpan X f (Z , LI2) = λ (y : X ⊆ Z) x x∈Z →
+  completeSpan X {{LI}} f (Z , LI2) = λ (y : X ⊆ Z) x x∈Z →
        let H = span⊆preserve y in
-       let G = LinearlyIndependent.li LI2 X (funExt (λ z → propExt spanSet spanSet (λ F → truncRec spanSet id (H z F))
-               λ T → f z)) y in
-           η $ transport (λ i → x ∈ G (~ i)) x∈Z
+       let T = LinearlyIndependent.liProp LI in
+       let G = LinearlyIndependent.li LI2 X λ z → λ F → η $ f z in
+           η $ truncRec (Property.setProp T x) id (G y x x∈Z)
 
 -- https://en.wikipedia.org/wiki/Module_homomorphism
 record moduleHomomorphism {A : Type l}
