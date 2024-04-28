@@ -474,10 +474,19 @@ instance
  id++Prop = record { IsProp = λ x y → funExt λ(_ , _ , p) → UNREACHABLE (ZNotS (sym p)) }
 
 
-tail++ : (u : [ A ^ S n ]) → (v : [ A ^ m ]) → tail u ++ v ≡ tail (u ++ v)
+tail++ : (u : [ A ^ S n ]) → (v : [ A ^ m ]) → tail (u ++ v) ≡ tail u ++ v 
 tail++ u v = funExt λ z → aux u v z
  where
-  aux : (u : [ A ^ S n ]) → (v : [ A ^ m ]) → (x : fin (n + m)) → (tail u ++ v) x ≡ tail (u ++ v) x
+  aux : (u : [ A ^ S n ]) → (v : [ A ^ m ]) → (x : fin (n + m)) → tail (u ++ v) x ≡ (tail u ++ v) x 
   aux {n = Z} {m} u v (x , y , p) = cong v (ΣPathPProp finSndIsProp refl)
   aux {n = S n} {m} u v (Z , y , p) = refl
   aux {n = S n} {m} u v (S x , y , p) = aux (tail u) v (x , y , SInjective p)
+
+foldr++ : (f : A → B → B) → (q : B) → (x : [ A ^ n ]) → (y : [ A ^ m ])
+        → foldr f q (x ++ y) ≡ foldr f (foldr f q y) x
+foldr++ {n = Z} f q x y = refl
+foldr++ {n = S n} f q x y =
+   let H = head x in
+   f H (foldr f q (tail(x ++ y))) ≡⟨ right f (cong (λ x → foldr f q x) (tail++ x y)) ⟩
+   f H (foldr f q (tail x ++ y)) ≡⟨ right f (foldr++ f q (tail x) y) ⟩
+   foldr f (foldr f q y) x ∎
