@@ -5,7 +5,7 @@ module Experiments.Automaton where
 open import Prelude hiding (Σ)
 open import Data.Natural
 open import Data.Finite
-open import Algebra.Matrix
+open import Data.Matrix
 open import Data.Bool
 
 module Ambigiguity where
@@ -42,11 +42,12 @@ module _{Q Σ : ℕ}{{M : FA Q Σ}} where
  δ* : [ fin Σ ^ n ] → fin Q
  δ* x = foldr δ q₀ x
 
--- Acceptance by a Finite Automaton: Definition 2.14
-L : {Q : ℕ}{Σ : ℕ}(M : FA Q Σ) → [ fin Σ ^ n ] → Type
-L {Q}{Σ} M x with accepting $ δ* x
- where instance
-   _ : FA Q Σ
-   _ = M
-... | Yes = ⊤
-... | No  = ⊥
+ -- Acceptance by a Finite Automaton: Definition 2.14
+ L : [ fin Σ ^ n ] → Type
+ L x with accepting $ δ* x
+ ... | Yes = ⊤
+ ... | No  = ⊥
+
+ -- Strings Indistinguishable with Respect to L : Definition 2.20
+ L-indistinguishable : [ fin Σ ^ n ] → [ fin Σ ^ m ] → Type₁
+ L-indistinguishable x y = ∀{p} → (z : [ fin Σ ^ p ]) → L (x ++ z) ≡ L (y ++ z)
