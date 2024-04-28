@@ -12,8 +12,8 @@ open import Cubical.Foundations.HLevels
 transpose : (A → B → C) → (B → A → C)
 transpose f b a = f a b
 
--- Finite vector
--- `[ Bool ^ n ]` would be a vector of booleans of length `n`.
+-- Ordered n-tuple
+-- `[ 𝔹 ^ n ]` would be an ordered n-tuple of booleans
 [_^_] : Type l → ℕ → Type l
 [ A ^ n ] = fin n → A
 
@@ -49,6 +49,12 @@ instance
 foldr : (A → B → B) → B → [ A ^ n ] → B
 foldr {n = Z}f b _ = b
 foldr {n = S n} f b v = f (head v) (foldr f b (tail v))
+
+-- Ordered n-tuple concatenation
+_++_ : [ A ^ n ] → [ A ^ m ] → [ A ^ (n + m) ]
+_++_ {n = Z} u v x = v x
+_++_ {n = S n} u v (Z , H) = u finZ
+_++_ {n = S n} u v (S x , y , p) = (tail u ++ v) (x , y , SInjective p)
 
 module _{C : Type cl}{{R : Rng C}} where
 
