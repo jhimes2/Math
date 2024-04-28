@@ -45,15 +45,49 @@ instance
   mvect = record { μ = λ f a → f a a
                  ; η = λ x _ → x }
 
+instance
+ id++Prop : is-prop [ A ^ Z ]
+ id++Prop = record { IsProp = λ x y → funExt λ(_ , _ , p) → UNREACHABLE (ZNotS (sym p)) }
+
 foldr : (A → B → B) → B → [ A ^ n ] → B
 foldr {n = Z}f b _ = b
 foldr {n = S n} f b v = f (head v) (foldr f b (tail v))
+
+foldl : (A → B → B) → B → [ A ^ n ] → B
+foldl {n = Z}f b _ = b
+foldl {n = S n} f b v = foldl f (f (head v) b) (tail v)
 
 -- Ordered n-tuple concatenation
 _++_ : [ A ^ n ] → [ A ^ m ] → [ A ^ (n + m) ]
 _++_ {n = Z} u v x = v x
 _++_ {n = S n} u v (Z , H) = u finZ
 _++_ {n = S n} u v (S x , y , p) = (tail u ++ v) (x , y , SInjective p)
+
+tail++ : (u : [ A ^ S n ]) → (v : [ A ^ m ]) → tail (u ++ v) ≡ tail u ++ v 
+tail++ u v = funExt λ z → aux u v z
+ where
+  aux : (u : [ A ^ S n ]) → (v : [ A ^ m ]) → (x : fin (n + m)) → tail (u ++ v) x ≡ (tail u ++ v) x 
+  aux {n = Z} {m} u v (x , y , p) = cong v (ΣPathPProp finSndIsProp refl)
+  aux {n = S n} {m} u v (Z , y , p) = refl
+  aux {n = S n} {m} u v (S x , y , p) = aux (tail u) v (x , y , SInjective p)
+
+foldr++ : (f : A → B → B) → (q : B) → (x : [ A ^ n ]) → (y : [ A ^ m ])
+        → foldr f q (x ++ y) ≡ foldr f (foldr f q y) x
+foldr++ {n = Z} f q x y = refl
+foldr++ {n = S n} f q x y =
+   let H = head x in
+   f H (foldr f q (tail(x ++ y))) ≡⟨ right f (cong (λ x → foldr f q x) (tail++ x y)) ⟩
+   f H (foldr f q (tail x ++ y)) ≡⟨ right f (foldr++ f q (tail x) y) ⟩
+   foldr f (foldr f q y) x ∎
+
+
+foldl++ : (f : A → B → B) → (q : B) → (x : [ A ^ n ]) → (y : [ A ^ m ])
+        → foldl f q (x ++ y) ≡ foldl f (foldl f q x) y
+foldl++ {n = Z} f q x y = refl
+foldl++ {n = S n} f q x y =
+ foldl f (f (head x) q) (tail (x ++ y)) ≡⟨ cong (λ z → foldl f (f (head x) q) z) (tail++ x y)⟩
+ foldl f (f (head x) q) (tail x ++ y)   ≡⟨ foldl++ f (f (head x) q) (tail x) y ⟩
+ foldl f (foldl f (f (head x) q) (tail x)) y ∎
 
 module _{C : Type cl}{{R : Rng C}} where
 
@@ -465,28 +499,3 @@ module _ {{R : CRing C}} where
      N b ∙ (λ x → M x c)       ≡⟨ comm (N b) (λ x → M x c)⟩
      (λ x → M x c) ∙ N b       ≡⟨By-Definition⟩
      mMult (transpose N) (transpose M) c b ∎
-
-++lId : {id : [ A ^ Z ]} → (u : [ A ^ n ]) → id ++ u ≡ u
-++lId {id = id} u = refl
-
-instance
- id++Prop : is-prop [ A ^ Z ]
- id++Prop = record { IsProp = λ x y → funExt λ(_ , _ , p) → UNREACHABLE (ZNotS (sym p)) }
-
-
-tail++ : (u : [ A ^ S n ]) → (v : [ A ^ m ]) → tail (u ++ v) ≡ tail u ++ v 
-tail++ u v = funExt λ z → aux u v z
- where
-  aux : (u : [ A ^ S n ]) → (v : [ A ^ m ]) → (x : fin (n + m)) → tail (u ++ v) x ≡ (tail u ++ v) x 
-  aux {n = Z} {m} u v (x , y , p) = cong v (ΣPathPProp finSndIsProp refl)
-  aux {n = S n} {m} u v (Z , y , p) = refl
-  aux {n = S n} {m} u v (S x , y , p) = aux (tail u) v (x , y , SInjective p)
-
-foldr++ : (f : A → B → B) → (q : B) → (x : [ A ^ n ]) → (y : [ A ^ m ])
-        → foldr f q (x ++ y) ≡ foldr f (foldr f q y) x
-foldr++ {n = Z} f q x y = refl
-foldr++ {n = S n} f q x y =
-   let H = head x in
-   f H (foldr f q (tail(x ++ y))) ≡⟨ right f (cong (λ x → foldr f q x) (tail++ x y)) ⟩
-   f H (foldr f q (tail x ++ y)) ≡⟨ right f (foldr++ f q (tail x) y) ⟩
-   foldr f (foldr f q y) x ∎
