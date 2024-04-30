@@ -182,6 +182,33 @@ module _{scalar : Type l}{vector : Type l'}{{R : Ring scalar}}{{V : Module vecto
         ssSet : (v : vector) → isProp (v ∈ X)
   open Subspace {{...}} public
 
+  SS2ToSS : (X : vector → Type al)
+          → {{SS : Subspace X}} → Span X ⊆ X
+  SS2ToSS X _ spanÔ = η $ ssZero
+  SS2ToSS X _ (spanStep {u}{w} p q c) =
+    truncRec squash₁ (λ O →
+    let H1 = ssScale p c in
+    let H2 = ssAdd H1 O in η $ H2) (SS2ToSS X w q)
+  SS2ToSS X x (spanSet p q i) =
+    let R1 = SS2ToSS X x p in
+    let R2 = SS2ToSS X x q in
+     squash₁ R1 R2 i
+
+  SSToSS2 : (X : vector → Type al) → {{XP : Property X}}
+          → Span X ⊆ X → Subspace X
+  SSToSS2 X {{XP}} H = record {
+        ssZero =
+          truncRec (setProp {P = X} Ô) id (H Ô spanÔ)
+      ; ssAdd = λ{v}{u} p q →
+          let H1 : ∥ v [+] u ∈ X ∥₁
+              H1 = H (v [+] u) (spanAdd v u p (spanIntro u q)) in
+          truncRec (setProp {P = X} (v [+] u)) id H1
+      ; ssScale = λ{v} v∈X c →
+          let H1 : ∥ scale c v ∈ X ∥₁
+              H1 = H (scale c v) (spanScale v v∈X c) in
+          truncRec (setProp (scale c v)) id H1
+      ; ssSet = setProp }
+
   instance
    SubspaceSet : {X : vector → Type al}{{_ : Subspace X}} → Property X
    SubspaceSet = record { setProp = ssSet }
