@@ -27,17 +27,17 @@ module Ambigiguity where
 --  parse-2 = (<ℕ> Z + <ℕ>(S Z)) * <ℕ>(S(S Z))
 
 -- Note that this definition also includes infinite automata
-record Automaton (Alph Q : Type) : Type₁ where
+record Automaton (𝐀 Q : Type) : Type₁ where
  field
   q₀ : Q                -- Initial state
-  δ :  Alph → Q → Q        -- transition function
+  δ :  𝐀 → Q → Q        -- transition function
   accepts : Q → Type
 open Automaton {{...}} public
 
-module _{Alph Q₁ : Type}{{M₁ : Automaton Alph Q₁}} where
+module _{𝐀 Q₁ : Type}{{M₁ : Automaton 𝐀 Q₁}} where
 
  -- Extended transition function
- δ* : [ Alph ^ n ] → Q₁
+ δ* : [ 𝐀 ^ n ] → Q₁
  δ* x = foldr δ q₀ x
 
 -----------------------------------------------------------------------------------------------------------------
@@ -47,28 +47,28 @@ module _{Alph Q₁ : Type}{{M₁ : Automaton Alph Q₁}} where
 -----------------------------------------------------------------------------------------------------------------
 
  -- Acceptance by an Automaton
- L : [ Alph ^ n ] → Type
+ L : [ 𝐀 ^ n ] → Type
  L x = accepts $ δ* x
 
  -- Strings Indistinguishable with Respect to L
- L-indistinguishable : Σ (λ n → [ Alph ^ n ]) → Σ (λ m → [ Alph ^ m ]) → Type₁
- L-indistinguishable (_ , x) (_ , y) = ∀{p} → (z : [ Alph ^ p ]) → L (z ++ x) ≡ L (z ++ y)
+ L-indistinguishable : list 𝐀 → list 𝐀 → Type₁
+ L-indistinguishable (_ , x) (_ , y) = ∀{p} → (z : [ 𝐀 ^ p ]) → L (z ++ x) ≡ L (z ++ y)
 
- L-ind-refl : (x : Σ λ n → [ Alph ^ n ]) → L-indistinguishable x x
+ L-ind-refl : (x : list 𝐀) → L-indistinguishable x x
  L-ind-refl x z = refl
 
- L-ind-trans : (x y z : Σ λ n → [ Alph ^ n ])
+ L-ind-trans : (x y z : Σ λ n → [ 𝐀 ^ n ])
              → L-indistinguishable x y
              → L-indistinguishable y z
              → L-indistinguishable x z
  L-ind-trans (_ , x) (_ , y) (_ , z) H G a = H a ⋆ G a
 
- L-ind-sym : (x y : Σ λ n → [ Alph ^ n ])
+ L-ind-sym : (x y : Σ λ n → [ 𝐀 ^ n ])
              → L-indistinguishable x y
              → L-indistinguishable y x
  L-ind-sym (_ , x) (_ , y) H a = sym (H a)
 
- autoLemma1 : (x : [ Alph ^ n ]) → (y : [ Alph ^ m ]) → δ* x ≡ δ* y → L-indistinguishable (n , x) (m , y)
+ autoLemma1 : (x : [ 𝐀 ^ n ]) → (y : [ 𝐀 ^ m ]) → δ* x ≡ δ* y → L-indistinguishable (n , x) (m , y)
  autoLemma1 x y = λ (p : foldr δ q₀ x ≡ foldr δ q₀ y) →
                   λ z →
   L (z ++ x)                         ≡⟨By-Definition⟩
@@ -80,8 +80,8 @@ module _{Alph Q₁ : Type}{{M₁ : Automaton Alph Q₁}} where
   accepts (δ* (z ++ y))              ≡⟨By-Definition⟩
   L (z ++ y) ∎
 
- module _{Q₂ : Type}{{M₂ : Automaton Alph Q₂}} where
-  AutomatonProduct : (Q₁ × Q₂ → Type) → Automaton Alph (Q₁ × Q₂)
+ module _{Q₂ : Type}{{M₂ : Automaton 𝐀 Q₂}} where
+  AutomatonProduct : (Q₁ × Q₂ → Type) → Automaton 𝐀 (Q₁ × Q₂)
   AutomatonProduct f = record
     {
       q₀ = q₀ , q₀
