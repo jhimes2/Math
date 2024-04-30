@@ -92,6 +92,16 @@ distinguish f H = aux Z
   ...    |  (yes p) = aux (S n)
   ...    |  (no p)  = n , p
 
+
+{-# TERMINATING #-}
+distinguish2 : (f : ℕ → ℕ) → ¬(∀ x → f x ≡ Z) → Σ λ n → f n ≢ Z
+distinguish2 f H with natDiscrete (f Z) Z
+...   |  (yes p) = let R = distinguish2 (λ x → f(S x)) λ G → H (λ{ Z → p ; (S x) → G x}) in
+                   let x = fst R in
+                   let G = snd R in
+                   S x , G
+...   |  (no p) = Z , p
+
 zorn : {_≤_ : A → A → Type} → {{_ : Poset _≤_}}
      → ((C : A → Type al) → chain C → Σ λ g → ∀ x → x ∈ C → g ≤ x → g ≡ x)
      → ∃ λ g → ∀ x → g ≤ x → g ≡ x
