@@ -8,6 +8,10 @@ open import Set
 open import Algebra.CRing public
 open import Cubical.HITs.PropositionalTruncation renaming (rec to truncRec)
 
+--------------------------------------------------------------------------------------
+-- Several definitions in this file are generalized from a vector space to a module --
+--------------------------------------------------------------------------------------
+
 -- https://en.wikipedia.org/wiki/Module_(mathematics)
 -- Try not to confuse 'Module' with Agda's built-in 'module' keyword.
 record Module {scalar : Type l} {{R : Ring scalar}} (vector : Type l') : Type (lsuc (l ⊔ l')) where
@@ -81,7 +85,7 @@ module _{scalar : Type l}{vector : Type l'}{{R : Ring scalar}}{{V : Module vecto
                  scale c (scale (neg 1r) v)  ≡⟨ right scale (scaleNegOneInv v)⟩
                  scale c (negV v) ∎
 
-  -- This is a more general definition that uses a module instead of a vector space
+  -- https://en.wikipedia.org/wiki/Linear_span
   data Span (X : vector → Type al) : vector → Type (l ⊔ l' ⊔ al) where
     spanÔ : Ô ∈ Span X
     spanStep : ∀{u v} → u ∈ X → v ∈ Span X → (c : scalar) → scale c u [+] v ∈ Span X
@@ -173,7 +177,7 @@ module _{scalar : Type l}{vector : Type l'}{{R : Ring scalar}}{{V : Module vecto
   SpanX-Ô→SpanX _ (spanStep {u} {v} x y c) = spanStep (fst x) (SpanX-Ô→SpanX v y) c
   SpanX-Ô→SpanX v (spanSet x y i) = spanSet (SpanX-Ô→SpanX v x) (SpanX-Ô→SpanX v y) i
 
-  -- This is a more general definition that uses a module instead of a vector space
+  -- https://en.wikipedia.org/wiki/Linear_subspace
   record Subspace (X : vector → Type al) : Type (lsuc (al ⊔ l ⊔ l'))
     where field
         ssZero : Ô ∈ X 
@@ -241,6 +245,7 @@ module _{scalar : Type l}{vector : Type l'}{{R : Ring scalar}}{{V : Module vecto
              ; ssSet = λ _ → spanSet
              }
 
+  -- https://en.wikipedia.org/wiki/Linear_independence
   record LinearlyIndependent (X : vector → Type al) : Type (lsuc (l ⊔ l' ⊔ al))
    where field
      li : (Y : vector → Type al) → Span X ⊆ Span Y → Y ⊆ X → X ⊆ Y
@@ -351,7 +356,7 @@ module _ {scalar : Type l}{{R : Ring scalar}}
      record { addT = record { preserve = λ u v → cong R (preserve u v) ⋆ preserve (T u) (T v) }
             ; multT = λ u c → cong R (multT u c) ⋆ multT (T u) c }
 
--- The set of eigenvectors for a module endomorphism 'T' and eigenvalue 'c' is a subspace
+-- The set of eigenvectors with the zero vector for a module endomorphism 'T' and eigenvalue 'c' is a subspace
 eigenvectorSubspace : {{CR : CRing A}} → {{V : Module B}}
       → (T : B → B) → {{TLT : moduleHomomorphism T}}
       → (c : A) → Subspace (λ v → T v ≡ scale c v)
@@ -380,7 +385,6 @@ module _ {A : Type l}  {{CR : CRing A}}
          {X : Type cl} {{X' : Module X}} where
 
  -- https://en.wikipedia.org/wiki/Bilinear_map
- -- 'Bilinear' is generalized to have a commutative ring instead of a field
  record Bilinear (B : V → W → X) : Type (l ⊔ lsuc (al ⊔ bl ⊔ cl)) where
   field      
    lLinear : (v : V) → moduleHomomorphism (B v)
