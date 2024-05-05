@@ -1,11 +1,11 @@
-{-# OPTIONS --cubical --overlapping-instances --hidden-argument-pun #-}
+{-# OPTIONS --cubical --overlapping-instances --hidden-argument-pun --prop #-}
 
 module Experiments.Automaton where
 
 open import Prelude
-open import Data.Natural
-open import Data.Finite
-open import Data.Matrix
+open import Data.Natural hiding (_*_)
+open import Data.Finite hiding (_*_)
+open import Data.Matrix renaming (_∷_ to cons)
 open import Data.Bool
 
 variable
@@ -88,3 +88,189 @@ module _{𝐀 Q₁ : Type}{{M₁ : Automaton 𝐀 Q₁}} where
     ; δ = λ x (p , q) → δ x p , δ x q
     ; accepts = f
     }
+
+-- Terms
+data tm : Type where
+ Var : ℕ → tm
+ _↦_ : tm → tm → tm
+ Appl : tm → tm → tm
+ * : tm
+ ■ : tm
+ _⇒_ : tm → tm → tm
+-- prop : tm
+infixr 7 _⇒_
+infixr 6 _↦_
+
+subst-tm : ℕ → tm → tm → tm
+subst-tm n X a = aux X
+ where
+  aux : tm → tm
+  aux (Var x) with (natDiscrete x n)
+  ... | (yes p) = a
+  ... | (no p) = Var x
+  aux (x ↦ y) = aux x ↦ aux y
+  aux (Appl x y) = Appl (aux x) (aux y)
+  aux (x ⇒ y) = aux x ⇒ aux y
+  aux x = x
+
+substitution : tm → tm → tm
+substitution a = aux
+ where
+  aux : tm → tm
+  aux (Var Z) = a
+  aux (Var (S x)) = Var x
+  aux (x ↦ y) = aux x ↦ aux y
+  aux (Appl x y) = Appl (aux x) (aux y)
+  aux (x ⇒ y) = aux x ⇒ aux y
+  aux x = x
+
+β-reduce : tm → tm
+β-reduce = {!!}
+
+context : Type
+context = ℕ → tm ＋ ⊤
+
+_notIn_ : ℕ → context → Type
+n notIn c with c n
+...    | (inl p) = ⊥
+...    | (inr p) = ⊤
+
+data _⊢_::_ : {n : ℕ} → [ tm ^ n ] → tm → tm → Type where
+  sort : [] ⊢ * :: ■
+  var : ∀{n} → {Γ : [ tm ^ n ]} → ∀{A}
+      → (Γ ⊢ A :: *) ＋ (Γ ⊢ A :: ■)
+      → cons A Γ ⊢ (Var n) :: A
+  weak : ∀{n} → {Γ : [ tm ^ n ]} → ∀{A B C}
+        → Γ ⊢ A :: B
+        → (Γ ⊢ C :: *) ＋ (Γ ⊢ C :: ■)
+        → cons C Γ ⊢ A :: B
+  form : ∀{n} → {Γ : [ tm ^ n ]} → ∀{A B}
+       → Γ ⊢ A :: *
+       → cons A Γ ⊢ B :: *
+       → Γ ⊢ A ⇒ B :: *
+  form₁ : ∀{n} → {Γ : [ tm ^ n ]} → ∀{A B}
+       → Γ ⊢ A :: ■
+       → (cons A Γ ⊢ B :: *) ＋ (cons A Γ ⊢ B :: ■)
+       → Γ ⊢ A ⇒ B :: ■
+  form₂ : ∀{n} → {Γ : [ tm ^ n ]} → ∀{A B}
+       → Γ ⊢ A :: *
+       → cons A Γ ⊢ B :: ■
+       → Γ ⊢ A ⇒ B :: ■
+  appl : ∀{n} → {Γ : [ tm ^ n ]} → ∀{A B M N}
+      → Γ ⊢ M :: (A ⇒ B)
+      → Γ ⊢ N :: A
+      → Γ ⊢ Appl M N :: B
+  abst : ∀{n} → {Γ : [ tm ^ n ]} → ∀{A B M}
+      → cons A Γ ⊢ M :: B
+      → (Γ ⊢ A ⇒ B :: *) ＋ (Γ ⊢ A ⇒ B :: ■)
+      → Γ ⊢ (A ↦ M) :: (A ⇒ B)
+ -- formProp : ∀{n} → {Γ : [ tm ^ n ]} → ∀{A}
+ --      → Γ ⊢ A :: *
+ --      → Γ ⊢ A ⇒ prop :: *
+ -- formProp₂ : ∀{n} → {Γ : [ tm ^ n ]} → ∀{A}
+ --      → Γ ⊢ A :: ■
+ --      → Γ ⊢ A ⇒ prop :: ■
+
+_::_ : tm → tm → Type
+x :: A =  [] ⊢ x :: A
+infix 4 _::_
+
+test : * ↦ (Var Z ⇒ Var Z) :: (* ⇒ *)
+test = abst (form (var (inr sort)) (weak (var (inr sort)) (inl (var (inr sort))))) (inr (form₁ sort (inr (weak sort (inr sort)))))
+
+-- Should not compile
+test2 : (* ↦ (Var Z ⇒ Var (S Z))) :: (* ⇒ *)
+test2 = abst (form (var (inr sort)) (weak {!var!} (inl (var (inr sort))))) (inr (form₁ sort (inr (weak sort (inr sort)))))
+
+transposetest : (A B C : Type) → (A → B → C) → (B → A → C)
+transposetest = λ A B C v0 v1 v2 → v0 v2 v1
+
+
+
+testLeft : * ↦ * ↦ Var Z :: * ⇒ * ⇒ *
+testLeft = abst
+            (weak (abst (var (inr sort)) (inr (form₁ sort (inr (weak sort (inr sort))))))
+             (inr sort))
+            (inr (form₁ sort (inr (form₁ (weak sort (inr sort)) (inr (weak (weak sort (inr sort)) (inr (weak sort (inr sort)))))))))
+
+testRight : * ↦ * ↦ Var (S Z) :: * ⇒ * ⇒ *
+testRight = abst
+             (abst (var (inr (weak sort (inr sort))))
+              (inr (weak (form₁ sort (inr (weak sort (inr sort)))) (inr sort))))
+             (inr (form₁ sort (inr (form₁ (weak sort (inr sort)) (inr (weak (weak sort (inr sort)) (inr (weak sort (inr sort)))))))))
+
+X = Var Z
+Y = Var (S Z)
+R = Var (S(S Z))
+f = Var (S(S(S Z)))
+y = Var (S(S(S(S Z))))
+x = Var (S(S(S(S(S Z)))))
+
+testId : * ↦ Var Z ↦ Var (S Z) :: * ⇒ Var Z ⇒ Var Z
+testId = abst
+          (abst (var (inl (var (inr sort))))
+           (inl
+            (form (var (inr sort))
+             (weak (var (inr sort)) (inl (var (inr sort)))))))
+          (inr
+           (form₁ sort
+            (inl
+             (form (var (inr sort))
+              (weak (var (inr sort)) (inl (var (inr sort))))))))
+
+ΓRec : (n : ℕ) → [ tm ^ n ]
+ΓRec Z = []
+ΓRec (S n) = cons * (ΓRec n)
+
+ΓProof : {n : ℕ} → ΓRec n ⊢ * :: ■
+ΓProof {n = Z} = sort
+ΓProof {n = S n} = weak (ΓProof {n}) (inr (ΓProof {n}))
+
+
+H1 : cons * [] ⊢ * :: ■
+H1 = weak sort (inr sort)
+
+H2 : cons * (cons * []) ⊢ * :: ■
+H2 = weak H1 (inr H1)
+
+H3 : cons * (cons * (cons * [])) ⊢ * :: ■
+H3 = weak H2 (inr H2)
+
+testtm : cons (Var Z) (cons * []) ⊢ (Var Z) :: *
+testtm = weak (var (inr sort)) (inl (var (inr sort)))
+testtm2 : cons (Var (S Z)) (cons (Var Z) (cons * [])) ⊢ (Var Z) :: *
+testtm2 = {!!}
+
+testTranspose : * ↦ * ↦ * ↦ (X ⇒ Y ⇒ R) ↦ Y ↦ X ↦ Appl (Appl f x) y
+              :: * ⇒ * ⇒ * ⇒ (X ⇒ Y ⇒ R) ⇒ Y ⇒ X ⇒ R
+testTranspose = abst (abst (abst (abst (weak {!!} {!!}) {!!}) {!!}) {!!}) {!!}
+--  abst {!!} (inr (form₁ sort (inr (form₁ (weak sort (inr sort))
+--       (inr (form₁ (weak (weak sort (inr sort)) (inr (weak sort (inr sort))))
+--       (inl (form (form (weak (weak (var (inr sort)) (inr (weak sort (inr sort))))
+--                          (inr (weak (weak sort (inr sort)) (inr (weak sort (inr sort))))))
+--          (form (weak
+--                  (weak (var (inr (weak sort (inr sort))))
+--                   (inr (weak (weak sort (inr sort)) (inr (weak sort (inr sort))))))
+--                  (inl
+--                   (weak (weak (var (inr sort)) (inr (weak sort (inr sort))))
+--                    (inr (weak (weak sort (inr sort)) (inr (weak sort (inr sort))))))))
+--   (weak
+--     (weak
+--      (var
+--       (inr (weak (weak sort (inr sort)) (inr (weak sort (inr sort))))))
+--      (inl
+--       (weak (weak (var (inr sort)) (inr (weak sort (inr sort))))
+--        (inr (weak (weak sort (inr sort)) (inr (weak sort (inr sort))))))))
+--     (inl
+--      (weak
+--       (weak (var (inr (weak sort (inr sort))))
+--        (inr (weak (weak sort (inr sort)) (inr (weak sort (inr sort))))))
+--       (inl
+--        (weak (weak (var (inr sort)) (inr (weak sort (inr sort))))
+--         (inr
+--          (weak (weak sort (inr sort)) (inr (weak sort (inr sort))))))))))))
+--    (form (weak (weak (var (inr (weak sort (inr sort))))
+--                  (inr (weak (weak sort (inr sort)) (inr (weak sort (inr sort))))))
+--     (inl (form (weak (weak (var (inr sort)) (inr (weak sort (inr sort))))
+--                  (inr (weak (weak sort (inr sort)) (inr (weak sort (inr sort))))))
+--    (form (weak {!!} {!!}) {!!})))) {!!})))))))))
