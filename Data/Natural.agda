@@ -328,3 +328,59 @@ notAnySIsZ (S a) p = p a refl ~> UNREACHABLE
 pow : ℕ → ℕ → ℕ
 pow _ Z = S Z
 pow a (S b) = mult a (pow a b)
+
+max : ℕ → ℕ → ℕ
+max Z b = b
+max (S a) Z = S a
+max (S a) (S b) = S (max a b)
+
+instance
+ maxAssoc : Associative max
+ maxAssoc = record { assoc = aux }
+  where
+   aux : ∀ a b c → max a (max b c) ≡ max (max a b) c
+   aux Z b c = refl
+   aux (S a) Z c = refl
+   aux (S a) (S b) Z = refl
+   aux (S a) (S b) (S c) = cong S (aux a b c)
+ maxComm : Commutative max
+ maxComm = record { comm = aux }
+  where
+   aux : ∀ a b → max a b ≡ max b a
+   aux Z Z = refl
+   aux Z (S b) = refl
+   aux (S a) Z = refl
+   aux (S a) (S b) = cong S (aux a b)
+ maxMonoid : monoid max
+ maxMonoid = record { e = Z ; lIdentity = λ a → refl ; rIdentity = λ a → comm a Z ⋆ refl }
+
+min : ℕ → ℕ → ℕ
+min Z b = Z
+min (S a) Z = Z
+min (S a) (S b) = S (min a b)
+
+maxIdempotent : ∀ a → max a a ≡ a
+maxIdempotent Z = refl
+maxIdempotent (S a) = cong S (maxIdempotent a)
+
+instance
+ minAssoc : Associative min
+ minAssoc = record { assoc = aux }
+  where
+   aux : ∀ a b c → min a (min b c) ≡ min (min a b) c
+   aux Z b c = refl
+   aux (S a) Z c = refl
+   aux (S a) (S b) Z = refl
+   aux (S a) (S b) (S c) = cong S (aux a b c)
+ minComm : Commutative min
+ minComm = record { comm = aux }
+  where
+   aux : ∀ a b → min a b ≡ min b a
+   aux Z Z = refl
+   aux Z (S b) = refl
+   aux (S a) Z = refl
+   aux (S a) (S b) = cong S (aux a b)
+
+minIdempotent : ∀ a → min a a ≡ a
+minIdempotent Z = refl
+minIdempotent (S a) = cong S (minIdempotent a)
