@@ -16,6 +16,9 @@ transpose f b a = f a b
 [_^_] : Type l → ℕ → Type l
 [ A ^ n ] = fin n → A
 
+[] : [ A ^ Z ]
+[] (x , p , q) = UNREACHABLE $ ZNotS (sym q)
+
 list : Type l → Type l
 list A = Σ λ(n : ℕ) → [ A ^ n ]
 
