@@ -182,10 +182,20 @@ test = abst (form (var (inr sort)) (weak (var (inr sort)) (inl (var (inr sort)))
 test2 : (* ↦ (Var Z ⇒ Var (S Z))) :: (* ⇒ *)
 test2 = abst (form (var (inr sort)) (weak {!var!} (inl (var (inr sort))))) (inr (form₁ sort (inr (weak sort (inr sort)))))
 
+-- Definition of false
+test3 : * ⇒ Var Z :: ■
+test3 = form₁ sort (inl (var (inr sort)))
+
+-- Agda automatically proves that * is not a type of itself
+¬*:* : ¬(* :: *)
+¬*:* ()
+
+-- Agda automatically proves that ■ is not a type of itself
+¬■:■ : ¬ (■ :: ■)
+¬■:■ = λ ()
+
 transposetest : (A B C : Type) → (A → B → C) → (B → A → C)
 transposetest = λ A B C v0 v1 v2 → v0 v2 v1
-
-
 
 testLeft : * ↦ * ↦ Var Z :: * ⇒ * ⇒ *
 testLeft = abst
@@ -226,51 +236,50 @@ testId = abst
 ΓProof {n = Z} = sort
 ΓProof {n = S n} = weak (ΓProof {n}) (inr (ΓProof {n}))
 
-
-H1 : cons * [] ⊢ * :: ■
-H1 = weak sort (inr sort)
-
-H2 : cons * (cons * []) ⊢ * :: ■
-H2 = weak H1 (inr H1)
-
-H3 : cons * (cons * (cons * [])) ⊢ * :: ■
-H3 = weak H2 (inr H2)
-
 testtm : cons (Var Z) (cons * []) ⊢ (Var Z) :: *
 testtm = weak (var (inr sort)) (inl (var (inr sort)))
 testtm2 : cons (Var (S Z)) (cons (Var Z) (cons * [])) ⊢ (Var Z) :: *
 testtm2 = {!!}
 
-testTranspose : * ↦ * ↦ * ↦ (X ⇒ Y ⇒ R) ↦ Y ↦ X ↦ Appl (Appl f x) y
+-- Test parsing a function that transposes a matrix
+transposeParse : * ↦ * ↦ * ↦ (X ⇒ Y ⇒ R) ↦ Y ↦ X ↦ Appl (Appl f x) y
               :: * ⇒ * ⇒ * ⇒ (X ⇒ Y ⇒ R) ⇒ Y ⇒ X ⇒ R
-testTranspose = abst (abst (abst (abst (weak {!!} {!!}) {!!}) {!!}) {!!}) {!!}
---  abst {!!} (inr (form₁ sort (inr (form₁ (weak sort (inr sort))
---       (inr (form₁ (weak (weak sort (inr sort)) (inr (weak sort (inr sort))))
---       (inl (form (form (weak (weak (var (inr sort)) (inr (weak sort (inr sort))))
---                          (inr (weak (weak sort (inr sort)) (inr (weak sort (inr sort))))))
---          (form (weak
---                  (weak (var (inr (weak sort (inr sort))))
---                   (inr (weak (weak sort (inr sort)) (inr (weak sort (inr sort))))))
---                  (inl
---                   (weak (weak (var (inr sort)) (inr (weak sort (inr sort))))
---                    (inr (weak (weak sort (inr sort)) (inr (weak sort (inr sort))))))))
---   (weak
---     (weak
---      (var
---       (inr (weak (weak sort (inr sort)) (inr (weak sort (inr sort))))))
---      (inl
---       (weak (weak (var (inr sort)) (inr (weak sort (inr sort))))
---        (inr (weak (weak sort (inr sort)) (inr (weak sort (inr sort))))))))
---     (inl
---      (weak
---       (weak (var (inr (weak sort (inr sort))))
---        (inr (weak (weak sort (inr sort)) (inr (weak sort (inr sort))))))
---       (inl
---        (weak (weak (var (inr sort)) (inr (weak sort (inr sort))))
---         (inr
---          (weak (weak sort (inr sort)) (inr (weak sort (inr sort))))))))))))
---    (form (weak (weak (var (inr (weak sort (inr sort))))
---                  (inr (weak (weak sort (inr sort)) (inr (weak sort (inr sort))))))
---     (inl (form (weak (weak (var (inr sort)) (inr (weak sort (inr sort))))
---                  (inr (weak (weak sort (inr sort)) (inr (weak sort (inr sort))))))
---    (form (weak {!!} {!!}) {!!})))) {!!})))))))))
+transposeParse = abst (abst (abst (abst (abst (abst (appl {A = Y}
+   (appl {A = X} f1 (var (inl X3))) (weak (var (inl Y2)) (inl X3))) (inl (form X3 R4))) (inl YX2)) (inl (form XY1 YX2)))
+     (inr (form₁ ΓProof (inl (form XY1 YX2))))) (inr (form₁ ΓProof (inr (form₁ ΓProof (inl (form XY1 YX2)))))))
+       (inr (form₁ sort (inr (form₁ ΓProof (inr (form₁ ΓProof (inl (form XY1 YX2))))))))
+ where
+  X1 : cons * (cons * (cons * [])) ⊢ X :: *
+  X1 = weak (weak (var (inr sort)) (inr (weak sort (inr sort))))
+        (inr (weak (weak sort (inr sort)) (inr (weak sort (inr sort)))))
+  Y1 : cons * (cons * (cons * [])) ⊢ Y :: *
+  Y1 = weak (var (inr (weak sort (inr sort))))
+        (inr (weak (weak sort (inr sort)) (inr (weak sort (inr sort)))))
+  XY1 : cons * (cons * (cons * [])) ⊢ X ⇒ Y ⇒ R :: *
+  XY1 = form X1 (form (weak Y1 (inl X1)) (weak (weak (var (inr ΓProof)) (inl X1)) (inl (weak Y1 (inl X1)))))
+  XY2 : cons (X ⇒ Y ⇒ R) (cons * (cons * (cons * []))) ⊢ X ⇒ Y ⇒ R :: *
+  XY2 = weak XY1 (inl XY1)
+  Y2 : cons (X ⇒ Y ⇒ R) (cons * (cons * (cons * []))) ⊢ Y :: *
+  Y2 = weak Y1 (inl XY1)
+  X2 : cons (X ⇒ Y ⇒ R) (cons * (cons * (cons * []))) ⊢ X :: *
+  X2 = weak X1 (inl XY1)
+  X3 : cons Y (cons (X ⇒ Y ⇒ R) (cons * (cons * (cons * [])))) ⊢ X :: *
+  X3 = weak X2 (inl Y2)
+  X4 : cons X (cons Y (cons (X ⇒ Y ⇒ R) (cons * (cons * (cons * []))))) ⊢ X :: *
+  X4 = weak X3 (inl X3)
+  f1 : cons X (cons Y (cons (X ⇒ Y ⇒ R) (cons * (cons * (cons * []))))) ⊢ f :: (X ⇒ Y ⇒ R)
+  f1 = weak (weak (var (inl XY1)) (inl Y2)) (inl X3)
+  XY3 : cons Y (cons (X ⇒ Y ⇒ R) (cons * (cons * (cons * [])))) ⊢ X ⇒ Y ⇒ R :: *
+  XY3 = weak XY2 (inl Y2)
+  R1 : cons * (cons * (cons * [])) ⊢ R :: *
+  R1 = var (inr ΓProof)
+  R2 : cons (X ⇒ Y ⇒ R) (cons * (cons * (cons * []))) ⊢ R :: *
+  R2 = weak R1 (inl XY1)
+  R3 : cons Y (cons (X ⇒ Y ⇒ R) (cons * (cons * (cons * [])))) ⊢ R :: *
+  R3 = weak R2 (inl Y2)
+  R4 : cons X (cons Y (cons (X ⇒ Y ⇒ R) (cons * (cons * (cons * []))))) ⊢ R :: *
+  R4 = weak R3 (inl X3)
+  YX1 : cons * (cons * (cons * [])) ⊢ Y ⇒ X ⇒ R :: *
+  YX1 = form Y1 (form (weak X1 (inl Y1)) (weak (weak R1 (inl Y1)) (inl (weak X1 (inl Y1)))))
+  YX2 : cons (X ⇒ Y ⇒ R) (cons * (cons * (cons * []))) ⊢ Y ⇒ X ⇒ R :: *
+  YX2 = weak YX1 (inl XY1)
