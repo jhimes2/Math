@@ -47,6 +47,39 @@ n notIn c with c n
 ...    | (inl p) = ⊥
 ...    | (inr p) = ⊤
 
+data _⊢'_::'_ : {n : ℕ} → [ tm ^ n ] → tm → tm → Type where
+  sort' : [] ⊢' * ::' ■
+  var' : ∀{n} → {Γ : [ tm ^ n ]} → ∀{A}
+      → (Γ ⊢' A ::' *) ＋ (Γ ⊢' A ::' ■)
+      → cons A Γ ⊢' (Var n) ::' A
+  weak' : ∀{n} → {Γ : [ tm ^ n ]} → ∀{A B C}
+        → Γ ⊢' A ::' B
+        → (Γ ⊢' C ::' *) ＋ (Γ ⊢' C ::' ■)
+        → cons C Γ ⊢' A ::' B
+  form' : ∀{n} → {Γ : [ tm ^ n ]} → ∀{A B}
+       → Γ ⊢' A ::' *
+       → cons A Γ ⊢' B ::' *
+       → Γ ⊢' A ⇒ B ::' *
+  form₁' : ∀{n} → {Γ : [ tm ^ n ]} → ∀{A B}
+       → Γ ⊢' A ::' ■
+       → (cons A Γ ⊢' B ::' *) ＋ (cons A Γ ⊢' B ::' ■)
+       → Γ ⊢' A ⇒ B ::' ■
+  form₂' : ∀{n} → {Γ : [ tm ^ n ]} → ∀{A B}
+       → Γ ⊢' A ::' *
+       → cons A Γ ⊢' B ::' ■
+       → Γ ⊢' A ⇒ B ::' ■
+  appl' : ∀{n} → {Γ : [ tm ^ n ]} → ∀{A B M N}
+      → Γ ⊢' M ::' (A ⇒ B)
+      → Γ ⊢' N ::' A
+      → Γ ⊢' Appl M N ::' substitution n B N
+  abst' : ∀{n} → {Γ : [ tm ^ n ]} → ∀{A B M}
+      → cons A Γ ⊢' M ::' B
+      → Γ ⊢' (A ↦ M) ::' (A ⇒ B)
+
+_::'_ : tm → tm → Type
+x ::' A =  [] ⊢' x ::' A
+infix 4 _::'_
+
 data _⊢_::_ : {n : ℕ} → [ tm ^ n ] → tm → tm → Type where
   sort : [] ⊢ * :: ■
   var : ∀{n} → {Γ : [ tm ^ n ]} → ∀{A}
@@ -109,6 +142,13 @@ test2 = abst (form (var (inr sort)) (weak {!!} (inl (var (inr sort)))))
 -- Definition of false
 test3 : * ⇒ Var Z :: ■
 test3 = form₁ sort (inl (var (inr sort)))
+
+test4 : ∀ x → ¬(x :: * ⇒ Var Z)
+test4 (x ↦ y) p =
+ let R1 = test4 x in
+ let R2 = test4 y in
+  {!!}
+test4 (Appl x y) p = {!x!}
 
 -- Agda automatically proves that * is not a type of itself
 ¬*:* : ¬(* :: *)
@@ -204,3 +244,31 @@ transposeAppl = λ(A : tm)(X : A :: *)
  -- formProp₂ : ∀{n} → {Γ : [ tm ^ n ]} → ∀{A}
  --      → Γ ⊢ A :: ■
  --      → Γ ⊢ A ⇒ prop :: ■
+
+--lemma1 : (A B : tm) → (A ⇒ B :: *) → A :: *
+--lemma1 A B (form H G) = H
+--
+--lemma10 : (A x B C : tm) → (A ↦ x) :: (B ⇒ C) → (x :: C)
+--lemma10 A x .A C (abst H (inl y)) = {!!}
+--lemma10 A x .A C (abst H (inr y)) = {!!}
+
+lemma2 : ∀ x y z → ¬(x :: (y ↦ z))
+lemma2 (Appl x y) z w p =
+ let R1 = lemma2 x z w in
+ let R2 = lemma2 y z w in
+ {!p!}
+
+langImpl : (x A : tm) → (x ::' A) → (x :: A)
+langImpl (x ↦ y) (A ⇒ B) H =
+ let R1 = langImpl x A in
+ let R2 = langImpl y B in
+   {!!}
+langImpl (Appl x y) (Var z) H = {!!}
+langImpl (Appl x y) (A ↦ B) H = {!!}
+langImpl (Appl x y) (Appl A A₁) H = {!!}
+langImpl (Appl x y) * H = {!!}
+langImpl (Appl x y) ■ H = {!!}
+langImpl (Appl x y) (A ⇒ B) H = {!!}
+langImpl * ■ H = sort
+langImpl (x ⇒ y) * H = {!!}
+langImpl (x ⇒ y) ■ H = {!!}
