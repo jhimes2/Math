@@ -62,12 +62,13 @@ tmEqToEq {x ⇒ y} {z ⇒ w} (H , G) i =
   let R1 = tmEqToEq {x} {z} H in
   let R2 = tmEqToEq {y} {w} G in R1 i ⇒ R2 i
 
-varInjective : ∀ x y → Var x ≡ Var y → x ≡ y
-varInjective Z Z H = refl
-varInjective Z (S y) H = {!!}
-varInjective (S x) Z H = {!!}
-varInjective (S x) (S y) H = {!!}
+varInjective' : ∀ x y → tmEq (Var x) (Var y) → x ≡ y
+varInjective' x y H with natDiscrete x y
+... | yes p = p
 
+varInjective : ∀ x y → Var x ≡ Var y → x ≡ y
+varInjective x y H = varInjective' x y (eqTotmEq H)
+ 
 substitution : ℕ → tm → tm → tm
 substitution Z (Var Z) p = p
 substitution Z (Var (S n)) p = Var n
