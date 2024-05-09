@@ -19,6 +19,17 @@ mult : ℕ → ℕ → ℕ
 mult Z b = Z
 mult (S a) b = add b (mult a b)
 
+-- 0^0 is defined as 1
+pow : ℕ → ℕ → ℕ
+pow _ Z = S Z
+pow a (S b) = mult a (pow a b)
+
+-- https://en.wikipedia.org/wiki/Binomial_coefficient
+choose : ℕ → ℕ → ℕ
+choose _ Z = S Z
+choose Z (S _) = Z
+choose (S n) (S k) = add (choose n k) (choose n (S k))
+
 Sout : (n m : ℕ) → add n (S m) ≡ S (add n m)
 Sout Z m = refl
 Sout (S n) m = cong S (Sout n m)
@@ -323,11 +334,6 @@ NatHomogeneous = isHomogeneousDiscrete natDiscrete
 notAnySIsZ : ∀ a → (∀ b → a ≢ S b) → a ≡ Z
 notAnySIsZ Z _ = refl
 notAnySIsZ (S a) p = p a refl ~> UNREACHABLE
-
--- 0^0 is defined as 1
-pow : ℕ → ℕ → ℕ
-pow _ Z = S Z
-pow a (S b) = mult a (pow a b)
 
 max : ℕ → ℕ → ℕ
 max Z b = b
