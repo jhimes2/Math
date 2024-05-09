@@ -1,6 +1,6 @@
 {-# OPTIONS --cubical --overlapping-instances --hidden-argument-pun --prop #-}
 
-module Experiments.SimplyTyped where
+module Experiments.TypeTheory.Terms where
 
 open import Prelude
 open import Data.Natural hiding (_*_)
@@ -127,7 +127,10 @@ substitution Z (Var (S n)) p = Var n
 substitution (S n) (Var Z) p = Var Z
 substitution (S n) (Var (S x)) p = aux n x
  where
-  aux : ℕ → ℕ → tm
+  -- n = x ; substitute term
+  -- n < x ; decrement x
+  -- n > x ; leave term unchanged
+  aux : (n x : ℕ) → tm
   aux Z Z = p
   aux Z (S b) = Var x
   aux (S a) Z = Var (S x)
@@ -137,19 +140,3 @@ substitution n (Appl X Y) p = Appl (substitution n X p) (substitution n Y p)
 substitution n * a = *
 substitution n ■ a = ■
 substitution n (X ⇒ Y) p = substitution n X p ⇒ substitution n Y p
-
-data _⊢_::_ : {n : ℕ} → [ tm ^ n ] → tm → tm → Type where
-  var : ∀{n} → {Γ : [ tm ^ n ]} → ∀{A}
-      → (cons A Γ ⊢ Var n :: A)
-  appl : ∀{n} → {Γ : [ tm ^ n ]} → ∀{A B M N}
-      → Γ ⊢ M :: (A ⇒ B)
-      → Γ ⊢ N :: A
-      → Γ ⊢ Appl M N :: B
-  abst : ∀{n} → {Γ : [ tm ^ n ]} → ∀{A B M}
-      → cons A Γ ⊢ M :: B
-      → Γ ⊢ (↦ M) :: (A ⇒ B)
-
-_::_ : tm → tm → Type
-x :: A =  [] ⊢ x :: A
-infix 4 _::_
-
