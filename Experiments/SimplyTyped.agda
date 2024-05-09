@@ -68,7 +68,59 @@ varInjective' x y H with natDiscrete x y
 
 varInjective : ∀ x y → Var x ≡ Var y → x ≡ y
 varInjective x y H = varInjective' x y (eqTotmEq H)
- 
+
+↦Injective : ∀ x y → ↦ x ≡ ↦ y → x ≡ y
+↦Injective x y H = tmEqToEq (eqTotmEq H)
+
+-- Terms are discrete
+tmDiscrete : Discrete tm
+tmDiscrete (Var x) (Var y) with natDiscrete x y
+... | yes p = yes (cong Var p)
+... | no p = no λ q → p (varInjective x y q)
+tmDiscrete (Var x) (↦ y) = no λ p → eqTotmEq p
+tmDiscrete (Var x) (Appl y z) = no λ p → eqTotmEq p
+tmDiscrete (Var x) * = no λ p → eqTotmEq p 
+tmDiscrete (Var x) ■ = no λ p → eqTotmEq p
+tmDiscrete (Var x) (y ⇒ z) = no λ p → eqTotmEq p
+tmDiscrete (↦ x) (Var y) = no λ p → eqTotmEq p
+tmDiscrete (↦ x) (↦ y) with tmDiscrete x y
+... | (yes p) = yes (cong ↦_ p)
+... | (no p) = no λ q → p (↦Injective x y q)
+tmDiscrete (↦ x) (Appl y z) = no λ p → eqTotmEq p
+tmDiscrete (↦ x) * = no  λ p → eqTotmEq p 
+tmDiscrete (↦ x) ■ = no  λ p → eqTotmEq p
+tmDiscrete (↦ x) (y ⇒ z) = no λ p → eqTotmEq p
+tmDiscrete (Appl w x) (Var z) = no λ p → eqTotmEq p
+tmDiscrete (Appl w x) (↦ z) = no λ p → eqTotmEq p
+tmDiscrete (Appl w x) (Appl y z) with tmDiscrete w y | tmDiscrete x z
+... | yes p | yes q = yes λ i → Appl (p i) (q i)
+... | yes p | no q = no λ r → q (tmEqToEq (snd (eqTotmEq r)))
+... | no p | _ = no λ r → p (tmEqToEq (fst (eqTotmEq r)))
+tmDiscrete (Appl w x) * = no λ p → eqTotmEq p
+tmDiscrete (Appl w x) ■ = no λ p → eqTotmEq p
+tmDiscrete (Appl w x) (y ⇒ z) = no λ p → eqTotmEq p
+tmDiscrete * (Var x) =  no λ p → eqTotmEq p
+tmDiscrete * (↦ y) =  no λ p → eqTotmEq p
+tmDiscrete * (Appl y y₁) = no λ p → eqTotmEq p
+tmDiscrete * * = yes refl
+tmDiscrete * ■ =  no λ p → eqTotmEq p
+tmDiscrete * (y ⇒ y₁) = no λ p → eqTotmEq p
+tmDiscrete ■ (Var x) =  no λ p → eqTotmEq p
+tmDiscrete ■ (↦ y) =  no λ p → eqTotmEq p
+tmDiscrete ■ (Appl y y₁) =  no λ p → eqTotmEq p
+tmDiscrete ■ * =  no λ p → eqTotmEq p
+tmDiscrete ■ ■ = yes refl
+tmDiscrete ■ (y ⇒ y₁) =  no λ p → eqTotmEq p
+tmDiscrete (x ⇒ y) (Var x₁) =  no λ p → eqTotmEq p
+tmDiscrete (x ⇒ y) (↦ z) =  no λ p → eqTotmEq p
+tmDiscrete (x ⇒ y) (Appl z z₁) =  no λ p → eqTotmEq p
+tmDiscrete (x ⇒ y) * =  no λ p → eqTotmEq p
+tmDiscrete (x ⇒ y) ■ =  no λ p → eqTotmEq p
+tmDiscrete (w ⇒ x) (y ⇒ z) with tmDiscrete w y | tmDiscrete x z
+... | yes p | yes q = yes λ i → (p i) ⇒ (q i)
+... | yes p | no q = no λ r → q (tmEqToEq (snd (eqTotmEq r)))
+... | no p | _ = no λ r → p (tmEqToEq (fst (eqTotmEq r)))
+
 substitution : ℕ → tm → tm → tm
 substitution Z (Var Z) p = p
 substitution Z (Var (S n)) p = Var n
