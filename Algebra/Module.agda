@@ -30,15 +30,17 @@ open Module {{...}} public
 
 module _{scalar : Type l}{vector : Type l'}{{R : Ring scalar}}{{V : Module vector}} where
 
-  -- Zero vector
+  -- Zero vector; This looks like a zero with a hat
   Ô : vector
   Ô = e
 
+  -- Additive inverse for vectors
   -<_> : vector → vector
   -<_> = inv
 
-  _[->_ : vector → vector → vector
-  a [-> b = a <+> -< b >
+  -- Vector subtraction
+  _<->_ : vector → vector → vector
+  a <-> b = a <+> -< b >
 
   -- Vector scaled by 0r is zero vector
   scaleZ : (v : vector) → 0r *> v ≡ Ô
@@ -55,7 +57,7 @@ module _{scalar : Type l}{vector : Type l'}{{R : Ring scalar}}{{V : Module vecto
   scaleVZ : (c : scalar) → c *> Ô ≡ Ô
   scaleVZ c =
     let H : (c *> Ô) <+> (c *> Ô) ≡ (c *> Ô) <+> Ô
-                        → c *> Ô ≡ Ô
+                         → c *> Ô ≡ Ô
         H = grp.cancel (c *> Ô) in H $
     (c *> Ô) <+> (c *> Ô) ≡⟨ sym (scalarDistribute c Ô Ô)⟩
     c *> (Ô <+> Ô)        ≡⟨ right _*>_ (lIdentity Ô)⟩
@@ -65,7 +67,7 @@ module _{scalar : Type l}{vector : Type l'}{{R : Ring scalar}}{{V : Module vecto
   scaleInv : (v : vector) → (c : scalar) → neg c *> v ≡ -< c *> v >
   scaleInv v c =
     let H : (neg c *> v) <+> -< -< c *> v > > ≡ Ô
-                           → neg c *> v ≡ -< c *> v >
+                                 → neg c *> v ≡ -< c *> v >
         H = grp.uniqueInv in H $
     (neg c *> v) <+> -< -< c *> v > > ≡⟨ right _<+>_ (grp.doubleInv (c *> v))⟩
     (neg c *> v) <+> (c *> v)         ≡⟨ sym (vectorDistribute v (neg c) c)⟩
