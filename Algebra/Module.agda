@@ -230,8 +230,7 @@ module _{scalar : Type l}{vector : Type l'}{{R : Ring scalar}}{{V : Module vecto
    SubspaceSG : {X : vector → Type al}{{_ : Subspace X}} → Subgroup X
    SubspaceSG {X = X} = record
       { inv-closed = λ{x} x∈X →
-        let H = neg 1r *> x ∈ X  ≡⟨ cong X (scaleNeg x 1r)⟩
-                1r *> -< x > ∈ X ≡⟨ cong X (scaleId -< x >)⟩
+        let H = neg 1r *> x ∈ X ≡⟨ cong X (scaleNegOneInv x)⟩
                 -< x > ∈ X ∎ in
         let F : neg 1r *> x ∈ X
             F = ss*> x∈X (neg 1r) in
