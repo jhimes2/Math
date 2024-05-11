@@ -17,7 +17,7 @@ module Ambigiguity where
 --  data <expr> : Type where
 --    _+_ : <expr> → <expr> → <expr>
 --    _*_ : <expr> → <expr> → <expr>
---    [_] : <expr> → <expr>
+--    <_> : <expr> → <expr>
 --    <ℕ> : ℕ → <expr>
 -- 
 --  -- Two ambiguous parse trees of (Z + S Z * S(S Z))
@@ -37,7 +37,7 @@ open Automaton {{...}} public
 module _{𝐀 Q₁ : Type}{{M₁ : Automaton 𝐀 Q₁}} where
 
  -- Extended transition function
- δ* : [ 𝐀 ^ n ] → Q₁
+ δ* : < 𝐀 ^ n > → Q₁
  δ* x = foldr δ q₀ x
 
 -----------------------------------------------------------------------------------------------------------------
@@ -47,28 +47,28 @@ module _{𝐀 Q₁ : Type}{{M₁ : Automaton 𝐀 Q₁}} where
 -----------------------------------------------------------------------------------------------------------------
 
  -- Acceptance by an Automaton
- L : [ 𝐀 ^ n ] → Type
+ L : < 𝐀 ^ n > → Type
  L x = accepts $ δ* x
 
  -- Strings Indistinguishable with Respect to L
  L-indistinguishable : list 𝐀 → list 𝐀 → Type₁
- L-indistinguishable (_ , x) (_ , y) = ∀{p} → (z : [ 𝐀 ^ p ]) → L (z ++ x) ≡ L (z ++ y)
+ L-indistinguishable (_ , x) (_ , y) = ∀{p} → (z : < 𝐀 ^ p >) → L (z ++ x) ≡ L (z ++ y)
 
  L-ind-refl : (x : list 𝐀) → L-indistinguishable x x
  L-ind-refl x z = refl
 
- L-ind-trans : (x y z : Σ λ n → [ 𝐀 ^ n ])
+ L-ind-trans : (x y z : Σ λ n → < 𝐀 ^ n >)
              → L-indistinguishable x y
              → L-indistinguishable y z
              → L-indistinguishable x z
  L-ind-trans (_ , x) (_ , y) (_ , z) H G a = H a ⋆ G a
 
- L-ind-sym : (x y : Σ λ n → [ 𝐀 ^ n ])
+ L-ind-sym : (x y : Σ λ n → < 𝐀 ^ n >)
              → L-indistinguishable x y
              → L-indistinguishable y x
  L-ind-sym (_ , x) (_ , y) H a = sym (H a)
 
- autoLemma1 : (x : [ 𝐀 ^ n ]) → (y : [ 𝐀 ^ m ]) → δ* x ≡ δ* y → L-indistinguishable (n , x) (m , y)
+ autoLemma1 : (x : < 𝐀 ^ n >) → (y : < 𝐀 ^ m >) → δ* x ≡ δ* y → L-indistinguishable (n , x) (m , y)
  autoLemma1 x y = λ (p : foldr δ q₀ x ≡ foldr δ q₀ y) →
                   λ z →
   L (z ++ x)                         ≡⟨By-Definition⟩

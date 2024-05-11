@@ -12,35 +12,35 @@ transpose : (A → B → C) → (B → A → C)
 transpose f b a = f a b
 
 -- Ordered n-tuple
--- `[ 𝔹 ^ n ]` would be an ordered n-tuple of booleans
-[_^_] : Type l → ℕ → Type l
-[ A ^ n ] = fin n → A
+-- `< 𝔹 ^ n >` would be an ordered n-tuple of booleans
+<_^_> : Type l → ℕ → Type l
+< A ^ n > = fin n → A
 
-<> : [ A ^ Z ]
+<> : < A ^ Z >
 <> (x , p , q) = UNREACHABLE $ ZNotS (sym q)
 
 list : Type l → Type l
-list A = Σ λ(n : ℕ) → [ A ^ n ]
+list A = Σ λ(n : ℕ) → < A ^ n >
 
-head : [ A ^ S n ] → A
+head : < A ^ S n > → A
 head v = v finZ
 
-tail : [ A ^ S n ] → [ A ^ n ]
+tail : < A ^ S n > → < A ^ n >
 tail v x = v (finS x)
 
-_∷_ : A → [ A ^ n ] → [ A ^ S n ]
+_∷_ : A → < A ^ n > → < A ^ S n >
 (a ∷ _) (Z , _) = a
 (a ∷ v) (S x , x' , P) = v (x , x' , SInjective P)
 
 zip : (A → B → C) → {D : Type l} → (D → A) → (D → B) → (D → C)
 zip f u v d = f (u d) (v d)
 
-zipHead : (f : [ A ^ S n ] → [ B ^ S n ] → [ C ^ S n ])
+zipHead : (f : < A ^ S n > → < B ^ S n > → < C ^ S n >)
               → ∀ x y → head {n = n} (zip f x y) ≡ f (head x) (head y)
 zipHead f x y = funExt λ z → refl
 
 Matrix : Type l → ℕ → ℕ → Type l
-Matrix A n m = [ [ A ^ n ] ^ m ]
+Matrix A n m = < < A ^ n > ^ m >
 
 instance
   fvect : Functor λ(A : Type l) → B → A
@@ -52,32 +52,32 @@ instance
                  ; η = λ x _ → x }
 
 instance
- id++Prop : is-prop [ A ^ Z ]
+ id++Prop : is-prop < A ^ Z >
  id++Prop = record { IsProp = λ x y → funExt λ(_ , _ , p) → UNREACHABLE (ZNotS (sym p)) }
 
-foldr : (A → B → B) → B → [ A ^ n ] → B
+foldr : (A → B → B) → B → < A ^ n > → B
 foldr {n = Z}f b _ = b
 foldr {n = S n} f b v = f (head v) (foldr f b (tail v))
 
-foldl : (A → B → B) → B → [ A ^ n ] → B
+foldl : (A → B → B) → B → < A ^ n > → B
 foldl {n = Z}f b _ = b
 foldl {n = S n} f b v = foldl f (f (head v) b) (tail v)
 
 -- Ordered n-tuple concatenation
-_++_ : [ A ^ n ] → [ A ^ m ] → [ A ^ (n + m) ]
+_++_ : < A ^ n > → < A ^ m > → < A ^ (n + m) >
 _++_ {n = Z} u v x = v x
 _++_ {n = S n} u v (Z , H) = u finZ
 _++_ {n = S n} u v (S x , y , p) = (tail u ++ v) (x , y , SInjective p)
 
-tail++ : (u : [ A ^ S n ]) → (v : [ A ^ m ]) → tail (u ++ v) ≡ tail u ++ v 
+tail++ : (u : < A ^ S n >) → (v : < A ^ m >) → tail (u ++ v) ≡ tail u ++ v 
 tail++ u v = funExt λ z → aux u v z
  where
-  aux : (u : [ A ^ S n ]) → (v : [ A ^ m ]) → (x : fin (n + m)) → tail (u ++ v) x ≡ (tail u ++ v) x 
+  aux : (u : < A ^ S n >) → (v : < A ^ m >) → (x : fin (n + m)) → tail (u ++ v) x ≡ (tail u ++ v) x 
   aux {n = Z} {m} u v (x , y , p) = cong v (ΣPathPProp finSndIsProp refl)
   aux {n = S n} {m} u v (Z , y , p) = refl
   aux {n = S n} {m} u v (S x , y , p) = aux (tail u) v (x , y , SInjective p)
 
-foldr++ : (f : A → B → B) → (q : B) → (x : [ A ^ n ]) → (y : [ A ^ m ])
+foldr++ : (f : A → B → B) → (q : B) → (x : < A ^ n >) → (y : < A ^ m >)
         → foldr f q (x ++ y) ≡ foldr f (foldr f q y) x
 foldr++ {n = Z} f q x y = refl
 foldr++ {n = S n} f q x y =
@@ -86,7 +86,7 @@ foldr++ {n = S n} f q x y =
    f H (foldr f q (tail x ++ y)) ≡⟨ right f (foldr++ f q (tail x) y) ⟩
    foldr f (foldr f q y) x ∎
 
-foldl++ : (f : A → B → B) → (q : B) → (x : [ A ^ n ]) → (y : [ A ^ m ])
+foldl++ : (f : A → B → B) → (q : B) → (x : < A ^ n >) → (y : < A ^ m >)
         → foldl f q (x ++ y) ≡ foldl f (foldl f q x) y
 foldl++ {n = Z} f q x y = refl
 foldl++ {n = S n} f q x y =
@@ -109,24 +109,24 @@ module _{C : Type cl}{{R : Rng C}} where
  scaleV c v a = c * (v a)
 
  -- https://en.wikipedia.org/wiki/Dot_product
- _∙_ : [ C ^ n ] → [ C ^ n ] → C
+ _∙_ : < C ^ n > → < C ^ n > → C
  _∙_ u v = foldr _+_ 0r (zip _*_ u v)
 
  -- Matrix Transformation
- MT : (fin n → A → C) → [ C ^ n ] → (A → C)
+ MT : (fin n → A → C) → < C ^ n > → (A → C)
  MT M v a =  v ∙ λ y → M y a
 
  -- Matrix Multiplication
  mMult : (fin n → B → C) → (A → fin n → C) → (A → B → C)
  mMult M N a = MT M (N a)
  
- orthogonal : [ C ^ n ] → [ C ^ n ] → Type cl
+ orthogonal : < C ^ n > → < C ^ n > → Type cl
  orthogonal u v = u ∙ v ≡ 0r
 
- orthogonal-set : ([ C ^ n ] → Type cl) → Type cl
+ orthogonal-set : (< C ^ n > → Type cl) → Type cl
  orthogonal-set X = ∀ u v → u ∈ X → v ∈ X → u ≢ v → orthogonal u v
 
- dotZL : (V : [ C ^ n ])
+ dotZL : (V : < C ^ n >)
        → (λ _ → 0r) ∙ V ≡ 0r
  dotZL {n = Z} V = refl
  dotZL {n = S n} V =
@@ -135,7 +135,7 @@ module _{C : Type cl}{{R : Rng C}} where
   (λ (_ : fin n) → 0r) ∙ tail V                   ≡⟨ dotZL (tail V)⟩
   0r ∎
  
- dotZR : (V : [ C ^ n ])
+ dotZR : (V : < C ^ n >)
        → V ∙ (λ _ → 0r) ≡ 0r
  dotZR {n = Z} V = refl
  dotZR {n = S n} V =
@@ -187,7 +187,7 @@ instance
  functionSpace : {{F : Field A}} → VectorSpace (B → A)
  functionSpace = vectMod
 
-foldrMC : {_∗_ : A → A → A}{{M : monoid _∗_}}{{C : Commutative _∗_}} → (u v : [ A ^ n ])
+foldrMC : {_∗_ : A → A → A}{{M : monoid _∗_}}{{C : Commutative _∗_}} → (u v : < A ^ n >)
         → foldr _∗_ e (zip _∗_ u v) ≡ foldr _∗_ e u ∗ foldr _∗_ e v
 foldrMC {n = Z} u v = sym(lIdentity e)
 foldrMC {n = S n} {_∗_ = _∗_} u v =
@@ -242,7 +242,7 @@ instance
 
 module _{C : Type cl} {{R : Ring C}} where
 
- dotDistribute : (w u v : [ C ^ n ]) → (u <+> v) ∙ w ≡ (u ∙ w) + (v ∙ w)
+ dotDistribute : (w u v : < C ^ n >) → (u <+> v) ∙ w ≡ (u ∙ w) + (v ∙ w)
  dotDistribute {n = Z} w u v = sym (lIdentity 0r)
  dotDistribute {n = S n} w u v =
    let v∙w = tail v ∙ tail w in
@@ -257,7 +257,7 @@ module _{C : Type cl} {{R : Ring C}} where
   ((head u * head w) + u∙w) + ((head v * head w) + v∙w) ≡⟨By-Definition⟩
   (u ∙ w) + (v ∙ w) ∎
  
- dotlDistribute : (w u v : [ C ^ n ]) → w ∙ (u <+> v) ≡ (w ∙ u) + (w ∙ v)
+ dotlDistribute : (w u v : < C ^ n >) → w ∙ (u <+> v) ≡ (w ∙ u) + (w ∙ v)
  dotlDistribute {n = Z} w u v = sym (rIdentity 0r)
  dotlDistribute {n = S n} w u v =
    let w∙v = tail w ∙ tail v in
@@ -270,7 +270,7 @@ module _{C : Type cl} {{R : Ring C}} where
    ≡⟨ [ab][cd]≡[ac][bd] (head w * head u) (head w * head v) w∙u w∙v ⟩
    (w ∙ u) + (w ∙ v) ∎
  
- dotScale : (c : C) → (u v : [ C ^ n ]) → scale c u ∙ v ≡ c * (u ∙ v)
+ dotScale : (c : C) → (u v : < C ^ n >) → scale c u ∙ v ≡ c * (u ∙ v)
  dotScale {n = Z} c u v = sym (x*0≡0 c)
  dotScale {n = S n} c u v =
   scale c u ∙ v ≡⟨By-Definition⟩
@@ -284,14 +284,14 @@ module _{C : Type cl} {{R : Ring C}} where
   c * ((head u * head v) + (tail u ∙ tail v)) ≡⟨By-Definition⟩
   c * (u ∙ v) ∎
  
- _orthogonal-to_ : [ C ^ n ] → (W : [ C ^ n ] → Type l) → {{Subspace W}} → Type(l ⊔ cl)
+ _orthogonal-to_ : < C ^ n > → (W : < C ^ n > → Type l) → {{Subspace W}} → Type(l ⊔ cl)
  z orthogonal-to W = ∀ v → v ∈ W → orthogonal z v
  
- orthogonal-complement : (W : [ C ^ n ] → Type l) → {{Subspace W}} → [ C ^ n ] → Type(l ⊔ cl)
+ orthogonal-complement : (W : < C ^ n > → Type l) → {{Subspace W}} → < C ^ n > → Type(l ⊔ cl)
  orthogonal-complement W z = z orthogonal-to W
 
  -- The orthogonal complement of a subspace is a subspace
- OC-subspace : (W : [ C ^ n ] → Type l) → {{SS : Subspace W}}
+ OC-subspace : (W : < C ^ n > → Type l) → {{SS : Subspace W}}
              → Subspace (orthogonal-complement W)
  OC-subspace {n = n} W = record
     { ssZero = let H : ∀ v → v ∈ W → orthogonal Ô v
@@ -466,15 +466,15 @@ module _{C : Type cl} {{R : Ring C}} where
 
 {- The function 'withoutEach' is used as part of the definition of the determinant.
    If you give it a vector
-      [a b c d e]
+      <a b c d e>
    then it outputs the matrix
-    [[ b c d e ]
-     [ a c d e ]
-     [ a b d e ]
-     [ a b c e ]
-     [ a b c d ]]
+    << b c d e >
+     < a c d e >
+     < a b d e >
+     < a b c e >
+     < a b c d >>
 -}
-withoutEach : [ C ^ S n ] → Matrix C n (S n)
+withoutEach : < C ^ S n > → Matrix C n (S n)
 withoutEach {n = Z} v u _ = v u
 withoutEach {n = S n} v = tail v ∷ map (head v ∷_) (withoutEach (tail v))
 
@@ -491,7 +491,7 @@ module _ {{R : CRing C}} where
   dotComm : Commutative (_∙_ {C = C} {n = n} )
   dotComm = record { comm = aux }
    where
-    aux : (u v : [ C ^ n ])
+    aux : (u v : < C ^ n >)
         → u ∙ v ≡ v ∙ u
     aux {n = Z} u v = refl
     aux {n = S n} u v = cong₂ _+_ (comm (head u) (head v)) (aux (tail u) (tail v))

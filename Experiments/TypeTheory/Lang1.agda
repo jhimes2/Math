@@ -8,32 +8,32 @@ open import Data.Finite hiding (_*_)
 open import Data.Matrix renaming (_∷_ to cons)
 open import Experiments.TypeTheory.Terms
 
-data _⊢_::_ : {n : ℕ} → [ tm ^ n ] → tm → tm → Type where
+data _⊢_::_ : {n : ℕ} → < tm ^ n > → tm → tm → Type where
   sort : <> ⊢ * :: ■
-  var : ∀{n} → {Γ : [ tm ^ n ]} → ∀{A}
+  var : ∀{n} → {Γ : < tm ^ n >} → ∀{A}
       → (Γ ⊢ A :: *) ＋ (Γ ⊢ A :: ■)
       → cons A Γ ⊢ (Var n) :: A
-  weak : ∀{n} → {Γ : [ tm ^ n ]} → ∀{A B C}
+  weak : ∀{n} → {Γ : < tm ^ n >} → ∀{A B C}
         → Γ ⊢ A :: B
         → (Γ ⊢ C :: *) ＋ (Γ ⊢ C :: ■)
         → cons C Γ ⊢ A :: B
-  form : ∀{n} → {Γ : [ tm ^ n ]} → ∀{A B}
+  form : ∀{n} → {Γ : < tm ^ n >} → ∀{A B}
        → Γ ⊢ A :: *
        → cons A Γ ⊢ B :: *
        → Γ ⊢ A ⇒ B :: *
-  form₁ : ∀{n} → {Γ : [ tm ^ n ]} → ∀{A B}
+  form₁ : ∀{n} → {Γ : < tm ^ n >} → ∀{A B}
        → Γ ⊢ A :: ■
        → (cons A Γ ⊢ B :: *) ＋ (cons A Γ ⊢ B :: ■)
        → Γ ⊢ A ⇒ B :: ■
-  form₂ : ∀{n} → {Γ : [ tm ^ n ]} → ∀{A B}
+  form₂ : ∀{n} → {Γ : < tm ^ n >} → ∀{A B}
        → Γ ⊢ A :: *
        → cons A Γ ⊢ B :: ■
        → Γ ⊢ A ⇒ B :: ■
-  appl : ∀{n} → {Γ : [ tm ^ n ]} → ∀{A B M N}
+  appl : ∀{n} → {Γ : < tm ^ n >} → ∀{A B M N}
       → Γ ⊢ M :: (A ⇒ B)
       → Γ ⊢ N :: A
       → Γ ⊢ Appl M N :: substitution n B N
-  abst : ∀{n} → {Γ : [ tm ^ n ]} → ∀{A B M}
+  abst : ∀{n} → {Γ : < tm ^ n >} → ∀{A B M}
       → cons A Γ ⊢ M :: B
       → (Γ ⊢ A ⇒ B :: *) ＋ (Γ ⊢ A ⇒ B :: ■)
       → Γ ⊢ (↦ M) :: (A ⇒ B)
@@ -86,7 +86,7 @@ testRight = abst
               (inr (weak (form₁ sort (inr (weak sort (inr sort)))) (inr sort))))
              (inr (form₁ sort (inr (form₁ (weak sort (inr sort)) (inr (weak (weak sort (inr sort)) (inr (weak sort (inr sort)))))))))
 
-ΓRec : (n : ℕ) → [ tm ^ n ]
+ΓRec : (n : ℕ) → < tm ^ n >
 ΓRec Z = <>
 ΓRec (S n) = cons * (ΓRec n)
 
@@ -151,9 +151,9 @@ transposeAppl : (A : tm) → (A :: *)
 transposeAppl = λ(A : tm)(X : A :: *)
               → appl transposeParse X
 
- -- formProp : ∀{n} → {Γ : [ tm ^ n ]} → ∀{A}
+ -- formProp : ∀{n} → {Γ : < tm ^ n >} → ∀{A}
  --      → Γ ⊢ A :: *
  --      → Γ ⊢ A ⇒ prop :: *
- -- formProp₂ : ∀{n} → {Γ : [ tm ^ n ]} → ∀{A}
+ -- formProp₂ : ∀{n} → {Γ : < tm ^ n >} → ∀{A}
  --      → Γ ⊢ A :: ■
  --      → Γ ⊢ A ⇒ prop :: ■

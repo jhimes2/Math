@@ -9,14 +9,14 @@ open import Data.Matrix renaming (_∷_ to cons)
 open import Experiments.TypeTheory.Terms
 
 -- Simply typed lambda calculus
-data _⊢_::_ : {n : ℕ} → [ tm ^ n ] → tm → tm → Type where
-  var : ∀ n → (Γ : [ tm ^ n ]) → ∀ A
+data _⊢_::_ : {n : ℕ} → < tm ^ n > → tm → tm → Type where
+  var : ∀ n → (Γ : < tm ^ n >) → ∀ A
       → cons A Γ ⊢ Var n :: A
-  appl : ∀{n} → (Γ : [ tm ^ n ]) → ∀ A B M N
+  appl : ∀{n} → (Γ : < tm ^ n >) → ∀ A B M N
       → Γ ⊢ M :: (A ⇒ B)
       → Γ ⊢ N :: A
       → Γ ⊢ Appl M N :: B
-  abst : ∀{n} → (Γ : [ tm ^ n ]) → ∀ A B M
+  abst : ∀{n} → (Γ : < tm ^ n >) → ∀ A B M
       → cons A Γ ⊢ M :: B
       → Γ ⊢ (↦ M) :: (A ⇒ B)
 
@@ -31,7 +31,7 @@ test1 = var Z <> (↦ *)
 ↦notType .(Appl M (↦ N)) y (appl .<> (A ⇒ B) .(↦ y) M (↦ N) H G) = {!!}
 ↦notType .(Appl M (Appl N N₁)) y (appl .<> A .(↦ y) M (Appl N N₁) H G) = {!!}
 
---uniquenessOfTypes : (Γ : [ tm ^ n ]) → (x A B : tm)
+--uniquenessOfTypes : (Γ : < tm ^ n >) → (x A B : tm)
 --                  → Γ ⊢ x :: A
 --                  → Γ ⊢ x :: B
 --                  → A ≡ B
@@ -72,7 +72,7 @@ test1 = var Z <> (↦ *)
 --uniquenessOfTypes Γ x (A ⇒ A₁) ■ H G = {!!}
 --uniquenessOfTypes Γ x (A ⇒ A₁) (B ⇒ B₁) H G = {!!}
 -- where
---  aux1 : (Γ : [ tm ^ n ]) → (x : tm) → (n m : ℕ)
+--  aux1 : (Γ : < tm ^ n >) → (x : tm) → (n m : ℕ)
 --                  → Γ ⊢ x :: (Var n)
 --                  → Γ ⊢ x :: (Var m)
 --                  → n ≡ m
