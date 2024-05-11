@@ -34,11 +34,11 @@ module _{scalar : Type l}{vector : Type l'}{{R : Ring scalar}}{{V : Module vecto
   Ô : vector
   Ô = e
 
-  negV : vector → vector
-  negV = inv
+  -<_> : vector → vector
+  -<_> = inv
 
-  _[-]_ : vector → vector → vector
-  a [-] b = a <+> negV b
+  _[->_ : vector → vector → vector
+  a [-> b = a <+> -< b >
 
   -- Vector scaled by 0r is zero vector
   scaleZ : (v : vector) → 0r *> v ≡ Ô
@@ -62,28 +62,28 @@ module _{scalar : Type l}{vector : Type l'}{{R : Ring scalar}}{{V : Module vecto
     c *> Ô                ≡⟨ sym (rIdentity (c *> Ô))⟩
     (c *> Ô) <+> Ô ∎
 
-  scaleInv : (v : vector) → (c : scalar) → neg c *> v ≡ negV (c *> v)
+  scaleInv : (v : vector) → (c : scalar) → neg c *> v ≡ -< c *> v >
   scaleInv v c =
-    let H : (neg c *> v) <+> negV(negV(c *> v)) ≡ Ô
-                           → neg c *> v ≡ negV (c *> v)
+    let H : (neg c *> v) <+> -< -< c *> v > > ≡ Ô
+                           → neg c *> v ≡ -< c *> v >
         H = grp.uniqueInv in H $
-    (neg c *> v) <+> negV(negV(c *> v)) ≡⟨ right _<+>_ (grp.doubleInv (c *> v))⟩
-    (neg c *> v) <+> (c *> v)           ≡⟨ sym (vectorDistribute v (neg c) c)⟩
-    (neg c + c) *> v                    ≡⟨ left _*>_ (lInverse c)⟩
-    0r *> v                             ≡⟨ scaleZ v ⟩
+    (neg c *> v) <+> -< -< c *> v > > ≡⟨ right _<+>_ (grp.doubleInv (c *> v))⟩
+    (neg c *> v) <+> (c *> v)         ≡⟨ sym (vectorDistribute v (neg c) c)⟩
+    (neg c + c) *> v                  ≡⟨ left _*>_ (lInverse c)⟩
+    0r *> v                           ≡⟨ scaleZ v ⟩
     Ô ∎
 
-  scaleNegOneInv : (v : vector) → neg 1r *> v ≡ negV v
+  scaleNegOneInv : (v : vector) → neg 1r *> v ≡ -< v >
   scaleNegOneInv v =
     neg 1r *> v  ≡⟨ scaleInv v 1r ⟩
-    negV (1r *> v) ≡⟨ cong negV (scaleId v)⟩
-    negV v ∎
+    -< 1r *> v > ≡⟨ cong -<_> (scaleId v) ⟩
+    -< v > ∎
 
-  scaleNeg : (v : vector) → (c : scalar) → neg c *> v ≡ c *> negV v
+  scaleNeg : (v : vector) → (c : scalar) → neg c *> v ≡ c *> -< v >
   scaleNeg v c = neg c *> v         ≡⟨ left _*>_ (sym(x*-1≡-x c))⟩
                  (c * neg 1r) *> v  ≡⟨ sym (scalarAssoc v c (neg 1r))⟩
                  c *> (neg 1r *> v) ≡⟨ right _*>_ (scaleNegOneInv v)⟩
-                 c *> (negV v) ∎
+                 c *> -< v > ∎
 
   -- https://en.wikipedia.org/wiki/Linear_span
   data Span (X : vector → Type al) : vector → Type (l ⊔ l' ⊔ al) where
@@ -229,8 +229,8 @@ module _{scalar : Type l}{vector : Type l'}{{R : Ring scalar}}{{V : Module vecto
    SubspaceSG {X = X} = record
       { inv-closed = λ{x} x∈X →
         let H = neg 1r *> x ∈ X  ≡⟨ cong X (scaleNeg x 1r)⟩
-                1r *> negV x ∈ X ≡⟨ cong X (scaleId (negV x))⟩
-                negV x ∈ X ∎ in
+                1r *> -< x > ∈ X ≡⟨ cong X (scaleId -< x >)⟩
+                -< x > ∈ X ∎ in
         let F : neg 1r *> x ∈ X
             F = ss*> x∈X (neg 1r) in
             transport H F
