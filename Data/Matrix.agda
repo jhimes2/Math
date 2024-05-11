@@ -16,8 +16,8 @@ transpose f b a = f a b
 [_^_] : Type l → ℕ → Type l
 [ A ^ n ] = fin n → A
 
-[] : [ A ^ Z ]
-[] (x , p , q) = UNREACHABLE $ ZNotS (sym q)
+<> : [ A ^ Z ]
+<> (x , p , q) = UNREACHABLE $ ZNotS (sym q)
 
 list : Type l → Type l
 list A = Σ λ(n : ℕ) → [ A ^ n ]
@@ -175,7 +175,7 @@ instance
   -- If the codomain is an underlying set for a field, then the function is a vector for a linear space.
  vectMod : {{R : Ring A}} → Module (B → A)
  vectMod = record
-            { _[+]_ = addv
+            { _<+>_ = addv
             ; scale = scaleV
             ; scalarDistribute = scalar-distributivity2
             ; vectorDistribute = λ v a b → scalar-distributivity a b v
@@ -242,14 +242,14 @@ instance
 
 module _{C : Type cl} {{R : Ring C}} where
 
- dotDistribute : (w u v : [ C ^ n ]) → (u [+] v) ∙ w ≡ (u ∙ w) + (v ∙ w)
+ dotDistribute : (w u v : [ C ^ n ]) → (u <+> v) ∙ w ≡ (u ∙ w) + (v ∙ w)
  dotDistribute {n = Z} w u v = sym (lIdentity 0r)
  dotDistribute {n = S n} w u v =
    let v∙w = tail v ∙ tail w in
    let u∙w = tail u ∙ tail w in
-  (u [+] v) ∙ w ≡⟨By-Definition⟩
-  (head(u [+] v) * head w) + (tail(u [+] v) ∙ tail w) ≡⟨By-Definition⟩
-  ((head u + head v) * head w) + ((tail u [+] tail v) ∙ tail w)
+  (u <+> v) ∙ w ≡⟨By-Definition⟩
+  (head(u <+> v) * head w) + (tail(u <+> v) ∙ tail w) ≡⟨By-Definition⟩
+  ((head u + head v) * head w) + ((tail u <+> tail v) ∙ tail w)
      ≡⟨ right _+_ (dotDistribute (tail w) (tail u) (tail v))⟩
   ((head u + head v) * head w) + (u∙w + v∙w) ≡⟨ left _+_ (rDistribute (head w)(head u)(head v))⟩
   ((head u * head w) + (head v * head w)) + (u∙w + v∙w)
@@ -257,14 +257,14 @@ module _{C : Type cl} {{R : Ring C}} where
   ((head u * head w) + u∙w) + ((head v * head w) + v∙w) ≡⟨By-Definition⟩
   (u ∙ w) + (v ∙ w) ∎
  
- dotlDistribute : (w u v : [ C ^ n ]) → w ∙ (u [+] v) ≡ (w ∙ u) + (w ∙ v)
+ dotlDistribute : (w u v : [ C ^ n ]) → w ∙ (u <+> v) ≡ (w ∙ u) + (w ∙ v)
  dotlDistribute {n = Z} w u v = sym (rIdentity 0r)
  dotlDistribute {n = S n} w u v =
    let w∙v = tail w ∙ tail v in
    let w∙u = tail w ∙ tail u in
-  (head w * head(u [+] v)) + (tail w ∙ tail(u [+] v))
+  (head w * head(u <+> v)) + (tail w ∙ tail(u <+> v))
    ≡⟨ right _+_ (dotlDistribute (tail w) (tail u) (tail v))⟩
-  (head w * head(u [+] v)) + ((tail w ∙ tail u) + (tail w ∙ tail v))
+  (head w * head(u <+> v)) + ((tail w ∙ tail u) + (tail w ∙ tail v))
    ≡⟨ left _+_ (lDistribute (head w) (head u) (head v)) ⟩
   ((head w * head u) + (head w * head v)) + ((tail w ∙ tail u) + (tail w ∙ tail v))
    ≡⟨ [ab][cd]≡[ac][bd] (head w * head u) (head w * head v) w∙u w∙v ⟩
@@ -297,7 +297,7 @@ module _{C : Type cl} {{R : Ring C}} where
     { ssZero = let H : ∀ v → v ∈ W → orthogonal Ô v
                    H = λ v p → dotZL v in H
     ; ssAdd = λ{u v} uPerp vPerp y yW →
-         (u [+] v) ∙ y     ≡⟨ dotDistribute y u v ⟩
+         (u <+> v) ∙ y     ≡⟨ dotDistribute y u v ⟩
          (u ∙ y) + (v ∙ y) ≡⟨ left _+_ (uPerp y yW)⟩
          0r + (v ∙ y)      ≡⟨ lIdentity (v ∙ y)⟩
          v ∙ y             ≡⟨ vPerp y yW ⟩
@@ -326,7 +326,7 @@ module _{C : Type cl} {{R : Ring C}} where
    dotMatrix n (S m) u M v =
     (λ n' → v ∙ (λ m' → M m' n')) ∙ u ≡⟨By-Definition⟩
     (λ n' → (head v * (head M) n') + (tail v ∙ tail λ m' → M m' n')) ∙ u ≡⟨By-Definition⟩
-    ((λ n' → head v * (head M) n') [+] (λ n' → tail v ∙ λ m' → (tail M) m' n')) ∙ u
+    ((λ n' → head v * (head M) n') <+> (λ n' → tail v ∙ λ m' → (tail M) m' n')) ∙ u
     ≡⟨ dotDistribute u (λ n' → (head v * head λ m' → M m' n')) (λ n' → tail v ∙ λ m' → (tail M) m' n')⟩
     (scale (head v) (head M) ∙ u) + ((λ n' → tail v ∙ λ m' → (tail M) m' n') ∙ u)
     ≡⟨ cong₂ _+_ (dotScale {n = n} (head v) (head M) u) (dotMatrix n m u (tail M) (tail v))⟩
@@ -418,7 +418,7 @@ module _{C : Type cl} {{R : Ring C}} where
     M (S x , y , p) b ∎
  
  mAdd : (A → B → C) → (A → B → C) → (A → B → C)
- mAdd = λ M N → λ x → M x [+] N x
+ mAdd = λ M N → λ x → M x <+> N x
  
  -- left Matrix distribution
  lMatrixDistr : (M : fin n → A → C)

@@ -21,15 +21,15 @@ data _⊢_::_ : {n : ℕ} → [ tm ^ n ] → tm → tm → Type where
       → Γ ⊢ (↦ M) :: (A ⇒ B)
 
 _::_ : tm → tm → Type
-x :: A =  [] ⊢ x :: A
+x :: A =  <> ⊢ x :: A
 infix 4 _::_
 
-test1 : cons (↦ *) [] ⊢ Var Z :: (↦ *)
-test1 = var Z [] (↦ *)
+test1 : cons (↦ *) <> ⊢ Var Z :: (↦ *)
+test1 = var Z <> (↦ *)
  
 ↦notType : ∀ x y → ¬(x :: (↦ y))
-↦notType .(Appl M (↦ N)) y (appl .[] (A ⇒ B) .(↦ y) M (↦ N) H G) = {!!}
-↦notType .(Appl M (Appl N N₁)) y (appl .[] A .(↦ y) M (Appl N N₁) H G) = {!!}
+↦notType .(Appl M (↦ N)) y (appl .<> (A ⇒ B) .(↦ y) M (↦ N) H G) = {!!}
+↦notType .(Appl M (Appl N N₁)) y (appl .<> A .(↦ y) M (Appl N N₁) H G) = {!!}
 
 --uniquenessOfTypes : (Γ : [ tm ^ n ]) → (x A B : tm)
 --                  → Γ ⊢ x :: A

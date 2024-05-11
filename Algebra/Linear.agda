@@ -36,7 +36,7 @@ module _{scalar : Type l}{{F : Field scalar}}{vector : Type l'}{{V : VectorSpace
 instance
     FieldToVectorSpace : {A : Type l} → {{F : Field A}} → VectorSpace A
     FieldToVectorSpace {A = A} = record
-      { _[+]_ = _+_
+      { _<+>_ = _+_
       ; scale = _*_
       ; scalarDistribute = lDistribute
       ; vectorDistribute = rDistribute
@@ -56,21 +56,21 @@ dualSum : {A : Type l}{vector : Type l'}{{F : Field A}}(VS : VectorSpace vector)
 dualSum {l} {vector = vector} {{F}} VS =
  λ{(T , record { addT = record {preserve = addTT} ; multT = multTT })
    (R , record { addT = record {preserve = addTR} ; multT = multTR })
-     → (λ x → T x [+] R x)
+     → (λ x → T x <+> R x)
        , record
           { addT = record { preserve =
              λ a b → 
-              T (a [+] b) [+] R (a [+] b)     ≡⟨ cong₂ _[+]_ (addTT a b) (addTR a b)⟩
-              (T a [+] T b) [+] (R a [+] R b) ≡⟨ sym (assoc (T a) (T b) (R a [+] R b))⟩
-              T a [+] (T b [+] (R a [+] R b)) ≡⟨ cong (T a [+]_) (assoc (T b) (R a) (R b))⟩
-              T a [+] ((T b [+] R a) [+] R b) ≡⟨ right _[+]_ (left _[+]_ (comm (T b) (R a)))⟩
-              T a [+] ((R a [+] T b) [+] R b) ≡⟨ right _[+]_ (sym (assoc (R a) (T b) (R b)))⟩
-              T a [+] (R a [+] (T b [+] R b)) ≡⟨ assoc (T a) (R a) (T b [+] R b)⟩
-              ((T a [+] R a) [+] (T b [+] R b)) ∎ }
+              T (a <+> b) <+> R (a <+> b)     ≡⟨ cong₂ _<+>_ (addTT a b) (addTR a b)⟩
+              (T a <+> T b) <+> (R a <+> R b) ≡⟨ sym (assoc (T a) (T b) (R a <+> R b))⟩
+              T a <+> (T b <+> (R a <+> R b)) ≡⟨ cong (T a <+>_) (assoc (T b) (R a) (R b))⟩
+              T a <+> ((T b <+> R a) <+> R b) ≡⟨ right _<+>_ (left _<+>_ (comm (T b) (R a)))⟩
+              T a <+> ((R a <+> T b) <+> R b) ≡⟨ right _<+>_ (sym (assoc (R a) (T b) (R b)))⟩
+              T a <+> (R a <+> (T b <+> R b)) ≡⟨ assoc (T a) (R a) (T b <+> R b)⟩
+              ((T a <+> R a) <+> (T b <+> R b)) ∎ }
           ; multT = λ a c →
-              T (scale c a) [+] R (scale c a) ≡⟨ cong₂ _[+]_ (multTT a c) (multTR a c)⟩
-              scale c (T a) [+] scale c (R a) ≡⟨ sym (scalarDistribute c (T a) (R a))⟩
-              scale c (T a [+] R a) ∎
+              T (scale c a) <+> R (scale c a) ≡⟨ cong₂ _<+>_ (multTT a c) (multTR a c)⟩
+              scale c (T a) <+> scale c (R a) ≡⟨ sym (scalarDistribute c (T a) (R a))⟩
+              scale c (T a <+> R a) ∎
           } }
   where
    instance
@@ -110,10 +110,10 @@ instance
                                                    ; multT = multTT}) → ((λ x → neg(T x)) ,
              record { addT = record { preserve =
                         λ u v →
-                         neg(T(u [+] v))       ≡⟨ cong neg (addTT u v)⟩
-                         neg(T u [+] T v)      ≡⟨ sym (grp.lemma1 (T u) (T v))⟩
-                         neg(T v) [+] neg(T u) ≡⟨ comm (neg(T v)) (neg(T u))⟩
-                         neg(T u) [+] neg(T v) ∎ }
+                         neg(T(u <+> v))       ≡⟨ cong neg (addTT u v)⟩
+                         neg(T u <+> T v)      ≡⟨ sym (grp.lemma1 (T u) (T v))⟩
+                         neg(T v) <+> neg(T u) ≡⟨ comm (neg(T v)) (neg(T u))⟩
+                         neg(T u) <+> neg(T v) ∎ }
                     ; multT = λ u c →
                          neg(T (scale c u))  ≡⟨ cong neg (multTT u c)⟩
                          neg(scale c (T u))  ≡⟨ sym (scaleInv (T u) c)⟩
@@ -127,14 +127,14 @@ instance
   dualSpace : {B : Type l} {{F : Field A}}{{VS : VectorSpace B}} → VectorSpace (linearForm VS)
   dualSpace {{VS = VS}} =
    record
-       { _[+]_ = dualSum VS
+       { _<+>_ = dualSum VS
        ; scale = λ c (T , record {addT = record { preserve = addTT } ; multT = multTT}) →
                 (λ b → scale c (T b))
                  , record {
                      addT = record { preserve =
-                            λ u v → scale c (T(u [+] v))  ≡⟨ right scale (addTT u v)⟩
-                                    scale c (T u [+] T v) ≡⟨ scalarDistribute c (T u) (T v)⟩
-                                    (scale c (T u)) [+] (scale c (T v)) ∎ }
+                            λ u v → scale c (T(u <+> v))  ≡⟨ right scale (addTT u v)⟩
+                                    scale c (T u <+> T v) ≡⟨ scalarDistribute c (T u) (T v)⟩
+                                    (scale c (T u)) <+> (scale c (T v)) ∎ }
                    ; multT = λ u d → scale c (T (scale d u)) ≡⟨ right scale (multTT u d)⟩
                                      scale c (scale d (T u)) ≡⟨ scalarAssoc (T u) c d ⟩
                                      scale (c * d) (T u)     ≡⟨ left scale (comm c d)⟩
