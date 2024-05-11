@@ -20,7 +20,7 @@ module _{scalar : Type l}{{F : Field scalar}}{vector : Type l'}{{V : VectorSpace
    -- Non-zero scalar multiplication is a group action
    {- Agda accepts this proof because we already proved that non-zero multiplication
       from a field forms a group in Algebra/Field.agda -}
-   scaleAction : Action λ ((x , _) : nonZero) → scale x 
+   scaleAction : Action λ ((x , _) : nonZero) → _*>_ x 
    scaleAction = record
      { act-identity = scaleId
      ; act-compatibility = λ v (a , _) (b , _) → scalarAssoc v a b
@@ -37,7 +37,7 @@ instance
     FieldToVectorSpace : {A : Type l} → {{F : Field A}} → VectorSpace A
     FieldToVectorSpace {A = A} = record
       { _<+>_ = _+_
-      ; scale = _*_
+      ; _*>_ = _*_
       ; scalarDistribute = lDistribute
       ; vectorDistribute = rDistribute
       ; scalarAssoc = λ a b c → assoc b c a
@@ -68,9 +68,9 @@ dualSum {l} {vector = vector} {{F}} VS =
               T a <+> (R a <+> (T b <+> R b)) ≡⟨ assoc (T a) (R a) (T b <+> R b)⟩
               ((T a <+> R a) <+> (T b <+> R b)) ∎ }
           ; multT = λ a c →
-              T (scale c a) <+> R (scale c a) ≡⟨ cong₂ _<+>_ (multTT a c) (multTR a c)⟩
-              scale c (T a) <+> scale c (R a) ≡⟨ sym (scalarDistribute c (T a) (R a))⟩
-              scale c (T a <+> R a) ∎
+              T (c *> a) <+> R (c *> a) ≡⟨ cong₂ _<+>_ (multTT a c) (multTR a c)⟩
+              (c *> T a) <+> (c *> R a) ≡⟨ sym (scalarDistribute c (T a) (R a))⟩
+              c *> (T a <+> R a) ∎
           } }
   where
    instance
@@ -115,10 +115,10 @@ instance
                          neg(T v) <+> neg(T u) ≡⟨ comm (neg(T v)) (neg(T u))⟩
                          neg(T u) <+> neg(T v) ∎ }
                     ; multT = λ u c →
-                         neg(T (scale c u))  ≡⟨ cong neg (multTT u c)⟩
-                         neg(scale c (T u))  ≡⟨ sym (scaleInv (T u) c)⟩
-                         scale (neg c) (T u) ≡⟨ scaleNeg (T u) c ⟩
-                         scale c (neg(T u)) ∎
+                         neg(T (c *> u))  ≡⟨ cong neg (multTT u c)⟩
+                         neg(c *> T u)  ≡⟨ sym (scaleInv (T u) c)⟩
+                         neg c *> T u ≡⟨ scaleNeg (T u) c ⟩
+                         c *> neg(T u) ∎
                      }) , ΣPathPProp modHomomorphismIsProp (funExt λ x → lInverse (T x))
           ; lIdentity = λ (T , _) →
                 ΣPathPProp modHomomorphismIsProp (funExt λ x → lIdentity (T x))}
@@ -128,18 +128,18 @@ instance
   dualSpace {{VS = VS}} =
    record
        { _<+>_ = dualSum VS
-       ; scale = λ c (T , record {addT = record { preserve = addTT } ; multT = multTT}) →
-                (λ b → scale c (T b))
+       ; _*>_ = λ c (T , record {addT = record { preserve = addTT } ; multT = multTT}) →
+                (λ b → c *> T b)
                  , record {
                      addT = record { preserve =
-                            λ u v → scale c (T(u <+> v))  ≡⟨ right scale (addTT u v)⟩
-                                    scale c (T u <+> T v) ≡⟨ scalarDistribute c (T u) (T v)⟩
-                                    (scale c (T u)) <+> (scale c (T v)) ∎ }
-                   ; multT = λ u d → scale c (T (scale d u)) ≡⟨ right scale (multTT u d)⟩
-                                     scale c (scale d (T u)) ≡⟨ scalarAssoc (T u) c d ⟩
-                                     scale (c * d) (T u)     ≡⟨ left scale (comm c d)⟩
-                                     scale (d * c) (T u)     ≡⟨ sym (scalarAssoc (T u) d c)⟩
-                                 scale d (scale c (T u)) ∎}
+                            λ u v → c *> (T(u <+> v))  ≡⟨ right _*>_ (addTT u v)⟩
+                                    c *> (T u <+> T v) ≡⟨ scalarDistribute c (T u) (T v)⟩
+                                    (c *> T u) <+> (c *> T v) ∎ }
+                   ; multT = λ u d → c *> (T (d *> u)) ≡⟨ right _*>_ (multTT u d)⟩
+                                     c *> (d *> T u)   ≡⟨ scalarAssoc (T u) c d ⟩
+                                     (c * d) *> T u    ≡⟨ left _*>_ (comm c d)⟩
+                                     (d * c) *> T u    ≡⟨ sym (scalarAssoc (T u) d c)⟩
+                                 d *> (c *> T u) ∎}
        ; scalarDistribute = λ a (T , _) (R , _) →
                 ΣPathPProp modHomomorphismIsProp (funExt λ x → scalarDistribute a (T x) (R x))
        ; vectorDistribute = λ (T , _) a b →

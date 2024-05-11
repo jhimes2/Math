@@ -176,7 +176,7 @@ instance
  vectMod : {{R : Ring A}} → Module (B → A)
  vectMod = record
             { _<+>_ = addv
-            ; scale = scaleV
+            ; _*>_ = scaleV
             ; scalarDistribute = scalar-distributivity2
             ; vectorDistribute = λ v a b → scalar-distributivity a b v
             ; scalarAssoc = λ v c d → funExt λ x → assoc c d (v x)
@@ -270,13 +270,13 @@ module _{C : Type cl} {{R : Ring C}} where
    ≡⟨ [ab][cd]≡[ac][bd] (head w * head u) (head w * head v) w∙u w∙v ⟩
    (w ∙ u) + (w ∙ v) ∎
  
- dotScale : (c : C) → (u v : < C ^ n >) → scale c u ∙ v ≡ c * (u ∙ v)
- dotScale {n = Z} c u v = sym (x*0≡0 c)
- dotScale {n = S n} c u v =
-  scale c u ∙ v ≡⟨By-Definition⟩
-  (head(scale c u) * head v) + (tail(scale c u) ∙ tail v)
-  ≡⟨ right _+_ (dotScale {n = n} c (tail u) (tail v))⟩
-  (head(scale c u) * head v) + (c * (tail u ∙ tail v)) ≡⟨By-Definition⟩
+ dot*> : (c : C) → (u v : < C ^ n >) → (c *> u) ∙ v ≡ c * (u ∙ v)
+ dot*> {n = Z} c u v = sym (x*0≡0 c)
+ dot*> {n = S n} c u v =
+  (c *> u) ∙ v ≡⟨By-Definition⟩
+  (head(c *> u) * head v) + (tail(c *> u) ∙ tail v)
+  ≡⟨ right _+_ (dot*> {n = n} c (tail u) (tail v))⟩
+  (head(c *> u) * head v) + (c * (tail u ∙ tail v)) ≡⟨By-Definition⟩
   ((c * head u) * head v) + (c * (tail u ∙ tail v))
   ≡⟨ left _+_ (sym (assoc c (head u) (head v)))⟩
   (c * (head u * head v)) + (c * (tail u ∙ tail v))
@@ -302,8 +302,8 @@ module _{C : Type cl} {{R : Ring C}} where
          0r + (v ∙ y)      ≡⟨ lIdentity (v ∙ y)⟩
          v ∙ y             ≡⟨ vPerp y yW ⟩
          0r ∎
-    ; ssScale = λ {v} x c u uW →
-       scale c v ∙ u ≡⟨ dotScale c v u ⟩
+    ; ss*> = λ {v} x c u uW →
+       (c *> v) ∙ u ≡⟨ dot*> c v u ⟩
        c * (v ∙ u)   ≡⟨ right _*_ (x u uW)⟩
        c * 0r        ≡⟨ x*0≡0 c ⟩
        0r ∎
@@ -328,8 +328,8 @@ module _{C : Type cl} {{R : Ring C}} where
     (λ n' → (head v * (head M) n') + (tail v ∙ tail λ m' → M m' n')) ∙ u ≡⟨By-Definition⟩
     ((λ n' → head v * (head M) n') <+> (λ n' → tail v ∙ λ m' → (tail M) m' n')) ∙ u
     ≡⟨ dotDistribute u (λ n' → (head v * head λ m' → M m' n')) (λ n' → tail v ∙ λ m' → (tail M) m' n')⟩
-    (scale (head v) (head M) ∙ u) + ((λ n' → tail v ∙ λ m' → (tail M) m' n') ∙ u)
-    ≡⟨ cong₂ _+_ (dotScale {n = n} (head v) (head M) u) (dotMatrix n m u (tail M) (tail v))⟩
+    ((head v *> head M) ∙ u) + ((λ n' → tail v ∙ λ m' → (tail M) m' n') ∙ u)
+    ≡⟨ cong₂ _+_ (dot*> {n = n} (head v) (head M) u) (dotMatrix n m u (tail M) (tail v))⟩
     (head v * (head M ∙ u)) + (tail v ∙ tail λ m' → M m' ∙ u) ≡⟨By-Definition⟩
     v ∙ (λ m' → M m' ∙ u) ∎
 

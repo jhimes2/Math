@@ -19,13 +19,13 @@ record Module {scalar : Type l} {{R : Ring scalar}} (vector : Type l') : Type (l
     _<+>_ : vector → vector → vector
     {{addvStr}} : group _<+>_
     {{comMod}} : Commutative _<+>_
-    scale : scalar → vector → vector
+    _*>_ : scalar → vector → vector
     scalarDistribute : (a : scalar) → (u v : vector)
-                     → scale a (u <+> v) ≡ (scale a u) <+> (scale a v)
+                     →  a *> (u <+> v) ≡ (a *> u) <+> (a *> v)
     vectorDistribute : (v : vector) → (a b : scalar)
-                     → scale (a + b) v ≡ (scale a v) <+> (scale b v)
-    scalarAssoc : (v : vector) → (a b : scalar) → scale a (scale b v) ≡ scale (a * b) v
-    scaleId : (v : vector) → scale 1r v ≡ v
+                     → (a + b) *> v ≡ (a *> v) <+> (b *> v)
+    scalarAssoc : (v : vector) → (a b : scalar) → a *> (b *> v) ≡ (a * b) *> v
+    scaleId : (v : vector) → 1r *> v ≡ v
 open Module {{...}} public
 
 module _{scalar : Type l}{vector : Type l'}{{R : Ring scalar}}{{V : Module vector}} where
@@ -38,57 +38,57 @@ module _{scalar : Type l}{vector : Type l'}{{R : Ring scalar}}{{V : Module vecto
   negV = inv
 
   _[-]_ : vector → vector → vector
-  a [-] b = a <+> (negV b)
+  a [-] b = a <+> negV b
 
   -- Vector scaled by 0r is zero vector
-  scaleZ : (v : vector) → scale 0r v ≡ Ô
+  scaleZ : (v : vector) → 0r *> v ≡ Ô
   scaleZ v =
-    let H : scale 0r v <+> scale 0r v ≡ (scale 0r v <+> Ô)
-                         → scale 0r v ≡ Ô
-        H = grp.cancel (scale 0r v) in H $
-    scale 0r v <+> scale 0r v ≡⟨ sym (vectorDistribute v 0r 0r)⟩
-    scale (0r + 0r) v         ≡⟨ left scale (lIdentity 0r)⟩
-    scale 0r v                ≡⟨ sym (rIdentity (scale 0r v))⟩
-    scale 0r v <+> Ô ∎
+    let H : (0r *> v) <+> (0r *> v) ≡ (0r *> v) <+> Ô
+                          → 0r *> v ≡ Ô
+        H = grp.cancel (0r *> v) in H $
+    (0r *> v) <+> (0r *> v) ≡⟨ sym (vectorDistribute v 0r 0r)⟩
+    (0r + 0r) *> v          ≡⟨ left _*>_ (lIdentity 0r)⟩
+    0r *> v                 ≡⟨ sym (rIdentity (_*>_ 0r v))⟩
+    (0r *> v) <+> Ô ∎
 
   -- zero vector scaled is 0r vector
-  scaleVZ : (c : scalar) → scale c Ô ≡ Ô
+  scaleVZ : (c : scalar) → c *> Ô ≡ Ô
   scaleVZ c =
-    let H : scale c Ô <+> scale c Ô ≡ scale c Ô <+> Ô
-                        → scale c Ô ≡ Ô
-        H = grp.cancel (scale c Ô) in H $
-    scale c Ô <+> scale c Ô ≡⟨ sym (scalarDistribute c Ô Ô)⟩
-    scale c (Ô <+> Ô)       ≡⟨ right scale (lIdentity Ô)⟩
-    scale c Ô               ≡⟨ sym (rIdentity (scale c Ô))⟩
-    scale c Ô <+> Ô ∎
+    let H : (c *> Ô) <+> (c *> Ô) ≡ (c *> Ô) <+> Ô
+                        → c *> Ô ≡ Ô
+        H = grp.cancel (c *> Ô) in H $
+    (c *> Ô) <+> (c *> Ô) ≡⟨ sym (scalarDistribute c Ô Ô)⟩
+    c *> (Ô <+> Ô)        ≡⟨ right _*>_ (lIdentity Ô)⟩
+    c *> Ô                ≡⟨ sym (rIdentity (c *> Ô))⟩
+    (c *> Ô) <+> Ô ∎
 
-  scaleInv : (v : vector) → (c : scalar) → scale (neg c) v ≡ negV (scale c v)
+  scaleInv : (v : vector) → (c : scalar) → neg c *> v ≡ negV (c *> v)
   scaleInv v c =
-    let H : scale (neg c) v <+> negV(negV(scale c v)) ≡ Ô
-                                    → scale (neg c) v ≡ negV (scale c v)
+    let H : (neg c *> v) <+> negV(negV(c *> v)) ≡ Ô
+                           → neg c *> v ≡ negV (c *> v)
         H = grp.uniqueInv in H $
-    scale (neg c) v <+> negV(negV(scale c v)) ≡⟨ right _<+>_ (grp.doubleInv (scale c v))⟩
-    scale (neg c) v <+> (scale c v)           ≡⟨ sym (vectorDistribute v (neg c) c)⟩
-    scale ((neg c) + c) v                     ≡⟨ left scale (lInverse c)⟩
-    scale 0r v                                ≡⟨ scaleZ v ⟩
+    (neg c *> v) <+> negV(negV(c *> v)) ≡⟨ right _<+>_ (grp.doubleInv (c *> v))⟩
+    (neg c *> v) <+> (c *> v)           ≡⟨ sym (vectorDistribute v (neg c) c)⟩
+    (neg c + c) *> v                    ≡⟨ left _*>_ (lInverse c)⟩
+    0r *> v                             ≡⟨ scaleZ v ⟩
     Ô ∎
 
-  scaleNegOneInv : (v : vector) → scale (neg 1r) v ≡ negV v
+  scaleNegOneInv : (v : vector) → neg 1r *> v ≡ negV v
   scaleNegOneInv v =
-    scale (neg 1r) v  ≡⟨ scaleInv v 1r ⟩
-    negV (scale 1r v) ≡⟨ cong negV (scaleId v)⟩
+    neg 1r *> v  ≡⟨ scaleInv v 1r ⟩
+    negV (1r *> v) ≡⟨ cong negV (scaleId v)⟩
     negV v ∎
 
-  scaleNeg : (v : vector) → (c : scalar) → scale (neg c) v ≡ scale c (negV v)
-  scaleNeg v c = scale (neg c) v             ≡⟨ left scale (sym(x*-1≡-x c))⟩
-                 scale (c * neg 1r) v        ≡⟨ sym (scalarAssoc v c (neg 1r))⟩
-                 scale c (scale (neg 1r) v)  ≡⟨ right scale (scaleNegOneInv v)⟩
-                 scale c (negV v) ∎
+  scaleNeg : (v : vector) → (c : scalar) → neg c *> v ≡ c *> negV v
+  scaleNeg v c = neg c *> v         ≡⟨ left _*>_ (sym(x*-1≡-x c))⟩
+                 (c * neg 1r) *> v  ≡⟨ sym (scalarAssoc v c (neg 1r))⟩
+                 c *> (neg 1r *> v) ≡⟨ right _*>_ (scaleNegOneInv v)⟩
+                 c *> (negV v) ∎
 
   -- https://en.wikipedia.org/wiki/Linear_span
   data Span (X : vector → Type al) : vector → Type (l ⊔ l' ⊔ al) where
     spanÔ : Ô ∈ Span X
-    spanStep : ∀{u v} → u ∈ X → v ∈ Span X → (c : scalar) → scale c u <+> v ∈ Span X
+    spanStep : ∀{u v} → u ∈ X → v ∈ Span X → (c : scalar) → (c *> u) <+> v ∈ Span X
     spanSet : ∀{v} → isProp (v ∈ Span X)
 
   instance
@@ -97,39 +97,39 @@ module _{scalar : Type l}{vector : Type l'}{{R : Ring scalar}}{{V : Module vecto
 
   spanIntro : {X : vector → Type al} → ∀ v → v ∈ X → v ∈ Span X
   spanIntro {X = X} v v∈X =
-     transport (λ i → (scale 1r v <+> Ô ≡⟨ rIdentity (scale 1r v)⟩
-                       scale 1r v       ≡⟨ scaleId v ⟩
+     transport (λ i → ((1r *> v) <+> Ô ≡⟨ rIdentity (1r *> v)⟩
+                       1r *> v         ≡⟨ scaleId v ⟩
                        v ∎) i ∈ Span X)
      (spanStep v∈X spanÔ 1r)
 
-  spanScale : {X : vector → Type al} → ∀ v → v ∈ X → (c : scalar) → scale c v ∈ Span X
-  spanScale {X = X} v v∈X c =
-     transport (λ i → (scale c v <+> Ô ≡⟨ rIdentity (scale c v)⟩
-                       scale c v ∎) i ∈ Span X)
+  span*> : {X : vector → Type al} → ∀ v → v ∈ X → (c : scalar) → c *> v ∈ Span X
+  span*> {X = X} v v∈X c =
+     transport (λ i → ((c *> v) <+> Ô ≡⟨ rIdentity (c *> v)⟩
+                       c *> v ∎) i ∈ Span X)
      (spanStep v∈X spanÔ c)
 
   spanAdd : {X : vector → Type al} → ∀ u v → u ∈ X → v ∈ Span X → u <+> v ∈ Span X
   spanAdd {X = X} u v u∈X v∈X =
     transport (λ i → (scaleId u i) <+> v ∈ Span X) (spanStep u∈X v∈X 1r)
 
-  spanStep2 : {X : vector → Type al} → ∀{u v} → u ∈ Span X → v ∈ Span X → (c : scalar) → scale c u <+> v ∈ Span X
+  spanStep2 : {X : vector → Type al} → ∀{u v} → u ∈ Span X → v ∈ Span X → (c : scalar) → (c *> u) <+> v ∈ Span X
   spanStep2 {X = X} {w} {v} spanÔ q c = transport (λ i → ((v ≡⟨ sym (lIdentity v)⟩
                                                      Ô <+> v ≡⟨ sym (left _<+>_ (scaleVZ c))⟩
-                                                      scale c Ô <+> v ∎) i) ∈ Span X) q
+                                                     (c *> Ô) <+> v ∎) i) ∈ Span X) q
   spanStep2 {X = X} {w} {v} (spanStep {x} {y} x' y' d) q c =
              transport (λ i → (
-                (scale(c * d) x <+> (scale c y <+> v)     ≡⟨ left _<+>_ (sym (scalarAssoc x c d))⟩
-                scale c (scale d x) <+> (scale c y <+> v) ≡⟨ assoc (scale c (scale d x)) (scale c y) v ⟩
-                (scale c (scale d x) <+> scale c y) <+> v ≡⟨ left _<+>_ (sym (scalarDistribute c (scale d x) y))⟩
-                scale c (scale d x <+> y) <+> v ∎
+                (((c * d) *> x) <+> ((c *> y) <+> v) ≡⟨ left _<+>_ (sym (scalarAssoc x c d))⟩
+                (c *> (d *> x)) <+> ((c *> y) <+> v) ≡⟨ assoc (c *> (d *> x)) (c *> y) v ⟩
+                ((c *> (d *> x)) <+> (c *> y)) <+> v ≡⟨ left _<+>_ (sym (scalarDistribute c (d *> x) y))⟩
+                (c *> ((d *> x) <+> y)) <+> v ∎
               ) i) ∈ Span X) (spanStep x' (spanStep2 y' q c) (c * d))
-  spanStep2 {X = X} {u} {v} (spanSet {w} a b i) q c = spanSet (spanStep2 a q c)
-                                                              (spanStep2 b q c) i
+  spanStep2 (spanSet {w} a b i) q c = spanSet (spanStep2 a q c)
+                                              (spanStep2 b q c) i
 
-  spanScale2 : {X : vector → Type al} → ∀ v → v ∈ Span X → (c : scalar) → scale c v ∈ Span X
+  spanScale2 : {X : vector → Type al} → ∀ v → v ∈ Span X → (c : scalar) → c *> v ∈ Span X
   spanScale2 {X = X} v H c =
-     transport (λ i → (scale c v <+> Ô ≡⟨ rIdentity (scale c v)⟩
-                       scale c v ∎) i ∈ Span X)
+     transport (λ i → ((c *> v) <+> Ô ≡⟨ rIdentity (c *> v)⟩
+                       c *> v ∎) i ∈ Span X)
      (spanStep2 H spanÔ c)
 
   spanAdd2 : {X : vector → Type al} → ∀ u v → u ∈ Span X → v ∈ Span X → u <+> v ∈ Span X
@@ -165,7 +165,7 @@ module _{scalar : Type l}{vector : Type l'}{{R : Ring scalar}}{{V : Module vecto
   span⊆preserve {X = X} {Y} p _ (spanStep {u} {v} x y c) =
      span⊆preserve p v y >>= λ H →
        truncRec squash₁ (λ G →
-      η $ spanAdd2 (scale c u) v (spanScale u G c) H) (p u x)
+      η $ spanAdd2 (c *> u) v (span*> u G c) H) (p u x)
   span⊆preserve {X = X} {Y} p v (spanSet x y i) = squash₁ (span⊆preserve p v x)
                                                           (span⊆preserve p v y) i
 
@@ -182,7 +182,7 @@ module _{scalar : Type l}{vector : Type l'}{{R : Ring scalar}}{{V : Module vecto
     where field
         ssZero : Ô ∈ X 
         ssAdd : {v u : vector} → v ∈ X → u ∈ X → v <+> u ∈ X
-        ssScale : {v : vector} → v ∈ X → (c : scalar) → scale c v ∈ X
+        ss*> : {v : vector} → v ∈ X → (c : scalar) →  c *> v ∈ X
         ssSet : (v : vector) → isProp (v ∈ X)
   open Subspace {{...}} public
 
@@ -191,7 +191,7 @@ module _{scalar : Type l}{vector : Type l'}{{R : Ring scalar}}{{V : Module vecto
   SS2ToSS X _ spanÔ = η $ ssZero
   SS2ToSS X _ (spanStep {u}{w} p q c) =
     truncRec squash₁ (λ O →
-    let H1 = ssScale p c in
+    let H1 = ss*> p c in
     let H2 = ssAdd H1 O in η $ H2) (SS2ToSS X w q)
   SS2ToSS X x (spanSet p q i) =
     let R1 = SS2ToSS X x p in
@@ -207,10 +207,10 @@ module _{scalar : Type l}{vector : Type l'}{{R : Ring scalar}}{{V : Module vecto
           let H1 : ∥ v <+> u ∈ X ∥₁
               H1 = H (v <+> u) (spanAdd v u p (spanIntro u q)) in
           truncRec (setProp {P = X} (v <+> u)) id H1
-      ; ssScale = λ{v} v∈X c →
-          let H1 : ∥ scale c v ∈ X ∥₁
-              H1 = H (scale c v) (spanScale v v∈X c) in
-          truncRec (setProp (scale c v)) id H1
+      ; ss*> = λ{v} v∈X c →
+          let H1 : ∥ c *> v ∈ X ∥₁
+              H1 = H (c *> v) (span*> v v∈X c) in
+          truncRec (setProp (c *> v)) id H1
       ; ssSet = setProp }
 
   instance
@@ -228,11 +228,11 @@ module _{scalar : Type l}{vector : Type l'}{{R : Ring scalar}}{{V : Module vecto
    SubspaceSG : {X : vector → Type al}{{_ : Subspace X}} → Subgroup X
    SubspaceSG {X = X} = record
       { inv-closed = λ{x} x∈X →
-        let H = scale (neg 1r) x ∈ X  ≡⟨ cong X (scaleNeg x 1r)⟩
-                scale 1r (negV x) ∈ X ≡⟨ cong X (scaleId (negV x))⟩
+        let H = neg 1r *> x ∈ X  ≡⟨ cong X (scaleNeg x 1r)⟩
+                1r *> negV x ∈ X ≡⟨ cong X (scaleId (negV x))⟩
                 negV x ∈ X ∎ in
-        let F : scale (neg 1r) x ∈ X
-            F = ssScale x∈X (neg 1r) in
+        let F : neg 1r *> x ∈ X
+            F = ss*> x∈X (neg 1r) in
             transport H F
       }
 
@@ -241,7 +241,7 @@ module _{scalar : Type l}{vector : Type l'}{{R : Ring scalar}}{{V : Module vecto
   spanIsSubspace =
       record { ssZero = spanÔ
              ; ssAdd = λ {v} {u} x y → spanAdd2 v u x y
-             ; ssScale = λ {v} x c → spanScale2 v x c
+             ; ss*> = λ {v} x c → spanScale2 v x c
              ; ssSet = λ _ → spanSet
              }
 
@@ -275,7 +275,7 @@ record moduleHomomorphism {A : Type l}
                           (T : <U> → <V>) : Type (l ⊔ lsuc(l' ⊔ al))
   where field
   {{addT}} : Homomorphism T
-  multT : ∀ u → (c : A) → T (scale c u) ≡ scale c (T u)
+  multT : ∀ u → (c : A) → T (c *> u) ≡ c *> T u
 open moduleHomomorphism {{...}} public 
 
 -- I need this for defining a dual space
@@ -315,10 +315,10 @@ module _ {scalar : Type l}{{R : Ring scalar}}
       Ô <+> T u   ≡⟨ lIdentity (T u)⟩
       T u         ≡⟨ uNull ⟩
       Ô ∎
-    ; ssScale = λ{v} vNull c →
-        T (scale c v) ≡⟨ multT v c ⟩
-        scale c (T v) ≡⟨ cong (scale c) vNull ⟩
-        scale c Ô     ≡⟨ scaleVZ c ⟩
+    ; ss*> = λ{v} vNull c →
+        T (c *> v) ≡⟨ multT v c ⟩
+        c *> (T v) ≡⟨ right _*>_ vNull ⟩
+        c *> Ô     ≡⟨ scaleVZ c ⟩
         Ô ∎
     ; ssSet = λ v p q → IsSet (T v) Ô p q
     }
@@ -338,11 +338,11 @@ module _ {scalar : Type l}{{R : Ring scalar}}
         T v' <+> T u' ≡⟨ left _<+>_ vCol ⟩
         v <+> T u'    ≡⟨ right _<+>_ uCol ⟩
         v <+> u ∎)
-    ; ssScale = λ{v} vCol c →
-       vCol >>= λ(v' , vCol) → η $ (scale c v') ,
-       (T (scale c v') ≡⟨ multT v' c ⟩
-        scale c (T v') ≡⟨ cong (scale c) vCol ⟩
-        scale c v ∎)
+    ; ss*> = λ{v} vCol c →
+       vCol >>= λ(v' , vCol) → η $ c *> v' ,
+       (T (c *> v') ≡⟨ multT v' c ⟩
+        c *> (T v') ≡⟨ right _*>_ vCol ⟩
+        c *> v ∎)
     ; ssSet = λ(_ : B) → squash₁
     }
 
@@ -359,24 +359,24 @@ module _ {scalar : Type l}{{R : Ring scalar}}
 -- The set of eigenvectors with the zero vector for a module endomorphism 'T' and eigenvalue 'c' is a subspace
 eigenvectorSubspace : {{CR : CRing A}} → {{V : Module B}}
       → (T : B → B) → {{TLT : moduleHomomorphism T}}
-      → (c : A) → Subspace (λ v → T v ≡ scale c v)
+      → (c : A) → Subspace (λ v → T v ≡ c *> v)
 eigenvectorSubspace T c = record
     { ssZero = T Ô ≡⟨ idToId T ⟩
                Ô   ≡⟨ sym (scaleVZ c)⟩
-               scale c Ô ∎
-    ; ssAdd = λ{v}{u} (p : T v ≡ scale c v) (q : T u ≡ scale c u) →
-                   T (v <+> u)             ≡⟨ preserve v u ⟩
-                   T v <+> T u             ≡⟨ cong₂ _<+>_ p q ⟩
-                   scale c v <+> scale c u ≡⟨ sym (scalarDistribute c v u)⟩
-                   scale c (v <+> u) ∎
-    ; ssScale = λ{v} (p : T v ≡ scale c v) d →
-                   T (scale d v)       ≡⟨ multT v d ⟩
-                   scale d (T v)       ≡⟨ right scale p ⟩
-                   scale d (scale c v) ≡⟨ scalarAssoc v d c ⟩
-                   scale (d * c) v     ≡⟨ left scale (comm d c)⟩
-                   scale (c * d) v     ≡⟨ sym (scalarAssoc v c d)⟩
-                   scale c (scale d v) ∎
-    ; ssSet = λ v → IsSet (T v) (scale c v)
+               c *> Ô ∎
+    ; ssAdd = λ{v}{u} (p : T v ≡ c *> v) (q : T u ≡ c *> u) →
+                   T (v <+> u)           ≡⟨ preserve v u ⟩
+                   T v <+> T u           ≡⟨ cong₂ _<+>_ p q ⟩
+                   (c *> v) <+> (c *> u) ≡⟨ sym (scalarDistribute c v u)⟩
+                   c *> (v <+> u) ∎
+    ; ss*> = λ{v} (p : T v ≡ c *> v) d →
+                   T (d *> v)    ≡⟨ multT v d ⟩
+                   d *> (T v)    ≡⟨ right _*>_ p ⟩
+                   d *> (c *> v) ≡⟨ scalarAssoc v d c ⟩
+                   (d * c) *> v  ≡⟨ left _*>_ (comm d c)⟩
+                   (c * d) *> v  ≡⟨ sym (scalarAssoc v c d)⟩
+                   c *> (d *> v) ∎
+    ; ssSet = λ v → IsSet (T v) (c *> v)
     }
 
 module _ {A : Type l}  {{CR : CRing A}}
