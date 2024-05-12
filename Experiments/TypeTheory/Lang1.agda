@@ -78,6 +78,11 @@ FALSE = form₁ sort (inl (var (inr sort)))
 ⇒notTerm : {Γ : < tm ^ n >} → ∀ w x y z → ¬(Γ ⊢ (w ⇒ x) :: (y ⇒ z))
 ⇒notTerm w x y z (weak p _) = ⇒notTerm w x y z p
 
+-- _⇒_ is not applicable to any term under any context
+⇒notApplicable : {Γ : < tm ^ n >} → ∀ w x y z → ¬(Γ ⊢ Appl (w ⇒ x) y :: z)
+⇒notApplicable w x y z (weak p x₁) = ⇒notApplicable w x y z p
+⇒notApplicable {n = n} w x y .(substitution n _ y) (appl {A = A} {B = B} p p₁) = ⇒notTerm w x A B p
+
 testLeft : ↦ ↦ Var Z :: * ⇒ * ⇒ *
 testLeft = abst
             (weak (abst (var (inr sort)) (inr (form₁ sort (inr (weak sort (inr sort))))))
