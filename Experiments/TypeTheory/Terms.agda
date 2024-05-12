@@ -4,6 +4,7 @@ module Experiments.TypeTheory.Terms where
 
 open import Prelude
 open import Data.Natural hiding (_*_)
+open import Data.Matrix
 
 -- Terms
 data tm : Type where
@@ -138,3 +139,6 @@ substitution n (Appl X Y) p = Appl (substitution n X p) (substitution n Y p)
 substitution n * a = *
 substitution n ■ a = ■
 substitution n (X ⇒ Y) p = substitution n X p ⇒ substitution n Y p
+
+Context : ℕ → Type
+Context n = < tm ^ n >

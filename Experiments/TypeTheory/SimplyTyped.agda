@@ -9,7 +9,7 @@ open import Data.Matrix renaming (_∷_ to cons)
 open import Experiments.TypeTheory.Terms
 
 -- Simply typed lambda calculus
-data _⊢_::_ : {n : ℕ} → < tm ^ n > → tm → tm → Type where
+data _⊢_::_ : {n : ℕ} → Context n → tm → tm → Type where
   var : ∀ n → (Γ : < tm ^ n >) → ∀ A
       → cons A Γ ⊢ Var n :: A
   appl : ∀{n} → (Γ : < tm ^ n >) → ∀ A B M N
