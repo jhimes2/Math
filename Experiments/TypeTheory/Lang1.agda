@@ -1,14 +1,8 @@
-{-# OPTIONS --cubical --overlapping-instances --hidden-argument-pun --prop #-}
+{-# OPTIONS --hidden-argument-pun #-}
 
-module Experiments.TypeTheory.Lang1 where
+open import Terms
 
-open import Prelude
-open import Data.Natural hiding (_*_)
-open import Data.Finite hiding (_*_)
-open import Data.Matrix renaming (_∷_ to cons)
-open import Experiments.TypeTheory.Terms
-
-data _⊢_::_ : {n : ℕ} → Context n → tm → tm → Type where
+data _⊢_::_ : {n : ℕ} → Context n → tm → tm → Set where
   sort : <> ⊢ * :: ■
   var : ∀{n} → {Γ : Context n} → ∀{A}
       → (Γ ⊢ A :: *) ＋ (Γ ⊢ A :: ■)
@@ -38,7 +32,7 @@ data _⊢_::_ : {n : ℕ} → Context n → tm → tm → Type where
       → (Γ ⊢ A ⇒ B :: *) ＋ (Γ ⊢ A ⇒ B :: ■)
       → Γ ⊢ (↦ M) :: (A ⇒ B)
 
-_::_ : tm → tm → Type
+_::_ : tm → tm → Set
 x :: A =  <> ⊢ x :: A
 infix 4 _::_
 

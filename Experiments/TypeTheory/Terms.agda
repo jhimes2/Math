@@ -1,13 +1,44 @@
-{-# OPTIONS --cubical --overlapping-instances --hidden-argument-pun --prop #-}
+{-# OPTIONS --hidden-argument-pun #-}
 
-module Experiments.TypeTheory.Terms where
+open import Agda.Primitive public
 
-open import Prelude
-open import Data.Natural hiding (_*_)
-open import Data.Matrix
+data ℕ : Set where
+ Z : ℕ
+ S : ℕ → ℕ
+
+variable
+ l l' al bl cl : Level
+ A : Set al
+ B : Set bl
+ C : Set cl
+ n m : ℕ
+
+data ⊥ : Set where
+
+data ⊤ : Set where
+ tt : ⊤
+
+¬ : Set l → Set l
+¬ A = A → ⊥
+
+UNREACHABLE : ⊥ → {A : Set l} → A
+UNREACHABLE ()
+
+data Σ {A : Set l}(P : A → Set l') : Set (l ⊔ l') where
+ _,_ : (x : A) → P x →  Σ P
+infixr 5 _,_
+
+fst : {P : A → Set l} → Σ P → A
+fst (a , _) = a
+
+snd : {P : A → Set l} → (x : Σ P) → P (fst x)
+snd (_ , p) = p
+
+_×_ : Set l → Set l' → Set (l ⊔ l')
+A × B = Σ λ (_ : A) → B
 
 -- Terms
-data tm : Type where
+data tm : Set where
  Var : ℕ → tm
  ↦_ : tm → tm
  Appl : tm → tm → tm
@@ -18,10 +49,32 @@ data tm : Type where
 infixr 7 _⇒_
 infixr 6 ↦_
 
-tmEq : tm → tm → Type
+data _＋_ (A : Set l) (B : Set l') : Set (l ⊔ l') where
+ inl : A → A ＋ B
+ inr : B → A ＋ B
+
+data _≡_ {A : Set l} (a : A) : A → Set l where
+ refl : a ≡ a
+infix 4 _≡_
+
+cong : {x y : A} → (f : A → B) → x ≡ y → f x ≡ f y
+cong f refl = refl
+
+SInjective : ∀{x y : ℕ} → S x ≡ S y → x ≡ y
+SInjective {x = x} {y = .x} refl = refl
+
+natDiscrete : (x y : ℕ) → (x ≡ y) ＋ ¬(x ≡ y)
+natDiscrete Z Z = inl refl
+natDiscrete Z (S y) = inr (λ())
+natDiscrete (S x) Z = inr (λ())
+natDiscrete (S x) (S y) with natDiscrete x y
+... | (inl p) = inl (cong S p)
+... | (inr p) = inr (λ q → p (SInjective q))
+
+tmEq : tm → tm → Set
 tmEq (Var x) (Var y) with natDiscrete x y
-... | (yes p) = ⊤
-... | (no p) = ⊥
+... | (inl p) = ⊤
+... | (inr p) = ⊥
 tmEq (Var x) _ = ⊥
 tmEq (↦ x) (↦ y) = tmEq x y
 tmEq (↦ x) _ = ⊥
@@ -36,8 +89,8 @@ tmEq (x ⇒ y) _ = ⊥
 
 tmEqRefl : ∀ x → tmEq x x
 tmEqRefl (Var x) with natDiscrete x x
-... | (yes p) = tt
-... | (no p ) = p refl
+... | (inl p) = tt
+... | (inr p ) = UNREACHABLE (p refl)
 tmEqRefl (↦ x) = tmEqRefl x
 tmEqRefl (Appl x y) = tmEqRefl x , tmEqRefl y
 tmEqRefl * = tt
@@ -45,25 +98,23 @@ tmEqRefl ■ = tt
 tmEqRefl (x ⇒ y) = (tmEqRefl x) , (tmEqRefl y)
 
 eqTotmEq : ∀{x y} → x ≡ y → tmEq x y
-eqTotmEq {x}{y} p = subst (tmEq x) p (tmEqRefl x)
+eqTotmEq {x}{y} refl = tmEqRefl x
 
 tmEqToEq : ∀ {x y} → tmEq x y → x ≡ y
 tmEqToEq {Var x} {Var y} H with natDiscrete x y
-... | (yes p) = cong Var p
-... | (no p) = UNREACHABLE H
+... | (inl refl) = refl
+... | (inr p) = UNREACHABLE H
 tmEqToEq {↦ x} {↦ y} H = cong ↦_ (tmEqToEq H)
-tmEqToEq {Appl x y}{Appl z w} (H , G) i =
-  let R1 = tmEqToEq {x}{z} H in
-  let R2 = tmEqToEq {y}{w} G in Appl (R1 i) (R2 i)
+tmEqToEq {Appl x y}{Appl z w} (H , G) with tmEqToEq {x} {z} H | tmEqToEq {y} {w} G
+... | refl | refl = refl
 tmEqToEq {x = *} {y = *} H = refl
 tmEqToEq {x = ■} {y = ■} H = refl
-tmEqToEq {x ⇒ y} {z ⇒ w} (H , G) i =
-  let R1 = tmEqToEq {x} {z} H in
-  let R2 = tmEqToEq {y} {w} G in R1 i ⇒ R2 i
+tmEqToEq {x ⇒ y} {z ⇒ w} (H , G) with tmEqToEq {x} {z} H | tmEqToEq {y} {w} G
+... | refl | refl = refl
 
 varInjective' : ∀ x y → tmEq (Var x) (Var y) → x ≡ y
 varInjective' x y H with natDiscrete x y
-... | yes p = p
+... | (inl p) = p
 
 varInjective : ∀ x y → Var x ≡ Var y → x ≡ y
 varInjective x y H = varInjective' x y (eqTotmEq H)
@@ -72,53 +123,53 @@ varInjective x y H = varInjective' x y (eqTotmEq H)
 ↦Injective x y H = tmEqToEq (eqTotmEq H)
 
 -- Terms are discrete
-tmDiscrete : Discrete tm
+tmDiscrete : (x y : tm) → (x ≡ y) ＋ ¬(x ≡ y)
 tmDiscrete (Var x) (Var y) with natDiscrete x y
-... | yes p = yes (cong Var p)
-... | no p = no λ q → p (varInjective x y q)
-tmDiscrete (Var x) (↦ y) = no λ p → eqTotmEq p
-tmDiscrete (Var x) (Appl y z) = no λ p → eqTotmEq p
-tmDiscrete (Var x) * = no λ p → eqTotmEq p 
-tmDiscrete (Var x) ■ = no λ p → eqTotmEq p
-tmDiscrete (Var x) (y ⇒ z) = no λ p → eqTotmEq p
-tmDiscrete (↦ x) (Var y) = no λ p → eqTotmEq p
+... | inl p = inl (cong Var p)
+... | inr p = inr λ q → p (varInjective x y q)
+tmDiscrete (Var x) (↦ y) = inr λ p → eqTotmEq p
+tmDiscrete (Var x) (Appl y z) = inr λ p → eqTotmEq p
+tmDiscrete (Var x) * = inr λ p → eqTotmEq p 
+tmDiscrete (Var x) ■ = inr λ p → eqTotmEq p
+tmDiscrete (Var x) (y ⇒ z) = inr λ p → eqTotmEq p
+tmDiscrete (↦ x) (Var y) = inr λ p → eqTotmEq p
 tmDiscrete (↦ x) (↦ y) with tmDiscrete x y
-... | (yes p) = yes (cong ↦_ p)
-... | (no p) = no λ q → p (↦Injective x y q)
-tmDiscrete (↦ x) (Appl y z) = no λ p → eqTotmEq p
-tmDiscrete (↦ x) * = no  λ p → eqTotmEq p 
-tmDiscrete (↦ x) ■ = no  λ p → eqTotmEq p
-tmDiscrete (↦ x) (y ⇒ z) = no λ p → eqTotmEq p
-tmDiscrete (Appl w x) (Var z) = no λ p → eqTotmEq p
-tmDiscrete (Appl w x) (↦ z) = no λ p → eqTotmEq p
+... | (inl p) = inl (cong ↦_ p)
+... | (inr p) = inr λ q → p (↦Injective x y q)
+tmDiscrete (↦ x) (Appl y z) = inr λ p → eqTotmEq p
+tmDiscrete (↦ x) * = inr  λ p → eqTotmEq p 
+tmDiscrete (↦ x) ■ = inr  λ p → eqTotmEq p
+tmDiscrete (↦ x) (y ⇒ z) = inr λ p → eqTotmEq p
+tmDiscrete (Appl w x) (Var z) = inr λ p → eqTotmEq p
+tmDiscrete (Appl w x) (↦ z) = inr λ p → eqTotmEq p
 tmDiscrete (Appl w x) (Appl y z) with tmDiscrete w y | tmDiscrete x z
-... | yes p | yes q = yes λ i → Appl (p i) (q i)
-... | yes p | no q = no λ r → q (tmEqToEq (snd (eqTotmEq r)))
-... | no p | _ = no λ r → p (tmEqToEq (fst (eqTotmEq r)))
-tmDiscrete (Appl w x) * = no λ p → eqTotmEq p
-tmDiscrete (Appl w x) ■ = no λ p → eqTotmEq p
-tmDiscrete (Appl w x) (y ⇒ z) = no λ p → eqTotmEq p
-tmDiscrete * (Var x) =  no λ p → eqTotmEq p
-tmDiscrete * (↦ y) =  no λ p → eqTotmEq p
-tmDiscrete * (Appl y y₁) = no λ p → eqTotmEq p
-tmDiscrete * * = yes refl
-tmDiscrete * ■ =  no λ p → eqTotmEq p
-tmDiscrete * (y ⇒ y₁) = no λ p → eqTotmEq p
-tmDiscrete ■ (Var x) =  no λ p → eqTotmEq p
-tmDiscrete ■ (↦ y) =  no λ p → eqTotmEq p
-tmDiscrete ■ (Appl y y₁) =  no λ p → eqTotmEq p
-tmDiscrete ■ * =  no λ p → eqTotmEq p
-tmDiscrete ■ ■ = yes refl
-tmDiscrete ■ (y ⇒ y₁) =  no λ p → eqTotmEq p
-tmDiscrete (x ⇒ y) (Var x₁) =  no λ p → eqTotmEq p
-tmDiscrete (x ⇒ y) (↦ z) =  no λ p → eqTotmEq p
-tmDiscrete (x ⇒ y) (Appl z z₁) =  no λ p → eqTotmEq p
-tmDiscrete (x ⇒ y) * =  no λ p → eqTotmEq p
-tmDiscrete (x ⇒ y) ■ =  no λ p → eqTotmEq p
+... | inl refl | inl refl = inl refl
+... | inl p | inr q = inr λ r → q (tmEqToEq (snd (eqTotmEq r)))
+... | inr p | _ = inr λ r → p (tmEqToEq (fst (eqTotmEq r)))
+tmDiscrete (Appl w x) * = inr λ p → eqTotmEq p
+tmDiscrete (Appl w x) ■ = inr λ p → eqTotmEq p
+tmDiscrete (Appl w x) (y ⇒ z) = inr λ p → eqTotmEq p
+tmDiscrete * (Var x) =  inr λ p → eqTotmEq p
+tmDiscrete * (↦ y) =  inr λ p → eqTotmEq p
+tmDiscrete * (Appl y y₁) = inr λ p → eqTotmEq p
+tmDiscrete * * = inl refl
+tmDiscrete * ■ =  inr λ p → eqTotmEq p
+tmDiscrete * (y ⇒ y₁) = inr λ p → eqTotmEq p
+tmDiscrete ■ (Var x) =  inr λ p → eqTotmEq p
+tmDiscrete ■ (↦ y) =  inr λ p → eqTotmEq p
+tmDiscrete ■ (Appl y y₁) =  inr λ p → eqTotmEq p
+tmDiscrete ■ * =  inr λ p → eqTotmEq p
+tmDiscrete ■ ■ = inl refl
+tmDiscrete ■ (y ⇒ y₁) =  inr λ p → eqTotmEq p
+tmDiscrete (x ⇒ y) (Var x₁) =  inr λ p → eqTotmEq p
+tmDiscrete (x ⇒ y) (↦ z) =  inr λ p → eqTotmEq p
+tmDiscrete (x ⇒ y) (Appl z z₁) =  inr λ p → eqTotmEq p
+tmDiscrete (x ⇒ y) * =  inr λ p → eqTotmEq p
+tmDiscrete (x ⇒ y) ■ =  inr λ p → eqTotmEq p
 tmDiscrete (w ⇒ x) (y ⇒ z) with tmDiscrete w y | tmDiscrete x z
-... | yes p | yes q = yes λ i → (p i) ⇒ (q i)
-... | yes p | no q = no λ r → q (tmEqToEq (snd (eqTotmEq r)))
-... | no p | _ = no λ r → p (tmEqToEq (fst (eqTotmEq r)))
+... | inl refl | inl refl = inl refl
+... | inl p | inr q = inr λ r → q (tmEqToEq (snd (eqTotmEq r)))
+... | inr p | _ = inr λ r → p (tmEqToEq (fst (eqTotmEq r)))
 
 substitution : ℕ → tm → tm → tm
 substitution Z (Var Z) p = p
@@ -140,5 +191,9 @@ substitution n * a = *
 substitution n ■ a = ■
 substitution n (X ⇒ Y) p = substitution n X p ⇒ substitution n Y p
 
-Context : ℕ → Type
-Context n = < tm ^ n >
+data Vect (A : Set l) : ℕ → Set l where
+ cons : A → {n : ℕ} → Vect A n → Vect A (S n)
+ <> : Vect A Z
+
+Context : ℕ → Set
+Context n = Vect tm n

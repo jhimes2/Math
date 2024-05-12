@@ -1,26 +1,20 @@
-{-# OPTIONS --cubical --overlapping-instances --hidden-argument-pun --prop #-}
+{-# OPTIONS --hidden-argument-pun #-}
 
-module Experiments.TypeTheory.SimplyTyped where
-
-open import Prelude
-open import Data.Natural hiding (_*_)
-open import Data.Finite hiding (_*_)
-open import Data.Matrix renaming (_∷_ to cons)
-open import Experiments.TypeTheory.Terms
+open import Terms
 
 -- Simply typed lambda calculus
-data _⊢_::_ : {n : ℕ} → Context n → tm → tm → Type where
-  var : ∀ n → (Γ : < tm ^ n >) → ∀ A
+data _⊢_::_ : {n : ℕ} → Context n → tm → tm → Set where
+  var : ∀ n → (Γ : Context n) → ∀ A
       → cons A Γ ⊢ Var n :: A
-  appl : ∀{n} → (Γ : < tm ^ n >) → ∀ A B M N
+  appl : ∀{n} → (Γ : Context n) → ∀ A B M N
       → Γ ⊢ M :: (A ⇒ B)
       → Γ ⊢ N :: A
       → Γ ⊢ Appl M N :: B
-  abst : ∀{n} → (Γ : < tm ^ n >) → ∀ A B M
+  abst : ∀{n} → (Γ : Context n) → ∀ A B M
       → cons A Γ ⊢ M :: B
       → Γ ⊢ (↦ M) :: (A ⇒ B)
 
-_::_ : tm → tm → Type
+_::_ : tm → tm → Set
 x :: A =  <> ⊢ x :: A
 infix 4 _::_
 
