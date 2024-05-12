@@ -74,6 +74,10 @@ FALSE = form₁ sort (inl (var (inr sort)))
 ¬■:■ : ¬ (■ :: ■)
 ¬■:■ ()
 
+-- _⇒_ cannot be part of a term under any context
+⇒notTerm : {Γ : < tm ^ n >} → ∀ w x y z → ¬(Γ ⊢ (w ⇒ x) :: (y ⇒ z))
+⇒notTerm w x y z (weak p _) = ⇒notTerm w x y z p
+
 testLeft : ↦ ↦ Var Z :: * ⇒ * ⇒ *
 testLeft = abst
             (weak (abst (var (inr sort)) (inr (form₁ sort (inr (weak sort (inr sort))))))
