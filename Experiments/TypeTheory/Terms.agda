@@ -4,8 +4,6 @@ module Experiments.TypeTheory.Terms where
 
 open import Prelude
 open import Data.Natural hiding (_*_)
-open import Data.Finite hiding (_*_)
-open import Data.Matrix renaming (_∷_ to cons)
 
 -- Terms
 data tm : Type where
