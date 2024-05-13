@@ -21,9 +21,11 @@ infix 4 _::_
 test1 : cons (↦ *) <> ⊢ Var Z :: (↦ *)
 test1 = var Z <> (↦ *)
  
-↦notType : ∀ x y → ¬(x :: (↦ y))
-↦notType .(Appl M (↦ N)) y (appl .<> (A ⇒ B) .(↦ y) M (↦ N) H G) = {!!}
-↦notType .(Appl M (Appl N N₁)) y (appl .<> A .(↦ y) M (Appl N N₁) H G) = {!!}
+test2 : ↦ Var Z :: ((↦ *) ⇒ (↦ *))
+test2 = abst <> (↦ *) (↦ *) (Var Z) test1
+
+↦notType' : ∀ x y → ¬(x :: (↦ y))
+↦notType' .(Appl M N) y (appl .<> A .(↦ y) M N p q) = {! ?!}
 
 --uniquenessOfTypes : (Γ : < tm ^ n >) → (x A B : tm)
 --                  → Γ ⊢ x :: A

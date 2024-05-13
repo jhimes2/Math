@@ -6,6 +6,19 @@ data ℕ : Set where
  Z : ℕ
  S : ℕ → ℕ
 
+_+_ : ℕ → ℕ → ℕ
+Z + b = b
+S a + b = S (a + b)
+
+data 𝔹 : Set where
+ false : 𝔹
+ true : 𝔹
+
+xor : 𝔹 → 𝔹 → 𝔹
+xor false b = b
+xor true false = true
+xor true true = false
+
 variable
  l l' al bl cl : Level
  A : Set al
@@ -20,6 +33,18 @@ data ⊤ : Set where
 
 ¬ : Set l → Set l
 ¬ A = A → ⊥
+
+_~>_ : A → (A → B) → B
+a ~> f = f a
+infixl 0 _~>_
+
+_∈_ : A → (A → Set l) → Set l
+_∈_ = _~>_
+infixr 5 _∈_
+
+_∉_ :  A → (A → Set l) → Set l
+_∉_ a X = ¬(a ∈ X)
+infixr 5 _∉_
 
 UNREACHABLE : ⊥ → {A : Set l} → A
 UNREACHABLE ()
@@ -53,9 +78,41 @@ data _＋_ (A : Set l) (B : Set l') : Set (l ⊔ l') where
  inl : A → A ＋ B
  inr : B → A ＋ B
 
+orTy : {A B : Set l} → (A ＋ B) → Set l
+orTy {A} (inl x) = A
+orTy {B} (inr x) = B
+--LangElim : (P : ∀{n} → {Γ : Context n} → ∀{A}{B} → Γ ⊢ A :: B → Set l)
+--   → P sort
+--   → (∀{n} → {Γ : Context n} → ∀{A}
+--     → (x : Γ ⊢ A :: *) → P x → P (var (inl x)))
+--   → (∀{n} → {Γ : Context n} → ∀{A}
+--     → (x : Γ ⊢ A :: ■) → P x → P (var (inr x)))
+--   → (∀{n} → {Γ : Context n} → ∀{A B M N}
+--     → (x : Γ ⊢ M :: (A ⇒ B)) → P x → (y : Γ ⊢ N :: A) → P y → P (appl x y))
+--   → ∀{n} → {Γ : Context n} → ∀{A}{B} → (x : Γ ⊢ A :: B) → P x
+--LangElim P so var1 var2 ap p with p
+--... | sort = so
+--... | var (inl x) = var1 x {!!}
+--... | var (inr x) = {!!}
+--... | weak a x = {!!}
+--... | form a b = {!!}
+--... | form₁ p₁ x = {!!}
+--... | form₂ a b = {!!}
+--LangElim P so var1 var2 ap (appl p q) = ap p (LangElim P so var1 var2 ap p) q (LangElim P so var1 var2 ap q)
+--
+--... | abst a x = {!!}
+
+orTm : {A B : Set l} → (x : A ＋ B) → orTy x
+orTm (inl x) = x
+orTm (inr x) = x
+
 data _≡_ {A : Set l} (a : A) : A → Set l where
  refl : a ≡ a
 infix 4 _≡_
+
+_≢_ : {A : Set l} → A → A → Set l 
+a ≢ b = ¬(a ≡ b)
+infix 4 _≢_
 
 cong : {x y : A} → (f : A → B) → x ≡ y → f x ≡ f y
 cong f refl = refl
@@ -69,7 +126,7 @@ natDiscrete Z (S y) = inr (λ())
 natDiscrete (S x) Z = inr (λ())
 natDiscrete (S x) (S y) with natDiscrete x y
 ... | (inl p) = inl (cong S p)
-... | (inr p) = inr (λ q → p (SInjective q))
+... | (inr p) = inr λ q → p (SInjective q)
 
 tmEq : tm → tm → Set
 tmEq (Var x) (Var y) with natDiscrete x y

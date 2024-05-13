@@ -32,6 +32,47 @@ data _⊢_::_ : {n : ℕ} → Context n → tm → tm → Set where
       → (Γ ⊢ A ⇒ B :: *) ＋ (Γ ⊢ A ⇒ B :: ■)
       → Γ ⊢ (↦ M) :: (A ⇒ B)
 
+LangElim : (P : ∀{n} → {Γ : Context n} → ∀{A}{B} → Γ ⊢ A :: B → Set l)
+   → P sort
+   → (∀{n} → {Γ : Context n} → ∀{A}
+     → (x : Γ ⊢ A :: *) → P x → P (var (inl x)))
+   → (∀{n} → {Γ : Context n} → ∀{A}
+     → (x : Γ ⊢ A :: ■) → P x → P (var (inr x)))
+   → (∀{n} → {Γ : Context n} → ∀{A B C}
+     → (x : Γ ⊢ A :: B) → P x → (y : Γ ⊢ C :: *) → P y → P (weak x (inl y)))
+   → (∀{n} → {Γ : Context n} → ∀{A B C}
+     → (x : Γ ⊢ A :: B) → P x → (y : Γ ⊢ C :: ■) → P y → P (weak x (inr y)))
+   → (∀{n} → {Γ : Context n} → ∀{A B}
+     → (x : Γ ⊢ A :: *) → P x → (y : cons A Γ ⊢ B :: *) → P y → P (form x y))
+   → (∀{n} → {Γ : Context n} → ∀{A B}
+     → (x : Γ ⊢ A :: ■) → P x → (y : cons A Γ ⊢ B :: *) → P y → P (form₁ x (inl y)))
+   → (∀{n} → {Γ : Context n} → ∀{A B}
+     → (x : Γ ⊢ A :: ■) → P x → (y : cons A Γ ⊢ B :: ■) → P y → P (form₁ x (inr y)))
+   → (∀{n} → {Γ : Context n} → ∀{A B}
+     → (x : Γ ⊢ A :: *) → P x → (y : cons A Γ ⊢ B :: ■) → P y → P (form₂ x y))
+   → (∀{n} → {Γ : Context n} → ∀{A B M N}
+     → (x : Γ ⊢ M :: (A ⇒ B)) → P x → (y : Γ ⊢ N :: A) → P y → P (appl x y))
+   → (∀{n} → {Γ : Context n} → ∀{A B M}
+     → (x : cons A Γ ⊢ M :: B) → P x → (y : Γ ⊢ A ⇒ B :: *) → P y → P (abst x (inl y)))
+   → (∀{n} → {Γ : Context n} → ∀{A B M}
+     → (x : cons A Γ ⊢ M :: B) → P x → (y : Γ ⊢ A ⇒ B :: ■) → P y → P (abst x (inr y)))
+   → ∀{n} → {Γ : Context n} → ∀{A}{B} → (x : Γ ⊢ A :: B) → P x
+LangElim P so var1 var2 we1 we2 f1 f2 f3 f4 ap ab1 ab2 = aux
+ where
+  aux : ∀{n} → {Γ : Context n} → ∀{A}{B} → (x : Γ ⊢ A :: B) → P x
+  aux sort = so
+  aux (var (inl x)) = var1 x (aux x)
+  aux (var (inr x)) = var2 x (aux x)
+  aux (weak a (inl x)) = we1 a (aux a) x (aux x)
+  aux (weak a (inr x)) = we2 a (aux a) x (aux x)
+  aux (form a b) = f1 a (aux a) b (aux b)
+  aux (form₁ a (inl x)) = f2 a (aux a) x (aux x)
+  aux (form₁ a (inr x)) = f3 a (aux a) x (aux x)
+  aux (form₂ a b) = f4 a (aux a) b (aux b)
+  aux (appl a b) = ap a (aux a) b (aux b)
+  aux (abst a (inl x)) = ab1 a (aux a) x (aux x)
+  aux (abst a (inr x)) = ab2 a (aux a) x (aux x)
+
 _::_ : tm → tm → Set
 x :: A =  <> ⊢ x :: A
 infix 4 _::_
@@ -75,7 +116,53 @@ FALSE = form₁ sort (inl (var (inr sort)))
 -- _⇒_ is not applicable to any term under any context
 ⇒notApplicable : {Γ : Context n} → ∀ w x y z → ¬(Γ ⊢ Appl (w ⇒ x) y :: z)
 ⇒notApplicable w x y z (weak p x₁) = ⇒notApplicable w x y z p
-⇒notApplicable {n = n} w x y .(substitution n _ y) (appl {A = A} {B = B} p p₁) = ⇒notTerm w x A B p
+⇒notApplicable {n = n} w x y .(substitution n B y) (appl {A = A} {B = B} p p₁) = ⇒notTerm w x A B p
+
+↦notOf* : {Γ : Context n} → ∀ x → ¬(Γ ⊢ (↦ x) :: *)
+↦notOf* x (weak p _) = ↦notOf* x p
+
+↦notOf■ : {Γ : Context n} → ∀ x → ¬(Γ ⊢ (↦ x) :: ■)
+↦notOf■ x (weak p _) = ↦notOf■ x p
+
+⇒has↦ : tm → Set
+⇒has↦ (Var x) = ⊥
+⇒has↦ (↦ t) = ⊤
+⇒has↦ (Appl t u) = ⊥
+⇒has↦ * = ⊥
+⇒has↦ ■ = ⊥
+⇒has↦ (t ⇒ u) = ⇒has↦ u
+
+impossibleType : {Γ : Context n} → ∀ x y → ⇒has↦ y → ¬(Γ ⊢ (x ⇒ y) :: *)
+impossibleType x y H (weak p x₁) = impossibleType x y H p
+impossibleType x (↦ y) H (form p q) = ↦notOf* y q
+impossibleType x (y ⇒ z) H (form p q) = impossibleType y z H q
+
+impossibleKind : {Γ : Context n} → ∀ x y → ⇒has↦ y → ¬(Γ ⊢ (x ⇒ y) :: ■)
+impossibleKind x y H (weak p x₁) = impossibleKind x y H p
+impossibleKind x (↦ y) H (form₁ p (inl a)) = ↦notOf* y a
+impossibleKind x (↦ y) H (form₁ p (inr a)) = ↦notOf■ y a
+impossibleKind x (y ⇒ z) H (form₁ p (inl a)) = impossibleType y z H a
+impossibleKind x (y ⇒ z) H (form₁ p (inr a)) = impossibleKind y z H a
+impossibleKind x (↦ y) H (form₂ p a) =  ↦notOf■ y a
+impossibleKind x (y ⇒ z) H (form₂ p a) = impossibleKind y z H a
+
+-- A generalization of ↦notType
+↦notTypeGen : {Γ : Context n} → ∀ x y → ⇒has↦ y → ¬(Γ ⊢ x :: y)
+↦notTypeGen .(Var _) (↦ y) H (var (inl x)) = ↦notOf* y x
+↦notTypeGen .(Var _) (y ⇒ z) H (var (inl x)) = impossibleType y z H x
+↦notTypeGen .(Var _) (↦ y) H (var (inr x)) = ↦notOf■ y x
+↦notTypeGen .(Var _) (y ⇒ y₁) H (var (inr x)) = impossibleKind y y₁ H x
+↦notTypeGen {Γ = cons z Γ} x y H p = {!!}
+↦notTypeGen {Γ = <>} x (↦ y) H p = {!p!}
+↦notTypeGen {Γ = <>} x (y ⇒ y₁) H p = {!!}
+
+↦notType : {Γ : Context n} → ∀ x y → ¬(Γ ⊢ x :: (↦ y))
+↦notType (Var x) y p = {!!}
+↦notType (↦ x) y p = {!!}
+↦notType {n = n} (Appl x z) y p = {!!}
+↦notType * y (weak p x) = ↦notType * y p
+↦notType ■ y (weak p x) = ↦notType ■ y p
+↦notType (x ⇒ x₁) y p = {!!}
 
 testLeft : ↦ ↦ Var Z :: * ⇒ * ⇒ *
 testLeft = abst
@@ -153,10 +240,3 @@ transposeAppl : (A : tm) → (A :: *)
              :: * ⇒ * ⇒ (A ⇒ v0 ⇒ v1) ⇒ v0 ⇒ A ⇒ v1
 transposeAppl = λ(A : tm)(X : A :: *)
               → appl transposeParse X
-
- -- formProp : ∀{n} → {Γ : Context n} → ∀{A}
- --      → Γ ⊢ A :: *
- --      → Γ ⊢ A ⇒ prop :: *
- -- formProp₂ : ∀{n} → {Γ : Context n} → ∀{A}
- --      → Γ ⊢ A :: ■
- --      → Γ ⊢ A ⇒ prop :: ■
