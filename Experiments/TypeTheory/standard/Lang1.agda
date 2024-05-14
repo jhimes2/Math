@@ -1,6 +1,8 @@
 {-# OPTIONS --hidden-argument-pun #-}
 
-open import Terms
+module standard.Lang1 where
+
+open import standard.Terms
 
 data _⊢_::_ : {n : ℕ} → Context n → tm → tm → Set where
   sort : <> ⊢ * :: ■
