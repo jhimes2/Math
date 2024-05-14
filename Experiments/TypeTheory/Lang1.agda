@@ -23,10 +23,10 @@ data _⊢_::_ : {n : ℕ} → Context n → tm → tm → Set where
        → Γ ⊢ A :: *
        → cons A Γ ⊢ B :: ■
        → Γ ⊢ A ⇒ B :: ■
-  appl : ∀{n} → {Γ : Context n} → ∀{A B M N}
-      → Γ ⊢ M :: (A ⇒ B)
-      → Γ ⊢ N :: A
-      → Γ ⊢ Appl M N :: substitution n B N
+  appl : ∀{n} → {Γ : Context n} → ∀{A B M N X}
+      → cons X Γ ⊢ M :: (A ⇒ B)
+      → cons X Γ ⊢ N :: A
+      → cons X Γ ⊢ Appl M N :: B
   abst : ∀{n} → {Γ : Context n} → ∀{A B M}
       → cons A Γ ⊢ M :: B
       → (Γ ⊢ A ⇒ B :: *) ＋ (Γ ⊢ A ⇒ B :: ■)
@@ -50,8 +50,8 @@ LangElim : (P : ∀{n} → {Γ : Context n} → ∀{A}{B} → Γ ⊢ A :: B → 
      → (x : Γ ⊢ A :: ■) → P x → (y : cons A Γ ⊢ B :: ■) → P y → P (form₁ x (inr y)))
    → (∀{n} → {Γ : Context n} → ∀{A B}
      → (x : Γ ⊢ A :: *) → P x → (y : cons A Γ ⊢ B :: ■) → P y → P (form₂ x y))
-   → (∀{n} → {Γ : Context n} → ∀{A B M N}
-     → (x : Γ ⊢ M :: (A ⇒ B)) → P x → (y : Γ ⊢ N :: A) → P y → P (appl x y))
+   → (∀{n} → {Γ : Context n} → ∀{A B M N X}
+     → (x : cons X Γ ⊢ M :: (A ⇒ B)) → P x → (y : cons X Γ ⊢ N :: A) → P y → P (appl x y))
    → (∀{n} → {Γ : Context n} → ∀{A B M}
      → (x : cons A Γ ⊢ M :: B) → P x → (y : Γ ⊢ A ⇒ B :: *) → P y → P (abst x (inl y)))
    → (∀{n} → {Γ : Context n} → ∀{A B M}
@@ -90,9 +90,9 @@ parseId = abst
               (weak (var (inr sort)) (inl (var (inr sort))))))))
 
 testId2 : (A : tm) → (A :: *)
-        → Appl (↦ ↦ Var (S Z)) A :: (A ⇒ A)
+        → ↦ Var Z :: (A ⇒ A)
 testId2 = λ (A : tm) (X : A :: *)
-        → appl parseId X
+        → abst (var (inl X)) (inl (form X (weak X (inl X))))
 
 test : ↦ (Var Z ⇒ Var Z) :: (* ⇒ *)
 test = abst (form (var (inr sort)) (weak (var (inr sort)) (inl (var (inr sort))))) (inr (form₁ sort (inr (weak sort (inr sort)))))
@@ -115,8 +115,8 @@ FALSE = form₁ sort (inl (var (inr sort)))
 
 -- _⇒_ is not applicable to any term under any context
 ⇒notApplicable : {Γ : Context n} → ∀ w x y z → ¬(Γ ⊢ Appl (w ⇒ x) y :: z)
-⇒notApplicable w x y z (weak p x₁) = ⇒notApplicable w x y z p
-⇒notApplicable {n = n} w x y .(substitution n B y) (appl {A = A} {B = B} p p₁) = ⇒notTerm w x A B p
+⇒notApplicable w x y z (weak p a) = ⇒notApplicable w x y z p
+⇒notApplicable w x y z (appl {A = A} p q) = ⇒notTerm w x A z p
 
 ↦notOf* : {Γ : Context n} → ∀ x → ¬(Γ ⊢ (↦ x) :: *)
 ↦notOf* x (weak p _) = ↦notOf* x p
@@ -150,19 +150,15 @@ impossibleKind x (y ⇒ z) H (form₂ p a) = impossibleKind y z H a
 ↦notTypeGen : {Γ : Context n} → ∀ x y → ⇒has↦ y → ¬(Γ ⊢ x :: y)
 ↦notTypeGen .(Var _) (↦ y) H (var (inl x)) = ↦notOf* y x
 ↦notTypeGen .(Var _) (y ⇒ z) H (var (inl x)) = impossibleType y z H x
-↦notTypeGen .(Var _) (↦ y) H (var (inr x)) = ↦notOf■ y x
+↦notTypeGen .(Var _) (↦ y) H (var (inr x)) =  ↦notOf■ y x
 ↦notTypeGen .(Var _) (y ⇒ y₁) H (var (inr x)) = impossibleKind y y₁ H x
-↦notTypeGen {Γ = cons z Γ} x y H p = {!!}
-↦notTypeGen {Γ = <>} x (↦ y) H p = {!p!}
-↦notTypeGen {Γ = <>} x (y ⇒ y₁) H p = {!!}
+↦notTypeGen x y H (weak p z) = ↦notTypeGen x y H p
+↦notTypeGen .(Appl _ _) y H (appl {A = A} {M = M} p p₁) = ↦notTypeGen M (A ⇒ y) H p
+↦notTypeGen .(↦ _) .(_ ⇒ _) H (abst {B = B} {M = M} p x) = ↦notTypeGen M B H p
 
+-- A type cannot start with a lambda function (unless it's being applied)
 ↦notType : {Γ : Context n} → ∀ x y → ¬(Γ ⊢ x :: (↦ y))
-↦notType (Var x) y p = {!!}
-↦notType (↦ x) y p = {!!}
-↦notType {n = n} (Appl x z) y p = {!!}
-↦notType * y (weak p x) = ↦notType * y p
-↦notType ■ y (weak p x) = ↦notType ■ y p
-↦notType (x ⇒ x₁) y p = {!!}
+↦notType x y = ↦notTypeGen x (↦ y) tt
 
 testLeft : ↦ ↦ Var Z :: * ⇒ * ⇒ *
 testLeft = abst
@@ -235,8 +231,8 @@ transposeParse = abst (abst (abst (abst (abst (abst (appl
   v1v02 : cons (v0 ⇒ v1 ⇒ v2) (cons * (cons * (cons * <>))) ⊢ v1 ⇒ v0 ⇒ v2 :: *
   v1v02 = weak v1v01 (inl v0v11)
 
-transposeAppl : (A : tm) → (A :: *)
-             → Appl (↦ ↦ ↦ ↦ ↦ ↦ Appl (Appl v3 v5) v4) A
-             :: * ⇒ * ⇒ (A ⇒ v0 ⇒ v1) ⇒ v0 ⇒ A ⇒ v1
-transposeAppl = λ(A : tm)(X : A :: *)
-              → appl transposeParse X
+--transposeAppl : (A : tm) → (A :: *)
+--             → Appl (↦ ↦ ↦ ↦ ↦ ↦ Appl (Appl v3 v5) v4) A
+--             :: * ⇒ * ⇒ (A ⇒ v0 ⇒ v1) ⇒ v0 ⇒ A ⇒ v1
+--transposeAppl = λ(A : tm)(X : A :: *)
+--              → appl transposeParse X
