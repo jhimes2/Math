@@ -1,6 +1,8 @@
 {-# OPTIONS --hidden-argument-pun #-}
 
-open import Terms
+module propType.Lang1 where
+
+open import propType.Terms
 
 data _⊢_::_ : {n : ℕ} → Context n → tm → tm → Set where
   sort : <> ⊢ * :: ■
@@ -23,6 +25,9 @@ data _⊢_::_ : {n : ℕ} → Context n → tm → tm → Set where
        → Γ ⊢ A :: *
        → cons A Γ ⊢ B :: ■
        → Γ ⊢ A ⇒ B :: ■
+  pForm : ∀{n} → {Γ : Context n} → ∀{A}
+       → Γ ⊢ A :: *
+       → Γ ⊢ A ⇒ prop :: *
   appl : ∀{n} → {Γ : Context n} → ∀{A B M N X}
       → cons X Γ ⊢ M :: (A ⇒ B)
       → cons X Γ ⊢ N :: A
@@ -44,6 +49,8 @@ LangElim : (P : ∀{n} → {Γ : Context n} → ∀{A}{B} → Γ ⊢ A :: B → 
      → (x : Γ ⊢ A :: B) → P x → (y : Γ ⊢ C :: ■) → P y → P (weak x (inr y)))
    → (∀{n} → {Γ : Context n} → ∀{A B}
      → (x : Γ ⊢ A :: *) → P x → (y : cons A Γ ⊢ B :: *) → P y → P (form x y))
+   → (∀{n} → {Γ : Context n} → ∀{A}
+     → (x : Γ ⊢ A :: *) → P x → P (pForm x))
    → (∀{n} → {Γ : Context n} → ∀{A B}
      → (x : Γ ⊢ A :: ■) → P x → (y : cons A Γ ⊢ B :: *) → P y → P (form₁ x (inl y)))
    → (∀{n} → {Γ : Context n} → ∀{A B}
@@ -57,7 +64,7 @@ LangElim : (P : ∀{n} → {Γ : Context n} → ∀{A}{B} → Γ ⊢ A :: B → 
    → (∀{n} → {Γ : Context n} → ∀{A B M}
      → (x : cons A Γ ⊢ M :: B) → P x → (y : Γ ⊢ A ⇒ B :: ■) → P y → P (abst x (inr y)))
    → ∀{n} → {Γ : Context n} → ∀{A}{B} → (x : Γ ⊢ A :: B) → P x
-LangElim P so var1 var2 we1 we2 f1 f2 f3 f4 ap ab1 ab2 = aux
+LangElim P so var1 var2 we1 we2 f1 pf1 f2 f3 f4 ap ab1 ab2 = aux
  where
   aux : ∀{n} → {Γ : Context n} → ∀{A}{B} → (x : Γ ⊢ A :: B) → P x
   aux sort = so
@@ -66,6 +73,7 @@ LangElim P so var1 var2 we1 we2 f1 f2 f3 f4 ap ab1 ab2 = aux
   aux (weak a (inl x)) = we1 a (aux a) x (aux x)
   aux (weak a (inr x)) = we2 a (aux a) x (aux x)
   aux (form a b) = f1 a (aux a) b (aux b)
+  aux (pForm a) = pf1 a (aux a)
   aux (form₁ a (inl x)) = f2 a (aux a) x (aux x)
   aux (form₁ a (inr x)) = f3 a (aux a) x (aux x)
   aux (form₂ a b) = f4 a (aux a) b (aux b)
@@ -124,12 +132,19 @@ FALSE = form₁ sort (inl (var (inr sort)))
 ↦notOf■ : {Γ : Context n} → ∀ x → ¬(Γ ⊢ (↦ x) :: ■)
 ↦notOf■ x (weak p _) = ↦notOf■ x p
 
+⇒notOfprop : {Γ : Context n} → ∀ x y → ¬(Γ ⊢ x ⇒ y :: prop)
+⇒notOfprop x y (weak p _) = ⇒notOfprop x y p
+
+↦notOfprop : {Γ : Context n} → ∀ x → ¬(Γ ⊢ (↦ x) :: prop)
+↦notOfprop x (weak p _) = ↦notOfprop x p
+
 ⇒has↦ : tm → Set
 ⇒has↦ (Var x) = ⊥
 ⇒has↦ (↦ t) = ⊤
 ⇒has↦ (Appl t u) = ⊥
 ⇒has↦ * = ⊥
 ⇒has↦ ■ = ⊥
+⇒has↦ prop = ⊥
 ⇒has↦ (t ⇒ u) = ⇒has↦ u
 
 impossibleType : {Γ : Context n} → ∀ x y → ⇒has↦ y → ¬(Γ ⊢ (x ⇒ y) :: *)
@@ -143,7 +158,7 @@ impossibleKind x (↦ y) H (form₁ p (inl a)) = ↦notOf* y a
 impossibleKind x (↦ y) H (form₁ p (inr a)) = ↦notOf■ y a
 impossibleKind x (y ⇒ z) H (form₁ p (inl a)) = impossibleType y z H a
 impossibleKind x (y ⇒ z) H (form₁ p (inr a)) = impossibleKind y z H a
-impossibleKind x (↦ y) H (form₂ p a) =  ↦notOf■ y a
+impossibleKind x (↦ y) H (form₂ p a) = ↦notOf■ y a
 impossibleKind x (y ⇒ z) H (form₂ p a) = impossibleKind y z H a
 
 -- A generalization of ↦notType
