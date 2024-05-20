@@ -179,17 +179,16 @@ module _{scalar : Type l}{vector : Type l'}{{R : Ring scalar}}{{V : Module vecto
   SpanX-Ô→SpanX _ (spanStep {u} {v} x y c) = spanStep (fst x) (SpanX-Ô→SpanX v y) c
   SpanX-Ô→SpanX v (spanSet x y i) = spanSet (SpanX-Ô→SpanX v x) (SpanX-Ô→SpanX v y) i
 
-  -- https://en.wikipedia.org/wiki/Linear_subspace
-  record Subspace (X : vector → Type al) : Type (lsuc (al ⊔ l ⊔ l'))
+  record Submodule (X : vector → Type al) : Type (lsuc (al ⊔ l ⊔ l'))
     where field
         ssZero : Ô ∈ X 
         ssAdd : {v u : vector} → v ∈ X → u ∈ X → v <+> u ∈ X
         ss*> : {v : vector} → v ∈ X → (c : scalar) →  c *> v ∈ X
         ssSet : (v : vector) → isProp (v ∈ X)
-  open Subspace {{...}} public
+  open Submodule {{...}} public
 
   SS2ToSS : (X : vector → Type al)
-          → {{SS : Subspace X}} → Span X ⊆ X
+          → {{SS : Submodule X}} → Span X ⊆ X
   SS2ToSS X _ spanÔ = η $ ssZero
   SS2ToSS X _ (spanStep {u}{w} p q c) =
     truncRec squash₁ (λ O →
@@ -201,7 +200,7 @@ module _{scalar : Type l}{vector : Type l'}{{R : Ring scalar}}{{V : Module vecto
      squash₁ R1 R2 i
 
   SSToSS2 : (X : vector → Type al) → {{XP : Property X}}
-          → Span X ⊆ X → Subspace X
+          → Span X ⊆ X → Submodule X
   SSToSS2 X {{XP}} H = record {
         ssZero =
           truncRec (setProp {P = X} Ô) id (H Ô spanÔ)
@@ -216,19 +215,19 @@ module _{scalar : Type l}{vector : Type l'}{{R : Ring scalar}}{{V : Module vecto
       ; ssSet = setProp }
 
   instance
-   SubspaceSet : {X : vector → Type al}{{_ : Subspace X}} → Property X
-   SubspaceSet = record { setProp = ssSet }
+   SubmoduleSet : {X : vector → Type al}{{_ : Submodule X}} → Property X
+   SubmoduleSet = record { setProp = ssSet }
  
    -- A subspace is a submonoid of the additive group of vectors
-   SubspaceSM : {X : vector → Type al}{{_ : Subspace X}} → Submonoid X _<+>_
-   SubspaceSM = record
+   SubmoduleSM : {X : vector → Type al}{{_ : Submodule X}} → Submonoid X _<+>_
+   SubmoduleSM = record
      { id-closed = ssZero
      ; op-closed = ssAdd
      }
 
    -- A subspace is a subgroup of the additive group of vectors
-   SubspaceSG : {X : vector → Type al}{{_ : Subspace X}} → Subgroup X
-   SubspaceSG {X = X} = record
+   SubmoduleSG : {X : vector → Type al}{{_ : Submodule X}} → Subgroup X
+   SubmoduleSG {X = X} = record
       { inv-closed = λ{x} x∈X →
         let H = neg 1r *> x ∈ X ≡⟨ cong X (scaleNegOneInv x)⟩
                 -< x > ∈ X ∎ in
@@ -238,8 +237,8 @@ module _{scalar : Type l}{vector : Type l'}{{R : Ring scalar}}{{V : Module vecto
       }
 
   -- The span of a set of vectors is a subspace
-  spanIsSubspace : {X : vector → Type al} → Subspace (Span X)
-  spanIsSubspace =
+  spanIsSubmodule : {X : vector → Type al} → Submodule (Span X)
+  spanIsSubmodule =
       record { ssZero = spanÔ
              ; ssAdd = λ {v} {u} x y → spanAdd2 v u x y
              ; ss*> = λ {v} x c → spanScale2 v x c
@@ -307,8 +306,8 @@ module _ {scalar : Type l}{{R : Ring scalar}}
   Null = Kernel T
 
   -- The null space is a subspace
-  nullSubspace : Subspace Null
-  nullSubspace = record
+  nullSubmodule : Submodule Null
+  nullSubmodule = record
     { ssZero = idToId T
     ; ssAdd = λ{v u} vNull uNull →
       T (v <+> u) ≡⟨ preserve v u ⟩
@@ -329,8 +328,8 @@ module _ {scalar : Type l}{{R : Ring scalar}}
   Col = image T
 
   -- The column space is a subspace
-  colSubspace : Subspace Col
-  colSubspace = record
+  colSubmodule : Submodule Col
+  colSubmodule = record
     { ssZero = ∣ Ô , idToId T ∣₁
     ; ssAdd = λ{v u} vCol uCol →
        vCol >>= λ(v' , vCol) →
@@ -358,10 +357,10 @@ module _ {scalar : Type l}{{R : Ring scalar}}
             ; multT = λ u c → cong R (multT u c) ⋆ multT (T u) c }
 
 -- The set of eigenvectors with the zero vector for a module endomorphism 'T' and eigenvalue 'c' is a subspace
-eigenvectorSubspace : {{CR : CRing A}} → {{V : Module B}}
+eigenvectorSubmodule : {{CR : CRing A}} → {{V : Module B}}
       → (T : B → B) → {{TLT : moduleHomomorphism T}}
-      → (c : A) → Subspace (λ v → T v ≡ c *> v)
-eigenvectorSubspace T c = record
+      → (c : A) → Submodule (λ v → T v ≡ c *> v)
+eigenvectorSubmodule T c = record
     { ssZero = T Ô ≡⟨ idToId T ⟩
                Ô   ≡⟨ sym (scaleVZ c)⟩
                c *> Ô ∎

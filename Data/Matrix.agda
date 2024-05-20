@@ -284,15 +284,15 @@ module _{C : Type cl} {{R : Ring C}} where
   c * ((head u * head v) + (tail u ∙ tail v)) ≡⟨By-Definition⟩
   c * (u ∙ v) ∎
  
- _orthogonal-to_ : < C ^ n > → (W : < C ^ n > → Type l) → {{Subspace W}} → Type(l ⊔ cl)
+ _orthogonal-to_ : < C ^ n > → (W : < C ^ n > → Type l) → {{Submodule W}} → Type(l ⊔ cl)
  z orthogonal-to W = ∀ v → v ∈ W → orthogonal z v
  
- orthogonal-complement : (W : < C ^ n > → Type l) → {{Subspace W}} → < C ^ n > → Type(l ⊔ cl)
+ orthogonal-complement : (W : < C ^ n > → Type l) → {{Submodule W}} → < C ^ n > → Type(l ⊔ cl)
  orthogonal-complement W z = z orthogonal-to W
 
  -- The orthogonal complement of a subspace is a subspace
- OC-subspace : (W : < C ^ n > → Type l) → {{SS : Subspace W}}
-             → Subspace (orthogonal-complement W)
+ OC-subspace : (W : < C ^ n > → Type l) → {{SS : Submodule W}}
+             → Submodule (orthogonal-complement W)
  OC-subspace {n = n} W = record
     { ssZero = let H : ∀ v → v ∈ W → orthogonal Ô v
                    H = λ v p → dotZL v in H
