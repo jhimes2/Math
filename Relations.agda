@@ -18,10 +18,12 @@ eqToLe {_≤_ = _≤_} {a = a} p = transport (λ i → a ≤ p i) (reflexive a)
 
 -- https://en.wikipedia.org/wiki/Partially_ordered_set
 record Poset {A : Type l}(_≤_ : A → A → Type al) : Type (lsuc (l ⊔ al))
-  where field
+  where
+  field
    {{partpre}} : Preorder _≤_
    antiSymmetric : {a b : A} → (a ≤ b) → (b ≤ a) → a ≡ b
 open Poset {{...}} public
+
 
 _<_ : {A : Type al} → {_≤_ : A → A → Type l} → {{Poset _≤_}} → A → A → Type(l ⊔ al)
 _<_ {_≤_ = _≤_} a b = (a ≤ b) × (a ≢ b)
