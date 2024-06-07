@@ -59,6 +59,9 @@ module _
  isSingleton : Set → Type
  isSingleton X = Σ λ x → x ∈ X × ∀ y → y ∈ X → x ≡ y
 
+ OrdPair : Set → Set → Set
+ OrdPair x y = Pair (singleton x) (Pair x y)
+
  singletonLemma : ∀ x → isSingleton (singleton x)
  singletonLemma x = x , Pair1 x x , λ y p → Pair3 p ~> λ{ (inl q) → sym q
                                                         ; (inr q) → sym q}
@@ -70,8 +73,36 @@ module _
               ; (inr H) → Pair3 q ~> λ{(inl G) → H ⋆ sym G
                                      ; (inr G) → H ⋆ sym G}}
 
+
  x∈[x] : ∀ x → x ∈ singleton x
  x∈[x] x = Pair1 x x
+
+ singletonLemma3 : ∀ {x y} → x ∈ singleton y → x ≡ y
+ singletonLemma3 {x}{y} p = singletonLemma2 p (x∈[x] y)
+
+ singletonInjective : ∀ x y → singleton x ≡ singleton y → x ≡ y
+ singletonInjective x y p =
+   let H : x ∈ singleton y
+       H = transport (λ i → x ∈ p i) (x∈[x] x) in
+       singletonLemma3 H
+
+ [a,b]≡[c]→a≡c : ∀{a b c} → Pair a b ≡ singleton c → a ≡ c
+ [a,b]≡[c]→a≡c {a}{b}{c} p =
+  let H : a ∈ singleton c
+      H = transport (λ i → a ∈ p i) (Pair1 a b) in
+  singletonLemma3 H
+
+ [a,b]≡[c]→a≡b : ∀{a b c} → Pair a b ≡ singleton c → a ≡ b
+ [a,b]≡[c]→a≡b {a}{b}{c} p =
+  let H : a ∈ singleton c
+      H = transport (λ i → a ∈ p i) (Pair1 a b) in
+  let G : b ∈ singleton c
+      G = transport (λ i → b ∈ p i) (Pair2 b a) in
+   singletonLemma3 H ⋆ sym (singletonLemma3 G)
+
+ -- Either singleton or empty
+ isSubSingleton : Set → Type
+ isSubSingleton X = ∀{x} → x ∈ X → ∀{y} → y ∈ X → x ≡ y
 
  _∪_ : Set → Set → Set
  X ∪ Y = UNION (Pair X Y)
@@ -134,12 +165,42 @@ module _
                                  (intersection3 (intersection2 (intersection1 p))
                                                 (intersection2 p)))}
 
+
+ [a]∈<b,c>→a≡b : ∀{a b c} → singleton a ∈ OrdPair b c → a ≡ b
+ [a]∈<b,c>→a≡b {a}{b}{c} H = Pair3 H ~>
+      λ{(inl p) → singletonInjective a b p
+      ; (inr p) → sym $ [a,b]≡[c]→a≡c (sym p) }
+
+ <a,b>≡<c,d>→a≡c : ∀{a b c d} → OrdPair a b ≡ OrdPair c d → a ≡ c
+ <a,b>≡<c,d>→a≡c {a}{b}{c}{d} H =
+   let H1 : Pair a a ∈ OrdPair a b
+       H1 = Pair1 (Pair a a) (Pair a b) in
+   let H2 : Pair a a ∈ OrdPair c d
+       H2 = transport (λ i → Pair a a ∈ H i) H1 in
+       [a]∈<b,c>→a≡b H2
+
+ <a,b>≡<c,d>→b≡d : ∀{a b c d} → OrdPair a b ≡ OrdPair c d → a ≡ c
+ <a,b>≡<c,d>→b≡d {a}{b}{c}{d} H =
+   let H1 : Pair a b ∈ OrdPair a b
+       H1 = Pair2 (Pair a b) (Pair a a) in
+   let H2 : Pair a b ∈ OrdPair c d
+       H2 = transport (λ i → Pair a b ∈ H i) H1 in
+   let G1 : Pair a a ∈ OrdPair a b
+       G1 = Pair1 (Pair a a) (Pair a b) in
+   let G2 : Pair a a ∈ OrdPair c d
+       G2 = transport (λ i → Pair a a ∈ H i) G1 in
+       Pair3 H2 ~> λ{ (inl p) → [a,b]≡[c]→a≡c p
+                    ; (inr p) → [a]∈<b,c>→a≡b G2}
+
+ Suc : Set → Set
+ Suc x = x ∪ singleton x
+
  module SetTheory
     (∈Relation : ∀ x y → is-prop (x ∈ y))
     (ω : Set)
     (ℙ : Set → Set)
     (PowerAxiom : ∀ X u → u ∈ ℙ X ↔ u ⊆ X)
-    (InfinityAxiom : (Seperate (λ _ → ⊥) ω) ∈ ω × ∀ x → x ∈ ω → (x ∪ singleton x) ∈ ω)
+    (InfinityAxiom : (Seperate (λ _ → ⊥) ω) ∈ ω × ∀ x → x ∈ ω → Suc x ∈ ω)
     (RegulationAxiom : ∀ X → X ≢ Seperate (λ _ → ⊥) ω → Σ λ Y → Y ∈ X × ∀ x → x ∈ Y → x ∉ X)
     (Replace : (Set → Set) → Set → Set)
     (Replacement : ∀ f X x → x ∈ X ↔ f x ∈ Replace f X)
@@ -177,7 +238,7 @@ module _
   [x]≢∅ : ∀ x → singleton x ≢ ∅
   [x]≢∅ x p = x∉∅ (transport (λ i → x ∈ p i) (x∈[x] x))
 
-  ωstep : ∀{x} → x ∈ ω → (x ∪ singleton x) ∈ ω
+  ωstep : ∀{x} → x ∈ ω → Suc x ∈ ω
   ωstep {x} = snd InfinityAxiom x
 
   Regulate : ∀{X} → X ≢ ∅ → Set
@@ -199,10 +260,15 @@ module _
                                 F = singletonLemma2 (x∈[x] x) H
                             in G x (transport (λ i → x ∈ F i) p) (x∈[x] x)
 
-
 -- https://en.wikipedia.org/wiki/Well-order
   record WellOrder : Type₁
     where field
      {{welltotal}} : TotalOrder lzero Set
      leastTerm : ∀{P} → P ≢ ∅ → Σ λ x → (x ∈ P) × ∀ y → y ∈ P → x ≤ y
   open WellOrder {{...}} public
+
+
+  module infinityTest (Ω : Set)
+           (∅∈Ω : ∅ ∈ Ω)
+           (Ωstep : ∀ x → x ∈ Ω → singleton x ∈ Ω)
+           where
