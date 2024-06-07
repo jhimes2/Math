@@ -73,7 +73,6 @@ module _
               ; (inr H) → Pair3 q ~> λ{(inl G) → H ⋆ sym G
                                      ; (inr G) → H ⋆ sym G}}
 
-
  x∈[x] : ∀ x → x ∈ singleton x
  x∈[x] x = Pair1 x x
 
@@ -261,7 +260,13 @@ module _
                             in G x (transport (λ i → x ∈ F i) p) (x∈[x] x)
 
   T-finite : Set → Type
-  T-finite S = ∀ X → X ≢ ∅ → X ⊆ ℙ S → Σ λ u → (u ∈ X) × ∀ v → v ∈ X → u ⊆ v → u ≡ v
+  T-finite S = ∀ X → X ≢ ∅ → X ⊆ ℙ S → Σ λ u → (u ∈ X) × ∀ v → v ∈ X → u ⊆ v → v ⊆ u
+
+  x∈Sucx : ∀ x → x ∈ Suc x
+  x∈Sucx x = Union2 (x∈[x] x) (Pair2 (singleton x) x)
+
+  Suc≢∅ : ∀ x → Suc x ≢ ∅
+  Suc≢∅ x p = x∉∅ (transport (λ i → x ∈ p i) (x∈Sucx x))
 
   ¬ℙx⊆x : ∀ X → ¬ (ℙ X ⊆ X)
   ¬ℙx⊆x X p = x∉x {x = X} (p X (x∈ℙx X))
