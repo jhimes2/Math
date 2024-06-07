@@ -5,6 +5,7 @@
 -----------------------------
 
 open import Prelude hiding (_∈_ ; _∉_)
+open import Relations
 open import Cubical.Foundations.HLevels
 
 module _
@@ -14,8 +15,6 @@ module _
     (PairingAxiom : ∀ a b → Σ λ c → ∀ x → x ∈ c ↔ (x ≡ a) ＋ (x ≡ b))
     (SeperationAxiom : (P : Set → Type) → ∀ X → Σ λ Y → ∀ u → u ∈ Y ↔ (u ∈ X × P u))
     (UnionAxiom : ∀ X → Σ λ Y → ∀ u → u ∈ Y ↔ Σ λ z → u ∈ z × z ∈ X)
-    (Replace : (Set → Set) → Set → Set)
-    (Replacement : ∀ f X x → x ∈ X ↔ f x ∈ Replace f X)
   where
 
  Pair : Set → Set → Set
@@ -136,11 +135,14 @@ module _
                                                 (intersection2 p)))}
 
  module SetTheory
+    (∈Relation : ∀ x y → is-prop (x ∈ y))
     (ω : Set)
     (ℙ : Set → Set)
     (PowerAxiom : ∀ X u → u ∈ ℙ X ↔ u ⊆ X)
     (InfinityAxiom : (Seperate (λ _ → ⊥) ω) ∈ ω × ∀ x → x ∈ ω → (x ∪ singleton x) ∈ ω)
     (RegulationAxiom : ∀ X → X ≢ Seperate (λ _ → ⊥) ω → Σ λ Y → Y ∈ X × ∀ x → x ∈ Y → x ∉ X)
+    (Replace : (Set → Set) → Set → Set)
+    (Replacement : ∀ f X x → x ∈ X ↔ f x ∈ Replace f X)
     where
 
   ∅ : Set

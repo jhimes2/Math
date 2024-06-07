@@ -284,8 +284,8 @@ NEqZ {a = Z} p = p refl ~> UNREACHABLE
 NEqZ {a = S a} _ = a , refl
 
 instance
-  WellOrderNat : WellOrder _ ℕ
-  WellOrderNat = record { leastTerm = λ{P} PDec → aux PDec }
+  ConstructiveWellOrderNat : ConstructiveWellOrder _ ℕ
+  ConstructiveWellOrderNat = record { leastTerm = λ{P} PDec → aux PDec }
    where
     aux : {P : ℕ → Type} → (∀ n → P n ＋ ¬ P n) → Σ P → Σ λ x → P x × ∀ y → P y → x ≤ y
     aux {P = P} PDec (p , p') = aux2 p p p' (reflexive p)

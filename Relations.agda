@@ -65,9 +65,9 @@ flipNeg {a = a} {b} p = (stronglyConnected a b
    aux : {{TO : TotalOrder al A}} → {a b : A} → ¬(b ≤ a) → a ≢ b
    aux {a = a} {b} = modusTollens (λ x → transport (λ i → x i ≤ a) (reflexive a))
 
--- https://en.wikipedia.org/wiki/Well-order
-record WellOrder (l : Level) (A : Type al) : Type (lsuc (l ⊔ al))
+-- Visit SetTheory.agda to see the more standard definition
+record ConstructiveWellOrder (l : Level) (A : Type al) : Type (lsuc (l ⊔ al))
   where field
    {{welltotal}} : TotalOrder l A
    leastTerm : {P : A → Type} → (∀ a → a ∈ P ＋ ¬ (a ∈ P)) → Σ P → Σ λ x → (x ∈ P) × ∀ y → y ∈ P → x ≤ y
-open WellOrder {{...}} public
+open ConstructiveWellOrder {{...}} public
