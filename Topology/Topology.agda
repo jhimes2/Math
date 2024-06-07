@@ -19,6 +19,7 @@ record topology {A : Type al} (T : (A → Type l') → Type l) : Type (l ⊔ lsu
   field
    tempty : ∅ ∈ T
    tfull : 𝓤 ∈ T
+   -- This needs to be closed under arbitrary infinite unions as well
    tunion : {X Y : (A → Type l')} → X ∈ T → Y ∈ T → X ∪ Y ∈ T
    tintersection : {X Y : A → Type l'} → X ∈ T → Y ∈ T → X ∩ Y ∈ T
 --   tset : ∀ X → isProp (X ∈ T) -- TODO
