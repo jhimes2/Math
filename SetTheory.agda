@@ -263,15 +263,12 @@ module _
   T-finite : Set → Type
   T-finite S = ∀ X → X ≢ ∅ → X ⊆ ℙ S → Σ λ u → (u ∈ X) × ∀ v → v ∈ X → u ⊆ v → u ≡ v
 
+  ¬ℙx⊆x : ∀ X → ¬ (ℙ X ⊆ X)
+  ¬ℙx⊆x X p = x∉x {x = X} (p X (x∈ℙx X))
+
 -- https://en.wikipedia.org/wiki/Well-order
   record WellOrder : Type₁
     where field
      {{welltotal}} : TotalOrder lzero Set
      leastTerm : ∀{P} → P ≢ ∅ → Σ λ x → (x ∈ P) × ∀ y → y ∈ P → x ≤ y
   open WellOrder {{...}} public
-
-
-  module infinityTest (Ω : Set)
-           (∅∈Ω : ∅ ∈ Ω)
-           (Ωstep : ∀ x → x ∈ Ω → singleton x ∈ Ω)
-           where
