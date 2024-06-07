@@ -1,15 +1,21 @@
 {-# OPTIONS --cubical --safe --overlapping-instances #-}
 
+-----------------------------
+-- Constructive set theory --
+-----------------------------
+
 open import Prelude hiding (_∈_ ; _∉_)
 open import Cubical.Foundations.HLevels
 
-module SetTheory
+module _
     (Set : Type)
     (_∈_ : Set → Set → Type)
     (Extensionality : ∀ a b → (∀ x → (x ∈ a ↔ x ∈ b)) → a ≡ b)
     (PairingAxiom : ∀ a b → Σ λ c → ∀ x → x ∈ c ↔ (x ≡ a) ＋ (x ≡ b))
     (SeperationAxiom : (P : Set → Type) → ∀ X → Σ λ Y → ∀ u → u ∈ Y ↔ (u ∈ X × P u))
     (UnionAxiom : ∀ X → Σ λ Y → ∀ u → u ∈ Y ↔ Σ λ z → u ∈ z × z ∈ X)
+    (Replace : (Set → Set) → Set → Set)
+    (Replacement : ∀ f X x → x ∈ X ↔ f x ∈ Replace f X)
   where
 
  Pair : Set → Set → Set
@@ -39,11 +45,14 @@ module SetTheory
  Union1 : ∀{X u} → u ∈ UNION X → Σ λ z → u ∈ z × z ∈ X
  Union1 {X} {u} = fst (snd (UnionAxiom X) u)
 
- Union2 : ∀{X u} → Σ (λ z → u ∈ z × z ∈ X) → u ∈ UNION X
- Union2 {X} {u} = snd (snd (UnionAxiom X) u)
+ Union2 : ∀{u z} → u ∈ z → ∀{X} → z ∈ X → u ∈ UNION X
+ Union2 {u}{z} u∈z {X} z∈X = snd (snd (UnionAxiom X) u) (z , u∈z , z∈X)
 
  _⊆_ : Set → Set → Type
  X ⊆ Y = ∀ x → x ∈ X → x ∈ Y
+
+ x⊆x : ∀ x → x ⊆ x
+ x⊆x _ _ z = z
 
  singleton : Set → Set
  singleton X = Pair X X
@@ -81,8 +90,8 @@ module SetTheory
  intersection3 {X} {Y} {x} x∈X x∈Y = Seperate2 (x∈Y , x∈X)
 
  union1 : ∀{X Y x} → x ∈ X ＋ x ∈ Y → x ∈ (X ∪ Y)
- union1 {X} {Y} {x} (inl p) = Union2 (X , p , Pair1 X Y)
- union1 {X} {Y} {x} (inr p) = Union2 (Y , p , Pair2 Y X)
+ union1 {X} {Y} {x} (inl p) = Union2 p (Pair1 X Y)
+ union1 {X} {Y} {x} (inr p) = Union2 p (Pair2 Y X)
 
  union2 : ∀{X Y x} → x ∈ (X ∪ Y) → x ∈ X ＋ x ∈ Y
  union2 {X} {Y} {x} = λ(H : x ∈ UNION (Pair X Y))
@@ -126,7 +135,7 @@ module SetTheory
                                  (intersection3 (intersection2 (intersection1 p))
                                                 (intersection2 p)))}
 
- module _
+ module SetTheory
     (ω : Set)
     (ℙ : Set → Set)
     (PowerAxiom : ∀ X u → u ∈ ℙ X ↔ u ⊆ X)
@@ -137,14 +146,23 @@ module SetTheory
   ∅ : Set
   ∅ = Seperate (λ _ → ⊥) ω
 
+  x∉∅ : ∀{x} → x ∉ ∅
+  x∉∅ {x} p = snd (Seperate1 p)
+
+  ∅⊆x : ∀ x → ∅ ⊆ x
+  ∅⊆x x y p = x∉∅ p ~> UNREACHABLE
+
   Power1 : ∀{X u} → u ∈ ℙ X → u ⊆ X
   Power1 {X} {u} = fst (PowerAxiom X u)
 
   Power2 : ∀{X u} → u ⊆ X → u ∈ ℙ X
   Power2 {X} {u} = snd (PowerAxiom X u)
 
-  x∉∅ : ∀{x} → x ∉ ∅
-  x∉∅ {x} p = snd (Seperate1 p)
+  x∈ℙx : ∀ x → x ∈ ℙ x
+  x∈ℙx x = Power2 (x⊆x x)
+
+  ∅∈ℙx : ∀ x → ∅ ∈ ℙ x
+  ∅∈ℙx x = Power2 (∅⊆x x)
 
   disjointLemma : ∀ X Y → (∀ x → x ∈ X → x ∉ Y) → X ∩ Y ≡ ∅
   disjointLemma X Y H = Extensionality (X ∩ Y) ∅
