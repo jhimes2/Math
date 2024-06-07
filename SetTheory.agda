@@ -133,6 +133,12 @@ module _{{PST : PreSetTheory}} where
  _∉_ : set → set → Type
  X ∉ Y = ¬(X ∈ Y)
 
+ -- Assumming the Axiom Schema of Comprehension leads to Russell's paradox.
+ module _(comprehension : (P : set → Type) → Σ λ(Y : set) → (x : set) → x ∈ Y ↔ P x) where
+   Russell's-paradox : ⊥
+   Russell's-paradox = let (Y , H) = comprehension (λ(x : set) → x ∉ x) in
+                       let (G , F) = H Y in
+                       let Z = (F (λ x → G x x)) in G Z Z
  instance
   PairComm : Commutative Pair
   PairComm = record { comm = λ a b → Extensionality (Pair a b) (Pair b a)
@@ -195,6 +201,9 @@ module _{{PST : PreSetTheory}} where
 
  Suc : set → set
  Suc x = x ∪ singleton x
+
+-- _⁻¹[_] : {Dom : set} → (∀{X} → X ∈ Dom → set) → set → set
+-- f ⁻¹[ X ] = Seperate {!!} {!!}
 
 record SetTheory : Type₁ where field
     {{PST}} : PreSetTheory
