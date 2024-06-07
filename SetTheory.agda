@@ -8,16 +8,18 @@ open import Prelude hiding (_∈_ ; _∉_)
 open import Relations
 open import Cubical.Foundations.HLevels
 
-module _
-    (Set : Type)
-    (_∈_ : Set → Set → Type)
-    (Extensionality : ∀ a b → (∀ x → (x ∈ a ↔ x ∈ b)) → a ≡ b)
-    (PairingAxiom : ∀ a b → Σ λ c → ∀ x → x ∈ c ↔ (x ≡ a) ＋ (x ≡ b))
-    (SeperationAxiom : (P : Set → Type) → ∀ X → Σ λ Y → ∀ u → u ∈ Y ↔ (u ∈ X × P u))
-    (UnionAxiom : ∀ X → Σ λ Y → ∀ u → u ∈ Y ↔ Σ λ z → u ∈ z × z ∈ X)
-  where
+record PreSetTheory : Type₁ where field
+    set : Type
+    _∈_ : set → set → Type
+    Extensionality : ∀ a b → (∀ x → (x ∈ a ↔ x ∈ b)) → a ≡ b
+    PairingAxiom : ∀ a b → Σ λ c → ∀ x → x ∈ c ↔ (x ≡ a) ＋ (x ≡ b)
+    SeperationAxiom : (P : set → Type) → ∀ X → Σ λ Y → ∀ u → u ∈ Y ↔ (u ∈ X × P u)
+    UnionAxiom : ∀ X → Σ λ Y → ∀ u → u ∈ Y ↔ Σ λ z → u ∈ z × z ∈ X
+open PreSetTheory {{...}} public
 
- Pair : Set → Set → Set
+module _{{PST : PreSetTheory}} where
+
+ Pair : set → set → set
  Pair a b = fst (PairingAxiom a b)
 
  Pair1 : ∀ a b → a ∈ Pair a b
@@ -29,37 +31,37 @@ module _
  Pair3 : ∀{a b x} → x ∈ Pair a b → (x ≡ a) ＋ (x ≡ b)
  Pair3 {a} {b} {x} = fst (snd (PairingAxiom a b) x)
 
- Seperate : (Set → Type) → Set → Set
+ Seperate : (set → Type) → set → set
  Seperate P X = fst (SeperationAxiom P X)
 
- Seperate1 : {P : Set → Type} → ∀{X u} → u ∈ Seperate P X → (u ∈ X × P u)
+ Seperate1 : {P : set → Type} → ∀{X u} → u ∈ Seperate P X → (u ∈ X × P u)
  Seperate1 {P} {X} {u} = fst (snd (SeperationAxiom P X) u)
 
- Seperate2 : {P : Set → Type} → ∀{X u} → (u ∈ X × P u) → u ∈ Seperate P X 
+ Seperate2 : {P : set → Type} → ∀{X u} → (u ∈ X × P u) → u ∈ Seperate P X 
  Seperate2 {P} {X} {u} = snd (snd (SeperationAxiom P X) u)
 
- UNION : Set → Set
+ UNION : set → set
  UNION X = fst (UnionAxiom X)
 
- Union1 : ∀{X u} → u ∈ UNION X → Σ λ z → u ∈ z × z ∈ X
+ Union1 : {X u : set} → u ∈ UNION X → Σ λ z → u ∈ z × z ∈ X
  Union1 {X} {u} = fst (snd (UnionAxiom X) u)
 
- Union2 : ∀{u z} → u ∈ z → ∀{X} → z ∈ X → u ∈ UNION X
+ Union2 : {u z : set} → u ∈ z → ∀{X} → z ∈ X → u ∈ UNION X
  Union2 {u}{z} u∈z {X} z∈X = snd (snd (UnionAxiom X) u) (z , u∈z , z∈X)
 
- _⊆_ : Set → Set → Type
- X ⊆ Y = ∀ x → x ∈ X → x ∈ Y
+ _⊆_ : set → set → Type
+ X ⊆ Y = (x : set) → x ∈ X → x ∈ Y
 
  x⊆x : ∀ x → x ⊆ x
  x⊆x _ _ z = z
 
- singleton : Set → Set
+ singleton : set → set
  singleton X = Pair X X
 
- isSingleton : Set → Type
- isSingleton X = Σ λ x → x ∈ X × ∀ y → y ∈ X → x ≡ y
+ isSingleton : set → Type
+ isSingleton X = Σ λ(x : set) → x ∈ X × ∀ y → y ∈ X → x ≡ y
 
- OrdPair : Set → Set → Set
+ OrdPair : set → set → set
  OrdPair x y = Pair (singleton x) (Pair x y)
 
  singletonLemma : ∀ x → isSingleton (singleton x)
@@ -100,35 +102,35 @@ module _
    singletonLemma3 H ⋆ sym (singletonLemma3 G)
 
  -- Either singleton or empty
- isSubSingleton : Set → Type
- isSubSingleton X = ∀{x} → x ∈ X → ∀{y} → y ∈ X → x ≡ y
+ isSubSingleton : set → Type
+ isSubSingleton X = {x : set} → x ∈ X → ∀{y} → y ∈ X → x ≡ y
 
- _∪_ : Set → Set → Set
+ _∪_ : set → set → set
  X ∪ Y = UNION (Pair X Y)
 
- _∩_ : Set → Set → Set
+ _∩_ : set → set → set
  X ∩ Y = Seperate (λ a → a ∈ X) Y
 
- intersection1 : ∀{X Y x} → x ∈ (X ∩ Y) → x ∈ X
+ intersection1 : {X Y x : set} → x ∈ (X ∩ Y) → x ∈ X
  intersection1 {X} {Y} {x} p = snd (Seperate1 p)
 
- intersection2 : ∀{X Y x} → x ∈ (X ∩ Y) → x ∈ Y
+ intersection2 : {X Y x : set} → x ∈ (X ∩ Y) → x ∈ Y
  intersection2 {X} {Y} {x} p = fst (Seperate1 p)
 
- intersection3 : ∀{X Y x} → x ∈ X → x ∈ Y → x ∈ (X ∩ Y)
+ intersection3 : {X Y x : set} → x ∈ X → x ∈ Y → x ∈ (X ∩ Y)
  intersection3 {X} {Y} {x} x∈X x∈Y = Seperate2 (x∈Y , x∈X)
 
- union1 : ∀{X Y x} → x ∈ X ＋ x ∈ Y → x ∈ (X ∪ Y)
+ union1 : {X Y x : set} → x ∈ X ＋ x ∈ Y → x ∈ (X ∪ Y)
  union1 {X} {Y} {x} (inl p) = Union2 p (Pair1 X Y)
  union1 {X} {Y} {x} (inr p) = Union2 p (Pair2 Y X)
 
- union2 : ∀{X Y x} → x ∈ (X ∪ Y) → x ∈ X ＋ x ∈ Y
+ union2 : {X Y x : set} → x ∈ (X ∪ Y) → x ∈ X ＋ x ∈ Y
  union2 {X} {Y} {x} = λ(H : x ∈ UNION (Pair X Y))
    → let (z , x∈z , z∈Pair) = Union1 H in
        Pair3 z∈Pair ~> λ{ (inl p) → inl (transport (right _∈_ p) x∈z)
                         ; (inr p) → inr (transport (right _∈_ p) x∈z)}
 
- _∉_ : Set → Set → Type
+ _∉_ : set → set → Type
  X ∉ Y = ¬(X ∈ Y)
 
  instance
@@ -191,89 +193,91 @@ module _
        Pair3 H2 ~> λ{ (inl p) → [a,b]≡[c]→a≡c p
                     ; (inr p) → [a]∈<b,c>→a≡b G2}
 
- Suc : Set → Set
+ Suc : set → set
  Suc x = x ∪ singleton x
 
- module SetTheory
-    (∈Relation : ∀ x y → is-prop (x ∈ y))
-    (ω : Set)
-    (ℙ : Set → Set)
-    (PowerAxiom : ∀ X u → u ∈ ℙ X ↔ u ⊆ X)
-    (InfinityAxiom : (Seperate (λ _ → ⊥) ω) ∈ ω × ∀ x → x ∈ ω → Suc x ∈ ω)
-    (RegulationAxiom : ∀ X → X ≢ Seperate (λ _ → ⊥) ω → Σ λ Y → Y ∈ X × ∀ x → x ∈ Y → x ∉ X)
-    (Replace : (Set → Set) → Set → Set)
-    (Replacement : ∀ f X x → x ∈ X ↔ f x ∈ Replace f X)
-    where
+record SetTheory : Type₁ where field
+    {{PST}} : PreSetTheory
+    ∈Relation : (x y : set) → is-prop (x ∈ y)
+    ω : set
+    ℙ : set → set
+    PowerAxiom : (X u : set) → u ∈ ℙ X ↔ u ⊆ X
+    InfinityAxiom : (Seperate (λ _ → ⊥) ω) ∈ ω × ((x : set) → x ∈ ω → Suc x ∈ ω)
+    RegulationAxiom : (X : set) → X ≢ Seperate (λ _ → ⊥) ω → Σ λ(Y : set) → Y ∈ X × ((x : set) → x ∈ Y → x ∉ X)
+    Replace : (set → set) → set → set
+    Replacement : ∀ f X x → x ∈ X ↔ f x ∈ Replace f X
+open SetTheory {{...}} public
 
-  ∅ : Set
-  ∅ = Seperate (λ _ → ⊥) ω
+module _{{ST : SetTheory}} where
+ ∅ : set
+ ∅ = Seperate (λ _ → ⊥) ω
 
-  x∉∅ : ∀{x} → x ∉ ∅
-  x∉∅ {x} p = snd (Seperate1 p)
+ x∉∅ : {x : set} → x ∉ ∅
+ x∉∅ {x} p = snd (Seperate1 p)
 
-  ∅⊆x : ∀ x → ∅ ⊆ x
-  ∅⊆x x y p = x∉∅ p ~> UNREACHABLE
+ ∅⊆x : (x : set) → ∅ ⊆ x
+ ∅⊆x x y p = x∉∅ p ~> UNREACHABLE
 
-  Power1 : ∀{X u} → u ∈ ℙ X → u ⊆ X
-  Power1 {X} {u} = fst (PowerAxiom X u)
+ Power1 : {X u : set} → u ∈ ℙ X → u ⊆ X
+ Power1 {X} {u} = fst (PowerAxiom X u)
 
-  Power2 : ∀{X u} → u ⊆ X → u ∈ ℙ X
-  Power2 {X} {u} = snd (PowerAxiom X u)
+ Power2 : {X u : set} → u ⊆ X → u ∈ ℙ X
+ Power2 {X} {u} = snd (PowerAxiom X u)
 
-  x∈ℙx : ∀ x → x ∈ ℙ x
-  x∈ℙx x = Power2 (x⊆x x)
+ x∈ℙx : (x : set) → x ∈ ℙ x
+ x∈ℙx x = Power2 (x⊆x x)
 
-  ∅∈ℙx : ∀ x → ∅ ∈ ℙ x
-  ∅∈ℙx x = Power2 (∅⊆x x)
+ ∅∈ℙx : (x : set) → ∅ ∈ ℙ x
+ ∅∈ℙx x = Power2 (∅⊆x x)
 
-  disjointLemma : ∀ X Y → (∀ x → x ∈ X → x ∉ Y) → X ∩ Y ≡ ∅
-  disjointLemma X Y H = Extensionality (X ∩ Y) ∅
-      λ x → (λ p → UNREACHABLE (H x (intersection1 p) (intersection2 p)))
-           , λ p → UNREACHABLE (x∉∅ p)
+ disjointLemma : (X Y : set) → (∀ x → x ∈ X → x ∉ Y) → X ∩ Y ≡ ∅
+ disjointLemma X Y H = Extensionality (X ∩ Y) ∅
+     λ x → (λ p → UNREACHABLE (H x (intersection1 p) (intersection2 p)))
+          , λ p → UNREACHABLE (x∉∅ p)
 
-  ∅∈ω : ∅ ∈ ω
-  ∅∈ω = fst InfinityAxiom
+ ∅∈ω : ∅ ∈ ω
+ ∅∈ω = fst InfinityAxiom
 
-  [x]≢∅ : ∀ x → singleton x ≢ ∅
-  [x]≢∅ x p = x∉∅ (transport (λ i → x ∈ p i) (x∈[x] x))
+ [x]≢∅ : (x : set) → singleton x ≢ ∅
+ [x]≢∅ x p = x∉∅ (transport (λ i → x ∈ p i) (x∈[x] x))
 
-  ωstep : ∀{x} → x ∈ ω → Suc x ∈ ω
-  ωstep {x} = snd InfinityAxiom x
+ ωstep : {x : set} → x ∈ ω → Suc x ∈ ω
+ ωstep {x} = snd InfinityAxiom x
 
-  Regulate : ∀{X} → X ≢ ∅ → Set
-  Regulate {X} p = fst (RegulationAxiom X p)
+ Regulate : {X : set} → X ≢ ∅ → set
+ Regulate {X} p = fst (RegulationAxiom X p)
 
-  Regulate1 : ∀{X} → (p : X ≢ ∅) → Regulate p ∈ X
-  Regulate1 {X} p = fst $ snd (RegulationAxiom X p)
+ Regulate1 : {X : set} → (p : X ≢ ∅) → Regulate p ∈ X
+ Regulate1 {X} p = fst $ snd (RegulationAxiom X p)
 
-  Regulate2 : ∀{X} → (p : X ≢ ∅) → ∀{x}→ x ∈ Regulate p → x ∉ X
-  Regulate2 {X} p {x} = (snd $ snd (RegulationAxiom X p)) x
+ Regulate2 : {X : set} → (p : X ≢ ∅) → {x : set}→ x ∈ Regulate p → x ∉ X
+ Regulate2 {X} p {x} = (snd $ snd (RegulationAxiom X p)) x
 
-  Regulate3 : ∀{X} → (p : X ≢ ∅) → ∀{x} → x ∈ X → x ∉ Regulate p
-  Regulate3 {X} H G q = Regulate2 H q G
+ Regulate3 : {X : set} → (p : X ≢ ∅) → {x : set} → x ∈ X → x ∉ Regulate p
+ Regulate3 {X} H G q = Regulate2 H q G
 
-  x∉x : ∀{x} → x ∉ x
-  x∉x {x} p = RegulationAxiom (singleton x) ([x]≢∅ x)
-         ~> λ((y , H , G) : (Σ λ y → y ∈ singleton x × ∀ z → z ∈ y → z ∉ singleton x))
-                          → let F : x ≡ y
-                                F = singletonLemma2 (x∈[x] x) H
-                            in G x (transport (λ i → x ∈ F i) p) (x∈[x] x)
+ x∉x : {x : set} → x ∉ x
+ x∉x {x} p = RegulationAxiom (singleton x) ([x]≢∅ x)
+        ~> λ((y , H , G) : (Σ λ y → y ∈ singleton x × ∀ z → z ∈ y → z ∉ singleton x))
+                         → let F : x ≡ y
+                               F = singletonLemma2 (x∈[x] x) H
+                           in G x (transport (λ i → x ∈ F i) p) (x∈[x] x)
 
-  T-finite : Set → Type
-  T-finite S = ∀ X → X ≢ ∅ → X ⊆ ℙ S → Σ λ u → (u ∈ X) × ∀ v → v ∈ X → u ⊆ v → v ⊆ u
+ T-finite : set → Type
+ T-finite S = ∀ X → X ≢ ∅ → X ⊆ ℙ S → Σ λ(u : set) → (u ∈ X) × ((v : set) → v ∈ X → u ⊆ v → v ⊆ u)
 
-  x∈Sucx : ∀ x → x ∈ Suc x
-  x∈Sucx x = Union2 (x∈[x] x) (Pair2 (singleton x) x)
+ x∈Sucx : (x : set) → x ∈ Suc x
+ x∈Sucx x = Union2 (x∈[x] x) (Pair2 (singleton x) x)
 
-  Suc≢∅ : ∀ x → Suc x ≢ ∅
-  Suc≢∅ x p = x∉∅ (transport (λ i → x ∈ p i) (x∈Sucx x))
+ Suc≢∅ : (x : set) → Suc x ≢ ∅
+ Suc≢∅ x p = x∉∅ (transport (λ i → x ∈ p i) (x∈Sucx x))
 
-  ¬ℙx⊆x : ∀ X → ¬ (ℙ X ⊆ X)
-  ¬ℙx⊆x X p = x∉x {x = X} (p X (x∈ℙx X))
+ ¬ℙx⊆x : (X : set) → ¬ (ℙ X ⊆ X)
+ ¬ℙx⊆x X p = x∉x {x = X} (p X (x∈ℙx X))
 
--- https://en.wikipedia.org/wiki/Well-order
-  record WellOrder : Type₁
-    where field
-     {{welltotal}} : TotalOrder lzero Set
-     leastTerm : ∀{P} → P ≢ ∅ → Σ λ x → (x ∈ P) × ∀ y → y ∈ P → x ≤ y
-  open WellOrder {{...}} public
+ -- https://en.wikipedia.org/wiki/Well-order
+ record WellOrder : Type₁
+   where field
+    {{welltotal}} : TotalOrder lzero set
+    leastTerm : ∀{P} → P ≢ ∅ → Σ λ(x : set) → (x ∈ P) × ∀ y → y ∈ P → x ≤ y
+ open WellOrder {{...}} public
