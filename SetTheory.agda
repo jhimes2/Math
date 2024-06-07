@@ -198,3 +198,11 @@ module _
                           → let F : x ≡ y
                                 F = singletonLemma2 (x∈[x] x) H
                             in G x (transport (λ i → x ∈ F i) p) (x∈[x] x)
+
+
+-- https://en.wikipedia.org/wiki/Well-order
+  record WellOrder : Type₁
+    where field
+     {{welltotal}} : TotalOrder lzero Set
+     leastTerm : ∀{P} → P ≢ ∅ → Σ λ x → (x ∈ P) × ∀ y → y ∈ P → x ≤ y
+  open WellOrder {{...}} public
