@@ -70,7 +70,7 @@ Algebra/Monoid.agdai: Algebra/Monoid.agda Prelude.agdai Set.agdai
 Set.agdai: Set.agda Relations.agdai
 	agda $<
 
-SetTheory.agdai: SetTheory.agda Prelude.agdai
+SetTheory.agdai: SetTheory.agda Prelude.agdai Relations.agdai
 	agda $<
 
 Relations.agdai: Relations.agda Prelude.agdai
