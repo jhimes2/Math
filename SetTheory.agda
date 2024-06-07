@@ -260,6 +260,9 @@ module _
                                 F = singletonLemma2 (x∈[x] x) H
                             in G x (transport (λ i → x ∈ F i) p) (x∈[x] x)
 
+  T-finite : Set → Type
+  T-finite S = ∀ X → X ≢ ∅ → X ⊆ ℙ S → Σ λ u → (u ∈ X) × ∀ v → v ∈ X → u ⊆ v → u ≡ v
+
 -- https://en.wikipedia.org/wiki/Well-order
   record WellOrder : Type₁
     where field
