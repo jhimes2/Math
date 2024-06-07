@@ -55,6 +55,16 @@ module SetTheory
  singletonLemma x = x , Pair1 x x , λ y p → Pair3 p ~> λ{ (inl q) → sym q
                                                         ; (inr q) → sym q}
 
+ singletonLemma2 : ∀ {X x y} → x ∈ singleton X → y ∈ singleton X → x ≡ y
+ singletonLemma2 {X}{x}{y} p q =
+   Pair3 p ~> λ{(inl H) → Pair3 q ~> λ{(inl G) → H ⋆ sym G
+                                     ; (inr G) → H ⋆ sym G }
+              ; (inr H) → Pair3 q ~> λ{(inl G) → H ⋆ sym G
+                                     ; (inr G) → H ⋆ sym G}}
+
+ x∈[x] : ∀ x → x ∈ singleton x
+ x∈[x] x = Pair1 x x
+
  _∪_ : Set → Set → Set
  X ∪ Y = UNION (Pair X Y)
 
@@ -133,16 +143,19 @@ module SetTheory
   Power2 : ∀{X u} → u ⊆ X → u ∈ ℙ X
   Power2 {X} {u} = snd (PowerAxiom X u)
 
-  ∅Lemma : ∀{x} → x ∉ ∅
-  ∅Lemma {x} p = snd (Seperate1 p)
+  x∉∅ : ∀{x} → x ∉ ∅
+  x∉∅ {x} p = snd (Seperate1 p)
 
   disjointLemma : ∀ X Y → (∀ x → x ∈ X → x ∉ Y) → X ∩ Y ≡ ∅
   disjointLemma X Y H = Extensionality (X ∩ Y) ∅
       λ x → (λ p → UNREACHABLE (H x (intersection1 p) (intersection2 p)))
-           , λ p → UNREACHABLE (∅Lemma p)
+           , λ p → UNREACHABLE (x∉∅ p)
 
   ∅∈ω : ∅ ∈ ω
   ∅∈ω = fst InfinityAxiom
+
+  [x]≢∅ : ∀ x → singleton x ≢ ∅
+  [x]≢∅ x p = x∉∅ (transport (λ i → x ∈ p i) (x∈[x] x))
 
   ωstep : ∀{x} → x ∈ ω → (x ∪ singleton x) ∈ ω
   ωstep {x} = snd InfinityAxiom x
@@ -156,5 +169,12 @@ module SetTheory
   Regulate2 : ∀{X} → (p : X ≢ ∅) → ∀{x}→ x ∈ Regulate p → x ∉ X
   Regulate2 {X} p {x} = (snd $ snd (RegulationAxiom X p)) x
 
-  Regulate3 : ∀{X} → (p : X ≢ ∅) → ∀ {x} → x ∈ X → x ∉ Regulate p
+  Regulate3 : ∀{X} → (p : X ≢ ∅) → ∀{x} → x ∈ X → x ∉ Regulate p
   Regulate3 {X} H G q = Regulate2 H q G
+
+  x∉x : ∀{x} → x ∉ x
+  x∉x {x} p = RegulationAxiom (singleton x) ([x]≢∅ x)
+         ~> λ((y , H , G) : (Σ λ y → y ∈ singleton x × ∀ z → z ∈ y → z ∉ singleton x))
+                          → let F : x ≡ y
+                                F = singletonLemma2 (x∈[x] x) H
+                            in G x (transport (λ i → x ∈ F i) p) (x∈[x] x)
