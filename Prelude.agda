@@ -84,12 +84,8 @@ f ∘ g = λ a → f (g a)
 Σ {A = A} = Σ' A
 
 -- Merely exists
-∥Σ∥ : {A : Type l} → (P : A → Type l') → Type(l ⊔ l')
-∥Σ∥ P = ∥ Σ P ∥₁
-
--- Implicitly exists
 ∃ : {A : Type l} → (P : A → Type l') → Type(l ⊔ l')
-∃ P = implicit (Σ P)
+∃ P = ∥ Σ P ∥₁
 
 ∃! : {A : Type l} → (P : A → Type l') → Type(l ⊔ l')
 ∃! {A = A} P = Σ λ x → P x × ∀ y → P y → x ≡ y
@@ -143,15 +139,12 @@ DeMorgan5 f x p = f (x , p)
 DeMorgan6 : {P : A → Type l} → (∀ a → a ∉ P) → ¬ Σ P
 DeMorgan6 f (a , p) = f a p
 
-DeMorgan7 : {P : A → Type l} → ¬ (∀ x → x ∊ P) → ∃ λ x → x ∉ P
-DeMorgan7 g f = g λ x z → f (x , z)
-
 {- The functor and monad defined below pertains more to the programming perspective
    than category theory. I plan on defining a more complete definition of categories,
    functors, natural transformations, and monads. Note that while 'Functor' is a sound
    yet incomplete definition of a functor from category theory, 'Monad'  -}
 
--- https://en.wikipedia.org/wiki/Functor_(functional_programming)
+-- https://en.wikipedia.org/wiki/Functor_(functional_programmingj)
 record Functor (F : Type al → Type bl) : Type (lsuc al ⊔ lsuc bl)  where
   field
     map : (A → B) → F A → F B
@@ -288,7 +281,7 @@ funRed p x i = p i x
 
 -- https://en.wikipedia.org/wiki/Image_(mathematics)
 image : {A : Type al}{B : Type bl} → (A → B) → B → Type (al ⊔ bl)
-image f b = ∥Σ∥ λ a → f a ≡ b
+image f b = ∃ λ a → f a ≡ b
 
 -- preimage
 _⁻¹[_] : (f : A → B) → (B → Type l) → (A → Type l)
