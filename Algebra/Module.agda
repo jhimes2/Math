@@ -4,7 +4,7 @@ module Algebra.Module where
 
 open import Prelude
 open import Relations
-open import Set
+open import Predicate
 open import Algebra.CRing public
 open import Cubical.HITs.PropositionalTruncation renaming (rec to truncRec)
 

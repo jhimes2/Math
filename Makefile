@@ -16,7 +16,7 @@ NumberTheory/Overloads.agdai: NumberTheory/Overloads.agda Data/Natural.agdai
 Trigonometry/Trigonometry.agdai: Trigonometry/Trigonometry.agda Algebra/Field.agdai
 	agda $<
 
-Topology/Topology.agdai: Topology/Topology.agda Set.agdai
+Topology/Topology.agdai: Topology/Topology.agda Predicate.agdai
 	agda $<
 
 Data/Bool.agdai: Data/Bool.agda Algebra/Field.agdai Relations.agdai
@@ -37,7 +37,7 @@ Data/Natural.agdai: Data/Natural.agda Algebra/Monoid.agdai Algebra/MultAdd.agdai
 Algebra/Linear.agdai: Algebra/Linear.agda Algebra/Field.agdai Algebra/Module.agdai
 	agda $<
 
-Algebra/Module.agdai: Algebra/Module.agda Algebra/CRing.agdai Set.agdai
+Algebra/Module.agdai: Algebra/Module.agda Algebra/CRing.agdai Predicate.agdai
 	agda $<
 
 Algebra/Metric.agdai: Algebra/Metric.agda Algebra/OrderedRng.agdai
@@ -64,10 +64,10 @@ Algebra/MultAdd.agdai: Algebra/MultAdd.agda Prelude.agdai
 Algebra/Group.agdai: Algebra/Group.agda Algebra/Monoid.agdai
 	agda $<
 
-Algebra/Monoid.agdai: Algebra/Monoid.agda Prelude.agdai Set.agdai
+Algebra/Monoid.agdai: Algebra/Monoid.agda Prelude.agdai Predicate.agdai
 	agda $<
 
-Set.agdai: Set.agda Relations.agdai
+Predicate.agdai: Predicate.agda Relations.agdai
 	agda $<
 
 SetTheory.agdai: SetTheory.agda Prelude.agdai Relations.agdai

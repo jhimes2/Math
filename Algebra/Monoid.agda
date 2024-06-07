@@ -3,7 +3,7 @@
 module Algebra.Monoid where
 
 open import Prelude
-open import Set
+open import Predicate
 open import Cubical.Foundations.HLevels
 
 -- https://en.wikipedia.org/wiki/Monoid

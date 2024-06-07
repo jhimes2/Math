@@ -2,7 +2,7 @@
 
 open import Prelude
 open import Cubical.HITs.PropositionalTruncation renaming (rec to truncRec ; map to truncMap)
-open import Set hiding (_⊆_)
+open import Predicate hiding (_⊆_)
 open import Relations
 
 module Topology.Topology where

@@ -1,6 +1,6 @@
 {-# OPTIONS --cubical --safe --hidden-argument-pun #-}
 
-module Set where
+module Predicate where
 
 open import Prelude
 open import Relations

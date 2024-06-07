@@ -4,7 +4,7 @@ module Algebra.Linear where
 
 open import Prelude
 open import Relations
-open import Set
+open import Predicate
 open import Algebra.Module public
 open import Algebra.Field public
 open import Cubical.Foundations.HLevels

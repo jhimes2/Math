@@ -4,7 +4,7 @@ module NumberTheory.Finite where
 
 open import Prelude
 open import Relations
-open import Set
+open import Predicate
 open import Data.Bool
 open import Data.Natural
 open import NumberTheory.Natural
