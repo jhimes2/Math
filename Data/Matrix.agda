@@ -124,7 +124,7 @@ module _{C : Type cl}{{R : Rng C}} where
  orthogonal u v = u ∙ v ≡ 0r
 
  orthogonal-set : (< C ^ n > → Type cl) → Type cl
- orthogonal-set X = ∀ u v → u ∈ X → v ∈ X → u ≢ v → orthogonal u v
+ orthogonal-set X = ∀ u v → X u → X v → u ≢ v → orthogonal u v
 
  dotZL : (V : < C ^ n >)
        → (λ _ → 0r) ∙ V ≡ 0r
@@ -285,7 +285,7 @@ module _{C : Type cl} {{R : Ring C}} where
   c * (u ∙ v) ∎
  
  _orthogonal-to_ : < C ^ n > → (W : < C ^ n > → Type l) → {{Submodule W}} → Type(l ⊔ cl)
- z orthogonal-to W = ∀ v → v ∈ W → orthogonal z v
+ z orthogonal-to W = ∀ v → W v → orthogonal z v
  
  orthogonal-complement : (W : < C ^ n > → Type l) → {{Submodule W}} → < C ^ n > → Type(l ⊔ cl)
  orthogonal-complement W z = z orthogonal-to W
@@ -294,7 +294,7 @@ module _{C : Type cl} {{R : Ring C}} where
  OC-subspace : (W : < C ^ n > → Type l) → {{SS : Submodule W}}
              → Submodule (orthogonal-complement W)
  OC-subspace {n = n} W = record
-    { ssZero = let H : ∀ v → v ∈ W → orthogonal Ô v
+    { ssZero = let H : ∀ v → W v → orthogonal Ô v
                    H = λ v p → dotZL v in H
     ; ssAdd = λ{u v} uPerp vPerp y yW →
          (u <+> v) ∙ y     ≡⟨ dotDistribute y u v ⟩
@@ -307,7 +307,7 @@ module _{C : Type cl} {{R : Ring C}} where
        c * (v ∙ u)   ≡⟨ right _*_ (x u uW)⟩
        c * 0r        ≡⟨ x*0≡0 c ⟩
        0r ∎
-    ; ssSet = λ v (p q : ∀ u → u ∈ W → v ∙ u ≡ 0r)
+    ; ssSet = λ v (p q : ∀ u → W u → v ∙ u ≡ 0r)
        → funExt λ u → funExt λ uW → IsSet (v ∙ u) 0r (p u uW) (q u uW)
     }
 

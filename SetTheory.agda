@@ -4,7 +4,7 @@
 -- Constructive set theory --
 -----------------------------
 
-open import Prelude hiding (_∈_ ; _∉_)
+open import Prelude
 open import Relations
 open import Cubical.Foundations.HLevels
 

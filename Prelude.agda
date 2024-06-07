@@ -61,20 +61,6 @@ _$_ : (A → B) → A → B
 f $ a = f a
 infixr 0 _$_
 
--- Explicit membership
-_∈_ : A → (A → Type l) → Type l
-_∈_ = _~>_
-infixr 5 _∈_
-
-_∉_ :  A → (A → Type l) → Type l
-_∉_ a X = ¬(a ∈ X)
-infixr 5 _∉_
-
--- Implicit membership
-_∊_ : A → (A → Type l) → Type l
-x ∊ X = implicit (x ∈ X)
-infixr 5 _∊_
-
 -- Function Composition
 _∘_ :  (B → C) → (A → B) → (A → C)
 f ∘ g = λ a → f (g a)
@@ -132,12 +118,6 @@ DeMorgan3 z = (λ x → z (inl x)) , λ x → z (inr x)
 
 DeMorgan4 : ¬(A × B) → ¬ A ∨ ¬ B
 DeMorgan4 = λ f g → g (inl λ x → g (inr λ y → f (x , y)))
-
-DeMorgan5 : {P : A → Type l} → ¬ Σ P → ∀ x → x ∉ P
-DeMorgan5 f x p = f (x , p)
-
-DeMorgan6 : {P : A → Type l} → (∀ a → a ∉ P) → ¬ Σ P
-DeMorgan6 f (a , p) = f a p
 
 {- The functor and monad defined below pertains more to the programming perspective
    than category theory. I plan on defining a more complete definition of categories,
@@ -279,14 +259,6 @@ propTruncExt ab ba = propExt squash₁ squash₁ (map ab) (map ba)
 funRed : {f g : A → B} → f ≡ g → (x : A) → f x ≡ g x
 funRed p x i = p i x
 
--- https://en.wikipedia.org/wiki/Image_(mathematics)
-image : {A : Type al}{B : Type bl} → (A → B) → B → Type (al ⊔ bl)
-image f b = ∃ λ a → f a ≡ b
-
--- preimage
-_⁻¹[_] : (f : A → B) → (B → Type l) → (A → Type l)
-f ⁻¹[ g ] = g ∘ f
-
 record Associative {A : Type l}(_∙_ : A → A → A) : Type(lsuc l) where
   field
       assoc : (a b c : A) → a ∙ (b ∙ c) ≡ (a ∙ b) ∙ c
@@ -369,20 +341,6 @@ module _{_∙_ : A → A → A}{{_ : Commutative _∙_}}(a b c : A) where
                       a ∙ ((b ∙ c) ∙ d) ≡⟨ right _∙_ (left _∙_ (comm b c))⟩
                       a ∙ ((c ∙ b) ∙ d) ≡⟨ sym ([ab][cd]≡a[[bc]d] a c b d)⟩
                       (a ∙ c) ∙ (b ∙ d) ∎
-
-module _{A : Type l}{_∙_ : A → A → A}{{_ : Associative _∙_}} where
-
--- https://en.wikipedia.org/wiki/Centralizer_and_normalizer
-
- centralizer : (A → Type l') → A → Type (l ⊔ l')
- centralizer X a = ∀ x → x ∈ X → a ∙ x ≡ x ∙ a
-
- normalizer : (H : A → Type l') → A → Type (l ⊔ lsuc l')
- normalizer X a = ∀ x → a ∙ x ∈ X ≡ x ∙ a ∈ X
-
- -- https://en.wikipedia.org/wiki/Center_(group_theory)
- center : A → Type l
- center = centralizer (λ _ → ⊤)
 
 -- Is proposition
 record is-prop (A : Type l) : Type l

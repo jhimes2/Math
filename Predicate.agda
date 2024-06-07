@@ -8,13 +8,62 @@ open import Cubical.Foundations.HLevels
 open import Cubical.HITs.PropositionalTruncation renaming (rec to recTrunc ; map to mapTrunc)
 open import Cubical.Foundations.Isomorphism
 
--- Full set
+------------------------------------------------------------------------------------------------------
+-- This code disguises predicates as sets. I'm planning on replacing this file with SetTheory.agda. --
+-- Also note that several names in this file are not standard in math.                              --
+------------------------------------------------------------------------------------------------------
+
+_∈_ : A → (A → Type l) → Type l
+_∈_ = _~>_
+infixr 5 _∈_
+
+_∉_ :  A → (A → Type l) → Type l
+_∉_ a X = ¬(a ∈ X)
+infixr 5 _∉_
+
+module _{A : Type l}{_∙_ : A → A → A}{{_ : Associative _∙_}} where
+
+-- https://en.wikipedia.org/wiki/Centralizer_and_normalizer
+
+ centralizer : (A → Type l') → A → Type (l ⊔ l')
+ centralizer X a = ∀ x → x ∈ X → a ∙ x ≡ x ∙ a
+
+ normalizer : (H : A → Type l') → A → Type (l ⊔ lsuc l')
+ normalizer X a = ∀ x → a ∙ x ∈ X ≡ x ∙ a ∈ X
+
+ -- https://en.wikipedia.org/wiki/Center_(group_theory)
+ center : A → Type l
+ center = centralizer (λ _ → ⊤)
+
+DeMorgan5 : {P : A → Type l} → ¬ Σ P → ∀ x → x ∉ P
+DeMorgan5 f x p = f (x , p)
+
+DeMorgan6 : {P : A → Type l} → (∀ a → a ∉ P) → ¬ Σ P
+DeMorgan6 f (a , p) = f a p
+
+-- Implicit membership
+_∊_ : A → (A → Type l) → Type l
+x ∊ X = implicit (x ∈ X)
+infixr 5 _∊_
+
+-- Full predicate
 𝓤 : A → Type l
 𝓤 = λ _ → Lift ⊤
 
--- Empty set
+-- Empty predicate
 ∅ : A → Type l
 ∅ = λ _ → Lift ⊥
+
+chain : {A : Type al} {_≤_ : A → A → Type} → {{_ : Poset _≤_}} → (A → Type al) → Type al
+chain {_≤_ = _≤_} C = ∀ a b → a ∈ C → b ∈ C → ¬(a ≤ b) → b ≤ a
+
+-- https://en.wikipedia.org/wiki/Image_(mathematics)
+image : {A : Type al}{B : Type bl} → (A → B) → B → Type (al ⊔ bl)
+image f b = ∃ λ a → f a ≡ b
+
+-- preimage
+_⁻¹[_] : (f : A → B) → (B → Type l) → (A → Type l)
+f ⁻¹[ g ] = g ∘ f
 
 -- A property is defined as a function that maps elements to propositions
 record Property {A : Type al} (P : A → Type l) : Type(al ⊔ l) where
@@ -22,20 +71,18 @@ record Property {A : Type al} (P : A → Type l) : Type(al ⊔ l) where
   setProp : ∀ x → isProp (x ∈ P)
 open Property {{...}} public
 
--- https://en.wikipedia.org/wiki/Multiset
--- A multiset is defined as a function that maps elements to sets
-record Multiset {A : Type al} (M : A → Type l) : Type(al ⊔ l) where
+record Multipredicate {A : Type al} (M : A → Type l) : Type(al ⊔ l) where
  field
-  multiset : ∀ x → isSet (x ∈ M)
-open Multiset {{...}} public
+  multipredicate : ∀ x → isSet (x ∈ M)
+open Multipredicate {{...}} public
 
 instance
 
- ΣSet : {{is-set A}} → {X : A → Type l} → {{Multiset X}} → is-set (Σ X)
- ΣSet = record { IsSet = isSetΣ IsSet λ x → multiset x }
+ ΣSet : {{is-set A}} → {X : A → Type l} → {{Multipredicate X}} → is-set (Σ X)
+ ΣSet = record { IsSet = isSetΣ IsSet λ x → multipredicate x }
 
- propertyIsMultiset : {X : A → Type l} → {{Property X}} → Multiset X
- propertyIsMultiset = record { multiset = λ x → isProp→isSet (setProp x) }
+ propertyIsMultipredicate : {X : A → Type l} → {{Property X}} → Multipredicate X
+ propertyIsMultipredicate = record { multipredicate = λ x → isProp→isSet (setProp x) }
 
  fullProp : Property $ 𝓤 {A = A} {l}
  fullProp = record { setProp = λ x tt tt → refl }
@@ -59,7 +106,6 @@ normalizerProperty {_∙_} {H} {{M}} = record { setProp = λ x a b → funExt λ
   }
  where
   open import Cubical.Data.Nat
-
 
 data Support{A : Type al}(X : A → Type l) : A → Type(al ⊔ l) where
   supportIntro : ∀ x → x ∈ X → x ∈ Support X 

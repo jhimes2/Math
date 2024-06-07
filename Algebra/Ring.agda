@@ -26,7 +26,7 @@ module _{A : Type l}{{R : Ring A}} where
  record Ideal(I : A → Type l') : Type(lsuc (l ⊔ l')) where
   field
    {{subgrpIdeal}} : Subgroup I
-   *-in : (r x : A) → x ∈ I → r * x ∈ I
+   *-in : (r x : A) → I x → I (r * x)
  open Ideal {{...}} public
 
  1r : A
