@@ -209,9 +209,9 @@ record SetTheory : Type₁ where field
     PowerAxiom : (X u : set) → u ∈ ℙ X ↔ u ⊆ X
     InfinityAxiom : (Seperate (λ _ → ⊥) ω) ∈ ω × ((x : set) → x ∈ ω → Suc x ∈ ω)
     RegulationAxiom : (X : set) → X ≢ Seperate (λ _ → ⊥) ω → Σ λ(Y : set) → Y ∈ X × ((x : set) → x ∈ Y → x ∉ X)
+    -- I'm not sure if my Axiom Schema of Replacement is correct
     Replace : (set → set) → set → set
     Replacement : (f : set → set) → (X : set) → (x : set) → x ∈ X → f x ∈ Replace f X
---    Replacement2 : ∀ f X x → x ∈ Replace f X → Σ λ y → y ∈ X × (x ≡ f y)
 open SetTheory {{...}} public
 
 module _{{ST : SetTheory}} where
@@ -247,8 +247,8 @@ module _{{ST : SetTheory}} where
  Map : (set → set) → set → set
  Map f X = Seperate (λ y → Σ λ(x : set) → (x ∈ X) × (f x ≡ y)) (Replace f X)
 
- Map1 : (f : set → set) (X : set) (x : set) → x ∈ X → f x ∈ Map f X
- Map1 f X x x∈X = Seperate2 $ Replacement f X x x∈X , x , x∈X , Extensionality (f x)
+ Map1 : (f : set → set) {X : set} {x : set} → x ∈ X → f x ∈ Map f X
+ Map1 f {X} {x} x∈X = Seperate2 $ Replacement f X x x∈X , x , x∈X , Extensionality (f x)
                                                                                (f x)
                                                                                λ x → (λ z → z) , λ z → z
 
@@ -304,36 +304,16 @@ module _{{ST : SetTheory}} where
                                      (id x)
                                      λ y → (λ p → let (z , z∈x , z≡y) = Map2 p
                                                   in transport (λ i → z≡y i ∈ x) z∈x)
-                                         , Map1 (λ z → z) x y
+                                         , Map1 λ z → z
 
--- replaceComp : (f g : set → set) → Replace (f ∘ g) ≡ (Replace f ∘ Replace g)
--- replaceComp f g = funExt λ x → Extensionality (Replace (f ∘ g) x)
---                                               ((Replace f ∘ Replace g) x)
---                                               λ y → (λ(p : y ∈ Replace (f ∘ g) x)
---                                                   → [ y ∈ Replace f (Replace g x) ] {!!}) , {!!}
---
-
-
---    set : Type
---    _∈_ : set → set → Type
---    Extensionality : ∀ a b → (∀ x → (x ∈ a ↔ x ∈ b)) → a ≡ b
---    PairingAxiom : ∀ a b → Σ λ c → ∀ x → x ∈ c ↔ (x ≡ a) ＋ (x ≡ b)
---    SeperationAxiom : (P : set → Type) → ∀ X → Σ λ Y → ∀ u → u ∈ Y ↔ (u ∈ X × P u)
---    UnionAxiom : ∀ X → Σ λ Y → ∀ u → u ∈ Y ↔ Σ λ z → u ∈ z × z ∈ X
---    ∈Relation : (x y : set) → is-prop (x ∈ y)
---    ω : set
---    ℙ : set → set
---    PowerAxiom : (X u : set) → u ∈ ℙ X ↔ u ⊆ X
---    InfinityAxiom : (Seperate (λ _ → ⊥) ω) ∈ ω × ((x : set) → x ∈ ω → Suc x ∈ ω)
---    RegulationAxiom : (X : set) → X ≢ Seperate (λ _ → ⊥) ω → Σ λ(Y : set) → Y ∈ X × ((x : set) → x ∈ Y → x ∉ X)
---    Replace : (set → set) → set → set
---    Replacement : ∀ f X x → x ∈ X ↔ f x ∈ Replace f X
-
-
---dddd : tt
---dddd = ?
-
---sort prop : 
---  pp : isProp prop
---  qq : (x : Type) → isProp
-
+ MapComp : (f g : set → set) → Map (f ∘ g) ≡ (Map f ∘ Map g)
+ MapComp f g = funExt λ x → Extensionality (Map (f ∘ g) x)
+                                               ((Map f ∘ Map g) x)
+                                               λ y → (λ(p : y ∈ Map (f ∘ g) x) →
+      let (z , z∈x , G) = Map2 p in transport (λ i → G i ∈ (Map f ∘ Map g) x) (Map1 f (Map1 g z∈x)))
+       , λ(p : y ∈ (Map f ∘ Map g) x) →
+      let (z , z∈Mapgx , G) = Map2 p in 
+      let (w , w∈x , F) = Map2 z∈Mapgx in
+      let T : (f ∘ g) w ≡ y
+          T = cong f F ⋆ G
+      in transport (λ i → T i ∈ Map (f ∘ g) x) (Map1 (f ∘ g) w∈x)
