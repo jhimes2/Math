@@ -255,6 +255,25 @@ module _{{ST : SetTheory}} where
  Map2 : {f : set → set} {X : set} {y : set} → y ∈ Map f X → Σ λ x → x ∈ X × (f x ≡ y)
  Map2 {f} {X} {y} y∈Y = snd (Seperate1 y∈Y)
 
+ MapId : Map id ≡ id
+ MapId = funExt λ x → Extensionality (Map id x)
+                                     (id x)
+                                     λ y → (λ p → let (z , z∈x , z≡y) = Map2 p
+                                                  in transport (λ i → z≡y i ∈ x) z∈x)
+                                         , Map1 λ z → z
+
+ MapComp : (f g : set → set) → Map (f ∘ g) ≡ (Map f ∘ Map g)
+ MapComp f g = funExt λ x → Extensionality (Map (f ∘ g) x)
+                                           ((Map f ∘ Map g) x)
+                                           λ y → (λ(p : y ∈ Map (f ∘ g) x) →
+      let (z , z∈x , G) = Map2 p in transport (λ i → G i ∈ (Map f ∘ Map g) x) (Map1 f (Map1 g z∈x)))
+       , λ(p : y ∈ (Map f ∘ Map g) x) →
+      let (z , z∈Mapgx , G) = Map2 p in 
+      let (w , w∈x , F) = Map2 z∈Mapgx in
+      let T : (f ∘ g) w ≡ y
+          T = cong f F ⋆ G
+      in transport (λ i → T i ∈ Map (f ∘ g) x) (Map1 (f ∘ g) w∈x)
+
  [x]≢∅ : (x : set) → singleton x ≢ ∅
  [x]≢∅ x p = x∉∅ $ transport (λ i → x ∈ p i) (x∈[x] x)
 
@@ -298,22 +317,3 @@ module _{{ST : SetTheory}} where
     {{welltotal}} : TotalOrder lzero set
     leastTerm : ∀{P} → P ≢ ∅ → Σ λ(x : set) → (x ∈ P) × ∀ y → y ∈ P → x ≤ y
  open WellOrder {{...}} public
-
- MapId : Map id ≡ id
- MapId = funExt λ x → Extensionality (Map id x)
-                                     (id x)
-                                     λ y → (λ p → let (z , z∈x , z≡y) = Map2 p
-                                                  in transport (λ i → z≡y i ∈ x) z∈x)
-                                         , Map1 λ z → z
-
- MapComp : (f g : set → set) → Map (f ∘ g) ≡ (Map f ∘ Map g)
- MapComp f g = funExt λ x → Extensionality (Map (f ∘ g) x)
-                                               ((Map f ∘ Map g) x)
-                                               λ y → (λ(p : y ∈ Map (f ∘ g) x) →
-      let (z , z∈x , G) = Map2 p in transport (λ i → G i ∈ (Map f ∘ Map g) x) (Map1 f (Map1 g z∈x)))
-       , λ(p : y ∈ (Map f ∘ Map g) x) →
-      let (z , z∈Mapgx , G) = Map2 p in 
-      let (w , w∈x , F) = Map2 z∈Mapgx in
-      let T : (f ∘ g) w ≡ y
-          T = cong f F ⋆ G
-      in transport (λ i → T i ∈ Map (f ∘ g) x) (Map1 (f ∘ g) w∈x)
