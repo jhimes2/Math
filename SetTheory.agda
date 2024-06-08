@@ -1,8 +1,4 @@
-{-# OPTIONS --cubical --safe --overlapping-instances #-}
-
------------------------------
--- Constructive set theory --
------------------------------
+{-# OPTIONS --cubical --safe --overlapping-instances --prop #-}
 
 open import Prelude
 open import Relations
@@ -214,7 +210,8 @@ record SetTheory : Type₁ where field
     InfinityAxiom : (Seperate (λ _ → ⊥) ω) ∈ ω × ((x : set) → x ∈ ω → Suc x ∈ ω)
     RegulationAxiom : (X : set) → X ≢ Seperate (λ _ → ⊥) ω → Σ λ(Y : set) → Y ∈ X × ((x : set) → x ∈ Y → x ∉ X)
     Replace : (set → set) → set → set
-    Replacement : ∀ f X x → x ∈ X ↔ f x ∈ Replace f X
+    Replacement : (f : set → set) → (X : set) → (x : set) → x ∈ X → f x ∈ Replace f X
+--    Replacement2 : ∀ f X x → x ∈ Replace f X → Σ λ y → y ∈ X × (x ≡ f y)
 open SetTheory {{...}} public
 
 module _{{ST : SetTheory}} where
@@ -246,6 +243,20 @@ module _{{ST : SetTheory}} where
 
  ∅∈ω : ∅ ∈ ω
  ∅∈ω = fst InfinityAxiom
+
+ -- 'Replace' is not guarenteed to be surjective. 'Map' on the other hand, is just 'Replace'
+ -- with a restricted codomain to make the mapping surjective.
+
+ Map : (set → set) → set → set
+ Map f X = Seperate (λ y → Σ λ(x : set) → (x ∈ X) × (f x ≡ y)) (Replace f X)
+
+ Map1 : (f : set → set) → (X : set) → (x : set) → x ∈ X → f x ∈ Map f X
+ Map1 f X x x∈X = Seperate2 $ Replacement f X x x∈X , x , x∈X , Extensionality (f x)
+                                                                               (f x)
+                                                                               λ x → (λ z → z) , λ z → z
+
+ Map2 : (f : set → set) → (X : set) → (y : set) → y ∈ Map f X → Σ λ x → x ∈ X × (f x ≡ y)
+ Map2 f X y y∈Y = snd (Seperate1 y∈Y)
 
  [x]≢∅ : (x : set) → singleton x ≢ ∅
  [x]≢∅ x p = x∉∅ (transport (λ i → x ∈ p i) (x∈[x] x))
@@ -290,3 +301,41 @@ module _{{ST : SetTheory}} where
     {{welltotal}} : TotalOrder lzero set
     leastTerm : ∀{P} → P ≢ ∅ → Σ λ(x : set) → (x ∈ P) × ∀ y → y ∈ P → x ≤ y
  open WellOrder {{...}} public
+--
+-- replaceId : Replace id ≡ id
+-- replaceId = funExt λ x → Extensionality (Replace id x)
+--                                         (id x)
+--                                         λ y → (λ p → Replacement2 (λ z → z) x y p)
+--                                                    , Replacement1 (λ z → z) x y
+--
+-- replaceComp : (f g : set → set) → Replace (f ∘ g) ≡ (Replace f ∘ Replace g)
+-- replaceComp f g = funExt λ x → Extensionality (Replace (f ∘ g) x)
+--                                               ((Replace f ∘ Replace g) x)
+--                                               λ y → (λ(p : y ∈ Replace (f ∘ g) x)
+--                                                   → [ y ∈ Replace f (Replace g x) ] {!!}) , {!!}
+--
+
+
+--    set : Type
+--    _∈_ : set → set → Type
+--    Extensionality : ∀ a b → (∀ x → (x ∈ a ↔ x ∈ b)) → a ≡ b
+--    PairingAxiom : ∀ a b → Σ λ c → ∀ x → x ∈ c ↔ (x ≡ a) ＋ (x ≡ b)
+--    SeperationAxiom : (P : set → Type) → ∀ X → Σ λ Y → ∀ u → u ∈ Y ↔ (u ∈ X × P u)
+--    UnionAxiom : ∀ X → Σ λ Y → ∀ u → u ∈ Y ↔ Σ λ z → u ∈ z × z ∈ X
+--    ∈Relation : (x y : set) → is-prop (x ∈ y)
+--    ω : set
+--    ℙ : set → set
+--    PowerAxiom : (X u : set) → u ∈ ℙ X ↔ u ⊆ X
+--    InfinityAxiom : (Seperate (λ _ → ⊥) ω) ∈ ω × ((x : set) → x ∈ ω → Suc x ∈ ω)
+--    RegulationAxiom : (X : set) → X ≢ Seperate (λ _ → ⊥) ω → Σ λ(Y : set) → Y ∈ X × ((x : set) → x ∈ Y → x ∉ X)
+--    Replace : (set → set) → set → set
+--    Replacement : ∀ f X x → x ∈ X ↔ f x ∈ Replace f X
+
+
+--dddd : tt
+--dddd = ?
+
+--sort prop : 
+--  pp : isProp prop
+--  qq : (x : Type) → isProp
+
