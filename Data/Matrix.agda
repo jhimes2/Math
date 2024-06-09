@@ -242,6 +242,9 @@ instance
 
 module _{C : Type cl} {{R : Ring C}} where
 
+ unitVector : < C ^ n > → Type cl
+ unitVector v = Σ λ x → (v x ≡ 1r) × ∀ y → y ≢ x → (v y) ≡ 0r
+
  dotDistribute : (w u v : < C ^ n >) → (u <+> v) ∙ w ≡ (u ∙ w) + (v ∙ w)
  dotDistribute {n = Z} w u v = sym (lIdentity 0r)
  dotDistribute {n = S n} w u v =
