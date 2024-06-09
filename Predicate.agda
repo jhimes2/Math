@@ -65,6 +65,13 @@ image f b = ∃ λ a → f a ≡ b
 _⁻¹[_] : (f : A → B) → (B → Type l) → (A → Type l)
 f ⁻¹[ g ] = g ∘ f
 
+-- https://en.wikipedia.org/wiki/Fiber_(mathematics)
+fiber : {B : Type bl} → (A → B) → B → A → Type bl
+fiber f y = λ x → f x ≡ y
+
+embedding : {A : Type al}{B : Type bl} → (A → B) → Type(al ⊔ bl)
+embedding f = ∀ y → isProp (Σ(fiber f y))
+
 -- A property is defined as a function that maps elements to propositions
 record Property {A : Type al} (P : A → Type l) : Type(al ⊔ l) where
  field

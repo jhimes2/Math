@@ -240,13 +240,6 @@ lInvToInjective (g , g') x y p = sym (g' x) ⋆ (cong g p) ⋆ (g' y)
 rInvToSurjective : {f : A → B} → rightInverse f → surjective f
 rInvToSurjective (rInv , r') = λ b → rInv b , r' b
 
--- https://en.wikipedia.org/wiki/Fiber_(mathematics)
-fiber : {B : Type bl} → (A → B) → B → A → Type bl
-fiber f y = λ x → f x ≡ y
-
-embedding : {A : Type al}{B : Type bl} → (A → B) → Type(al ⊔ bl)
-embedding f = ∀ y → isProp (Σ(fiber f y))
-
 -- Propositional Extensionality
 propExt : isProp A → isProp B → (A → B) → (B → A) → A ≡ B
 propExt pA pB ab ba = isoToPath (iso ab ba (λ b → pB (ab (ba b)) b) λ a → pA (ba (ab a)) a)
