@@ -4,6 +4,7 @@ module Experiments.experiments where
 
 open import Prelude
 open import Relations
+open import Predicate
 open import Data.Natural
 open import Cubical.Foundations.Isomorphism
 open import Cubical.HITs.PropositionalTruncation renaming (rec to recTrunc)
@@ -105,7 +106,7 @@ distinguish2 f H with natDiscrete (f Z) Z
 zorn : {_≤_ : A → A → Type} → {{_ : Poset _≤_}}
      → ((C : A → Type al) → chain C → Σ λ g → ∀ x → x ∈ C → g ≤ x → g ≡ x)
      → ∃ λ g → ∀ x → g ≤ x → g ≡ x
-zorn {A = A} {_≤_ = _≤_} = let H = LEM A in λ x y → H (λ y → {!!})
+zorn {A = A} {_≤_ = _≤_} = {!!}
 
 test2 : Dec ((A : Type al) → Dec A)
 test2 {al} = no λ x → (LEM (Dec ((A : Type al) → Dec A))) ~> λ{x → {!!}}
@@ -132,6 +133,9 @@ open import Algebra.CRing
 -- An absurdity that does not entail everything?
 data ∞ : Type where
   ff : ∞ → ∞
+
+test∞3 : ∞ → ⊥
+test∞3 (ff x) = test∞3 x
 
 test∞ : (A → ⊥) → (A → ∞)
 test∞ x y = UNREACHABLE (x y)
