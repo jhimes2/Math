@@ -5,39 +5,53 @@ open import Agda.Primitive hiding (Prop) public
 variable
  l l' : Level
 
+-- Constr types are not meant to be inductively defined.
+-- You should only be able to obtain them by apply _≡_ to propositions.
 Contr : Set₁
 Contr = Set₀
 
+-- Prop types should only have at most one constructor when being inductively defined.
 Prop : Set₂
 Prop = Set₁
 
-data Σ {A : Set (lsuc l)}(P : A → Set (lsuc l')) : Set (lsuc (l ⊔ l')) where
- _,_ : ∀ x → P x → Σ P
+-- This is where you should start when defining data types e.g., ℕ, 𝔹, and _＋_.
+Data : (l : Level) → Set (lsuc(lsuc(lsuc l)))
+Data l = Set (lsuc(lsuc l))
 
-_×_ : Set (lsuc l) → Set (lsuc l') → Set (lsuc (l ⊔ l'))
-A × B = Σ λ(_ : A) → B
-
-ℙ : Set (lsuc l) → Set (lsuc l)
-ℙ {l} X = X → Set l
+-- Either a data type or a proposition.
+Sort : (l : Level) → Set (lsuc(lsuc l))
+Sort l = Set (lsuc l)
 
 postulate
  contrSelect : (X : Contr) → X
- _≡_ : {A : Set (lsuc l)} → A → A → Set l
- refl : {A : Set (lsuc l)} → (a : A) → a ≡ a
- J : {A : Set (lsuc l)} → {x y : A} → (p : x ≡ y) → (P : (y : A) → x ≡ y → Set l') → P x (refl x) → P y p
- Union : {X : Set (lsuc(lsuc lzero))} → ℙ(ℙ X) → ℙ X
+ -- Note that we go a level down when applying _≡_
+ _≡_ : {A : Sort l} → A → A → Set l
+ refl : {A : Sort l} → (a : A) → a ≡ a
+ J : {A : Sort l} → {x y : A} → (p : x ≡ y) → (P : (y : A) → x ≡ y → Set l') → P x (refl x) → P y p
+ ∥_∥ : Sort l → Prop
+ truncRec : {X : Sort l} → ∥ X ∥ → {Y : Prop}  → (X → Y) → Y
 
-isProp : Set (lsuc l) → Set (lsuc l)
+isProp : Sort l → Sort l
 isProp X = (x y : X) → x ≡ y
 
-isSet : Set (lsuc(lsuc l)) → Set (lsuc(lsuc l))
-isSet X = (x y : X) → isProp(x ≡ y)
+isSet : Data l → Data l
+isSet X = (x y : X) → isProp (x ≡ y)
 
-propLemma : (X : Prop) → isProp X
-propLemma X x y = contrSelect (x ≡ y)
+data Σ {A : Sort l}(P : A → Sort l') : Sort (l ⊔ l') where
+ _,_ : ∀ x → P x → Σ P
 
-setLemma : (X : Set₂) → isSet X
-setLemma X x y = propLemma (x ≡ y)
+_×_ : Sort l → Sort l' → Sort (l ⊔ l')
+A × B = Σ λ(_ : A) → B
+
+∃ : {A : Sort l}(P : A → Sort l') → Prop
+∃ P = ∥ Σ P ∥
+
+ℙ : Data l → Data l
+ℙ X = X → Prop
+
+data _＋_(A : Data l)(B : Data l') : Data (l ⊔ l') where
+ inl : A → A ＋ B
+ inr : B → A ＋ B
 
 data ℕ : Set₂ where
  Z : ℕ
@@ -48,3 +62,12 @@ data ⊤ : Prop where
  
 data ⊥ : Prop where
 
+propLemma : (X : Prop) → isProp X
+propLemma X x y = contrSelect (x ≡ y)
+
+setLemma : (X : Set₂) → isSet X
+setLemma X x y = propLemma (x ≡ y)
+
+Union : {X : Data l} → ℙ(ℙ X) → ℙ X
+Union {X} H x = ∃ λ(Y : ℙ X) → H Y × Y x
+ 
