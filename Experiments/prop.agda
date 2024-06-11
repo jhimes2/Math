@@ -6,7 +6,7 @@ variable
  l l' : Level
 
 -- Constr types are not meant to be inductively defined.
--- You should only be able to obtain them by apply _≡_ to propositions.
+-- You should only be able to obtain them by applying _≡_ to propositions.
 Contr : Set₁
 Contr = Set₀
 
@@ -37,6 +37,18 @@ isProp X = (x y : X) → x ≡ y
 isSet : Data l → Data l
 isSet X = (x y : X) → isProp (x ≡ y)
 
+isGroupoid : Data (lsuc l) → Data (lsuc l)
+isGroupoid X = (x y : X) → isSet (x ≡ y)
+
+PropLemma : (X : Set₁) → isProp X
+PropLemma X x y = contrSelect (x ≡ y)
+
+SetLemma : (X : Set₂) → isSet X
+SetLemma X x y = PropLemma (x ≡ y)
+
+GroupoidLemma : (X : Set₃) → isGroupoid X
+GroupoidLemma X x y = SetLemma (x ≡ y)
+
 data Σ {A : Sort l}(P : A → Sort l') : Sort (l ⊔ l') where
  _,_ : ∀ x → P x → Σ P
 
@@ -64,9 +76,6 @@ data ⊥ : Prop where
 
 propLemma : (X : Prop) → isProp X
 propLemma X x y = contrSelect (x ≡ y)
-
-setLemma : (X : Set₂) → isSet X
-setLemma X x y = propLemma (x ≡ y)
 
 Union : {X : Data l} → ℙ(ℙ X) → ℙ X
 Union {X} H x = ∃ λ(Y : ℙ X) → H Y × Y x
