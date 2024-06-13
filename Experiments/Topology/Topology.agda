@@ -5,7 +5,7 @@ open import Cubical.HITs.PropositionalTruncation renaming (rec to truncRec ; map
 open import Predicate hiding (_⊆_)
 open import Relations
 
-module Topology.Topology where
+module Experiments.Topology.Topology where
 
 variable
  l1 l2 l3 l4 : Level
