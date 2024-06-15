@@ -107,9 +107,6 @@ infixr 5 _∉_
 ∅ : A → Prop
 ∅ = λ _ → ⊥
 
-ℙ : Set l → Set (l ⊔ lsuc lzero)
-ℙ X = X → Prop
-
 --------------------------------------------------------
 -- Don't use types of Set₀ that are not propositions. --
 --------------------------------------------------------
@@ -117,7 +114,7 @@ postulate
  ∥_∥ : (A : Set l) → Prop
  intro : A → ∥ A ∥
  squash : {X : Prop} → isProp X
- truncRec : ∥ A ∥ → isProp B → (A → B) → B
+ _>>_ : {B : Prop} → ∥ A ∥ → (A → B) → B
  LEM : (A : Prop) → A ＋ (¬ A)
  propExt : {A B : Prop} → (A → B) → (B → A) → A ≡ B
  funExt : {f g : A → B} → (∀ x → f x ≡ g x) → f ≡ g
@@ -125,23 +122,20 @@ postulate
 ∃ : {A : Set l} → (A → Set l') → Prop
 ∃ P = ∥ Σ P ∥
 
+ℙ : Set l → Set (l ⊔ lsuc lzero)
+ℙ X = X → Prop
+
 Union : ℙ(ℙ A) → ℙ A
 Union P x = ∃ λ Y → Y x × P Y
+
+_≢_ : {A : Set l} → A → A → Set l
+a ≢ b = ¬(a ≡ b)
 
 _⊆_ : {A : Set al} → (A → Set l) → (A → Set l') → Set (l ⊔ l' ⊔ al)
 A ⊆ B = ∀ x → x ∈ A → x ∈ B
 
-_∥>>_ : ∥ A ∥ → (A → ∥ B ∥) → ∥ B ∥
-X ∥>> f = truncRec X squash f
-
 ∥map : ∥ A ∥ → (A → B) → ∥ B ∥
-∥map X f = X ∥>> λ x → intro (f x)
-
-_>>>_ : {B : Prop} → ∥ A ∥ → (A → B) → B
-X >>> f = truncRec X squash f
-
-Prop2 : Set₁
-Prop2 = Σ λ(X : Prop) → isProp X
+∥map X f = X >> λ a → intro (f a)
 
 -- Intersection
 _∩_ : (A → Set l) → (A → Set l') → A → Set (l ⊔ l')
@@ -204,19 +198,19 @@ instance
  ∩CommProp : Commutative (_∩_ {A = A} {l = lzero})
  ∩CommProp = record { comm = λ P Q → funExt (λ x → propExt (λ(x , y) → (y , x)) (λ(x , y) → (y , x))) }
  ∪Comm : Commutative (_∪_ {A = A} {l})
- ∪Comm = record { comm = λ a b → funExt λ x → propExt (λ X → X ∥>> λ{ (inl p) → intro (inr p)
+ ∪Comm = record { comm = λ a b → funExt λ x → propExt (λ X → X >> λ{ (inl p) → intro (inr p)
                                                                     ; (inr p) → intro (inl p)})
                             λ{p → ∥map p (λ{ (inl x) → inr x ; (inr x) → inl x})} }
 
  ∪assoc : Associative (_∪_ {A = A})
  ∪assoc = record { assoc = λ X Y Z → funExt λ x →
     let H : x ∈ X ∪ (Y ∪ Z) → x ∈ (X ∪ Y) ∪ Z
-        H = λ p → p ∥>> λ{ (inl y) → intro (inl (intro (inl y)))
-                      ; (inr y) → y ∥>> λ{ (inl q) → intro (inl (intro (inr q)))
+        H = λ p → p >> λ{ (inl y) → intro (inl (intro (inl y)))
+                      ; (inr y) → y >> λ{ (inl q) → intro (inl (intro (inr q)))
                                                      ; (inr q) → intro (inr q)}}
     in
     let G : x ∈ (X ∪ Y) ∪ Z → x ∈ X ∪ (Y ∪ Z)
-        G = λ p → p ∥>> λ{ (inl y) → y ∥>> λ{ (inl q) → intro $ inl q
+        G = λ p → p >> λ{ (inl y) → y >> λ{ (inl q) → intro $ inl q
                                            ; (inr q) → intro $ inr (intro (inl q))}
                                      ; (inr y) → intro (inr (intro (inr y)))}
     in
@@ -270,11 +264,11 @@ instance
        LEM (𝓤 ∈ X)
          ~> λ{ (inl p) → intro (inl (funExt λ x → propExt 
             (λ G → tt) λ G → intro (𝓤 , tt , p))) 
-             ; (inr p) → intro $ inr (funExt λ x → propExt (_>>> λ(Y , F , G)
-              → H Y G >>> λ{ (inl refl) → p G ; (inr refl) → F}) λ x∈∅ → UNREACHABLE $ x∈∅)}
+             ; (inr p) → intro $ inr (funExt λ x → propExt (_>> λ(Y , F , G)
+              → H Y G >> λ{ (inl refl) → p G ; (inr refl) → F}) λ x∈∅ → UNREACHABLE $ x∈∅)}
       ; tintersection = λ{X}{Y} ∥X∈ind∥ ∥Y∈ind∥ →
-                                ∥X∈ind∥ >>> λ{(inl x)
-                              → ∥Y∈ind∥ >>> λ{(inl y)
+                                ∥X∈ind∥ >> λ{(inl x)
+                              → ∥Y∈ind∥ >> λ{(inl y)
                               → intro $ inl $ funExt λ z →
                               (X ∩ Y) z ≡⟨ cong (λ w → (w ∩ Y) z) x ⟩
                               (𝓤 ∩ Y) z ≡⟨ cong (λ w → (𝓤 ∩ w) z) y ⟩
@@ -317,10 +311,10 @@ module _{A : set al} -- {B : set bl}
      { tempty = intro $ ∅ , tempty , refl
      ; tfull = intro $ 𝓤 , tfull , refl
      ; tunion = λ{X} H → intro $ (Union λ U → (U ∈ τ) × (λ x → fst x ∈ U) ∈ X) , tunion
-     (λ x (G , F) → G) , funExt λ Y → propExt (_>>> λ(F , Y∈F , F∈X)
-       → H F F∈X >>> λ(U , U∈τ , R ) → intro $ U , (substP Y (sym R) Y∈F) , (U∈τ , (subst X (sym R) F∈X))
+     (λ x (G , F) → G) , funExt λ Y → propExt (_>> λ(F , Y∈F , F∈X)
+       → H F F∈X >> λ(U , U∈τ , R ) → intro $ U , (substP Y (sym R) Y∈F) , (U∈τ , (subst X (sym R) F∈X))
        ) λ a → ∥map a λ(U , e , (U∈τ , d)) → (λ x → fst x ∈ U) , (e , d)
-     ; tintersection = λ{X}{Y} H1 G1 → H1 >>> λ (U , U∈τ , Y≡U) → G1 >>> λ (V , V∈τ , Y≡V) → intro ((U ∩ V) , ((tintersection U∈τ V∈τ)
+     ; tintersection = λ{X}{Y} H1 G1 → H1 >> λ (U , U∈τ , Y≡U) → G1 >> λ (V , V∈τ , Y≡V) → intro ((U ∩ V) , ((tintersection U∈τ V∈τ)
       , ( right _∩_ Y≡V ∙ left _∩_ Y≡U ∙ refl)))
    }
 
@@ -334,7 +328,7 @@ module _{A : set al} -- {B : set bl}
  discreteDomainContinuous f = λ _ _ → tt
 
  indiscreteCodomainContinuous : (f : A → B) → continuous τ indiscrete f
- indiscreteCodomainContinuous f V R = R >>>
+ indiscreteCodomainContinuous f V R = R >>
   λ{ (inl p) →
    let H : f ⁻¹[ V ] ≡ 𝓤
        H = cong (f ⁻¹[_]) p in
@@ -369,10 +363,10 @@ module _{A : set al} -- {B : set bl}
 
   baseCover : ∀ x → x ∈ Union base
   baseCover x =
-    BaseAxiom2 tfull >>> λ (X , X⊆base , 𝓤≡∪X) →
+    BaseAxiom2 tfull >> λ (X , X⊆base , 𝓤≡∪X) →
      let H : x ∈ Union X
          H = substP x (sym 𝓤≡∪X) tt in 
-        H >>> λ(U , x∈U , U∈X) →
+        H >> λ(U , x∈U , U∈X) →
     intro $ U , x∈U , X⊆base U U∈X
 
   base∩ : ∀{x B₀ B₁} → x ∈ (B₀ ∩ B₁)
@@ -383,9 +377,9 @@ module _{A : set al} -- {B : set bl}
    let B₀∈τ = BaseAxiom1 B₀ B₀∈B in
    let B₁∈τ = BaseAxiom1 B₁ B₁∈B in
    let B₀∩B₁∈τ = tintersection B₀∈τ B₁∈τ in
-   BaseAxiom2 (B₀∩B₁∈τ) >>> λ(X , X∈B , B₀∩B₁≡∪X) →
+   BaseAxiom2 (B₀∩B₁∈τ) >> λ(X , X∈B , B₀∩B₁≡∪X) →
    let H : x ∈ Union X
        H = substP x (sym B₀∩B₁≡∪X) x∈B₀∩B₁ in
-   H >>> λ(U , x∈U , U∈X)
+   H >> λ(U , x∈U , U∈X)
          → intro $ U , x∈U , subst (λ a → U ⊆ a) B₀∩B₁≡∪X λ y y∈U → intro $ U , y∈U , U∈X
 
