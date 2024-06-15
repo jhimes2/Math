@@ -1,5 +1,5 @@
 .PHONY: all
-all: Trigonometry/Trigonometry.agdai Experiments/Topology/Topology.agdai NumberTheory/Finite.agdai Data/Matrix.agdai Algebra/Metric.agdai SetTheory.agdai
+all: Classical/Trigonometry.agdai Classical/Topology.agdai NumberTheory/Finite.agdai Data/Matrix.agdai Algebra/Metric.agdai Classical/SetTheory.agdai
 
 #NumberTheory/Integer.agdai: NumberTheory/Integer.agda NumberTheory/Natural.agdai Data/Integer.agdai
 #	agda $<
@@ -13,10 +13,10 @@ NumberTheory/Natural.agdai: NumberTheory/Natural.agda NumberTheory/Overloads.agd
 NumberTheory/Overloads.agdai: NumberTheory/Overloads.agda Data/Natural.agdai
 	agda $<
 
-Trigonometry/Trigonometry.agdai: Trigonometry/Trigonometry.agda Algebra/Field.agdai
+Classical/Trigonometry.agdai: Classical/Trigonometry.agda Algebra/Field.agdai
 	agda $<
 
-Experiments/Topology/Topology.agdai: Experiments/Topology/Topology.agda Predicate.agdai
+Classical/Topology.agdai: Classical/Topology.agda Predicate.agdai
 	agda $<
 
 Data/Bool.agdai: Data/Bool.agda Algebra/Field.agdai Relations.agdai
@@ -70,7 +70,7 @@ Algebra/Monoid.agdai: Algebra/Monoid.agda Prelude.agdai Predicate.agdai
 Predicate.agdai: Predicate.agda Relations.agdai
 	agda $<
 
-SetTheory.agdai: SetTheory.agda Prelude.agdai Relations.agdai
+Classical/SetTheory.agdai: Classical/SetTheory.agda Prelude.agdai Relations.agdai
 	agda $<
 
 Relations.agdai: Relations.agda Prelude.agdai

@@ -6,7 +6,7 @@ open import Algebra.Field
 {- All proofs in this file are done without the commutative properties of addition and multiplication;
    I was just curious to see if this was possible. -}
 
-module Trigonometry.Trigonometry
+module Classical.Trigonometry
     {{F : Field A}}
     (π/2 : A)
     (sin : A → A) where

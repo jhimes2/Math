@@ -4,6 +4,8 @@ open import Prelude
 open import Relations
 open import Cubical.Foundations.HLevels
 
+module Classical.SetTheory where
+
 record PreSetTheory : Type₁ where field
     set : Type
     _∈_ : set → set → Type
