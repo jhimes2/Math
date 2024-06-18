@@ -449,7 +449,7 @@ module _{A : set al}
 
 
   {- If f : B → A is a function between two topolological spaces B and A, and A has
-     basis ℬ, then f is continuous if f⁻¹(B) is open for every set B in the basis ℬ. -}
+     basis ℬ, then f is continuous if f⁻¹(A) is open for every set A in the basis ℬ. -}
   baseContinuous : {B : set al} → {τ₁ : ℙ(ℙ B)}{{T2 : topology τ₁}}
                  → (f : B → A) → ((a : ℙ A) → a ∈ ℬ → f ⁻¹[ a ] ∈ τ₁) → continuous τ₁ τ f
   baseContinuous {τ₁} f H x x∈τ =
