@@ -288,7 +288,7 @@ instance
            }
 
 ∪preimage : {A B : set l} (X : ℙ(ℙ B)) → (f : A → B)
-           → f ⁻¹[ Union X ] ≡ Union (map (f ⁻¹[_]) X)
+          → f ⁻¹[ Union X ] ≡ Union (map (f ⁻¹[_]) X)
 ∪preimage X f = funExt λ z → propExt (_>> λ(G , (fz∈G) , X∈G)
    → intro ((f ⁻¹[ G ]) , fz∈G , intro (G , X∈G , refl)))
    (_>> λ(Y , z∈Y , Q) → Q >> λ(h , h∈X , Y≡f⁻¹[h]) → intro (h , ([ z ∈ f ⁻¹[ h ] ]
@@ -367,7 +367,7 @@ module _{A : set al}(τ : ℙ(ℙ A)){{T : topology τ}} where
  ssTopology : (S : ℙ A) → ℙ(ℙ (Σ S))
  ssTopology S = (λ(G : ℙ (Σ S)) → ∃ λ(U : ℙ A) → (U ∈ τ) × (G ≡ (λ(x , _) → x ∈ U)))
 
-module _{A : set al} -- {B : set bl}
+module _{A : set al}
         {τ : ℙ(ℙ A)}{{T : topology τ}} where
 
  instance
@@ -404,7 +404,6 @@ module _{A : set al} -- {B : set bl}
        subst τ H tempty
     }
 
-
  continuousComp : {τ₁ : ℙ(ℙ B)}{{T1 : topology τ₁}}
                   {τ₂ : ℙ(ℙ C)}{{T2 : topology τ₂}}
       → {f : A → B} → continuous τ τ₁ f
@@ -417,27 +416,27 @@ module _{A : set al} -- {B : set bl}
                           → continuous (ssTopology τ S) τ₁ λ(x , _) → f x
  restrictDomainContinuous {f = f} x S y V = let H = x y V in intro $ f ⁻¹[ y ] , H , refl
 
- record Base (base : ℙ(ℙ A)) : set al where
+ record Base (ℬ : ℙ(ℙ A)) : set al where
   field
-    BaseAxiom1 : base ⊆ τ
+    BaseAxiom1 : ℬ ⊆ τ
     BaseAxiom2 : {S : ℙ A} → S ∈ τ
-               → ∃ λ(X : ℙ(ℙ A)) → X ⊆ base × (S ≡ Union X)
+               → ∃ λ(X : ℙ(ℙ A)) → X ⊆ ℬ × (S ≡ Union X)
  open Base {{...}} public
 
- module _{base : ℙ(ℙ A)}{{_ : Base base}} where
+ module _{ℬ : ℙ(ℙ A)}{{_ : Base ℬ}} where
 
-  baseCover : ∀ x → x ∈ Union base
+  baseCover : ∀ x → x ∈ Union ℬ
   baseCover x =
-    BaseAxiom2 tfull >> λ (X , X⊆base , 𝓤≡∪X) →
+    BaseAxiom2 tfull >> λ (X , X⊆ℬ , 𝓤≡∪X) →
      let H : x ∈ Union X
          H = substP x (sym 𝓤≡∪X) tt in 
         H >> λ(U , x∈U , U∈X) →
-    intro $ U , x∈U , X⊆base U U∈X
+    intro $ U , x∈U , X⊆ℬ U U∈X
 
   base∩ : ∀{x B₀ B₁} → x ∈ (B₀ ∩ B₁)
-                     → B₀ ∈ base
-                     → B₁ ∈ base → ∃ λ(B₃ : ℙ A) → x ∈ B₃
-                                                 × B₃ ⊆ (B₀ ∩ B₁)
+                     → B₀ ∈ ℬ
+                     → B₁ ∈ ℬ → ∃ λ(B₃ : ℙ A) → x ∈ B₃
+                                               × B₃ ⊆ (B₀ ∩ B₁)
   base∩ {x} {B₀} {B₁} x∈B₀∩B₁ B₀∈B B₁∈B =
    let B₀∈τ = BaseAxiom1 B₀ B₀∈B in
    let B₁∈τ = BaseAxiom1 B₁ B₁∈B in
@@ -448,3 +447,15 @@ module _{A : set al} -- {B : set bl}
    H >> λ(U , x∈U , U∈X)
          → intro $ U , x∈U , subst (λ a → U ⊆ a) B₀∩B₁≡∪X λ y y∈U → intro $ U , y∈U , U∈X
 
+
+  {- If f : B → A is a function between two topolological spaces B and A, and A has
+     basis ℬ, then f is continuous if f⁻¹(B) is open for every set B in the basis ℬ. -}
+  baseContinuous : {B : set al} → {τ₁ : ℙ(ℙ B)}{{T2 : topology τ₁}}
+                 → (f : B → A) → ((a : ℙ A) → a ∈ ℬ → f ⁻¹[ a ] ∈ τ₁) → continuous τ₁ τ f
+  baseContinuous {τ₁} f H x x∈τ =
+   BaseAxiom2 x∈τ >> λ(X , X⊆ℬ , x≡∪X) →
+    subst (λ z → (f ⁻¹[ z ]) ∈ τ₁) x≡∪X $ subst (_∈ τ₁) (∪preimage X f)
+      $ tunion λ P P∈map →
+       let G : (a : ℙ A) → a ∈ X → f ⁻¹[ a ] ∈ τ₁
+           G = λ a a∈X → let a∈ℬ = X⊆ℬ a a∈X in H a a∈ℬ in
+       P∈map >> λ(Q , Q∈X , P≡f⁻¹[Q]) → subst (_∈ τ₁) P≡f⁻¹[Q] (G Q Q∈X)
