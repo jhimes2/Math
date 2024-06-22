@@ -287,6 +287,13 @@ instance
              λ y∈x → intro ((λ z → ∥ z ≡ y ∥) , intro refl , intro (y , y∈x , refl))
            }
 
+∪preimage : {A B : set l} (X : ℙ(ℙ B)) → (f : A → B)
+           → f ⁻¹[ Union X ] ≡ Union (map (f ⁻¹[_]) X)
+∪preimage X f = funExt λ z → propExt (_>> λ(G , (fz∈G) , X∈G)
+   → intro ((f ⁻¹[ G ]) , fz∈G , intro (G , X∈G , refl)))
+   (_>> λ(Y , z∈Y , Q) → Q >> λ(h , h∈X , Y≡f⁻¹[h]) → intro (h , ([ z ∈ f ⁻¹[ h ] ]
+     substP z (sym Y≡f⁻¹[h]) z∈Y) , h∈X))
+
 record topology {A : set al} (T : ℙ(ℙ A)) : set al where
   field
    tempty : ∅ ∈ T
