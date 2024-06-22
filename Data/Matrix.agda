@@ -8,8 +8,9 @@ open import Algebra.Linear
 open import Data.Finite
 open import Cubical.Foundations.HLevels
 
-transpose : (A → B → C) → (B → A → C)
-transpose f b a = f a b
+-- Transpose
+_ᵀ : (A → B → C) → (B → A → C)
+_ᵀ f b a = f a b
 
 -- Ordered n-tuple
 -- `< 𝔹 ^ n >` would be an ordered n-tuple of booleans
@@ -86,7 +87,7 @@ foldr++ : (f : A → B → B) → (q : B) → (x : < A ^ n >) → (y : < A ^ m >
 foldr++ {n = Z} f q x y = refl
 foldr++ {n = S n} f q x y =
    let H = head x in
-   f H (foldr f q (tail(x ++ y))) ≡⟨ right f (cong (λ x → foldr f q x) (tail++ x y)) ⟩
+   f H (foldr f q (tail(x ++ y))) ≡⟨ right f (cong (λ x → foldr f q x) (tail++ x y))⟩
    f H (foldr f q (tail x ++ y)) ≡⟨ right f (foldr++ f q (tail x) y) ⟩
    foldr f (foldr f q y) x ∎
 
@@ -207,19 +208,19 @@ instance
        λ u v → funExt λ x →
      MT M (addv u v) x
        ≡⟨By-Definition⟩
-     foldr _+_ 0r (zip _*_ (addv u v) (transpose M x))
+     foldr _+_ 0r (zip _*_ (addv u v) ((M ᵀ) x))
        ≡⟨By-Definition⟩
-     foldr _+_ 0r (λ y → (addv u v) y * transpose M x y)
+     foldr _+_ 0r (λ y → (addv u v) y * (M ᵀ) x y)
        ≡⟨By-Definition⟩
-     foldr _+_ 0r (λ y → (u y + v y) * transpose M x y)
-       ≡⟨ cong (foldr _+_ 0r ) (funExt λ z → rDistribute (transpose M x z) (u z) (v z))⟩
-     foldr _+_ 0r (λ y → ((u y * transpose M x y) + (v y * transpose M x y)))
+     foldr _+_ 0r (λ y → (u y + v y) * (M ᵀ) x y)
+       ≡⟨ cong (foldr _+_ 0r ) (funExt λ z → rDistribute ((M ᵀ) x z) (u z) (v z))⟩
+     foldr _+_ 0r (λ y → ((u y * (M ᵀ) x y) + (v y * (M ᵀ) x y)))
        ≡⟨By-Definition⟩
-     foldr _+_ 0r  (addv (multv u (transpose M x)) (multv v (transpose M x)))
-       ≡⟨ foldrMC (multv u (transpose M x)) (multv v (transpose M x))⟩
-     foldr _+_ 0r (multv u (transpose M x)) + foldr _+_ 0r  (multv v (transpose M x))
+     foldr _+_ 0r  (addv (multv u ((M ᵀ) x)) (multv v ((M ᵀ) x)))
+       ≡⟨ foldrMC (multv u ((M ᵀ) x)) (multv v ((M ᵀ) x))⟩
+     foldr _+_ 0r (multv u ((M ᵀ) x)) + foldr _+_ 0r  (multv v ((M ᵀ) x))
        ≡⟨By-Definition⟩
-     foldr _+_ 0r (zip _*_ u (transpose M x)) + foldr _+_ 0r  (zip _*_ v (transpose M x))
+     foldr _+_ 0r (zip _*_ u ((M ᵀ) x)) + foldr _+_ 0r  (zip _*_ v ((M ᵀ) x))
        ≡⟨By-Definition⟩
      addv (MT M u) (MT M v) x ∎ }
    ; multT = λ u c → funExt λ x →
@@ -347,7 +348,7 @@ module _{C : Type cl} {{R : Ring C}} where
  I∞ (S a) (S b) = I∞ a b
  I∞ _ _ = 0r
  
- I∞Transpose : I∞ ≡ transpose I∞
+ I∞Transpose : I∞ ≡ I∞ ᵀ
  I∞Transpose = funExt λ x → funExt λ y → Rec x y
    where
    Rec : (x y : ℕ) → I∞ x y ≡ I∞ y x
@@ -360,7 +361,7 @@ module _{C : Type cl} {{R : Ring C}} where
  I : Matrix C n n
  I x y = I∞ (fst x) (fst y)
  
- idTranspose : I {n = n} ≡ transpose I
+ idTranspose : I {n = n} ≡ I ᵀ
  idTranspose = funExt λ{(x , _) → funExt λ{(y , _) → funRed (funRed I∞Transpose x) y}}
  
  -- Matrix transformation has no effect with the identity matrix
@@ -490,7 +491,7 @@ det : {{CRing C}} → Matrix C n n → C
 det {n = Z} M = 1r
 det {n = S n} M = foldr _-_ 0r $ zip (λ a x → a * det x)
                                            (head M)
-                                           (withoutEach (transpose (tail M)))
+                                           (withoutEach ((tail M) ᵀ))
 
 module _ {{R : CRing C}} where
 
@@ -505,9 +506,9 @@ module _ {{R : CRing C}} where
  
  transposeMMult : (M : fin n → A → C)
                 → (N : B → fin n → C)
-                → transpose (mMult M N) ≡ mMult (transpose N) (transpose M)
+                → (mMult M N) ᵀ ≡ mMult (N ᵀ) (M ᵀ)
  transposeMMult M N = funExt λ c → funExt λ b →
-     transpose (mMult M N) c b ≡⟨By-Definition⟩
+     ((mMult M N) ᵀ) c b ≡⟨By-Definition⟩
      N b ∙ (λ x → M x c)       ≡⟨ comm (N b) (λ x → M x c)⟩
      (λ x → M x c) ∙ N b       ≡⟨By-Definition⟩
-     mMult (transpose N) (transpose M) c b ∎
+     mMult (N ᵀ) (M ᵀ) c b ∎
