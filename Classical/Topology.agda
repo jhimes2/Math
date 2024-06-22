@@ -10,6 +10,9 @@ variable
   B : Set bl
   C : Set cl
 
+id : A → A
+id x = x
+
 data _≡_{A : Set l}(a : A) : A → Set l where
  refl : a ≡ a
 infix 4 _≡_
@@ -228,6 +231,61 @@ X∩∅≡∅ X = funExt λ x → propExt (λ()) λ()
 
 Pair : A → A → ℙ A
 Pair A B X = ∥ (X ≡ A) ＋ (X ≡ B) ∥
+
+-- https://en.wikipedia.org/wiki/Functor_(functional_programmingj)
+record Functor (F : Set al → Set bl) : Set (lsuc (al ⊔ bl))  where
+  field
+    map : (A → B) → F A → F B
+    compPreserve : (f : B → C) → (g : A → B) → map (f ∘ g) ≡ (map f ∘ map g)
+    idPreserve : map {A = A} id ≡ id
+open Functor {{...}} public
+
+-- https://en.wikipedia.org/wiki/Monad_(functional_programming)
+record Monad (m : Set l → Set l) : Set (lsuc l) where
+  field
+      {{mApp}} : Functor m
+      μ : m (m A) → m A -- join
+      η  : A → m A      -- return
+      monadLemma1 : μ ∘ μ ≡ λ(a : m(m(m A))) → μ (map μ a)
+      monadLemma2 : μ ∘ η ≡ λ(a : m A) → a
+      monadLemma3 : μ ∘ map η ≡ λ(a : m A) → a
+
+instance
+ -- Covariant powerset endofunctor
+ ℙFunctor : Functor (ℙ {l})
+ ℙFunctor =  record {
+    map = λ{A}{B}(f : A → B)(X : ℙ A)(b : B) → ∃ λ(a : A) →
+      a ∈ X × (b ≡ f a)
+   ; compPreserve = λ f g → funExt λ X
+                          → funExt λ y → propExt (_>> λ(b , H , G)
+                          → intro (g b , intro (b , H , refl) , G))
+                       (_>> λ(b , H , G) → H >> λ(p , p∈X , R) → intro (p , p∈X , (G ∙ cong f R)))
+   ; idPreserve = funExt λ X → funExt λ b → propExt (_>> λ(x , x∈X , b≡x) → subst X b≡x x∈X)
+         λ b∈X → intro (b , b∈X , refl) }
+
+ ℙMonad : Monad (ℙ {lsuc l})
+ ℙMonad = record
+           { μ = Union
+           ; η = λ a x → ∥ x ≡ a ∥
+           ; monadLemma1 = funExt λ X → funExt λ x → propExt
+             (_>> λ(P , x∈P , G) →
+             G >> λ(G , P∈G , G∈X)
+                → intro (Union G , intro (P , x∈P , P∈G) , intro (G , G∈X , refl)))
+             (_>> λ(P , x∈P , G) → G >> λ(G , G∈X , P≡∪G) →
+             let H : x ∈ Union G
+                 H = subst (x ∈_) (sym P≡∪G) x∈P in
+                H >> λ(h , x∈h , h∈G) →
+                     intro (h , x∈h , intro (G , h∈G , G∈X)))
+           ; monadLemma2 =  funExt λ X → funExt λ x → propExt
+             (_>> λ(Y , x∈Y , S) → S >> λ Y≡X → substP x (sym Y≡X) x∈Y)
+             λ(x∈X) → intro (X , x∈X , intro refl)
+           ; monadLemma3 =  funExt λ x → funExt λ y → propExt
+             (_>> λ(Y , y∈Y , G) → G >> λ (h , h∈x , Y≡[h]) →
+              let y∈[h] : y ∈ (λ z → ∥ z ≡ h ∥)
+                  y∈[h] = subst (y ∈_) (sym Y≡[h]) y∈Y in
+             y∈[h] >> λ y≡h → subst x y≡h h∈x)
+             λ y∈x → intro ((λ z → ∥ z ≡ y ∥) , intro refl , intro (y , y∈x , refl))
+           }
 
 record topology {A : set al} (T : ℙ(ℙ A)) : set al where
   field
