@@ -119,13 +119,8 @@ DeMorgan3 z = (λ x → z (inl x)) , λ x → z (inr x)
 DeMorgan4 : ¬(A × B) → ¬ A ∨ ¬ B
 DeMorgan4 = λ f g → g (inl λ x → g (inr λ y → f (x , y)))
 
-{- The functor and monad defined below pertains more to the programming perspective
-   than category theory. I plan on defining a more complete definition of categories,
-   functors, natural transformations, and monads. Note that while 'Functor' is a sound
-   yet incomplete definition of a functor from category theory, 'Monad'  -}
-
 -- https://en.wikipedia.org/wiki/Functor_(functional_programmingj)
-record Functor (F : Type al → Type bl) : Type (lsuc al ⊔ lsuc bl)  where
+record Functor (F : Type al → Type bl) : Type (lsuc (al ⊔ bl))  where
   field
     map : (A → B) → F A → F B
     compPreserve : (f : B → C) → (g : A → B) → map (f ∘ g) ≡ (map f ∘ map g)
@@ -138,11 +133,11 @@ record Monad (m : Type l → Type l) : Type (lsuc l) where
       {{mApp}} : Functor m
       μ : m (m A) → m A -- join
       η  : A → m A      -- return
-open Monad {{...}} public
+      monadLemma1 : μ ∘ μ ≡ λ(a : m(m(m A))) → μ (map μ a)
+      monadLemma2 : μ ∘ η ≡ λ(a : m A) → a
+      monadLemma3 : μ ∘ map η ≡ λ(a : m A) → a
 
-{- Note that while 'Functor' is a sound yet incomplete definition of a functor
-   from category theory, 'Monad' is neither sound nor complete. I just use these
-   two definitions as if I'm programming in Haskell. -}
+open Monad {{...}} public
 
 -- bind
 _>>=_ : {m : Type l → Type l} → {{Monad m}} → m A → (A → m B) → m B
@@ -159,8 +154,14 @@ instance
                      ; compPreserve = λ f g → funExt λ x → refl
                      ; idPreserve = funExt λ x → refl
                      }
+
   dnMonad : Monad (implicit {l})
-  dnMonad = record { μ = λ x y → x (λ z → z y) ; η = λ x y → y x }
+  dnMonad = record { μ = λ x y → x (λ z → z y)
+                   ; η = λ x y → y x
+                   ; monadLemma1 = funExt λ x → funExt λ y → refl
+                   ; monadLemma2 = funExt λ x → funExt λ y → refl 
+                   ; monadLemma3 = funExt λ x → funExt λ y → refl 
+                   }
   truncFunctor : Functor (∥_∥₁ {ℓ = l})
   truncFunctor {l} = record {
          map = λ f → truncRec squash₁ λ a → ∣ f a ∣₁
@@ -168,7 +169,19 @@ instance
        ; idPreserve = funExt λ x → squash₁ (truncRec squash₁ (λ a → ∣ id a ∣₁) x) x
        }
   truncMonad : Monad (∥_∥₁ {ℓ = l})
-  truncMonad = record { μ = transport (propTruncIdempotent squash₁) ; η = ∣_∣₁ }
+  truncMonad = record { μ = transport (propTruncIdempotent squash₁)
+                      ; η = ∣_∣₁
+                      ; monadLemma1 = funExt λ x →
+                                 squash₁ (μ' (μ' x)) (μ' (map μ' x))
+                      ; monadLemma2 = funExt λ x → squash₁ (μ' (η' x)) x 
+                      ; monadLemma3 = funExt λ x → squash₁ (μ'(map η' x)) x 
+                      }
+     where
+       μ' : ∥ ∥ A ∥₁ ∥₁ → ∥ A ∥₁
+       μ' = transport (propTruncIdempotent squash₁)
+       η' : A → ∥ A ∥₁
+       η' a = ∣ a ∣₁
+
 
   maybeFunctor : Functor (Maybe {l})
   maybeFunctor = record { map = λ f → λ{(Just x) → Just (f x) ; Nothing → Nothing }
@@ -178,6 +191,14 @@ instance
   maybeMonad : Monad (Maybe {l})
   maybeMonad = record { μ = λ{ (Just (Just x)) → Just x ; _ → Nothing}
                       ; η = λ x → Just x
+                      ; monadLemma1 =  funExt λ{ (Just (Just (Just x))) → refl
+                                               ; (Just (Just Nothing)) → refl
+                                               ; (Just Nothing) → refl
+                                               ; Nothing → refl}
+                      ; monadLemma2 =  funExt λ{ (Just x) → refl
+                                               ; Nothing → refl}
+                      ; monadLemma3 =  funExt λ{ (Just x) → refl
+                                               ; Nothing → refl}
                       }
 
 _¬¬=_ : ¬ ¬ A → (A → ¬ B) → ¬ B

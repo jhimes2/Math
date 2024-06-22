@@ -49,7 +49,11 @@ instance
                  ; idPreserve = funExt λ x → refl }
   mvect : {B : Type l} → Monad λ(A : Type l) → B → A
   mvect = record { μ = λ f a → f a a
-                 ; η = λ x _ → x }
+                 ; η = λ x _ → x
+                 ; monadLemma1 = funExt λ x → funExt λ y → refl
+                 ; monadLemma2 = funExt λ x → funExt λ y → refl 
+                 ; monadLemma3 = funExt λ x → funExt λ y → refl 
+                 }
 
 instance
  id++Prop : is-prop < A ^ Z >
