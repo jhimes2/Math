@@ -42,7 +42,7 @@ cong f refl = refl
 
 _×_ : Set l → Set l' → Set (l ⊔ l')
 A × B = Σ λ(_ : A) → B
-infix 5 _×_
+infixr 5 _×_
 
 isProp : Set l → Set l
 isProp X = (x y : X) → x ≡ y
@@ -151,7 +151,7 @@ infix 7 _∩_
 -- Complement
 _ᶜ : (A → Set l) → A → Set l
 X ᶜ = λ x → x ∉ X
-infix 20 _ᶜ
+infix 25 _ᶜ
 
 -- Union
 _∪_ : (A → Set l) → (A → Set l') → A → Prop
@@ -235,6 +235,9 @@ X∩∅≡∅ X = funExt λ x → propExt (λ()) λ()
 Pair : A → A → ℙ A
 Pair A B X = ∥ (X ≡ A) ＋ (X ≡ B) ∥
 
+cover : {A : Set al} (X : ℙ (ℙ A)) → Set al
+cover X = ∀ x → x ∈ Union X
+
 -- https://en.wikipedia.org/wiki/Functor_(functional_programmingj)
 record Functor (F : Set al → Set bl) : Set (lsuc (al ⊔ bl))  where
   field
@@ -316,8 +319,8 @@ record disconnectedTopology {A : set al} (T : ℙ(ℙ A)) : set al where
  field
   {{dTop}} : topology T
   U V : ℙ A
-  noIntersect : ∀{x} → x ∈ U → x ∉ V
-  cover : ∀ x → x ∈ U ∪ V
+  noIntersect : U ⊆ V ᶜ
+  dCover : ∀ x → x ∈ U ∪ V
   V≢∅ : V ≢ ∅
   U≢∅ : U ≢ ∅
 
@@ -374,6 +377,14 @@ relax2 : {S : ℙ A} → ℙ(ℙ (Σ S)) → ℙ(ℙ A)
 relax2 {S} H x = H (λ y → x (fst y))
 
 module _{A : set al}(τ : ℙ(ℙ A)){{T : topology τ}} where
+
+ openCover : ℙ(ℙ A) → set al
+ openCover X = (X ⊆ τ) × cover X
+
+ Hausdorff : set al
+ Hausdorff = ∀ x y → x ≢ y → Σ λ((U , V) : (ℙ A × ℙ A)) → x ∈ U
+                                                        × y ∈ V
+                                                        × U ⊆ V ᶜ
 
  continuous : {B : set bl}(τ₁ : ℙ(ℙ B)){{T1 : topology τ₁}} → (A → B) → set bl
  continuous {B = B} τ₁ f = (V : ℙ B) → V ∈ τ₁ → f ⁻¹[ V ] ∈ τ
@@ -438,6 +449,7 @@ module _{A : set al}
     BaseAxiom2 : {S : ℙ A} → S ∈ τ
                → ∃ λ(X : ℙ(ℙ A)) → X ⊆ ℬ × (S ≡ Union X)
  open Base {{...}} public
+
 
  module _{ℬ : ℙ(ℙ A)}{{_ : Base ℬ}} where
 
