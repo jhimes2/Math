@@ -131,6 +131,9 @@ postulate
 Union : ℙ(ℙ A) → ℙ A
 Union P x = ∃ λ Y → Y x × P Y
 
+Union∅ : Union ∅ ≡ ∅ {A = A}
+Union∅ = funExt λ x → propExt (_>> λ(a , x∈a , a∈∅) → a∈∅) λ()
+
 _≢_ : {A : Set l} → A → A → Set l
 a ≢ b = ¬(a ≡ b)
 
