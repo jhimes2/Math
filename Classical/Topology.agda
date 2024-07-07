@@ -302,6 +302,15 @@ record topology {A : set al} (T : ℙ(ℙ A)) : set al where
    tintersection : {X Y : ℙ A} → X ∈ T → Y ∈ T → X ∩ Y ∈ T
 open topology {{...}}
 
+record disconnectedTopology {A : set al} (T : ℙ(ℙ A)) : set al where
+ field
+  {{dTop}} : topology T
+  U V : ℙ A
+  noIntersect : ∀{x} → x ∈ U → x ∉ V
+  cover : ∀ x → x ∈ U ∪ V
+  V≢∅ : V ≢ ∅
+  U≢∅ : U ≢ ∅
+
 discrete : ℙ(ℙ A)
 discrete  {A} = λ (_ : ℙ A) → ⊤
 
