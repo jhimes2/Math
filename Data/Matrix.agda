@@ -15,7 +15,7 @@ _ᵀ f b a = f a b
 -- Ordered n-tuple
 -- `< 𝔹 ^ n >` would be an ordered n-tuple of booleans
 <_^_> : Type l → ℕ → Type l
-< A ^ n > = fin n → A
+< A ^ n > = ℕ< n → A
 
 <> : < A ^ Z >
 <> (x , p , q) = UNREACHABLE $ ZNotS (sym q)
@@ -77,7 +77,7 @@ _++_ {n = S n} u v (S x , y , p) = (tail u ++ v) (x , y , SInjective p)
 tail++ : (u : < A ^ S n >) → (v : < A ^ m >) → tail (u ++ v) ≡ tail u ++ v 
 tail++ u v = funExt λ z → aux u v z
  where
-  aux : (u : < A ^ S n >) → (v : < A ^ m >) → (x : fin (n + m)) → tail (u ++ v) x ≡ (tail u ++ v) x 
+  aux : (u : < A ^ S n >) → (v : < A ^ m >) → (x : ℕ< (n + m)) → tail (u ++ v) x ≡ (tail u ++ v) x 
   aux {n = Z} {m} u v (x , y , p) = cong v (ΣPathPProp finSndIsProp refl)
   aux {n = S n} {m} u v (Z , y , p) = refl
   aux {n = S n} {m} u v (S x , y , p) = aux (tail u) v (x , y , SInjective p)
@@ -118,11 +118,11 @@ module _{C : Type cl}{{R : Rng C}} where
  _∙_ u v = foldr _+_ 0r (zip _*_ u v)
 
  -- Matrix Transformation
- MT : (fin n → A → C) → < C ^ n > → (A → C)
+ MT : (ℕ< n → A → C) → < C ^ n > → (A → C)
  MT M v a =  v ∙ λ y → M y a
 
  -- Matrix Multiplication
- mMult : (fin n → B → C) → (A → fin n → C) → (A → B → C)
+ mMult : (ℕ< n → B → C) → (A → ℕ< n → C) → (A → B → C)
  mMult M N a = MT M (N a)
  
  orthogonal : < C ^ n > → < C ^ n > → Type cl
@@ -135,18 +135,18 @@ module _{C : Type cl}{{R : Rng C}} where
        → (λ _ → 0r) ∙ V ≡ 0r
  dotZL {n = Z} V = refl
  dotZL {n = S n} V =
-  (0r * head V) + ((λ (_ : fin n) → 0r) ∙ tail V) ≡⟨ left _+_ (0*x≡0 (head V))⟩
-  0r + ((λ _ → 0r) ∙ tail V)                      ≡⟨ lIdentity ((λ (_ : fin n) → 0r) ∙ tail V)⟩
-  (λ (_ : fin n) → 0r) ∙ tail V                   ≡⟨ dotZL (tail V)⟩
+  (0r * head V) + ((λ (_ : ℕ< n) → 0r) ∙ tail V) ≡⟨ left _+_ (0*x≡0 (head V))⟩
+  0r + ((λ _ → 0r) ∙ tail V)                      ≡⟨ lIdentity ((λ (_ : ℕ< n) → 0r) ∙ tail V)⟩
+  (λ (_ : ℕ< n) → 0r) ∙ tail V                   ≡⟨ dotZL (tail V)⟩
   0r ∎
  
  dotZR : (V : < C ^ n >)
        → V ∙ (λ _ → 0r) ≡ 0r
  dotZR {n = Z} V = refl
  dotZR {n = S n} V =
-  (head V * 0r) + (tail V ∙ λ (_ : fin n) → 0r) ≡⟨ left _+_ (x*0≡0 (head V))⟩
-  0r + (tail V ∙ λ _ → 0r)                      ≡⟨ lIdentity (tail V ∙ λ (_ : fin n) → 0r)⟩
-  tail V ∙ (λ (_ : fin n) → 0r)                 ≡⟨ dotZR (tail V)⟩
+  (head V * 0r) + (tail V ∙ λ (_ : ℕ< n) → 0r) ≡⟨ left _+_ (x*0≡0 (head V))⟩
+  0r + (tail V ∙ λ _ → 0r)                      ≡⟨ lIdentity (tail V ∙ λ (_ : ℕ< n) → 0r)⟩
+  tail V ∙ (λ (_ : ℕ< n) → 0r)                 ≡⟨ dotZR (tail V)⟩
   0r ∎
 
  scalar-distributivity : (x y : C)(v : A → C) → scaleV (x + y) v ≡ addv (scaleV x v) (scaleV y v)
@@ -201,7 +201,7 @@ foldrMC {n = S n} {_∗_ = _∗_} u v =
 
 instance
   -- Matrix transformation over a ring is a module homomorphism.
-  MHMT : {{R : Ring A}} → {M : fin n → B → A} → moduleHomomorphism (MT M)
+  MHMT : {{R : Ring A}} → {M : ℕ< n → B → A} → moduleHomomorphism (MT M)
   MHMT {M = M} =
    record {
      addT = record { preserve =
@@ -231,7 +231,7 @@ instance
        scaleV c (MT M u) x ∎
    }
       where
-        Rec : {{R : Ring A}} {n : ℕ} (M : fin n → B → A) (u : fin n → A) → (c : A) → (x : B)
+        Rec : {{R : Ring A}} {n : ℕ} (M : ℕ< n → B → A) (u : ℕ< n → A) → (c : A) → (x : B)
             → foldr _+_ 0r  (λ y → (c * (u y * M y x))) ≡ c * foldr _+_ 0r  (λ y → u y * M y x)
         Rec {n = Z} M u c x = sym (x*0≡0 c)
         Rec {n = S n} M u c x =
@@ -242,7 +242,7 @@ instance
           c * (head (λ y → u y * M y x) + foldr _+_ 0r (tail(λ y → u y * M y x))) ∎
 
   -- Matrix transformation over a field is a linear map.
-  LTMT : {{F : Field A}} → {M : fin n → B → A} → LinearMap (MT M)
+  LTMT : {{F : Field A}} → {M : ℕ< n → B → A} → LinearMap (MT M)
   LTMT = MHMT 
 
 module _{C : Type cl} {{R : Ring C}} where
@@ -319,16 +319,16 @@ module _{C : Type cl} {{R : Ring C}} where
        → funExt λ u → funExt λ uW → IsSet (v ∙ u) 0r (p u uW) (q u uW)
     }
 
- mMultAssoc : (M : fin n → A → C)
+ mMultAssoc : (M : ℕ< n → A → C)
             → (N : Matrix C n m)
-            → (O : B → fin m → C)
+            → (O : B → ℕ< m → C)
             → mMult M (mMult N O) ≡ mMult (mMult M N) O
  mMultAssoc {n = n}{m = m} M N O = funExt λ c → funExt λ b → dotMatrix n m (λ m' → M m' b) N (O c)
   where
    dotMatrix : ∀ n m
-             → (u : fin n → C)
+             → (u : ℕ< n → C)
              → (M : Matrix C n m)
-             → (v : fin m → C)
+             → (v : ℕ< m → C)
              → (λ y → v ∙ λ x → M x y) ∙ u ≡ v ∙ λ x → M x ∙ u
    dotMatrix n Z u M v = dotZL u
    dotMatrix n (S m) u M v =
@@ -365,10 +365,10 @@ module _{C : Type cl} {{R : Ring C}} where
  idTranspose = funExt λ{(x , _) → funExt λ{(y , _) → funRed (funRed I∞Transpose x) y}}
  
  -- Matrix transformation has no effect with the identity matrix
- MT-ID : (v : fin n → C) → MT I v ≡ v
+ MT-ID : (v : ℕ< n → C) → MT I v ≡ v
  MT-ID v = funExt λ x → aux v x
   where
-   aux : (v : fin n → C) → (a : fin n) → MT I v a ≡ v a 
+   aux : (v : ℕ< n → C) → (a : ℕ< n) → MT I v a ≡ v a 
    aux {n = Z} v (x , y , p) = ZNotS (sym p) ~> UNREACHABLE
    aux {n = S n} v (Z , yp) =
      MT I v (Z , yp) ≡⟨By-Definition⟩
@@ -397,14 +397,14 @@ module _{C : Type cl} {{R : Ring C}} where
     tail v (x , y , SInjective p) ≡⟨ cong v (ΣPathPProp (λ a → finSndIsProp a) refl)⟩
     v (S x , y , p) ∎
  
- IL-ID : (M : A → fin n → C) → mMult I M ≡ M
+ IL-ID : (M : A → ℕ< n → C) → mMult I M ≡ M
  IL-ID M = funExt λ x → MT-ID (M x)
  
- IR-ID : (M : fin n → A → C) → mMult M I ≡ M
+ IR-ID : (M : ℕ< n → A → C) → mMult M I ≡ M
  IR-ID {n = Z} M = funExt λ (a , b , p) → ZNotS (sym p) ~> UNREACHABLE
  IR-ID {n = S n} M = funExt λ (x , yp) → funExt λ b → aux M (x , yp) b
   where
-   aux : {n : ℕ} → (M : fin n → A → C) → (a : fin n) → (b : A) → mMult M I a b ≡ M a b
+   aux : {n : ℕ} → (M : ℕ< n → A → C) → (a : ℕ< n) → (b : A) → mMult M I a b ≡ M a b
    aux {n = Z} M (x , y , p) b = ZNotS (sym p) ~> UNREACHABLE
    aux {n = S n} M (Z , yp) b =
      I (Z , yp) ∙ (λ z → M z b) ≡⟨By-Definition⟩
@@ -429,14 +429,14 @@ module _{C : Type cl} {{R : Ring C}} where
  mAdd = λ M N → λ x → M x <+> N x
  
  -- left Matrix distribution
- lMatrixDistr : (M : fin n → A → C)
-              → (N O : B → fin n → C)
+ lMatrixDistr : (M : ℕ< n → A → C)
+              → (N O : B → ℕ< n → C)
               → mMult M (mAdd N O) ≡ mAdd (mMult M N) (mMult M O)
  lMatrixDistr a b c = funExt λ x → funExt λ y → dotDistribute (λ z → a z y) (b x) (c x)
  
  -- right Matrix distribution
- rMatrixDistr : (M : A → fin n → C)
-              → (N O : fin n → B → C)
+ rMatrixDistr : (M : A → ℕ< n → C)
+              → (N O : ℕ< n → B → C)
               → mMult (mAdd N O) M ≡ mAdd (mMult N M) (mMult O M)
  rMatrixDistr a b c = funExt λ x → funExt λ y → dotlDistribute (a x) (λ z → b z y) λ z → c z y
  
@@ -444,9 +444,9 @@ module _{C : Type cl} {{R : Ring C}} where
  instance
   mAddAssoc : Associative (mAdd {A = A} {B = B})
   mAddAssoc = record { assoc = λ a b c → funExt λ x → funExt λ y → assoc (a x y) (b x y) (c x y) }
-  sqrMMultAssoc : Associative (mMult {A = fin n})
+  sqrMMultAssoc : Associative (mMult {A = ℕ< n})
   sqrMMultAssoc = record { assoc = mMultAssoc }
-  sqrMMultMonoid : monoid (mMult {A = fin n})
+  sqrMMultMonoid : monoid (mMult {A = ℕ< n})
   sqrMMultMonoid = record
                  { e = I
                  ; lIdentity = IL-ID
@@ -461,7 +461,7 @@ module _{C : Type cl} {{R : Ring C}} where
     ; lDistribute = lMatrixDistr
     ; rDistribute = rMatrixDistr
     }
-  sqrMatrixAddGroup : group (mAdd {A = fin n}{B = fin n})
+  sqrMatrixAddGroup : group (mAdd {A = ℕ< n}{B = ℕ< n})
   sqrMatrixAddGroup = record
      { e = λ _ _ → 0r
      ; inverse = λ a → (λ x y → neg(a x y)) , funExt λ x → funExt λ y → lInverse (a x y)
@@ -504,8 +504,8 @@ module _ {{R : CRing C}} where
     aux {n = Z} u v = refl
     aux {n = S n} u v = cong₂ _+_ (comm (head u) (head v)) (aux (tail u) (tail v))
  
- transposeMMult : (M : fin n → A → C)
-                → (N : B → fin n → C)
+ transposeMMult : (M : ℕ< n → A → C)
+                → (N : B → ℕ< n → C)
                 → (mMult M N) ᵀ ≡ mMult (N ᵀ) (M ᵀ)
  transposeMMult M N = funExt λ c → funExt λ b →
      ((mMult M N) ᵀ) c b ≡⟨By-Definition⟩
