@@ -299,11 +299,18 @@ instance
 
 record topology {A : set al} (T : ℙ(ℙ A)) : set al where
   field
-   tempty : ∅ ∈ T
    tfull : 𝓤 ∈ T
    tunion : {X : ℙ(ℙ A)} → X ⊆ T → Union X ∈ T
    tintersection : {X Y : ℙ A} → X ∈ T → Y ∈ T → X ∩ Y ∈ T
 open topology {{...}}
+
+tempty : {τ : ℙ(ℙ A)}{{T : topology τ}} → ∅ ∈ τ
+tempty {τ} =
+  let H : ∅ ⊆ τ
+      H = (λ x ()) in
+  let G : Union ∅ ∈ τ
+      G = tunion H in
+    subst τ (sym Union∅) G
 
 record disconnectedTopology {A : set al} (T : ℙ(ℙ A)) : set al where
  field
@@ -327,16 +334,14 @@ instance
   DiscreteTopology : topology (discrete {lsuc l} {A})
   DiscreteTopology =
      record
-      { tempty = tt
-      ; tfull = tt
+      { tfull = tt
       ; tunion = λ _ → tt
       ; tintersection = λ _ _ → tt
       }
   IndiscreteTopology : topology (indiscrete {A = A})
   IndiscreteTopology =
-     record {
-       tempty = intro $ inr refl
-      ; tfull = intro $ inl refl
+     record
+      { tfull = intro $ inl refl
       ; tunion = λ {X} H →
        LEM (𝓤 ∈ X)
          ~> λ{ (inl p) → intro (inl (funExt λ x → propExt 
@@ -385,8 +390,7 @@ module _{A : set al}
  instance
   SubspaceTopology : {S : ℙ A} → topology (ssTopology τ S)
   SubspaceTopology {S} = record
-     { tempty = intro $ ∅ , tempty , refl
-     ; tfull = intro $ 𝓤 , tfull , refl
+     { tfull = intro $ 𝓤 , tfull , refl
      ; tunion = λ{X} H → intro $ (Union λ U → (U ∈ τ) × (λ x → fst x ∈ U) ∈ X) , tunion
      (λ x (G , F) → G) , funExt λ Y → propExt (_>> λ(F , Y∈F , F∈X)
        → H F F∈X >> λ(U , U∈τ , R ) → intro $ U , (substP Y (sym R) Y∈F) , (U∈τ , (subst X (sym R) F∈X))
