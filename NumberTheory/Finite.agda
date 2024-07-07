@@ -14,26 +14,26 @@ open import Cubical.HITs.SetQuotients renaming (rec to QRec ; elim to QElim)
 variable
  n : ℕ
 
-Fin : ℕ → Type
-Fin n = ℕ / λ x y → paste x n ≡ paste y n
+ℕ≤ : ℕ → Type
+ℕ≤ n = ℕ / λ x y → paste x n ≡ paste y n
 
-FinDiscrete : Discrete (Fin n)
+FinDiscrete : Discrete (ℕ≤ n)
 FinDiscrete {n = n} = discreteSetQuotients
  (BinaryRelation.equivRel (λ a → refl) (λ a b x → refl ⋆ (sym x))
    λ a b c x y → x ⋆ y) λ a b → natDiscrete (paste a n) (paste b n)
  where open import Cubical.Relation.Binary
 
 instance
- FinIsSet : is-set (Fin n)
+ FinIsSet : is-set (ℕ≤ n)
  FinIsSet = record { IsSet = Discrete→isSet FinDiscrete }
 
-FinAdd : Fin n → Fin n → Fin n
+FinAdd : ℕ≤ n → ℕ≤ n → ℕ≤ n
 FinAdd {n = n} = rec2 IsSet (λ x y → [ x + y ])
   (λ a b c x → eq/ (a + c) (b + c) $ transport (λ i → paste (AddCom .comm c a i) n ≡ paste (AddCom .comm c b i) n)
    $ translation x c)
    λ a b c x → eq/ (a + b) (a + c) (translation x a)
 
-FinMult : Fin n → Fin n → Fin n
+FinMult : ℕ≤ n → ℕ≤ n → ℕ≤ n
 FinMult {n = n} = rec2 IsSet (λ x y → [ x * y ])
    (λ a b c x → eq/ (a * c) (b * c) (scaling {a} {b} x c))
   λ a b c x → eq/ (a * b) (a * c) $ transport
@@ -42,7 +42,7 @@ FinMult {n = n} = rec2 IsSet (λ x y → [ x * y ])
                           (scaling {b} {c} x a) 
 
 instance
-  Fin*+ : *+ (Fin n)
+  Fin*+ : *+ (ℕ≤ n)
   Fin*+ {n = n} =
    record
      { _+_ = FinAdd
@@ -94,7 +94,7 @@ instance
     ; lIdentity = lIdAux
     }
    where
-    lIdAux : (a : Fin n) → [ Z ] + a ≡ a
+    lIdAux : (a : ℕ≤ n) → [ Z ] + a ≡ a
     lIdAux = elimProp (λ x → IsSet ([ Z ] + x) x)
       λ a → cong [_] refl
     invAux : (a : ℕ) → Σ λ(b : ℕ) → paste (b + a) n ≡ Z
@@ -103,7 +103,7 @@ instance
        ~> λ{ (Z , p) → n , cong (λ x → paste x n) (Sout n a) ⋆ pasteAdd a n ⋆ p
            ; (S r , p) → r , (cong (λ x → paste x n) (Sout r a) ⋆ p) }
 
-  FinRng : Rng (Fin n)
+  FinRng : Rng (ℕ≤ n)
   FinRng = record {}
 
   FinMultMonoid : monoid (FinMult {n = n})
@@ -115,16 +115,16 @@ instance
                    λ a → cong [_] (NatMultMonoid .rIdentity a)
            }
 
-  FinRing : Ring (Fin n)
+  FinRing : Ring (ℕ≤ n)
   FinRing = record {}
 
-  FinCRing : CRing (Fin n)
+  FinCRing : CRing (ℕ≤ n)
   FinCRing = record {}
 
 -- https://en.wikipedia.org/wiki/Dihedral_group
 
 -- Dihedral element
-D = λ(n : ℕ) → Fin n × 𝔹
+D = λ(n : ℕ) → ℕ≤ n × 𝔹
 
 {- For a dihedral group 'D n', 'n' is one less than the geometric convention.
    So 'D 2' is the symmetry group of an equilateral triangle.
