@@ -447,8 +447,7 @@ module _{A : set al}
    H >> λ(U , x∈U , U∈X)
          → intro $ U , x∈U , subst (λ a → U ⊆ a) B₀∩B₁≡∪X λ y y∈U → intro $ U , y∈U , U∈X
 
-
-  {- If f : B → A is a function between two topolological spaces B and A, and A has
+  {- If f : B → A is a function between two topological spaces B and A, and A has
      basis ℬ, then f is continuous if f⁻¹(A) is open for every set A in the basis ℬ. -}
   baseContinuous : {B : set al} → {τ₁ : ℙ(ℙ B)}{{T2 : topology τ₁}}
                  → (f : B → A) → ((a : ℙ A) → a ∈ ℬ → f ⁻¹[ a ] ∈ τ₁) → continuous τ₁ τ f
