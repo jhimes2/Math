@@ -27,6 +27,12 @@ record Σ {A : Set l} (B : A → Set l') : Set (l ⊔ l') where
     snd : B fst
 infixr 4 _,_
 
+injective : {A : Set l}{B : Set l'} → (A → B) → Set (l ⊔ l')
+injective f = ∀ x y → f x ≡ f y → x ≡ y
+
+surjective : {A : Set l}{B : Set l'} → (A → B) → Set (l ⊔ l')
+surjective f = ∀ b → Σ λ a → f a ≡ b
+
 [_]_ : (A : Set l) → A → A
 [ _ ] a = a
 infixr 0 [_]_
@@ -389,7 +395,6 @@ module _{A : set al}(τ : ℙ(ℙ A)){{T : topology τ}} where
 
  record HousedOff(x y : A) : set al where
   field
-     distinct : x ≢ y
      U : ℙ A
      V : ℙ A
      U∈ : U ∈ τ
@@ -406,7 +411,7 @@ module _{A : set al}(τ : ℙ(ℙ A)){{T : topology τ}} where
 
 
  continuous : {B : set bl}(τ₁ : ℙ(ℙ B)){{T1 : topology τ₁}} → (A → B) → set bl
- continuous {B = B} τ₁ f = (V : ℙ B) → V ∈ τ₁ → f ⁻¹[ V ] ∈ τ
+ continuous {B} τ₁ f = (V : ℙ B) → V ∈ τ₁ → f ⁻¹[ V ] ∈ τ
 
  {- Proposition 4.33 in book ISBN 1852337826. -}
  {- If A is a Hausdorff space and f : A → A is a continuous map, then the fixed-
@@ -456,7 +461,7 @@ module _{A : set al}(τ : ℙ(ℙ A)){{T : topology τ}} where
  ssTopology S = (λ(G : ℙ (Σ S)) → ∃ λ(U : ℙ A) → (U ∈ τ) × (G ≡ (λ(x , _) → x ∈ U)))
 
 module _{A : set al}
-        {τ : ℙ(ℙ A)}{{T : topology τ}} where
+        (τ : ℙ(ℙ A)){{T : topology τ}} where
 
  instance
   SubspaceTopology : {S : ℙ A} → topology (ssTopology τ S)
@@ -490,18 +495,6 @@ module _{A : set al}
        H = cong (f ⁻¹[_]) p in
        subst τ H tempty
     }
-
- continuousComp : {τ₁ : ℙ(ℙ B)}{{T1 : topology τ₁}}
-                  {τ₂ : ℙ(ℙ C)}{{T2 : topology τ₂}}
-      → {f : A → B} → continuous τ τ₁ f
-      → {g : B → C} → continuous τ₁ τ₂ g → continuous τ τ₂ (g ∘ f)
- continuousComp {f = f} H {g = g} x y = λ z → H (λ z₁ → y (g z₁)) (x y z)
-
- restrictDomainContinuous : {τ₁ : ℙ(ℙ B)}{{T1 : topology τ₁}} → {f : A → B}
-                          → continuous τ τ₁ f
-                          → (S : ℙ A)
-                          → continuous (ssTopology τ S) τ₁ λ(x , _) → f x
- restrictDomainContinuous {f = f} x S y V = let H = x y V in intro $ f ⁻¹[ y ] , H , refl
 
  record Base (ℬ : ℙ(ℙ A)) : set al where
   field
@@ -547,3 +540,32 @@ module _{A : set al}
            G = λ a a∈X → let a∈ℬ = X⊆ℬ a a∈X in H a a∈ℬ in
        P∈map >> λ(Q , Q∈X , P≡f⁻¹[Q]) → subst (_∈ τ₁) P≡f⁻¹[Q] (G Q Q∈X)
 
+ module _(τ₁ : ℙ(ℙ B)){{T1 : topology τ₁}} where
+
+  restrictDomainContinuous : {f : A → B}
+                           → continuous τ τ₁ f
+                           → (S : ℙ A)
+                           → continuous (ssTopology τ S) τ₁ λ(x , _) → f x
+  restrictDomainContinuous {f = f} x S y V = let H = x y V in intro $ f ⁻¹[ y ] , H , refl
+ 
+  continuousComp : {τ₂ : ℙ(ℙ C)}{{T2 : topology τ₂}}
+       → {f : A → B} → continuous τ τ₁ f
+       → {g : B → C} → continuous τ₁ τ₂ g → continuous τ τ₂ (g ∘ f)
+  continuousComp {f = f} H {g = g} x y = λ z → H (λ z₁ → y (g z₁)) (x y z)
+
+  -- If f : A → B is continuous and injective and B is Hausdorﬀ, then A is Hausdorﬀ.
+  p4-35 : (f : A → B) → Hausdorff τ₁ → continuous τ τ₁ f → injective f → Hausdorff τ
+  p4-35 f haus cont inject {x}{y} x≢y = record
+                                      { U = f ⁻¹[ U ]
+                                      ; V = f ⁻¹[ V ]
+                                      ; U∈ = cont U U∈
+                                      ; V∈ = cont V V∈
+                                      ; ∈U = ∈U
+                                      ; ∈V = ∈V
+                                      ; U⊆Vᶜ = λ a → U⊆Vᶜ (f a)
+                                      }
+    where
+     open HousedOff {{...}}
+     instance
+      inst : HousedOff τ₁ (f x) (f y)
+      inst = haus λ fx≡fy → x≢y (inject x y fx≡fy)
