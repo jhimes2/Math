@@ -517,16 +517,17 @@ module _{A : set al}
   base∩ : ∀{x B₀ B₁} → x ∈ (B₀ ∩ B₁)
                      → B₀ ∈ ℬ
                      → B₁ ∈ ℬ → ∃ λ(B₃ : ℙ A) → x ∈ B₃
+                                               × B₃ ∈ ℬ
                                                × B₃ ⊆ (B₀ ∩ B₁)
   base∩ {x} {B₀} {B₁} x∈B₀∩B₁ B₀∈B B₁∈B =
    let B₀∈τ = BaseAxiom1 B₀ B₀∈B in
    let B₁∈τ = BaseAxiom1 B₁ B₁∈B in
    let B₀∩B₁∈τ = tintersection B₀∈τ B₁∈τ in
-   BaseAxiom2 (B₀∩B₁∈τ) >> λ(X , X∈B , B₀∩B₁≡∪X) →
+   BaseAxiom2 (B₀∩B₁∈τ) >> λ(X , X⊆B , B₀∩B₁≡∪X) →
    let H : x ∈ Union X
        H = substP x (sym B₀∩B₁≡∪X) x∈B₀∩B₁ in
    H >> λ(U , x∈U , U∈X)
-         → intro $ U , x∈U , subst (λ a → U ⊆ a) B₀∩B₁≡∪X λ y y∈U → intro $ U , y∈U , U∈X
+         → intro $ U , x∈U , X⊆B U U∈X , subst (λ a → U ⊆ a) B₀∩B₁≡∪X λ y y∈U → intro $ U , y∈U , U∈X
 
   {- If f : B → A is a function between two topological spaces B and A, and A has
      basis ℬ, then f is continuous if f⁻¹(A) is open for every set A in the basis ℬ. -}
