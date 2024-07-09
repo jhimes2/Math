@@ -61,3 +61,18 @@ module _{A : Type l}{{R : Ring A}} where
             ((x * 1r) + (x * 1r)) ≡⟨ sym (lDistribute x 1r 1r)⟩
             x * (1r + 1r)         ≡⟨By-Definition⟩
             x * 2r ∎
+
+ -- Subset of ring that corresponds to natural numbers
+ data Nat : A → Type l where
+   R0 : Nat 0r
+   RS : ∀ {a} → Nat a → Nat (a + 1r)
+   RLoop : ∀ a → isProp (Nat a)
+
+-- https://en.wikipedia.org/wiki/Characteristic_(algebra)
+{- Note that this differs from the standard definition in that Char(R) = 0 implies 0r ≡ 1r.
+   I'll have to see if this causes problems in the future. -}
+record Characteristic {A : Type l}{{R : Ring A}} (char : A) : Type l where
+ field
+  Char : Nat char
+  CharMax : char + 1r ≡ 0r
+open Characteristic {{...}} public
