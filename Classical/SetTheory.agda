@@ -313,6 +313,10 @@ module _{{ST : SetTheory}} where
  ¬ℙx⊆x : (X : set) → ¬ (ℙ X ⊆ X)
  ¬ℙx⊆x X p = x∉x {x = X} (p X (x∈ℙx X))
 
+ ∪∅≡∅ : UNION ∅ ≡ ∅
+ ∪∅≡∅ = Extensionality (UNION ∅) ∅ (λ x → (λ y → let (Y , x∈Y , Y∈∅) = Union1 y in
+        UNREACHABLE (x∉∅ Y∈∅)) , λ x∈∅ → UNREACHABLE (x∉∅ x∈∅))
+
  -- https://en.wikipedia.org/wiki/Well-order
  record WellOrder : Type₁
    where field
