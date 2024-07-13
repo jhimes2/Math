@@ -11,7 +11,7 @@ record PreSetTheory : Type₁ where field
     _∈_ : set → set → Type
     Extensionality : ∀ a b → (∀ x → (x ∈ a ↔ x ∈ b)) → a ≡ b
     PairingAxiom : ∀ a b → Σ λ c → ∀ x → x ∈ c ↔ (x ≡ a) ＋ (x ≡ b)
-    SeperationAxiom : (P : set → Type) → ∀ X → Σ λ Y → ∀ u → u ∈ Y ↔ (u ∈ X × P u)
+    SeparationAxiom : (P : set → Type) → ∀ X → Σ λ Y → ∀ u → u ∈ Y ↔ (u ∈ X × P u)
     UnionAxiom : ∀ X → Σ λ Y → ∀ u → u ∈ Y ↔ Σ λ z → u ∈ z × z ∈ X
 open PreSetTheory {{...}} public
 
@@ -29,14 +29,14 @@ module _{{PST : PreSetTheory}} where
  Pair3 : ∀{a b x} → x ∈ Pair a b → (x ≡ a) ＋ (x ≡ b)
  Pair3 {a} {b} {x} = fst (snd (PairingAxiom a b) x)
 
- Seperate : (set → Type) → set → set
- Seperate P X = fst (SeperationAxiom P X)
+ Separate : (set → Type) → set → set
+ Separate P X = fst (SeparationAxiom P X)
 
- Seperate1 : {P : set → Type} → ∀{X u} → u ∈ Seperate P X → (u ∈ X × P u)
- Seperate1 {P} {X} {u} = fst (snd (SeperationAxiom P X) u)
+ Separate1 : {P : set → Type} → ∀{X u} → u ∈ Separate P X → (u ∈ X × P u)
+ Separate1 {P} {X} {u} = fst (snd (SeparationAxiom P X) u)
 
- Seperate2 : {P : set → Type} → ∀{X u} → (u ∈ X × P u) → u ∈ Seperate P X 
- Seperate2 {P} {X} {u} = snd (snd (SeperationAxiom P X) u)
+ Separate2 : {P : set → Type} → ∀{X u} → (u ∈ X × P u) → u ∈ Separate P X 
+ Separate2 {P} {X} {u} = snd (snd (SeparationAxiom P X) u)
 
  UNION : set → set
  UNION X = fst (UnionAxiom X)
@@ -107,16 +107,16 @@ module _{{PST : PreSetTheory}} where
  X ∪ Y = UNION (Pair X Y)
 
  _∩_ : set → set → set
- X ∩ Y = Seperate (λ a → a ∈ X) Y
+ X ∩ Y = Separate (λ a → a ∈ X) Y
 
  intersection1 : {X Y x : set} → x ∈ (X ∩ Y) → x ∈ X
- intersection1 {X} {Y} {x} p = snd (Seperate1 p)
+ intersection1 {X} {Y} {x} p = snd (Separate1 p)
 
  intersection2 : {X Y x : set} → x ∈ (X ∩ Y) → x ∈ Y
- intersection2 {X} {Y} {x} p = fst (Seperate1 p)
+ intersection2 {X} {Y} {x} p = fst (Separate1 p)
 
  intersection3 : {X Y x : set} → x ∈ X → x ∈ Y → x ∈ (X ∩ Y)
- intersection3 {X} {Y} {x} x∈X x∈Y = Seperate2 (x∈Y , x∈X)
+ intersection3 {X} {Y} {x} x∈X x∈Y = Separate2 (x∈Y , x∈X)
 
  union1 : {X Y x : set} → x ∈ X ＋ x ∈ Y → x ∈ (X ∪ Y)
  union1 {X} {Y} {x} (inl p) = Union2 p (Pair1 X Y)
@@ -201,7 +201,7 @@ module _{{PST : PreSetTheory}} where
  Suc x = x ∪ singleton x
 
 -- _⁻¹[_] : {Dom : set} → (∀{X} → X ∈ Dom → set) → set → set
--- f ⁻¹[ X ] = Seperate {!!} {!!}
+-- f ⁻¹[ X ] = Separate {!!} {!!}
 
 record SetTheory : Type₁ where field
     {{PST}} : PreSetTheory
@@ -209,8 +209,8 @@ record SetTheory : Type₁ where field
     ω : set
     ℙ : set → set
     PowerAxiom : (X u : set) → u ∈ ℙ X ↔ u ⊆ X
-    InfinityAxiom : (Seperate (λ _ → ⊥) ω) ∈ ω × ((x : set) → x ∈ ω → Suc x ∈ ω)
-    RegulationAxiom : (X : set) → X ≢ Seperate (λ _ → ⊥) ω → Σ λ(Y : set) → Y ∈ X × ((x : set) → x ∈ Y → x ∉ X)
+    InfinityAxiom : (Separate (λ _ → ⊥) ω) ∈ ω × ((x : set) → x ∈ ω → Suc x ∈ ω)
+    RegulationAxiom : (X : set) → X ≢ Separate (λ _ → ⊥) ω → Σ λ(Y : set) → Y ∈ X × ((x : set) → x ∈ Y → x ∉ X)
     -- I'm not sure if my Axiom Schema of Replacement is correct
     Replace : (set → set) → set → set
     Replacement : (f : set → set) → (X : set) → (x : set) → x ∈ X → f x ∈ Replace f X
@@ -218,10 +218,10 @@ open SetTheory {{...}} public
 
 module _{{ST : SetTheory}} where
  ∅ : set
- ∅ = Seperate (λ _ → ⊥) ω
+ ∅ = Separate (λ _ → ⊥) ω
 
  x∉∅ : {x : set} → x ∉ ∅
- x∉∅ {x} p = snd (Seperate1 p)
+ x∉∅ {x} p = snd (Separate1 p)
 
  ∅⊆x : (x : set) → ∅ ⊆ x
  ∅⊆x x y p = x∉∅ p ~> UNREACHABLE
@@ -247,15 +247,15 @@ module _{{ST : SetTheory}} where
  ∅∈ω = fst InfinityAxiom
 
  Map : (set → set) → set → set
- Map f X = Seperate (λ y → Σ λ(x : set) → (x ∈ X) × (f x ≡ y)) (Replace f X)
+ Map f X = Separate (λ y → Σ λ(x : set) → (x ∈ X) × (f x ≡ y)) (Replace f X)
 
  Map1 : (f : set → set) {X : set} {x : set} → x ∈ X → f x ∈ Map f X
- Map1 f {X} {x} x∈X = Seperate2 $ Replacement f X x x∈X , x , x∈X , Extensionality (f x)
+ Map1 f {X} {x} x∈X = Separate2 $ Replacement f X x x∈X , x , x∈X , Extensionality (f x)
                                                                                (f x)
                                                                                λ x → (λ z → z) , λ z → z
 
  Map2 : {f : set → set} {X : set} {y : set} → y ∈ Map f X → Σ λ x → x ∈ X × (f x ≡ y)
- Map2 {f} {X} {y} y∈Y = snd (Seperate1 y∈Y)
+ Map2 {f} {X} {y} y∈Y = snd (Separate1 y∈Y)
 
  MapId : Map id ≡ id
  MapId = funExt λ x → Extensionality (Map id x)
