@@ -47,6 +47,9 @@ module _{{PST : PreSetTheory}} where
  Union2 : {u z : set} → u ∈ z → ∀{X} → z ∈ X → u ∈ UNION X
  Union2 {u}{z} u∈z {X} z∈X = snd (snd (UnionAxiom X) u) (z , u∈z , z∈X)
 
+ INTER : set → set
+ INTER X = Separate (λ a → (Z : set) → Z ∈ X → a ∈ Z) X
+
  _⊆_ : set → set → Type
  X ⊆ Y = (x : set) → x ∈ X → x ∈ Y
 
@@ -131,6 +134,11 @@ module _{{PST : PreSetTheory}} where
  _∉_ : set → set → Type
  X ∉ Y = ¬(X ∈ Y)
 
+ _ᶜ : set → set
+ X ᶜ = Separate (λ a → a ∉ X) X
+ infix 20 _ᶜ
+
+
  -- Assuming the Axiom Schema of Comprehension leads to Russell's paradox.
  module _(comprehension : (P : set → Type) → Σ λ(Y : set) → (x : set) → x ∈ Y ↔ P x) where
    Russell's-paradox : ⊥
@@ -211,9 +219,8 @@ record SetTheory : Type₁ where field
     PowerAxiom : (X u : set) → u ∈ ℙ X ↔ u ⊆ X
     InfinityAxiom : (Separate (λ _ → ⊥) ω) ∈ ω × ((x : set) → x ∈ ω → Suc x ∈ ω)
     RegulationAxiom : (X : set) → X ≢ Separate (λ _ → ⊥) ω → Σ λ(Y : set) → Y ∈ X × ((x : set) → x ∈ Y → x ∉ X)
-    -- I'm not sure if my Axiom Schema of Replacement is correct
-    Replace : (set → set) → set → set
-    Replacement : (f : set → set) → (X : set) → (x : set) → x ∈ X → f x ∈ Replace f X
+    Collect : (set → set) → set → set
+    Collection : (f : set → set) → (X : set) → (x : set) → x ∈ X → f x ∈ Collect f X
 open SetTheory {{...}} public
 
 module _{{ST : SetTheory}} where
@@ -247,10 +254,10 @@ module _{{ST : SetTheory}} where
  ∅∈ω = fst InfinityAxiom
 
  Map : (set → set) → set → set
- Map f X = Separate (λ y → Σ λ(x : set) → (x ∈ X) × (f x ≡ y)) (Replace f X)
+ Map f X = Separate (λ y → Σ λ(x : set) → (x ∈ X) × (f x ≡ y)) (Collect f X)
 
  Map1 : (f : set → set) {X : set} {x : set} → x ∈ X → f x ∈ Map f X
- Map1 f {X} {x} x∈X = Separate2 $ Replacement f X x x∈X , x , x∈X , Extensionality (f x)
+ Map1 f {X} {x} x∈X = Separate2 $ Collection f X x x∈X , x , x∈X , Extensionality (f x)
                                                                                (f x)
                                                                                λ x → (λ z → z) , λ z → z
 
@@ -276,6 +283,24 @@ module _{{ST : SetTheory}} where
           T = cong f F ⋆ G
       in transport (λ i → T i ∈ Map (f ∘ g) x) (Map1 (f ∘ g) w∈x)
 
+ Replacement : (P : set → set → set → Type)
+             → {A : set}
+             → (∀ x → ∃! λ y → P x y A)
+             → Σ λ(B : set) → (y : set)
+                            → (y ∈ B ↔ Σ λ(x : set) → x ∈ A × P x y A)
+ Replacement P {A} F = let f = λ x → fst(F x) in
+  Map f A , λ y → (λ(y∈B : y ∈ Map (λ x → fst (F x)) A)
+            → let H = Map2 y∈B in
+              let x = fst H in
+              let (x∈A , G) = snd H in
+              let z = fst (F x) in
+              let (PxzA , Q) = snd (F x) in
+              x , x∈A , (transport (λ i → P x (G i) A) PxzA))
+                  , λ(x , x∈A , PxyA) →
+                let (Px[Fx]A , G) = snd (F x) in
+                let G1 = G y PxyA in
+                       transport (λ i → G1 i ∈ Map f A) (Map1 f x∈A)
+ 
  [x]≢∅ : (x : set) → singleton x ≢ ∅
  [x]≢∅ x p = x∉∅ $ transport (λ i → x ∈ p i) (x∈[x] x)
 
@@ -316,6 +341,12 @@ module _{{ST : SetTheory}} where
  ∪∅≡∅ : UNION ∅ ≡ ∅
  ∪∅≡∅ = Extensionality (UNION ∅) ∅ (λ x → (λ y → let (Y , x∈Y , Y∈∅) = Union1 y in
         UNREACHABLE (x∉∅ Y∈∅)) , λ x∈∅ → UNREACHABLE (x∉∅ x∈∅))
+
+ universial : INTER ∅ ⊆ ∅
+ universial x x∈∩∅ =
+   let P = λ(a : set) → (Z : set) → Z ∈ ∅ → a ∈ Z in
+   let H : (x ∈ ∅) × P x
+       H = Separate1 x∈∩∅ in UNREACHABLE (x∉∅ (fst H))
 
  -- https://en.wikipedia.org/wiki/Well-order
  record WellOrder : Type₁
