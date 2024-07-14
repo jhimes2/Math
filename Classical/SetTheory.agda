@@ -342,11 +342,14 @@ module _{{ST : SetTheory}} where
  ∪∅≡∅ = Extensionality (UNION ∅) ∅ (λ x → (λ y → let (Y , x∈Y , Y∈∅) = Union1 y in
         UNREACHABLE (x∉∅ Y∈∅)) , λ x∈∅ → UNREACHABLE (x∉∅ x∈∅))
 
- universial : INTER ∅ ⊆ ∅
- universial x x∈∩∅ =
+ ∩∅⊆∅ : INTER ∅ ⊆ ∅
+ ∩∅⊆∅ x x∈∩∅ =
    let P = λ(a : set) → (Z : set) → Z ∈ ∅ → a ∈ Z in
    let H : (x ∈ ∅) × P x
        H = Separate1 x∈∩∅ in UNREACHABLE (x∉∅ (fst H))
+
+ ∩∅≡∅ : INTER ∅ ≡ ∅
+ ∩∅≡∅ = Extensionality (INTER ∅) ∅ (λ x → (∩∅⊆∅ x) , ∅⊆x (INTER ∅) x)
 
  -- https://en.wikipedia.org/wiki/Well-order
  record WellOrder : Type₁
