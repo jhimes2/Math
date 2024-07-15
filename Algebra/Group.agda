@@ -500,7 +500,7 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
    {{act-set}} : is-set B
  open Action {{...}} public
 
- -- Curried action group is bijective
+ -- Partially applied action group is bijective
  ActionBijective : (act : A → B → B){{_ : Action act}} → ∀ x → bijective (act x)
  ActionBijective act z = (λ a b (p : act z a ≡ act z b) →
       a                     ≡⟨ sym (act-identity a)⟩
