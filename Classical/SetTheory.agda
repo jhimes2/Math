@@ -160,11 +160,6 @@ module _{{PST : PreSetTheory}} where
  _∉_ : set → set → Type
  X ∉ Y = ¬(X ∈ Y)
 
- _ᶜ : set → set
- X ᶜ = Sep (λ a → a ∉ X) X
- infix 20 _ᶜ
-
-
  -- Assuming the Axiom Schema of Comprehension leads to Russell's paradox.
  module _(comprehension : (P : set → Type) → Σ λ(Y : set) → (x : set) → x ∈ Y ↔ P x) where
    Russell's-paradox : ⊥
