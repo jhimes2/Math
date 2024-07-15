@@ -298,10 +298,10 @@ module _{C : Type cl} {{R : Ring C}} where
  orthogonal-complement : (W : < C ^ n > → Type l) → {{Submodule W}} → < C ^ n > → Type(l ⊔ cl)
  orthogonal-complement W z = z orthogonal-to W
 
- -- The orthogonal complement of a subspace is a subspace
- OC-subspace : (W : < C ^ n > → Type l) → {{SS : Submodule W}}
+ -- The orthogonal complement of a submodule is a submodule
+ OC-submodule : (W : < C ^ n > → Type l) → {{SS : Submodule W}}
              → Submodule (orthogonal-complement W)
- OC-subspace {n = n} W = record
+ OC-submodule {n = n} W = record
     { ssZero = let H : ∀ v → W v → orthogonal Ô v
                    H = λ v p → dotZL v in H
     ; ssAdd = λ{u v} uPerp vPerp y yW →
