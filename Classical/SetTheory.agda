@@ -38,17 +38,17 @@ module _{{PST : PreSetTheory}} where
  Separate2 : {P : set → Type} → ∀{X u} → (u ∈ X × P u) → u ∈ Sep P X 
  Separate2 {P} {X} {u} = snd (snd (SeparationAxiom P X) u)
 
- UNION : set → set
- UNION X = fst (UnionAxiom X)
+ ⋃ : set → set
+ ⋃ X = fst (UnionAxiom X)
 
- Union1 : {X u : set} → u ∈ UNION X → Σ λ z → u ∈ z × z ∈ X
+ Union1 : {X u : set} → u ∈ ⋃ X → Σ λ z → u ∈ z × z ∈ X
  Union1 {X} {u} = fst (snd (UnionAxiom X) u)
 
- Union2 : {u z : set} → u ∈ z → ∀{X} → z ∈ X → u ∈ UNION X
+ Union2 : {u z : set} → u ∈ z → ∀{X} → z ∈ X → u ∈ ⋃ X
  Union2 {u}{z} u∈z {X} z∈X = snd (snd (UnionAxiom X) u) (z , u∈z , z∈X)
 
- INTER : set → set
- INTER X = Sep (λ a → (Z : set) → Z ∈ X → a ∈ Z) (UNION X)
+ ⋂ : set → set
+ ⋂ X = Sep (λ a → (Z : set) → Z ∈ X → a ∈ Z) (⋃ X)
 
  _⊆_ : set → set → Type
  X ⊆ Y = (x : set) → x ∈ X → x ∈ Y
@@ -85,26 +85,26 @@ module _{{PST : PreSetTheory}} where
  x∈[y]→x≡y : ∀ {x y} → x ∈ singleton y → x ≡ y
  x∈[y]→x≡y {x}{y} p = singletonLemma2 p (x∈[x] y)
 
- x⊆∪[x] : (x : set) → x ⊆ UNION (singleton x)
+ x⊆∪[x] : (x : set) → x ⊆ ⋃ (singleton x)
  x⊆∪[x] x y y∈x = Union2 y∈x (x∈[x] x)
 
- ∪[x]⊆x : (x : set) → UNION (singleton x) ⊆ x
+ ∪[x]⊆x : (x : set) → ⋃ (singleton x) ⊆ x
  ∪[x]⊆x x y y∈∪[x] = let (Y , y∈Y , Y∈[x]) = Union1 y∈∪[x] in
                      let H = x∈[y]→x≡y Y∈[x] in transport (λ i → y ∈ H i) y∈Y
 
- ∪[x]≡x : (x : set) → UNION (singleton x) ≡ x
- ∪[x]≡x x = Extensionality (UNION (singleton x)) x
+ ∪[x]≡x : (x : set) → ⋃ (singleton x) ≡ x
+ ∪[x]≡x x = Extensionality (⋃ (singleton x)) x
    λ y → ∪[x]⊆x x y
        , x⊆∪[x] x y
 
- ∩[x]⊆x : (x : set) → INTER (singleton x) ⊆ x
+ ∩[x]⊆x : (x : set) → ⋂ (singleton x) ⊆ x
  ∩[x]⊆x x y y∈∩[x] = let (H , G) = Separate1 y∈∩[x] in G x (x∈[x] x)
 
- x⊆∩[x] : (x : set) → x ⊆ INTER (singleton x)
+ x⊆∩[x] : (x : set) → x ⊆ ⋂ (singleton x)
  x⊆∩[x] x y y∈x = Separate2 (x⊆∪[x] x y y∈x , λ z z∈[x] → ≡→⊆ (sym $ x∈[y]→x≡y z∈[x]) y∈x)
 
- ∩[x]≡x : (x : set) → INTER (singleton x) ≡ x
- ∩[x]≡x x = Extensionality (INTER (singleton x)) x
+ ∩[x]≡x : (x : set) → ⋂ (singleton x) ≡ x
+ ∩[x]≡x x = Extensionality (⋂ (singleton x)) x
    λ y → ∩[x]⊆x x y
        , x⊆∩[x] x y
 
@@ -133,7 +133,7 @@ module _{{PST : PreSetTheory}} where
  isSubSingleton X = {x : set} → x ∈ X → ∀{y} → y ∈ X → x ≡ y
 
  _∪_ : set → set → set
- X ∪ Y = UNION (Pair X Y)
+ X ∪ Y = ⋃ (Pair X Y)
 
  _∩_ : set → set → set
  X ∩ Y = Sep (λ a → a ∈ X) Y
@@ -152,7 +152,7 @@ module _{{PST : PreSetTheory}} where
  union1 {X} {Y} {x} (inr p) = Union2 p (Pair2 Y X)
 
  union2 : {X Y x : set} → x ∈ (X ∪ Y) → x ∈ X ＋ x ∈ Y
- union2 {X} {Y} {x} = λ(H : x ∈ UNION (Pair X Y))
+ union2 {X} {Y} {x} = λ(H : x ∈ ⋃ (Pair X Y))
    → let (z , x∈z , z∈Pair) = Union1 H in
        Pair3 z∈Pair ~> λ{ (inl p) → inl (transport (right _∈_ p) x∈z)
                         ; (inr p) → inr (transport (right _∈_ p) x∈z)}
@@ -176,7 +176,7 @@ module _{{PST : PreSetTheory}} where
                              ; (inr q) → transport (sym $ left _∈_ q) (Pair1 a b)}
                              }
   ∪Comm : Commutative _∪_
-  ∪Comm = record { comm = λ a b → cong UNION (comm a b) }
+  ∪Comm = record { comm = λ a b → cong ⋃ (comm a b) }
   ∪Assoc : Associative _∪_
   ∪Assoc = record { assoc = λ a b c → Extensionality (a ∪ (b ∪ c)) ((a ∪ b) ∪ c)
            λ x → (λ p → union1 (union2 p ~> λ{ (inl q) → inl (union1 (inl q))
@@ -376,19 +376,19 @@ module _{{ST : SetTheory}} where
  ¬ℙx⊆x : (X : set) → ¬ (ℙ X ⊆ X)
  ¬ℙx⊆x X p = x∉x {x = X} (p X (x∈ℙx X))
 
- ∪∅⊆∅ : UNION ∅ ⊆ ∅
+ ∪∅⊆∅ : ⋃ ∅ ⊆ ∅
  ∪∅⊆∅ = λ x x∈∪∅ → let (Y , x∈ , Y∈∅) = Union1 x∈∪∅ in UNREACHABLE (x∉∅ Y∈∅)
 
- ∪∅≡∅ : UNION ∅ ≡ ∅
- ∪∅≡∅ = Extensionality (UNION ∅) ∅ (λ x → ∪∅⊆∅ x , λ x∈∅ → UNREACHABLE (x∉∅ x∈∅))
-
- ∩∅⊆∅ : INTER ∅ ⊆ ∅
+ ∪∅≡∅ : ⋃ ∅ ≡ ∅
+ ∪∅≡∅ = Extensionality (⋃ ∅) ∅ (λ x → ∪∅⊆∅ x , λ x∈∅ → UNREACHABLE (x∉∅ x∈∅))
+ 
+ ∩∅⊆∅ : ⋂ ∅ ⊆ ∅
  ∩∅⊆∅ x x∈∩∅ =
    let P = λ(a : set) → (Z : set) → Z ∈ ∅ → a ∈ Z in
    let (x∈∪∅ , F) = Separate1 x∈∩∅ in ∪∅⊆∅ x x∈∪∅
 
- ∩∅≡∅ : INTER ∅ ≡ ∅
- ∩∅≡∅ = Extensionality (INTER ∅) ∅ (λ x → (∩∅⊆∅ x) , ∅⊆x (INTER ∅) x)
+ ∩∅≡∅ : ⋂ ∅ ≡ ∅
+ ∩∅≡∅ = Extensionality (⋂ ∅) ∅ (λ x → (∩∅⊆∅ x) , ∅⊆x (⋂ ∅) x)
 
  -- https://en.wikipedia.org/wiki/Well-order
  record WellOrder : Type₁

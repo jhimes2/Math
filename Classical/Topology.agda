@@ -143,13 +143,13 @@ A ⊆ B = ∀ x → x ∈ A → x ∈ B
 setExt : {X Y : ℙ A} → X ⊆ Y → Y ⊆ X → X ≡ Y
 setExt X⊆Y Y⊆X = funExt λ x → propExt (X⊆Y x) (Y⊆X x)
 
-Union : ℙ(ℙ A) → ℙ A
-Union P x = ∃ λ Y → Y x × P Y
+⋃ : ℙ(ℙ A) → ℙ A
+⋃ P x = ∃ λ Y → Y x × P Y
 
-Union∅ : Union ∅ ≡ ∅ {A = A}
+Union∅ : ⋃ ∅ ≡ ∅ {A = A}
 Union∅ = funExt λ x → propExt (_>> λ(a , x∈a , a∈∅) → a∈∅) λ()
 
-Union⊆ : (X : ℙ(ℙ A))(Y : ℙ A) → (∀ x → x ∈ X → x ⊆ Y) → Union X ⊆ Y
+Union⊆ : (X : ℙ(ℙ A))(Y : ℙ A) → (∀ x → x ∈ X → x ⊆ Y) → ⋃ X ⊆ Y
 Union⊆ X Y H a = _>> λ (Z , a∈Z , Z∈X) → H Z Z∈X a a∈Z
 
 ∥map : ∥ A ∥ → (A → B) → ∥ B ∥
@@ -248,7 +248,7 @@ Pair : A → A → ℙ A
 Pair A B X = ∥ (X ≡ A) ＋ (X ≡ B) ∥
 
 cover : {A : Set al} (X : ℙ (ℙ A)) → Set al
-cover X = ∀ x → x ∈ Union X
+cover X = ∀ x → x ∈ ⋃ X
 
 -- https://en.wikipedia.org/wiki/Functor_(functional_programmingj)
 record Functor (F : Set al → Set bl) : Set (lsuc (al ⊔ bl))  where
@@ -283,14 +283,14 @@ instance
 
  ℙMonad : Monad (ℙ {lsuc l})
  ℙMonad = record
-           { μ = Union
+           { μ = ⋃ 
            ; η = λ a x → ∥ x ≡ a ∥
            ; monadLemma1 = funExt λ X → funExt λ x → propExt
              (_>> λ(P , x∈P , G) →
              G >> λ(G , P∈G , G∈X)
-                → intro (Union G , intro (P , x∈P , P∈G) , intro (G , G∈X , refl)))
+                → intro (⋃ G , intro (P , x∈P , P∈G) , intro (G , G∈X , refl)))
              (_>> λ(P , x∈P , G) → G >> λ(G , G∈X , P≡∪G) →
-             let H : x ∈ Union G
+             let H : x ∈ ⋃ G
                  H = subst (x ∈_) (sym P≡∪G) x∈P in
                 H >> λ(h , x∈h , h∈G) →
                      intro (h , x∈h , intro (G , h∈G , G∈X)))
@@ -306,7 +306,7 @@ instance
            }
 
 ∪preimage : {A B : set l} (X : ℙ(ℙ B)) → (f : A → B)
-          → f ⁻¹[ Union X ] ≡ Union (map (f ⁻¹[_]) X)
+          → f ⁻¹[ ⋃ X ] ≡ ⋃ (map (f ⁻¹[_]) X)
 ∪preimage X f = funExt λ z → propExt (_>> λ(G , (fz∈G) , X∈G)
    → intro ((f ⁻¹[ G ]) , fz∈G , intro (G , X∈G , refl)))
    (_>> λ(Y , z∈Y , Q) → Q >> λ(h , h∈X , Y≡f⁻¹[h]) → intro (h , ([ z ∈ f ⁻¹[ h ] ]
@@ -315,7 +315,7 @@ instance
 record topology {A : set al} (T : ℙ(ℙ A)) : set al where
   field
    tfull : 𝓤 ∈ T
-   tunion : {X : ℙ(ℙ A)} → X ⊆ T → Union X ∈ T
+   tunion : {X : ℙ(ℙ A)} → X ⊆ T → ⋃ X ∈ T
    tintersection : {X Y : ℙ A} → X ∈ T → Y ∈ T → X ∩ Y ∈ T
 open topology {{...}}
 
@@ -323,7 +323,7 @@ tempty : {τ : ℙ(ℙ A)}{{T : topology τ}} → ∅ ∈ τ
 tempty {τ} =
   let H : ∅ ⊆ τ
       H = (λ x ()) in
-  let G : Union ∅ ∈ τ
+  let G : ⋃ ∅ ∈ τ
       G = tunion H in
     subst τ (sym Union∅) G
 
@@ -434,9 +434,9 @@ module _{A : set al}(τ : ℙ(ℙ A)){{T : topology τ}} where
         let fx∈U = snd H1 in
         let fx∈V = subst V fx≡x x∈V in
             U⊆Vᶜ (f x) fx∈U (fx∈V) in
-  let Q1 : Union S ⊆ (fix f)ᶜ
+  let Q1 : ⋃ S ⊆ (fix f)ᶜ
       Q1 = Union⊆ S ((fix f)ᶜ) P in
-  let Q2 :  (fix f)ᶜ ⊆ Union S
+  let Q2 :  (fix f)ᶜ ⊆ ⋃ S
       Q2 = λ x D → intro $
          let instance
                H : HousedOff (f x) x
@@ -447,7 +447,7 @@ module _{A : set al}(τ : ℙ(ℙ A)){{T : topology τ}} where
           → let instance
                   H : HousedOff (f y) y
                   H = haus fy≢y in subst τ X (tintersection V∈ (cont U U∈)) in
-  let R :  (fix f)ᶜ ≡ Union S
+  let R :  (fix f)ᶜ ≡ ⋃ S
       R = setExt Q2 Q1 in
     subst τ R (tunion S⊆τ)
    where
@@ -467,7 +467,7 @@ module _{A : set al}
   SubspaceTopology : {S : ℙ A} → topology (ssTopology τ S)
   SubspaceTopology {S} = record
      { tfull = intro $ 𝓤 , tfull , refl
-     ; tunion = λ{X} H → intro $ (Union λ U → (U ∈ τ) × (λ x → fst x ∈ U) ∈ X) , tunion
+     ; tunion = λ{X} H → intro $ (⋃ λ U → (U ∈ τ) × (λ x → fst x ∈ U) ∈ X) , tunion
      (λ x (G , F) → G) , funExt λ Y → propExt (_>> λ(F , Y∈F , F∈X)
        → H F F∈X >> λ(U , U∈τ , R ) → intro $ U , (substP Y (sym R) Y∈F) , (U∈τ , (subst X (sym R) F∈X))
        ) λ a → ∥map a λ(U , e , (U∈τ , d)) → (λ x → fst x ∈ U) , (e , d)
@@ -500,16 +500,16 @@ module _{A : set al}
   field
     BaseAxiom1 : ℬ ⊆ τ
     BaseAxiom2 : {S : ℙ A} → S ∈ τ
-               → ∃ λ(X : ℙ(ℙ A)) → X ⊆ ℬ × (S ≡ Union X)
+               → ∃ λ(X : ℙ(ℙ A)) → X ⊆ ℬ × (S ≡ ⋃ X)
  open Base {{...}} public
 
 
  module _{ℬ : ℙ(ℙ A)}{{_ : Base ℬ}} where
 
-  baseCover : ∀ x → x ∈ Union ℬ
+  baseCover : ∀ x → x ∈ ⋃ ℬ
   baseCover x =
     BaseAxiom2 tfull >> λ (X , X⊆ℬ , 𝓤≡∪X) →
-     let H : x ∈ Union X
+     let H : x ∈ ⋃ X
          H = substP x (sym 𝓤≡∪X) tt in 
         H >> λ(U , x∈U , U∈X) →
     intro $ U , x∈U , X⊆ℬ U U∈X
@@ -524,7 +524,7 @@ module _{A : set al}
    let B₁∈τ = BaseAxiom1 B₁ B₁∈B in
    let B₀∩B₁∈τ = tintersection B₀∈τ B₁∈τ in
    BaseAxiom2 (B₀∩B₁∈τ) >> λ(X , X⊆B , B₀∩B₁≡∪X) →
-   let H : x ∈ Union X
+   let H : x ∈ ⋃ X
        H = substP x (sym B₀∩B₁≡∪X) x∈B₀∩B₁ in
    H >> λ(U , x∈U , U∈X)
          → intro $ U , x∈U , X⊆B U U∈X , subst (λ a → U ⊆ a) B₀∩B₁≡∪X λ y y∈U → intro $ U , y∈U , U∈X
