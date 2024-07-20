@@ -1,4 +1,4 @@
-{-# OPTIONS --cubical --safe --overlapping-instances --prop #-}
+{-# OPTIONS --cubical --safe --overlapping-instances --hidden-argument-pun --prop #-}
 
 open import Prelude
 open import Relations
@@ -6,18 +6,17 @@ open import Cubical.Foundations.HLevels
 
 module Classical.SetTheory where
 
-record PreSetTheory : Type₁ where field
-    set : Type
-    _∈_ : set → set → Type
+record PreSetTheory : Typeω where field
+    _∈_ : Type → Type → Type
     Extensionality : ∀ a b → (∀ x → (x ∈ a ↔ x ∈ b)) → a ≡ b
     PairingAxiom : ∀ a b → Σ λ c → ∀ x → x ∈ c ↔ (x ≡ a) ＋ (x ≡ b)
-    SeparationAxiom : (P : set → Type) → ∀ X → Σ λ Y → ∀ u → u ∈ Y ↔ (u ∈ X × P u)
+    SeparationAxiom : (P : Type → Type l) → ∀ X → Σ λ Y → ∀ u → u ∈ Y ↔ (u ∈ X × P u)
     UnionAxiom : ∀ X → Σ λ Y → ∀ u → u ∈ Y ↔ Σ λ z → u ∈ z × z ∈ X
 open PreSetTheory {{...}} public
 
 module _{{PST : PreSetTheory}} where
 
- Pair : set → set → set
+ Pair : Type → Type → Type
  Pair a b = fst (PairingAxiom a b)
 
  Pair1 : ∀ a b → a ∈ Pair a b
@@ -29,40 +28,40 @@ module _{{PST : PreSetTheory}} where
  Pair3 : ∀{a b x} → x ∈ Pair a b → (x ≡ a) ＋ (x ≡ b)
  Pair3 {a} {b} {x} = fst (snd (PairingAxiom a b) x)
 
- Sep : (set → Type) → set → set
+ Sep : (Type → Type l) → Type → Type
  Sep P X = fst (SeparationAxiom P X)
 
- Separate1 : {P : set → Type} → ∀{X u} → u ∈ Sep P X → (u ∈ X × P u)
+ Separate1 : {P : Type → Type l} → ∀{X u} → u ∈ Sep P X → (u ∈ X × P u)
  Separate1 {P} {X} {u} = fst (snd (SeparationAxiom P X) u)
 
- Separate2 : {P : set → Type} → ∀{X u} → (u ∈ X × P u) → u ∈ Sep P X 
+ Separate2 : {P : Type → Type l} → ∀{X u} → (u ∈ X × P u) → u ∈ Sep P X 
  Separate2 {P} {X} {u} = snd (snd (SeparationAxiom P X) u)
 
- ⋃ : set → set
+ ⋃ : Type → Type
  ⋃ X = fst (UnionAxiom X)
 
- Union1 : {X u : set} → u ∈ ⋃ X → Σ λ z → u ∈ z × z ∈ X
+ Union1 : {X u : Type} → u ∈ ⋃ X → Σ λ z → u ∈ z × z ∈ X
  Union1 {X} {u} = fst (snd (UnionAxiom X) u)
 
- Union2 : {u z : set} → u ∈ z → ∀{X} → z ∈ X → u ∈ ⋃ X
+ Union2 : {u z : Type} → u ∈ z → ∀{X} → z ∈ X → u ∈ ⋃ X
  Union2 {u}{z} u∈z {X} z∈X = snd (snd (UnionAxiom X) u) (z , u∈z , z∈X)
 
- ⋂ : set → set
- ⋂ X = Sep (λ a → (Z : set) → Z ∈ X → a ∈ Z) (⋃ X)
+ ⋂ : Type → Type
+ ⋂ X = Sep (λ a → (Z : Type) → Z ∈ X → a ∈ Z) (⋃ X)
 
- _⊆_ : set → set → Type
- X ⊆ Y = (x : set) → x ∈ X → x ∈ Y
+ _⊆_ : Type → Type → Type₁
+ X ⊆ Y = (x : Type) → x ∈ X → x ∈ Y
 
  x⊆x : ∀ x → x ⊆ x
  x⊆x _ _ z = z
 
- singleton : set → set
+ singleton : Type → Type
  singleton X = Pair X X
 
- isSingleton : set → Type
- isSingleton X = Σ λ(x : set) → x ∈ X × ∀ y → y ∈ X → x ≡ y
+ isSingleton : Type → Type₁
+ isSingleton X = Σ λ(x : Type) → x ∈ X × ∀ y → y ∈ X → x ≡ y
 
- OrdPair : set → set → set
+ OrdPair : Type → Type → Type
  OrdPair x y = Pair (singleton x) (Pair x y)
 
  singletonLemma : ∀ x → isSingleton (singleton x)
@@ -79,31 +78,31 @@ module _{{PST : PreSetTheory}} where
  x∈[x] : ∀ x → x ∈ singleton x
  x∈[x] x = Pair1 x x
 
- ≡→⊆ : {x y : set} → x ≡ y → {z : set} → z ∈ x → z ∈ y
+ ≡→⊆ : {x y : Type} → x ≡ y → {z : Type} → z ∈ x → z ∈ y
  ≡→⊆ {x}{y} x≡y {z} z∈x = transport (λ i → z ∈ x≡y i) z∈x
 
  x∈[y]→x≡y : ∀ {x y} → x ∈ singleton y → x ≡ y
  x∈[y]→x≡y {x}{y} p = singletonLemma2 p (x∈[x] y)
 
- x⊆∪[x] : (x : set) → x ⊆ ⋃ (singleton x)
+ x⊆∪[x] : (x : Type) → x ⊆ ⋃ (singleton x)
  x⊆∪[x] x y y∈x = Union2 y∈x (x∈[x] x)
 
- ∪[x]⊆x : (x : set) → ⋃ (singleton x) ⊆ x
+ ∪[x]⊆x : (x : Type) → ⋃ (singleton x) ⊆ x
  ∪[x]⊆x x y y∈∪[x] = let (Y , y∈Y , Y∈[x]) = Union1 y∈∪[x] in
                      let H = x∈[y]→x≡y Y∈[x] in transport (λ i → y ∈ H i) y∈Y
 
- ∪[x]≡x : (x : set) → ⋃ (singleton x) ≡ x
+ ∪[x]≡x : (x : Type) → ⋃ (singleton x) ≡ x
  ∪[x]≡x x = Extensionality (⋃ (singleton x)) x
    λ y → ∪[x]⊆x x y
        , x⊆∪[x] x y
 
- ∩[x]⊆x : (x : set) → ⋂ (singleton x) ⊆ x
+ ∩[x]⊆x : (x : Type) → ⋂ (singleton x) ⊆ x
  ∩[x]⊆x x y y∈∩[x] = let (H , G) = Separate1 y∈∩[x] in G x (x∈[x] x)
 
- x⊆∩[x] : (x : set) → x ⊆ ⋂ (singleton x)
+ x⊆∩[x] : (x : Type) → x ⊆ ⋂ (singleton x)
  x⊆∩[x] x y y∈x = Separate2 (x⊆∪[x] x y y∈x , λ z z∈[x] → ≡→⊆ (sym $ x∈[y]→x≡y z∈[x]) y∈x)
 
- ∩[x]≡x : (x : set) → ⋂ (singleton x) ≡ x
+ ∩[x]≡x : (x : Type) → ⋂ (singleton x) ≡ x
  ∩[x]≡x x = Extensionality (⋂ (singleton x)) x
    λ y → ∩[x]⊆x x y
        , x⊆∩[x] x y
@@ -129,41 +128,41 @@ module _{{PST : PreSetTheory}} where
    x∈[y]→x≡y H ⋆ sym (x∈[y]→x≡y G)
 
  -- Either singleton or empty
- isSubSingleton : set → Type
- isSubSingleton X = {x : set} → x ∈ X → ∀{y} → y ∈ X → x ≡ y
+ isSubSingleton : Type → Type₁
+ isSubSingleton X = {x : Type} → x ∈ X → ∀{y} → y ∈ X → x ≡ y
 
- _∪_ : set → set → set
+ _∪_ : Type → Type → Type
  X ∪ Y = ⋃ (Pair X Y)
 
- _∩_ : set → set → set
+ _∩_ : Type → Type → Type
  X ∩ Y = Sep (λ a → a ∈ X) Y
 
- intersection1 : {X Y x : set} → x ∈ (X ∩ Y) → x ∈ X
+ intersection1 : {X Y x : Type} → x ∈ (X ∩ Y) → x ∈ X
  intersection1 {X} {Y} {x} p = snd (Separate1 p)
 
- intersection2 : {X Y x : set} → x ∈ (X ∩ Y) → x ∈ Y
+ intersection2 : {X Y x : Type} → x ∈ (X ∩ Y) → x ∈ Y
  intersection2 {X} {Y} {x} p = fst (Separate1 p)
 
- intersection3 : {X Y x : set} → x ∈ X → x ∈ Y → x ∈ (X ∩ Y)
+ intersection3 : {X Y x : Type} → x ∈ X → x ∈ Y → x ∈ (X ∩ Y)
  intersection3 {X} {Y} {x} x∈X x∈Y = Separate2 (x∈Y , x∈X)
 
- union1 : {X Y x : set} → x ∈ X ＋ x ∈ Y → x ∈ (X ∪ Y)
+ union1 : {X Y x : Type} → x ∈ X ＋ x ∈ Y → x ∈ (X ∪ Y)
  union1 {X} {Y} {x} (inl p) = Union2 p (Pair1 X Y)
  union1 {X} {Y} {x} (inr p) = Union2 p (Pair2 Y X)
 
- union2 : {X Y x : set} → x ∈ (X ∪ Y) → x ∈ X ＋ x ∈ Y
+ union2 : {X Y x : Type} → x ∈ (X ∪ Y) → x ∈ X ＋ x ∈ Y
  union2 {X} {Y} {x} = λ(H : x ∈ ⋃ (Pair X Y))
    → let (z , x∈z , z∈Pair) = Union1 H in
        Pair3 z∈Pair |> λ{ (inl p) → inl (transport (right _∈_ p) x∈z)
                         ; (inr p) → inr (transport (right _∈_ p) x∈z)}
 
- _∉_ : set → set → Type
+ _∉_ : Type → Type → Type
  X ∉ Y = ¬(X ∈ Y)
 
  -- Assuming the Axiom Schema of Comprehension leads to Russell's paradox.
- module _(comprehension : (P : set → Type) → Σ λ(Y : set) → (x : set) → x ∈ Y ↔ P x) where
+ module _(comprehension : (P : Type → Type) → Σ λ(Y : Type) → (x : Type) → x ∈ Y ↔ P x) where
    Russell's-paradox : ⊥
-   Russell's-paradox = let (Y , H) = comprehension (λ(x : set) → x ∉ x) in
+   Russell's-paradox = let (Y , H) = comprehension (λ(x : Type) → x ∉ x) in
                        let (G , F) = H Y in
                        let Z = (F (λ x → G x x)) in G Z Z
  instance
@@ -226,83 +225,83 @@ module _{{PST : PreSetTheory}} where
        Pair3 H2 |> λ{ (inl p) → [a,b]≡[c]→a≡c p
                     ; (inr p) → [a]∈<b,c>→a≡b G2}
 
- Suc : set → set
+ Suc : Type → Type
  Suc x = x ∪ singleton x
 
--- _⁻¹[_] : {Dom : set} → (∀{X} → X ∈ Dom → set) → set → set
+-- _⁻¹[_] : {Dom : Type} → (∀{X} → X ∈ Dom → Type) → Type → set
 -- f ⁻¹[ X ] = Sep {!!} {!!}
 
-record SetTheory : Type₁ where field
+record SetTheory : Typeω where field
     {{PST}} : PreSetTheory
-    ∈Relation : (x y : set) → is-prop (x ∈ y)
-    ω : set
-    ℙ : set → set
-    PowerAxiom : (X u : set) → u ∈ ℙ X ↔ u ⊆ X
+    ∈Relation : (x y : Type) → is-prop (x ∈ y)
+    ω : Type
+    ℙ : Type → Type
+    PowerAxiom : (X u : Type) → u ∈ ℙ X ↔ u ⊆ X
     ωbase : Sep (λ _ → ⊥) ω ∈ ω
-    ωstep : ((x : set) → x ∈ ω → Suc x ∈ ω)
-    RegulationAxiom : (X : set) → X ≢ Sep (λ _ → ⊥) ω → Σ λ(Y : set) → Y ∈ X × ((x : set) → x ∈ Y → x ∉ X)
-    Collect : (set → set) → set → set
-    Collection : (f : set → set) → (X : set) → (x : set) → x ∈ X → f x ∈ Collect f X
+    ωstep : ((x : Type) → x ∈ ω → Suc x ∈ ω)
+    RegulationAxiom : (X : Type) → X ≢ Sep (λ _ → ⊥) ω → Σ λ(Y : Type) → Y ∈ X × ((x : Type) → x ∈ Y → x ∉ X)
+    Collect : (Type → Type) → Type → Type
+    Collection : (f : Type → Type) → (X : Type) → (x : Type) → x ∈ X → f x ∈ Collect f X
 open SetTheory {{...}} public
 
 module _{{ST : SetTheory}} where
- ∅ : set
+ ∅ : Type
  ∅ = Sep (λ _ → ⊥) ω
 
- x∉∅ : {x : set} → x ∉ ∅
+ x∉∅ : {x : Type} → x ∉ ∅
  x∉∅ {x} p = snd (Separate1 p)
 
- ∅⊆x : (x : set) → ∅ ⊆ x
+ ∅⊆x : (x : Type) → ∅ ⊆ x
  ∅⊆x x y p = x∉∅ p |> UNREACHABLE
 
- data isNat : set → Type where
+ data isNat : Type → Type₁ where
    Natbase : isNat ∅
-   Natstep : (x : set) → isNat x → isNat (Suc x)
+   Natstep : (x : Type) → isNat x → isNat (Suc x)
 
- Nat : set
+ Nat : Type
  Nat = Sep isNat ω
 
- isNat→ω : (x : set) → isNat x → x ∈ ω
+ isNat→ω : (x : Type) → isNat x → x ∈ ω
  isNat→ω .∅ Natbase = ωbase
  isNat→ω .(Suc x) (Natstep x isNatx) = ωstep x (isNat→ω x isNatx)
 
- isNat→Nat : (x : set) → isNat x → x ∈ Nat
+ isNat→Nat : (x : Type) → isNat x → x ∈ Nat
  isNat→Nat .∅ Natbase = Separate2 (ωbase , Natbase)
  isNat→Nat .(Suc x) (Natstep x isNatx) = Separate2 ((ωstep x (isNat→ω x isNatx)) , (Natstep x isNatx))
 
- NatElim : (P : set → Type l) → P ∅ → ((x : set) → x ∈ Nat → P x → P (Suc x)) → (x : set) → x ∈ Nat → P x
+ NatElim : (P : Type → Type l) → P ∅ → ((x : Type) → x ∈ Nat → P x → P (Suc x)) → (x : Type) → x ∈ Nat → P x
  NatElim P base step x x∈ω = NatElimAux x (snd (Separate1 x∈ω))
   where
-   NatElimAux : (x : set) → isNat x → P x
+   NatElimAux : (x : Type) → isNat x → P x
    NatElimAux .∅ Natbase = base
    NatElimAux .(Suc x) (Natstep x isNatx) = step x (isNat→Nat x isNatx) (NatElimAux x isNatx)
 
- Power1 : {X u : set} → u ∈ ℙ X → u ⊆ X
+ Power1 : {X u : Type} → u ∈ ℙ X → u ⊆ X
  Power1 {X} {u} = fst (PowerAxiom X u)
 
- Power2 : {X u : set} → u ⊆ X → u ∈ ℙ X
+ Power2 : {X u : Type} → u ⊆ X → u ∈ ℙ X
  Power2 {X} {u} = snd (PowerAxiom X u)
 
- x∈ℙx : (x : set) → x ∈ ℙ x
+ x∈ℙx : (x : Type) → x ∈ ℙ x
  x∈ℙx x = Power2 (x⊆x x)
 
- ∅∈ℙx : (x : set) → ∅ ∈ ℙ x
+ ∅∈ℙx : (x : Type) → ∅ ∈ ℙ x
  ∅∈ℙx x = Power2 (∅⊆x x)
 
- disjointLemma : (X Y : set) → (∀ x → x ∈ X → x ∉ Y) → X ∩ Y ≡ ∅
+ disjointLemma : (X Y : Type) → (∀ x → x ∈ X → x ∉ Y) → X ∩ Y ≡ ∅
  disjointLemma X Y H = Extensionality (X ∩ Y) ∅
      λ x → (λ p → UNREACHABLE (H x (intersection1 p) (intersection2 p)))
           , λ p → UNREACHABLE (x∉∅ p)
 
- Map : (set → set) → set → set
- Map f X = Sep (λ y → Σ λ(x : set) → (x ∈ X) × (f x ≡ y)) (Collect f X)
+ Map : (Type → Type) → Type → Type
+ Map f X = Sep (λ y → Σ λ(x : Type) → (x ∈ X) × (f x ≡ y)) (Collect f X)
 
- Map1 : (f : set → set) {X : set} {x : set} → x ∈ X → f x ∈ Map f X
+ Map1 : (f : Type → Type) {X : Type} {x : Type} → x ∈ X → f x ∈ Map f X
  Map1 f {X} {x} x∈X = Separate2 $ Collection f X x x∈X , x , x∈X , Extensionality (f x)
                                                                                (f x)
                                                                                λ x → (λ z → z) , λ z → z
 
- Map2 : {f : set → set} {X : set} {y : set} → y ∈ Map f X → Σ λ x → x ∈ X × (f x ≡ y)
+ Map2 : {f : Type → Type} {X : Type} {y : Type} → y ∈ Map f X → Σ λ x → x ∈ X × (f x ≡ y)
  Map2 {f} {X} {y} y∈Y = snd (Separate1 y∈Y)
 
  MapId : Map id ≡ id
@@ -312,7 +311,7 @@ module _{{ST : SetTheory}} where
                                                   in transport (λ i → z≡y i ∈ x) z∈x)
                                          , Map1 λ z → z
 
- MapComp : (f g : set → set) → Map (f ∘ g) ≡ (Map f ∘ Map g)
+ MapComp : (f g : Type → Type) → Map (f ∘ g) ≡ (Map f ∘ Map g)
  MapComp f g = funExt λ x → Extensionality (Map (f ∘ g) x)
                                            ((Map f ∘ Map g) x)
                                            λ y → (λ(p : y ∈ Map (f ∘ g) x) →
@@ -324,11 +323,11 @@ module _{{ST : SetTheory}} where
           T = cong f F ⋆ G
       in transport (λ i → T i ∈ Map (f ∘ g) x) (Map1 (f ∘ g) w∈x)
 
- Replacement : (P : set → set → set → Type)
-             → {A : set}
+ Replacement : (P : Type → Type → Type → Type)
+             → {A : Type}
              → (∀ x → ∃! λ y → P x y A)
-             → Σ λ(B : set) → (y : set)
-                            → (y ∈ B ↔ Σ λ(x : set) → x ∈ A × P x y A)
+             → Σ λ(B : Type) → (y : Type)
+                            → (y ∈ B ↔ Σ λ(x : Type) → x ∈ A × P x y A)
  Replacement P {A} F = let f = λ x → fst(F x) in
   Map f A , λ y → (λ(y∈B : y ∈ Map (λ x → fst (F x)) A)
             → let H = Map2 y∈B in
@@ -342,38 +341,38 @@ module _{{ST : SetTheory}} where
                  let G1 = G y PxyA in
                        transport (λ i → G1 i ∈ Map f A) (Map1 f x∈A)
  
- [x]≢∅ : (x : set) → singleton x ≢ ∅
+ [x]≢∅ : (x : Type) → singleton x ≢ ∅
  [x]≢∅ x p = x∉∅ $ transport (λ i → x ∈ p i) (x∈[x] x)
 
- Regulate : {X : set} → X ≢ ∅ → set
+ Regulate : {X : Type} → X ≢ ∅ → Type
  Regulate {X} p = fst (RegulationAxiom X p)
 
- Regulate1 : {X : set} → (p : X ≢ ∅) → Regulate p ∈ X
+ Regulate1 : {X : Type} → (p : X ≢ ∅) → Regulate p ∈ X
  Regulate1 {X} p = fst $ snd (RegulationAxiom X p)
 
- Regulate2 : {X : set} → (p : X ≢ ∅) → {x : set}→ x ∈ Regulate p → x ∉ X
+ Regulate2 : {X : Type} → (p : X ≢ ∅) → {x : Type}→ x ∈ Regulate p → x ∉ X
  Regulate2 {X} p {x} = (snd $ snd (RegulationAxiom X p)) x
 
- Regulate3 : {X : set} → (p : X ≢ ∅) → {x : set} → x ∈ X → x ∉ Regulate p
+ Regulate3 : {X : Type} → (p : X ≢ ∅) → {x : Type} → x ∈ X → x ∉ Regulate p
  Regulate3 {X} H G q = Regulate2 H q G
 
- x∉x : {x : set} → x ∉ x
+ x∉x : {x : Type} → x ∉ x
  x∉x {x} p = RegulationAxiom (singleton x) ([x]≢∅ x)
         |> λ((y , H , G) : Σ λ y → y ∈ singleton x × ∀ z → z ∈ y → z ∉ singleton x)
                          → let F : x ≡ y
                                F = singletonLemma2 (x∈[x] x) H
                            in G x (transport (λ i → x ∈ F i) p) (x∈[x] x)
 
- T-finite : set → Type
- T-finite = λ S → ∀ X → X ≢ ∅ → X ⊆ ℙ S → Σ λ(u : set) → (u ∈ X) × ((v : set) → v ∈ X → u ⊆ v → v ⊆ u)
+ T-finite : Type → Type₁
+ T-finite = λ S → ∀ X → X ≢ ∅ → X ⊆ ℙ S → Σ λ(u : Type) → (u ∈ X) × ((v : Type) → v ∈ X → u ⊆ v → v ⊆ u)
 
- x∈Sucx : (x : set) → x ∈ Suc x
+ x∈Sucx : (x : Type) → x ∈ Suc x
  x∈Sucx x = Union2 (x∈[x] x) (Pair2 (singleton x) x)
 
- Suc≢∅ : (x : set) → Suc x ≢ ∅
+ Suc≢∅ : (x : Type) → Suc x ≢ ∅
  Suc≢∅ x p = x∉∅ (transport (λ i → x ∈ p i) (x∈Sucx x))
 
- ¬ℙx⊆x : (X : set) → ¬ (ℙ X ⊆ X)
+ ¬ℙx⊆x : (X : Type) → ¬ (ℙ X ⊆ X)
  ¬ℙx⊆x X p = x∉x {x = X} (p X (x∈ℙx X))
 
  ∪∅⊆∅ : ⋃ ∅ ⊆ ∅
@@ -384,15 +383,15 @@ module _{{ST : SetTheory}} where
  
  ∩∅⊆∅ : ⋂ ∅ ⊆ ∅
  ∩∅⊆∅ x x∈∩∅ =
-   let P = λ(a : set) → (Z : set) → Z ∈ ∅ → a ∈ Z in
+   let P = λ(a : Type) → (Z : Type) → Z ∈ ∅ → a ∈ Z in
    let (x∈∪∅ , F) = Separate1 x∈∩∅ in ∪∅⊆∅ x x∈∪∅
 
  ∩∅≡∅ : ⋂ ∅ ≡ ∅
  ∩∅≡∅ = Extensionality (⋂ ∅) ∅ (λ x → (∩∅⊆∅ x) , ∅⊆x (⋂ ∅) x)
 
  -- https://en.wikipedia.org/wiki/Well-order
- record WellOrder : Type₁
+ record WellOrder : Type₂
    where field
-    {{welltotal}} : TotalOrder lzero set
-    leastTerm : ∀{P} → P ≢ ∅ → Σ λ(x : set) → (x ∈ P) × ∀ y → y ∈ P → x ≤ y
+    {{welltotal}} : TotalOrder lzero Type
+    leastTerm : ∀{P} → P ≢ ∅ → Σ λ(x : Type) → (x ∈ P) × ∀ y → y ∈ P → x ≤ y
  open WellOrder {{...}} public
