@@ -44,17 +44,18 @@ Matrix : Type l → ℕ → ℕ → Type l
 Matrix A n m = < < A ^ n > ^ m >
 
 instance
-  fvect : Functor λ(A : Type l) → B → A
-  fvect = record { map = λ f v x → f (v x)
-                 ; compPreserve = λ f g → funExt λ x → refl
-                 ; idPreserve = funExt λ x → refl }
-  mvect : {B : Type l} → Monad λ(A : Type l) → B → A
-  mvect = record { μ = λ f a → f a a
-                 ; η = λ x _ → x
-                 ; monadLemma1 = funExt λ x → funExt λ y → refl
-                 ; monadLemma2 = funExt λ x → funExt λ y → refl 
-                 ; monadLemma3 = funExt λ x → funExt λ y → refl 
-                 }
+  FunctionFunctor : Functor λ{l}(A : Type l) → B → A
+  FunctionFunctor = record { map = λ f v x → f (v x)
+                           ; compPreserve = λ f g → funExt λ x → refl
+                           ; idPreserve = funExt λ x → refl
+                           }
+  FunctionMonad : Monad λ{l}(A : Type l) → B → A
+  FunctionMonad = record { μ = λ f a → f a a
+                         ; η = λ x _ → x
+                         ; monadLemma1 = funExt λ x → funExt λ y → refl
+                         ; monadLemma2 = funExt λ x → funExt λ y → refl 
+                         ; monadLemma3 = funExt λ x → funExt λ y → refl 
+                         }
 
 instance
  id++Prop : is-prop < A ^ Z >
