@@ -59,14 +59,14 @@ module _{{F : Field A}} where
                               neg 0r  ∎
 instance
   NZMultComm : {{F : Field A}} → Commutative NZMult
-  NZMultComm = record { comm = λ a b → ΣPathPProp (λ w x y → funExt λ p → y p ~> UNREACHABLE)
+  NZMultComm = record { comm = λ a b → ΣPathPProp (λ w x y → funExt λ p → y p |> UNREACHABLE)
                                                   (comm (fst a) (fst b)) }
   NZMultAssoc : {{F : Field A}} → Associative NZMult
-  NZMultAssoc = record { assoc = λ a b c → ΣPathPProp (λ w x y → funExt λ p → y p ~> UNREACHABLE)
+  NZMultAssoc = record { assoc = λ a b c → ΣPathPProp (λ w x y → funExt λ p → y p |> UNREACHABLE)
                                                       (assoc (fst a) (fst b) (fst c)) }
 
   NZIsSet : {{R : Rng A}} → is-set nonZero
-  NZIsSet = record { IsSet = isSetΣSndProp IsSet λ w x y → funExt λ p → y p ~> UNREACHABLE }
+  NZIsSet = record { IsSet = isSetΣSndProp IsSet λ w x y → funExt λ p → y p |> UNREACHABLE }
    where open import Cubical.Foundations.HLevels
 
   -- Non-zero multiplication is a group
@@ -74,9 +74,9 @@ instance
   NZMultGroup {{F}} =
     record { e = 1r , 1≢0
            ; inverse = λ a → ((reciprocal a) , x⁻¹≢0 a)
-                               , ΣPathPProp (λ w x y → funExt λ p → y p ~> UNREACHABLE)
+                               , ΣPathPProp (λ w x y → funExt λ p → y p |> UNREACHABLE)
                                (reciprocal a * fst a ≡⟨ comm (reciprocal a) (fst a)⟩
                                fst a * reciprocal a  ≡⟨ recInv a ⟩
                                1r ∎)
-           ; lIdentity = λ a → ΣPathPProp (λ w x y → funExt (λ p → y p ~> UNREACHABLE))
+           ; lIdentity = λ a → ΣPathPProp (λ w x y → funExt (λ p → y p |> UNREACHABLE))
                                           (lIdentity (fst a)) }

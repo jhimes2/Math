@@ -51,9 +51,9 @@ LEM A f = f (inr λ x → f (inl x))
 
 -- Modus ponens operator
 -- Equivalent to the pipe operator `|>` in F#
-_~>_ : A → (A → B) → B
-a ~> f = f a
-infixl 0 _~>_
+_|>_ : A → (A → B) → B
+a |> f = f a
+infixl 0 _|>_
 
 -- Function application operator (Another modus ponens operator)
 -- Equivalent to `$` in Haskell
@@ -211,7 +211,7 @@ UNREACHABLE ()
 DNOut : (A → implicit B) → implicit (A → B)
 DNOut {A = A} {B = B} f = LEM A
          ¬¬= λ{ (inl a) → f a ¬¬= λ b → η λ _ → b
-              ; (inr x) → η λ a → x a ~> UNREACHABLE }
+              ; (inr x) → η λ a → x a |> UNREACHABLE }
 
 -- https://en.wikipedia.org/wiki/Bijection,_injection_and_surjection
 
@@ -239,7 +239,7 @@ surjectiveComp : {f : A → B} → surjective f
                → {g : B → C} → surjective g
                              → surjective (g ∘ f)
 surjectiveComp {f = f} fSurj {g} gSurj =
-  λ b → gSurj b ~> λ(x , x') → fSurj x ~> λ(y , y') → y , (cong g y' ⋆ x')
+  λ b → gSurj b |> λ(x , x') → fSurj x |> λ(y , y') → y , (cong g y' ⋆ x')
 
 ≅transitive : A ≅ B → B ≅ C → A ≅ C
 ≅transitive (g , Ginj , Gsurj) (f , Finj , Fsurj) =

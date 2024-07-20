@@ -87,7 +87,7 @@ natDiscrete : Discrete ℕ
 natDiscrete Z Z = yes refl
 natDiscrete Z (S b) = no (λ x → ZNotS x)
 natDiscrete (S a) Z = no (λ x → ZNotS (sym x))
-natDiscrete (S a) (S b) = natDiscrete a b ~> λ{ (yes x) → yes (cong S x) ; (no x) → no (λ y → x (SInjective y))}
+natDiscrete (S a) (S b) = natDiscrete a b |> λ{ (yes x) → yes (cong S x) ; (no x) → no (λ y → x (SInjective y))}
 
 -- Addition on natural numbers is a comm monoid
 instance
@@ -166,8 +166,8 @@ natRCancel {a} {b} c p = natLCancel c (comm c a ⋆ p ⋆ comm b c)
 
 multCancel : (a b m : ℕ) → a * S m ≡ b * S m → a ≡ b
 multCancel Z Z m p = refl
-multCancel Z (S b) m p = ZNotS p ~> UNREACHABLE
-multCancel (S a) Z m p = ZNotS (sym p) ~> UNREACHABLE
+multCancel Z (S b) m p = ZNotS p |> UNREACHABLE
+multCancel (S a) Z m p = ZNotS (sym p) |> UNREACHABLE
 multCancel (S a) (S b) m p = cong S
       let p = SInjective p in
       multCancel a b m (natRCancel m (comm (a * S m) m ⋆ p ⋆ comm m (b * S m)))
@@ -249,7 +249,7 @@ leSNEq Z b p q = ZNotS q
 leSNEq (S a) (S b) p q = leSNEq a b p (SInjective q)
 
 ltS : (a b : ℕ) → a < b → S a ≤ b
-ltS Z Z (a≤b , a≢b) = a≢b refl ~> UNREACHABLE
+ltS Z Z (a≤b , a≢b) = a≢b refl |> UNREACHABLE
 ltS Z (S b) (a≤b , a≢b) = tt
 ltS (S a) (S b) (a≤b , a≢b) = ltS a b (a≤b , (λ x → a≢b (cong S x)))
 
@@ -280,7 +280,7 @@ leNEq Z (S b) p q = tt
 leNEq (S a) (S b) p q = leNEq a b p (λ x → q (cong S x))
 
 NEqZ : {a : ℕ} → a ≢ Z → Σ λ x → a ≡ S x
-NEqZ {a = Z} p = p refl ~> UNREACHABLE
+NEqZ {a = Z} p = p refl |> UNREACHABLE
 NEqZ {a = S a} _ = a , refl
 
 instance
@@ -289,25 +289,25 @@ instance
    where
     aux : {P : ℕ → Type} → (∀ n → P n ＋ ¬ P n) → Σ P → Σ λ x → P x × ∀ y → P y → x ≤ y
     aux {P = P} PDec (p , p') = aux2 p p p' (reflexive p)
-                                     λ y (q , r) → leContra p y ((leS {n = p} q) , r) ~> UNREACHABLE
+                                     λ y (q , r) → leContra p y ((leS {n = p} q) , r) |> UNREACHABLE
      where
       aux2 : (x z : ℕ) → P z → x ≤ z → (∀ y → S x ≤ y × S y ≤ z → ¬ P y) → Σ λ x → P x × ∀ y → P y → x ≤ y
       aux2 Z z Pz x≤z H = PDec Z
-            ~> λ{ (inl w) → Z , (w , λ _ _ → tt)
-                ; (inr w) → z , Pz , λ{ Z y' → w y' ~> UNREACHABLE
+            |> λ{ (inl w) → Z , (w , λ _ _ → tt)
+                ; (inr w) → z , Pz , λ{ Z y' → w y' |> UNREACHABLE
                                      ; (S y) y' →
                            let G : S(S y) ≤ z → ¬ P (S y)
-                               G = λ{q → H (S y) (S y ~> λ _ → tt , q)} in
-                                 natSC z (S y) ~>
+                               G = λ{q → H (S y) (S y |> λ _ → tt , q)} in
+                                 natSC z (S y) |>
                                  λ{ (inl t) → t
-                                  ; (inr t) → G t y' ~> UNREACHABLE}
+                                  ; (inr t) → G t y' |> UNREACHABLE}
                                   }}
       aux2 (S x) (S z) Pz x≤z H = PDec (S x)
-            ~> λ{ (inl w) → aux2 x (S x) w (leS2 x x (reflexive x))
-                                        λ y (q , r) → leContra y x (r , q) ~> UNREACHABLE
+            |> λ{ (inl w) → aux2 x (S x) w (leS2 x x (reflexive x))
+                                        λ y (q , r) → leContra y x (r , q) |> UNREACHABLE
                 ; (inr w) → aux2 x (S z) Pz (leS {n = x} x≤z)
                  λ y (p , q) →
-                 natDiscrete (S x) y ~> λ{ (yes u) → subst (λ r → ¬ P r) u w
+                 natDiscrete (S x) y |> λ{ (yes u) → subst (λ r → ¬ P r) u w
                                          ; (no u) → H y (leNEq (S x) y p u , q)}
                 }
 
@@ -320,11 +320,11 @@ greatest P = Σ λ(g : ℕ) → P g × (∀ x → P x → x ≤ g)
 findGreatest : (P : ℕ → Type l) → (∀ n → Dec (P n))
              → Σ P → (n : ℕ) → (∀ m → P m → m ≤ n) → greatest P
 findGreatest P decide (Z , Px) Z f = Z , (Px , f)
-findGreatest P decide (S x , Px) Z f = f (S x) Px ~> UNREACHABLE
+findGreatest P decide (S x , Px) Z f = f (S x) Px |> UNREACHABLE
 findGreatest P decide X (S n) f = decide (S n)
-     ~> λ{(yes p) → (S n) , (p , f)
+     |> λ{(yes p) → (S n) , (p , f)
         ; (no p) → findGreatest P decide X n λ m Pm → let H = f m Pm in
-           natDiscrete m (S n) ~> (λ { (yes q) → p (subst P q Pm) ~> UNREACHABLE
+           natDiscrete m (S n) |> (λ { (yes q) → p (subst P q Pm) |> UNREACHABLE
                                      ; (no q) → leNEq m (S n) H q })}
 
 open import Cubical.Foundations.Pointed.Homogeneous
@@ -333,7 +333,7 @@ NatHomogeneous = isHomogeneousDiscrete natDiscrete
 
 notAnySIsZ : ∀ a → (∀ b → a ≢ S b) → a ≡ Z
 notAnySIsZ Z _ = refl
-notAnySIsZ (S a) p = p a refl ~> UNREACHABLE
+notAnySIsZ (S a) p = p a refl |> UNREACHABLE
 
 max : ℕ → ℕ → ℕ
 max Z b = b

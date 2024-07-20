@@ -87,9 +87,9 @@ Prop = Set₀
 
 -- Modus ponens operator
 -- Equivalent to the pipe operator `|>` in F#
-_~>_ : A → (A → B) → B
-a ~> f = f a
-infixl 0 _~>_
+_|>_ : A → (A → B) → B
+a |> f = f a
+infixl 0 _|>_
 
 -- Function application operator (Another modus ponens operator)
 -- Equivalent to `$` in Haskell
@@ -101,7 +101,7 @@ set : (l : Level) → Set (lsuc(lsuc l))
 set l = Set (lsuc l)
 
 _∈_ : A → (A → Set l) → Set l
-_∈_ = _~>_
+_∈_ = _|>_
 infixr 6 _∈_
 
 _∉_ :  A → (A → Set l) → Set l
@@ -172,7 +172,7 @@ infix 7 _∪_
 
 ∪Complement : (X : ℙ A) → X ∪ X ᶜ ≡ 𝓤
 ∪Complement X = funExt λ x → propExt
-    (λ _ → tt) λ _ → LEM (x ∈ X) ~> λ{ (inl p) → intro (inl p)
+    (λ _ → tt) λ _ → LEM (x ∈ X) |> λ{ (inl p) → intro (inl p)
                                      ; (inr p) → intro (inr p)}
 record Associative {A : Set l}(_∙_ : A → A → A) : Set(lsuc l) where
   field
@@ -359,7 +359,7 @@ instance
       { tfull = intro $ inl refl
       ; tunion = λ {X} H →
        LEM (𝓤 ∈ X)
-         ~> λ{ (inl p) → intro (inl (funExt λ x → propExt 
+         |> λ{ (inl p) → intro (inl (funExt λ x → propExt 
             (λ G → tt) λ G → intro (𝓤 , tt , p))) 
              ; (inr p) → intro $ inr (funExt λ x → propExt (_>> λ(Y , F , G)
               → H Y G >> λ{ (inl refl) → p G ; (inr refl) → F}) λ x∈∅ → UNREACHABLE $ x∈∅)}

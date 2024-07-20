@@ -369,7 +369,7 @@ module _{C : Type cl} {{R : Ring C}} where
  MT-ID v = funExt λ x → aux v x
   where
    aux : (v : ℕ< n → C) → (a : ℕ< n) → MT I v a ≡ v a 
-   aux {n = Z} v (x , y , p) = ZNotS (sym p) ~> UNREACHABLE
+   aux {n = Z} v (x , y , p) = ZNotS (sym p) |> UNREACHABLE
    aux {n = S n} v (Z , yp) =
      MT I v (Z , yp) ≡⟨⟩
      v ∙ (I (Z , yp)) ≡⟨⟩
@@ -379,7 +379,7 @@ module _{C : Type cl} {{R : Ring C}} where
      head v + 0r ≡⟨ rIdentity (head v)⟩
      head v ≡⟨ cong v (ΣPathPProp (λ a → finSndIsProp a) refl)⟩
      v (Z , yp) ∎
-   aux {n = S Z} v (S x , y , p) = ZNotS (sym (SInjective p)) ~> UNREACHABLE
+   aux {n = S Z} v (S x , y , p) = ZNotS (sym (SInjective p)) |> UNREACHABLE
    aux {n = S (S n)} v (S x , y , p) =
          let R' : (tail v ∙ λ z → I z (x , y , SInjective p)) ≡ tail v (x , y , SInjective p)
              R' = aux (tail v) (x , y , SInjective p) in
@@ -401,11 +401,11 @@ module _{C : Type cl} {{R : Ring C}} where
  IL-ID M = funExt λ x → MT-ID (M x)
  
  IR-ID : (M : ℕ< n → A → C) → mMult M I ≡ M
- IR-ID {n = Z} M = funExt λ (a , b , p) → ZNotS (sym p) ~> UNREACHABLE
+ IR-ID {n = Z} M = funExt λ (a , b , p) → ZNotS (sym p) |> UNREACHABLE
  IR-ID {n = S n} M = funExt λ (x , yp) → funExt λ b → aux M (x , yp) b
   where
    aux : {n : ℕ} → (M : ℕ< n → A → C) → (a : ℕ< n) → (b : A) → mMult M I a b ≡ M a b
-   aux {n = Z} M (x , y , p) b = ZNotS (sym p) ~> UNREACHABLE
+   aux {n = Z} M (x , y , p) b = ZNotS (sym p) |> UNREACHABLE
    aux {n = S n} M (Z , yp) b =
      I (Z , yp) ∙ (λ z → M z b) ≡⟨⟩
      (1r * head λ z → M z b) + ((λ _ → 0r) ∙ tail λ z → M z b) ≡⟨ left _+_ (lIdentity (head λ z → M z b))⟩
@@ -413,7 +413,7 @@ module _{C : Type cl} {{R : Ring C}} where
      head (λ z → M z b) + 0r ≡⟨ rIdentity (head λ z → M z b)⟩
      head (λ z → M z b) ≡⟨ left M (ΣPathPProp (λ a → finSndIsProp a) refl)⟩
      M (Z , yp) b ∎ 
-   aux {n = S Z} M (S x , y , p) b = ZNotS (sym (SInjective p)) ~> UNREACHABLE
+   aux {n = S Z} M (S x , y , p) b = ZNotS (sym (SInjective p)) |> UNREACHABLE
    aux {n = S (S n)} M (S x , y , p) b =
     let R : I (x , y , SInjective p) ∙ (λ z → tail M z b) ≡ tail M (x , y , SInjective p) b
         R = aux (tail M) (x , y , SInjective p) b in

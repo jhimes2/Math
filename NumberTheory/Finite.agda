@@ -100,7 +100,7 @@ instance
     invAux : (a : ℕ) → Σ λ(b : ℕ) → paste (b + a) n ≡ Z
     invAux Z = Z , ZPaste n
     invAux (S a) = invAux a
-       ~> λ{ (Z , p) → n , cong (λ x → paste x n) (Sout n a) ⋆ pasteAdd a n ⋆ p
+       |> λ{ (Z , p) → n , cong (λ x → paste x n) (Sout n a) ⋆ pasteAdd a n ⋆ p
            ; (S r , p) → r , (cong (λ x → paste x n) (Sout r a) ⋆ p) }
 
   FinRng : Rng (ℕ≤ n)

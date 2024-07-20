@@ -30,7 +30,7 @@ finS : ℕ< n → ℕ< (S n)
 finS (x , y , p) = S x , y , cong S p
 
 finDecr : {x : ℕ< (S (S n))} → finZ ≢ x → ℕ< (S n)
-finDecr {x = Z , y , H} p = p (ΣPathPProp finSndIsProp refl) ~> UNREACHABLE
+finDecr {x = Z , y , H} p = p (ΣPathPProp finSndIsProp refl) |> UNREACHABLE
 finDecr {x = S x , y , H} p = x , y , SInjective H
 
 -- Does not increment the value inside, but increments the type
@@ -60,53 +60,53 @@ is-∞ A = ¬ (is-finite A)
 
 isPropFinSZ : isProp (ℕ< (S Z))
 isPropFinSZ (Z , y) (Z , w) = ΣPathPProp finSndIsProp refl
-isPropFinSZ _ (S z , w , p) = ZNotS (sym (SInjective p)) ~> UNREACHABLE
-isPropFinSZ (S x , y , p) _ = ZNotS (sym (SInjective p)) ~> UNREACHABLE
+isPropFinSZ _ (S z , w , p) = ZNotS (sym (SInjective p)) |> UNREACHABLE
+isPropFinSZ (S x , y , p) _ = ZNotS (sym (SInjective p)) |> UNREACHABLE
 
 finSInj : {x y : ℕ< n} → finS x ≡ finS y → x ≡ y
 finSInj {x = x , y} {a , b} p = ΣPathPProp finSndIsProp (SInjective λ i → fst (p i))
 
 finDecrInj : {x y : ℕ< (S(S n))} → (p : finZ ≢ x) → (q : finZ ≢ y) → finDecr p ≡ finDecr q → x ≡ y
-finDecrInj {x = Z , y , z} p q H = p (ΣPathPProp finSndIsProp refl) ~> UNREACHABLE
-finDecrInj {x = _} {Z , b , c} p q H = q (ΣPathPProp finSndIsProp refl) ~> UNREACHABLE
+finDecrInj {x = Z , y , z} p q H = p (ΣPathPProp finSndIsProp refl) |> UNREACHABLE
+finDecrInj {x = _} {Z , b , c} p q H = q (ΣPathPProp finSndIsProp refl) |> UNREACHABLE
 finDecrInj {x = S x , y , z} {S a , b , c} p q H = ΣPathPProp finSndIsProp (cong S λ i → fst (H i))
 
 -- Pigeon hole principle
 -- A mapping from a finite set to a smaller set is not injective.
 pigeonhole : (f : ℕ< (S n + m) → ℕ< n) → ¬(injective f)
-pigeonhole {n = Z} {m} f _ = ¬finZ (f finZ) ~> UNREACHABLE
+pigeonhole {n = Z} {m} f _ = ¬finZ (f finZ) |> UNREACHABLE
 pigeonhole {n = S n} {m} f contra = let (g , gInj) = G (f , contra) in
    pigeonhole {n} {m} g gInj
  where
   G : {n m : ℕ} → (Σ λ(f : ℕ< (S n) → ℕ< (S m)) → injective f)
                 →  Σ λ(g : ℕ< n     → ℕ< m    ) → injective g
-  G {Z} {m} (f , fInj) = (λ x → ¬finZ x ~> UNREACHABLE) , λ x → ¬finZ x ~> UNREACHABLE
+  G {Z} {m} (f , fInj) = (λ x → ¬finZ x |> UNREACHABLE) , λ x → ¬finZ x |> UNREACHABLE
   G {S n} {Z} (f , fInj) = finS≢finZ (fInj (finS finZ) finZ $ isPropFinSZ (f (finS finZ)) (f finZ))
-                                 ~> UNREACHABLE
+                                 |> UNREACHABLE
   G {S n} {S m} (f , fInj) = decr , decrInj
    where
     decr : ℕ< (S n) → ℕ< (S m)
     decr x with finDiscrete finZ (f (finS x))
     ...      | (yes p) with finDiscrete finZ (f finZ) 
-    ...                 | (yes r) = finS≢finZ (fInj (finS x) finZ (sym p ⋆ r)) ~> λ()
+    ...                 | (yes r) = finS≢finZ (fInj (finS x) finZ (sym p ⋆ r)) |> λ()
     ...                 | (no r) = finDecr r
     decr x   | (no p) = finDecr p
     decrInj : injective decr
     decrInj x y p with finDiscrete finZ (f (finS x)) | finDiscrete finZ (f (finS y))
     ...           | (yes a) | (yes b) with finDiscrete finZ (f finZ)
     ...                       | (yes r) = finS≢finZ (fInj (finS x) finZ (sym a ⋆ r))
-                                        ~> UNREACHABLE
+                                        |> UNREACHABLE
     ...                       | (no r) = finSInj (fInj (finS x) (finS y) (sym a ⋆ b))
     decrInj x y p | (yes a) | (no b) with finDiscrete finZ (f finZ)
     ...                       | (yes r) = finS≢finZ (fInj (finS x) finZ (sym a ⋆ r))
-                                        ~> UNREACHABLE
+                                        |> UNREACHABLE
     ...                       | (no r) = finS≢finZ (sym (fInj finZ (finS y) (finDecrInj r b p)))
-                                       ~> UNREACHABLE
+                                       |> UNREACHABLE
     decrInj x y p | (no a)  | (yes b) with finDiscrete finZ (f finZ)
     ...                       | (yes r) = finS≢finZ (fInj (finS y) finZ (sym b ⋆ r))
-                                        ~> UNREACHABLE
+                                        |> UNREACHABLE
     ...                       | (no r) = finS≢finZ (fInj (finS x) finZ (finDecrInj a r p))
-                                       ~> UNREACHABLE
+                                       |> UNREACHABLE
     decrInj x y p | (no a)  | (no b) = finSInj (fInj (finS x) (finS y) (finDecrInj a b p))
 
 -- There does not exist an injective mapping from ℕ to a finite set

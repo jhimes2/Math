@@ -149,7 +149,7 @@ divisionℤ b =
             X = snd(fst(snd H)) in
         let G : ∀ z → T z → r ≤ z
             G = snd(snd H) in
-        isLe r b ~> λ{(inl p) → p
+        isLe r b |> λ{(inl p) → p
           ; (inr (z , p)) →
             let p : r ≡ S (z + b)
                 p = p in
@@ -166,11 +166,11 @@ divisionℤ b =
                   ([ S b , Z ] + ([ S b , Z ] * q)) + [ z , Z ]
                      ≡⟨ cong (λ x →  (x + ([ S b , Z ] * q)) + [ z , Z ]) (sym (multStr .rIdentity [ S b , Z ]))⟩
                   (([ S b , Z ] * 1r) + ([ S b , Z ] * q)) + [ z , Z ] ≡⟨ cong (λ x → x + [ z , Z ]) (sym (lDistribute [ S b , Z ] 1r q))⟩
-                  ([ S b , Z ] * (1r + q)) + [ z , Z ] ∎)) in leAddN b z F ~> UNREACHABLE}
+                  ([ S b , Z ] * (1r + q)) + [ z , Z ] ∎)) in leAddN b z F |> UNREACHABLE}
  where
   decT : ∀(a : ℤ)(b r : ℕ) → (Σ λ q → a ≡ ([ S b , Z ] * q) + [ r , Z ]) ＋ ¬(Σ λ q → a ≡ ([ S b , Z ] * q) + [ r , Z ])
   decT a b r = dividesDecℤ (S b) (a - [ r , Z ])
-    ~> λ{ (yes p) → inl (recTrunc {!!} {!!} p)
+    |> λ{ (yes p) → inl (recTrunc {!!} {!!} p)
         ; (no ¬p) → {!!}}
 
 

@@ -109,7 +109,7 @@ zorn : {_≤_ : A → A → Type} → {{_ : Poset _≤_}}
 zorn {A = A} {_≤_ = _≤_} = {!!}
 
 test2 : Dec ((A : Type al) → Dec A)
-test2 {al} = no λ x → (LEM (Dec ((A : Type al) → Dec A))) ~> λ{x → {!!}}
+test2 {al} = no λ x → (LEM (Dec ((A : Type al) → Dec A))) |> λ{x → {!!}}
 
 DNElimF : ¬ ((l : Level) → (A : Type) → ¬(¬ A) → A)
 DNElimF dn =

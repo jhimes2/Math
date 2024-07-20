@@ -230,10 +230,10 @@ instance
     intLeTrans = elimProp3 (λ x y z → isProp→ (isProp→ (intLeProp x z)))
                    λ (a , b) (c , d) (e , f) → λ x y →
          leSlide2 (a + d) (c + b) e x
-      ~> λ(H : (e + (a + d)) ≤ (e + (c + b))) → 
+      |> λ(H : (e + (a + d)) ≤ (e + (c + b))) → 
          leSlide (a + f) (e + b) c
       (leSlide2 (c + f) (e + d) a y
-      ~> λ(G : (a + (c + f)) ≤ (a + (e + d)))
+      |> λ(G : (a + (c + f)) ≤ (a + (e + d)))
         → transitive {a = c + (a + f)} {e + (a + d)}
            (transport (λ i → a[bc]≡b[ac] a c f i ≤ a[bc]≡b[ac] a e d i) G)
            (transport (λ i → (e + (a + d)) ≤ a[bc]≡b[ac] e c b i) H))
@@ -251,11 +251,11 @@ instance
  intLeTotalOrder = record {
                      _≤_ = le 
                   ; stronglyConnected = λ a b → ℤDiscrete a b
-                    ~> λ{(yes p) → inl (eqToLe p)
+                    |> λ{(yes p) → inl (eqToLe p)
                        ; (no p) → transport (propTruncIdempotent
                             λ{ (inl x) (inl y) → cong inl (isRelation a b x y)
-                             ; (inl x) (inr y) → p (antiSymmetric x y) ~> UNREACHABLE
-                             ; (inr x) (inl y) → p (antiSymmetric y x) ~> UNREACHABLE
+                             ; (inl x) (inr y) → p (antiSymmetric x y) |> UNREACHABLE
+                             ; (inr x) (inl y) → p (antiSymmetric y x) |> UNREACHABLE
                              ; (inr x) (inr y) → cong inr (isRelation b a x y)}) (aux a b)} }
    where
     open import Cubical.HITs.PropositionalTruncation

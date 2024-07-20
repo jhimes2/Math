@@ -42,14 +42,14 @@ instance
     { dxy≡0→x≡y = λ{x y} p →
      let H = absProperty (x - y) in
        stronglyConnected (x - y) 0r
-          ~> λ{ (inl q) → grp.invInjective (fst H q ⋆ (p ⋆ sym grp.lemma4))
-                        ~> λ(G : (x - y ≡ 0r)) → grp.uniqueInv G
+          |> λ{ (inl q) → grp.invInjective (fst H q ⋆ (p ⋆ sym grp.lemma4))
+                        |> λ(G : (x - y ≡ 0r)) → grp.uniqueInv G
               ; (inr q) → (snd H q ⋆ p)
-                        ~> λ(G : x - y ≡ 0r) → grp.uniqueInv G}
+                        |> λ(G : x - y ≡ 0r) → grp.uniqueInv G}
     ; x≡y→dxy≡0 = λ {a b} p → let H = absProperty (a - b) in
         stronglyConnected (a - b) 0r
-         ~> λ{ (inr q) → snd H q ~> λ G → sym G ⋆ transport (λ i → (a - p i) ≡ 0r) (rInverse a)
-             ; (inl q) → fst H q ~> λ G → sym G ⋆ grp.invInjective (grp.doubleInv (a - b)
+         |> λ{ (inr q) → snd H q |> λ G → sym G ⋆ transport (λ i → (a - p i) ≡ 0r) (rInverse a)
+             ; (inl q) → fst H q |> λ G → sym G ⋆ grp.invInjective (grp.doubleInv (a - b)
                     ⋆ transport (λ i → (a - p i) ≡ 0r) (rInverse a) ⋆ sym grp.lemma4) }
     ; dxy≡dyx = λ x y → abs (x - y)             ≡⟨ sym (absNeg (x - y))⟩
                         abs (neg (x - y))       ≡⟨ cong abs (sym (grp.lemma1 x (neg y)))⟩
@@ -64,7 +64,7 @@ instance
                                         (y - x) + (z - y) ∎) $ reflexive (z - x))
              λ z≤y → transport (right _≤_ $ ([ab]c≡[ac]b y (y - z) (neg x)))
                              $ addLe (ordered.subLe z (ordered.lemma1 z≤y z≤y
-                               ~> transport (right _≤_ $ y + y ≡⟨ right _+_ (sym ([ab']b≡a y z))⟩
+                               |> transport (right _≤_ $ y + y ≡⟨ right _+_ (sym ([ab']b≡a y z))⟩
                                                          y + ((y - z) + z) ≡⟨ assoc y (y - z) z ⟩
                                                          (y + (y - z)) + z ∎))) (neg x))
            λ y≤x → absDiffHelper {P = λ a → (z - x) ≤ ((x - y) + a)} y z

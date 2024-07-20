@@ -34,12 +34,12 @@ data ⊤ : Set where
 ¬ : Set l → Set l
 ¬ A = A → ⊥
 
-_~>_ : A → (A → B) → B
-a ~> f = f a
-infixl 0 _~>_
+_|>_ : A → (A → B) → B
+a |> f = f a
+infixl 0 _|>_
 
 _∈_ : A → (A → Set l) → Set l
-_∈_ = _~>_
+_∈_ = _|>_
 infixr 5 _∈_
 
 _∉_ :  A → (A → Set l) → Set l

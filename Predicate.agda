@@ -14,7 +14,7 @@ open import Cubical.Foundations.Isomorphism
 ------------------------------------------------------------------------------------------------------
 
 _∈_ : A → (A → Type l) → Type l
-_∈_ = _~>_
+_∈_ = _|>_
 infixr 5 _∈_
 
 _∉_ :  A → (A → Type l) → Type l
@@ -187,14 +187,14 @@ instance
                → Poset (λ(X Y : Σ λ x → ¬(¬(P x))) → fst X ≤ fst Y)
  inclusionPos2 {_≤_ = _≤_} = record
    { antiSymmetric = λ {a b} x y → let H = antiSymmetric {a = fst a} {b = fst b} x y
-      in ΣPathPProp (λ p q r → funExt (λ s → r s ~> UNREACHABLE)) (antiSymmetric {a = fst a} x y)
+      in ΣPathPProp (λ p q r → funExt (λ s → r s |> UNREACHABLE)) (antiSymmetric {a = fst a} x y)
    }
   where
    open import Cubical.Foundations.HLevels
 
 ∩Complement : (X : A → Type l) → X ∩ X ᶜ ≡ ∅
-∩Complement X = funExt λ x → isoToPath (iso (λ(a , b) → b a ~> UNREACHABLE)
-                                            (λ()) (λ()) λ(a , b) → b a ~> UNREACHABLE)
+∩Complement X = funExt λ x → isoToPath (iso (λ(a , b) → b a |> UNREACHABLE)
+                                            (λ()) (λ()) λ(a , b) → b a |> UNREACHABLE)
 
 ∪Complement : (X : A → Type l) → X ∪ X ᶜ ≡ 𝓤
 ∪Complement X = funExt λ x → propExt (isProp¬ _) (λ{(lift tt) (lift tt) → refl})

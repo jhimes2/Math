@@ -66,14 +66,14 @@ module _{{PST : PreSetTheory}} where
  OrdPair x y = Pair (singleton x) (Pair x y)
 
  singletonLemma : ∀ x → isSingleton (singleton x)
- singletonLemma x = x , Pair1 x x , λ y p → Pair3 p ~> λ{ (inl q) → sym q
+ singletonLemma x = x , Pair1 x x , λ y p → Pair3 p |> λ{ (inl q) → sym q
                                                         ; (inr q) → sym q}
 
  singletonLemma2 : ∀ {X x y} → x ∈ singleton X → y ∈ singleton X → x ≡ y
  singletonLemma2 {X}{x}{y} p q =
-   Pair3 p ~> λ{(inl H) → Pair3 q ~> λ{(inl G) → H ⋆ sym G
+   Pair3 p |> λ{(inl H) → Pair3 q |> λ{(inl G) → H ⋆ sym G
                                      ; (inr G) → H ⋆ sym G }
-              ; (inr H) → Pair3 q ~> λ{(inl G) → H ⋆ sym G
+              ; (inr H) → Pair3 q |> λ{(inl G) → H ⋆ sym G
                                      ; (inr G) → H ⋆ sym G}}
 
  x∈[x] : ∀ x → x ∈ singleton x
@@ -154,7 +154,7 @@ module _{{PST : PreSetTheory}} where
  union2 : {X Y x : set} → x ∈ (X ∪ Y) → x ∈ X ＋ x ∈ Y
  union2 {X} {Y} {x} = λ(H : x ∈ ⋃ (Pair X Y))
    → let (z , x∈z , z∈Pair) = Union1 H in
-       Pair3 z∈Pair ~> λ{ (inl p) → inl (transport (right _∈_ p) x∈z)
+       Pair3 z∈Pair |> λ{ (inl p) → inl (transport (right _∈_ p) x∈z)
                         ; (inr p) → inr (transport (right _∈_ p) x∈z)}
 
  _∉_ : set → set → Type
@@ -169,20 +169,20 @@ module _{{PST : PreSetTheory}} where
  instance
   PairComm : Commutative Pair
   PairComm = record { comm = λ a b → Extensionality (Pair a b) (Pair b a)
-    λ x → (λ p → Pair3 p ~> λ{ (inl q) → transport (sym $ left _∈_ q) (Pair2 a b)
+    λ x → (λ p → Pair3 p |> λ{ (inl q) → transport (sym $ left _∈_ q) (Pair2 a b)
                              ; (inr q) → transport (sym $ left _∈_ q) (Pair1 b a)})
                             ,
-           λ p → Pair3 p ~> λ{ (inl q) → transport (sym $ left _∈_ q) (Pair2 b a)
+           λ p → Pair3 p |> λ{ (inl q) → transport (sym $ left _∈_ q) (Pair2 b a)
                              ; (inr q) → transport (sym $ left _∈_ q) (Pair1 a b)}
                              }
   ∪Comm : Commutative _∪_
   ∪Comm = record { comm = λ a b → cong ⋃ (comm a b) }
   ∪Assoc : Associative _∪_
   ∪Assoc = record { assoc = λ a b c → Extensionality (a ∪ (b ∪ c)) ((a ∪ b) ∪ c)
-           λ x → (λ p → union1 (union2 p ~> λ{ (inl q) → inl (union1 (inl q))
-                                             ; (inr q) → union2 q ~> λ{ (inl r) → inl (union1 (inr r))
+           λ x → (λ p → union1 (union2 p |> λ{ (inl q) → inl (union1 (inl q))
+                                             ; (inr q) → union2 q |> λ{ (inl r) → inl (union1 (inr r))
                                                                       ; (inr r) → inr r}})) ,
-                  λ p → union1 (union2 p ~> λ{ (inl q) → union2 q ~> λ{ (inl r) → inl r
+                  λ p → union1 (union2 p |> λ{ (inl q) → union2 q |> λ{ (inl r) → inl r
                                                                       ; (inr r) → inr (union1 (inl r))}
                                              ; (inr q) → inr (union1 (inr q))})
            }
@@ -201,7 +201,7 @@ module _{{PST : PreSetTheory}} where
 
 
  [a]∈<b,c>→a≡b : ∀{a b c} → singleton a ∈ OrdPair b c → a ≡ b
- [a]∈<b,c>→a≡b {a}{b}{c} H = Pair3 H ~>
+ [a]∈<b,c>→a≡b {a}{b}{c} H = Pair3 H |>
       λ{(inl p) → singletonInjective a b p
       ; (inr p) → sym $ [a,b]≡[c]→a≡c (sym p) }
 
@@ -223,7 +223,7 @@ module _{{PST : PreSetTheory}} where
        G1 = Pair1 (Pair a a) (Pair a b) in
    let G2 : Pair a a ∈ OrdPair c d
        G2 = transport (λ i → Pair a a ∈ H i) G1 in
-       Pair3 H2 ~> λ{ (inl p) → [a,b]≡[c]→a≡c p
+       Pair3 H2 |> λ{ (inl p) → [a,b]≡[c]→a≡c p
                     ; (inr p) → [a]∈<b,c>→a≡b G2}
 
  Suc : set → set
@@ -253,7 +253,7 @@ module _{{ST : SetTheory}} where
  x∉∅ {x} p = snd (Separate1 p)
 
  ∅⊆x : (x : set) → ∅ ⊆ x
- ∅⊆x x y p = x∉∅ p ~> UNREACHABLE
+ ∅⊆x x y p = x∉∅ p |> UNREACHABLE
 
  data isNat : set → Type where
    Natbase : isNat ∅
@@ -359,7 +359,7 @@ module _{{ST : SetTheory}} where
 
  x∉x : {x : set} → x ∉ x
  x∉x {x} p = RegulationAxiom (singleton x) ([x]≢∅ x)
-        ~> λ((y , H , G) : Σ λ y → y ∈ singleton x × ∀ z → z ∈ y → z ∉ singleton x)
+        |> λ((y , H , G) : Σ λ y → y ∈ singleton x × ∀ z → z ∈ y → z ∉ singleton x)
                          → let F : x ≡ y
                                F = singletonLemma2 (x∈[x] x) H
                            in G x (transport (λ i → x ∈ F i) p) (x∈[x] x)

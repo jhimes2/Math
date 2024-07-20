@@ -29,7 +29,7 @@ _<_ : {A : Type al} → {_≤_ : A → A → Type l} → {{Poset _≤_}} → A �
 _<_ {_≤_ = _≤_} a b = (a ≤ b) × (a ≢ b)
 
 isProp< : {_≤_ : A → A → Type l} → {{P : Poset _≤_}} → (a b : A) → isProp (a < b)
-isProp< a b p q = ≡-× (isRelation a b (fst p) (fst q)) (funExt λ x → snd q x ~> UNREACHABLE)
+isProp< a b p q = ≡-× (isRelation a b (fst p) (fst q)) (funExt λ x → snd q x |> UNREACHABLE)
 
 a<b→b≤c→a≢c : {_≤_ : A → A → Type l} {{O : Poset _≤_}} → {a b c : A} → a < b → b ≤ c → a ≢ c 
 a<b→b≤c→a≢c {_≤_ = _≤_} {a = a} {b} {c} (q , p) b<c contra = p
@@ -56,8 +56,8 @@ open TotalOrder {{...}} hiding (_≤_) public
 
 flipNeg : {{TO : TotalOrder al A}} → {a b : A} → ¬(b ≤ a) → a < b
 flipNeg {a = a} {b} p = (stronglyConnected a b
-                         ~>  (λ{ (inl x) → x
-                               ; (inr x) → p x ~> UNREACHABLE})), aux p
+                         |>  (λ{ (inl x) → x
+                               ; (inr x) → p x |> UNREACHABLE})), aux p
   where
    aux : {{TO : TotalOrder al A}} → {a b : A} → ¬(b ≤ a) → a ≢ b
    aux {a = a} {b} = modusTollens (λ x → transport (λ i → x i ≤ a) (reflexive a))

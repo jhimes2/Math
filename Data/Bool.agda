@@ -97,7 +97,7 @@ instance
       { 1≢0 = Yes≢No
       ; reciprocal = fst
       ; recInv = λ{ (Yes , x) → refl
-                  ; (No , x) → x refl ~> UNREACHABLE }
+                  ; (No , x) → x refl |> UNREACHABLE }
       }
 
 private
@@ -115,7 +115,7 @@ instance
    where
     auxTrans : (a b c : 𝔹) → le a b → le b c → le a c
     auxTrans Yes Yes c _ z = z
-    auxTrans Yes No _ absurd = absurd ~> UNREACHABLE
+    auxTrans Yes No _ absurd = absurd |> UNREACHABLE
     auxTrans No _ _ _ _ = tt
     auxRefl : (a : 𝔹) → le a a
     auxRefl Yes = tt
@@ -130,8 +130,8 @@ instance
    where
     auxAS : ∀ a b → le a b → le b a → a ≡ b
     auxAS Yes Yes p q = refl
-    auxAS Yes No p q = p ~> UNREACHABLE
-    auxAS No Yes p q = q ~> UNREACHABLE
+    auxAS Yes No p q = p |> UNREACHABLE
+    auxAS No Yes p q = q |> UNREACHABLE
     auxAS No No p q = refl
 
   boolTotalOrder : TotalOrder _ 𝔹
@@ -175,7 +175,7 @@ open import Data.Natural
 ℕ→𝔹notSurjℕ (f , surj) =
    let g : ℕ → 𝔹
        g = λ n → not (f n n) in
-       surj g ~>
+       surj g |>
       λ((n , H) : Σ λ n → f n ≡ g) → 
    let G : f n n ≡ not (f n n)
        G = funRed H n in
