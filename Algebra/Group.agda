@@ -603,14 +603,14 @@ module directProduct(VG : A → Group l) where
      ; lIdentity = λ(a : (x : A) → VG x .carrier) → funExt λ(b : A) →
                  let dpGrp : group (VG b .Group.op)
                      dpGrp = VG b .grp in group.lIdentity dpGrp (a b)
-     ; IsSetGrp = record { IsSet = isSetΠ λ x → ((VG x .grp)) .IsSetGrp .IsSet }
+     ; IsSetGrp = record { IsSet = isSetΠ λ x → (VG x .grp) .IsSetGrp .IsSet }
      ; gAssoc = record { assoc =  λ a b c → funExt λ x → group.gAssoc (VG x .grp) .assoc (a x) (b x) (c x) }
      }
     where open Group {{...}}
 
 -- Every operator can only be part of at most one group
 groupIsProp : (_∙_ : A → A → A) → isProp (group _∙_)
-groupIsProp {A = A} _∙_ G1 G2 i =
+groupIsProp {A} _∙_ G1 G2 i =
   let set = λ{a b : A}{p q : a ≡ b} → IsSet a b p q in
   let E : G1 .e ≡ G2 .e
       E = G1 .e                 ≡⟨ idUnique {{grpIsMonoid {{G2}}}} (G1 .lIdentity)⟩
@@ -629,7 +629,7 @@ groupIsProp {A = A} _∙_ G1 G2 i =
            F = let Inv1 = G1 .inverse a in
                let Inv2 = G2 .inverse a in
                let H : fst Inv1 ≡ fst Inv2
-                   H = grp.lcancel ⦃ G1 ⦄ a ((snd Inv1) ⋆ (sym ((snd Inv2) ⋆ (sym E)))) in
+                   H = grp.lcancel ⦃ G1 ⦄ a (snd Inv1 ⋆ sym ((snd Inv2) ⋆ sym E)) in
                let G : PathP (λ j → H j ∙ a ≡ E j) (snd Inv1) (snd Inv2)
                    G = toPathP set in ΣPathP (H , G)
            in F i

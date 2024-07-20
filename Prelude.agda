@@ -67,14 +67,14 @@ f ∘ g = λ a → f (g a)
 
 -- Explicitly exists
 Σ : {A : Type l} → (P : A → Type l') → Type(l ⊔ l')
-Σ {A = A} = Σ' A
+Σ {A} = Σ' A
 
 -- Merely exists
 ∃ : {A : Type l} → (P : A → Type l') → Type(l ⊔ l')
 ∃ P = ∥ Σ P ∥₁
 
 ∃! : {A : Type l} → (P : A → Type l') → Type(l ⊔ l')
-∃! {A = A} P = Σ λ x → P x × ∀ y → P y → x ≡ y
+∃! {A} P = Σ λ x → P x × ∀ y → P y → x ≡ y
 
 _↔_ : Type l → Type l' → Type (l ⊔ l')
 A ↔ B = (A → B) × (B → A)
@@ -141,11 +141,11 @@ open Monad {{...}} public
 
 -- bind
 _>>=_ : {m : Type l → Type l} → {{Monad m}} → m A → (A → m B) → m B
-_>>=_ {m = m} mA p = μ (map p mA)
+_>>=_ {m} mA p = μ (map p mA)
 
 -- apply
 _<*>_ : {m : Type l → Type l} → {{Monad m}} → m (A → B) → m A → m B
-_<*>_ {m = m} mf mA = mf >>= λ f → map f mA
+_<*>_ {m} mf mA = mf >>= λ f → map f mA
 
 instance
   -- Double-negation is a functor and monad
@@ -163,7 +163,7 @@ instance
                    ; monadLemma3 = funExt λ x → funExt λ y → refl 
                    }
   truncFunctor : Functor (∥_∥₁ {ℓ = l})
-  truncFunctor {l} = record {
+  truncFunctor = record {
          map = λ f → truncRec squash₁ λ a → ∣ f a ∣₁
        ; compPreserve = λ f g → funExt λ x → squash₁ (map' (f ∘ g) x) ((map' f ∘ map' g) x)
        ; idPreserve = funExt λ x → squash₁ (truncRec squash₁ (λ a → ∣ id a ∣₁) x) x
@@ -208,12 +208,12 @@ UNREACHABLE ()
 -- https://en.wikipedia.org/wiki/Bijection,_injection_and_surjection
 
 -- https://en.wikipedia.org/wiki/Injective_function
-injective : {A : Type l} {B : Type l'} (f : A → B) → Type(l ⊔ l')
-injective {A = A} f = (x y : A) → f x ≡ f y → x ≡ y
+injective : {A : Type l}{B : Type l'} (f : A → B) → Type(l ⊔ l')
+injective {A} f = (x y : A) → f x ≡ f y → x ≡ y
 
 -- https://en.wikipedia.org/wiki/Surjective_function
 surjective : {A : Type l}{B : Type l'} → (A → B) → Type(l ⊔ l')
-surjective {A = A} {B} f = (b : B) → Σ λ(a : A) → f a ≡ b
+surjective {A}{B} f = (b : B) → Σ λ(a : A) → f a ≡ b
 
 -- https://en.wikipedia.org/wiki/Bijection
 bijective : {A : Type l}{B : Type l'} → (A → B) → Type(l ⊔ l')
@@ -225,12 +225,12 @@ A ≅ B = Σ λ (f : B → A) → bijective f
 injectiveComp : {f : A → B} → injective f
               → {g : B → C} → injective g
                             → injective (g ∘ f)
-injectiveComp {f = f} fInj {g} gInj = λ x y z → fInj x y (gInj (f x) (f y) z)
+injectiveComp {f} fInj {g} gInj = λ x y z → fInj x y (gInj (f x) (f y) z)
 
 surjectiveComp : {f : A → B} → surjective f
                → {g : B → C} → surjective g
                              → surjective (g ∘ f)
-surjectiveComp {f = f} fSurj {g} gSurj =
+surjectiveComp {f} fSurj {g} gSurj =
   λ b → gSurj b |> λ(x , x') → fSurj x |> λ(y , y') → y , (cong g y' ⋆ x')
 
 ≅transitive : A ≅ B → B ≅ C → A ≅ C
@@ -240,10 +240,10 @@ surjectiveComp {f = f} fSurj {g} gSurj =
 -- https://en.wikipedia.org/wiki/Inverse_function#Left_and_right_inverses
 
 leftInverse : {A : Type l}{B : Type l'} → (A → B) → Type(l ⊔ l')
-leftInverse {A = A} {B} f = Σ λ (g : B → A) → (x : A) → g (f x) ≡ x
+leftInverse {A}{B} f = Σ λ (g : B → A) → (x : A) → g (f x) ≡ x
 
 rightInverse : {A : Type l}{B : Type l'} → (A → B) → Type(l ⊔ l')
-rightInverse {A = A} {B} f = Σ λ (h : B → A) → (x : B) → f (h x) ≡ x
+rightInverse {A}{B} f = Σ λ (h : B → A) → (x : B) → f (h x) ≡ x
 
 -- If a function has a left inverse, then it is injective
 lInvToInjective : {f : A → B} → leftInverse f → injective f
@@ -279,7 +279,7 @@ open Commutative {{...}} public
 
 [ab][cd]≡a[[bc]d] : {_∙_ : A → A → A} → {{Associative _∙_}} →
                     (a b c d : A) → (a ∙ b) ∙ (c ∙ d) ≡ a ∙ ((b ∙ c) ∙ d)
-[ab][cd]≡a[[bc]d] {_∙_ = _∙_} a b c d =
+[ab][cd]≡a[[bc]d] {_∙_} a b c d =
                     (a ∙ b) ∙ (c ∙ d) ≡⟨ sym (assoc a b (c ∙ d))⟩
                     a ∙ (b ∙ (c ∙ d)) ≡⟨ right _∙_ (assoc b c d)⟩
                     a ∙ ((b ∙ c) ∙ d) ∎
