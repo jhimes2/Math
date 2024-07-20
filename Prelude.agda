@@ -120,7 +120,7 @@ DeMorgan4 : ¬(A × B) → ¬ A ∨ ¬ B
 DeMorgan4 = λ f g → g (inl λ x → g (inr λ y → f (x , y)))
 
 -- https://en.wikipedia.org/wiki/Functor_(functional_programmingj)
-record Functor (F : Type al → Type bl) : Type (lsuc (al ⊔ bl))  where
+record Functor (F : Type al → Type bl) : Type (lsuc al ⊔ bl)  where
   field
     map : (A → B) → F A → F B
     compPreserve : (f : B → C) → (g : A → B) → map (f ∘ g) ≡ (map f ∘ map g)
