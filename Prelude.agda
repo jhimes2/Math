@@ -201,17 +201,9 @@ instance
                                                ; Nothing → refl}
                       }
 
-_¬¬=_ : ¬ ¬ A → (A → ¬ B) → ¬ B
-f ¬¬= g = λ x → f λ y → g y x
-
 -- https://en.wikipedia.org/wiki/Principle_of_explosion
 UNREACHABLE : ⊥ → {A : Type l} → A
 UNREACHABLE ()
-
-DNOut : (A → implicit B) → implicit (A → B)
-DNOut {A = A} {B = B} f = LEM A
-         ¬¬= λ{ (inl a) → f a ¬¬= λ b → η λ _ → b
-              ; (inr x) → η λ a → x a |> UNREACHABLE }
 
 -- https://en.wikipedia.org/wiki/Bijection,_injection_and_surjection
 
