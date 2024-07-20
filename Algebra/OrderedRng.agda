@@ -136,7 +136,7 @@ module _{{_ : Field A}}{{OF : OrderedRng l A}} where
 
   [a+a]/2≡a : ∀ a → (a + a) / 2f ≡ a
   [a+a]/2≡a a =
-    (a + a) / 2f ≡⟨By-Definition⟩
+    (a + a) / 2f ≡⟨⟩
     (a + a) * reciprocal 2f  ≡⟨ left _*_ (x+x≡x2 a)⟩
     (a * 2r) * reciprocal 2f ≡⟨ sym (assoc a 2r (reciprocal 2f))⟩
     a * (2r * reciprocal 2f) ≡⟨ right _*_ (recInv 2f)⟩

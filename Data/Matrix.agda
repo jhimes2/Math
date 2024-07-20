@@ -207,27 +207,27 @@ instance
      addT = record { preserve =
        λ u v → funExt λ x →
      MT M (addv u v) x
-       ≡⟨By-Definition⟩
+       ≡⟨⟩
      foldr _+_ 0r (zip _*_ (addv u v) ((M ᵀ) x))
-       ≡⟨By-Definition⟩
+       ≡⟨⟩
      foldr _+_ 0r (λ y → (addv u v) y * (M ᵀ) x y)
-       ≡⟨By-Definition⟩
+       ≡⟨⟩
      foldr _+_ 0r (λ y → (u y + v y) * (M ᵀ) x y)
        ≡⟨ cong (foldr _+_ 0r ) (funExt λ z → rDistribute ((M ᵀ) x z) (u z) (v z))⟩
      foldr _+_ 0r (λ y → ((u y * (M ᵀ) x y) + (v y * (M ᵀ) x y)))
-       ≡⟨By-Definition⟩
+       ≡⟨⟩
      foldr _+_ 0r  (addv (multv u ((M ᵀ) x)) (multv v ((M ᵀ) x)))
        ≡⟨ foldrMC (multv u ((M ᵀ) x)) (multv v ((M ᵀ) x))⟩
      foldr _+_ 0r (multv u ((M ᵀ) x)) + foldr _+_ 0r  (multv v ((M ᵀ) x))
-       ≡⟨By-Definition⟩
+       ≡⟨⟩
      foldr _+_ 0r (zip _*_ u ((M ᵀ) x)) + foldr _+_ 0r  (zip _*_ v ((M ᵀ) x))
-       ≡⟨By-Definition⟩
+       ≡⟨⟩
      addv (MT M u) (MT M v) x ∎ }
    ; multT = λ u c → funExt λ x →
-       MT M (scaleV c u) x ≡⟨By-Definition⟩
+       MT M (scaleV c u) x ≡⟨⟩
        foldr _+_ 0r (λ y → (c * u y) * M y x) ≡⟨ cong (foldr _+_ 0r) (funExt λ y → sym (assoc c (u y) (M y x)))⟩
        foldr _+_ 0r (λ y → c * (u y * M y x)) ≡⟨ Rec M u c x ⟩
-       c * (foldr _+_ 0r  (λ y → u y * M y x)) ≡⟨By-Definition⟩
+       c * (foldr _+_ 0r  (λ y → u y * M y x)) ≡⟨⟩
        scaleV c (MT M u) x ∎
    }
       where
@@ -255,14 +255,14 @@ module _{C : Type cl} {{R : Ring C}} where
  dotDistribute {n = S n} w u v =
    let v∙w = tail v ∙ tail w in
    let u∙w = tail u ∙ tail w in
-  (u <+> v) ∙ w ≡⟨By-Definition⟩
-  (head(u <+> v) * head w) + (tail(u <+> v) ∙ tail w) ≡⟨By-Definition⟩
+  (u <+> v) ∙ w ≡⟨⟩
+  (head(u <+> v) * head w) + (tail(u <+> v) ∙ tail w) ≡⟨⟩
   ((head u + head v) * head w) + ((tail u <+> tail v) ∙ tail w)
      ≡⟨ right _+_ (dotDistribute (tail w) (tail u) (tail v))⟩
   ((head u + head v) * head w) + (u∙w + v∙w) ≡⟨ left _+_ (rDistribute (head w)(head u)(head v))⟩
   ((head u * head w) + (head v * head w)) + (u∙w + v∙w)
      ≡⟨ [ab][cd]≡[ac][bd] (head u * head w) (head v * head w) (u∙w) (v∙w)⟩
-  ((head u * head w) + u∙w) + ((head v * head w) + v∙w) ≡⟨By-Definition⟩
+  ((head u * head w) + u∙w) + ((head v * head w) + v∙w) ≡⟨⟩
   (u ∙ w) + (v ∙ w) ∎
  
  dotlDistribute : (w u v : < C ^ n >) → w ∙ (u <+> v) ≡ (w ∙ u) + (w ∙ v)
@@ -281,15 +281,15 @@ module _{C : Type cl} {{R : Ring C}} where
  dot*> : (c : C) → (u v : < C ^ n >) → (c *> u) ∙ v ≡ c * (u ∙ v)
  dot*> {n = Z} c u v = sym (x*0≡0 c)
  dot*> {n = S n} c u v =
-  (c *> u) ∙ v ≡⟨By-Definition⟩
+  (c *> u) ∙ v ≡⟨⟩
   (head(c *> u) * head v) + (tail(c *> u) ∙ tail v)
   ≡⟨ right _+_ (dot*> {n = n} c (tail u) (tail v))⟩
-  (head(c *> u) * head v) + (c * (tail u ∙ tail v)) ≡⟨By-Definition⟩
+  (head(c *> u) * head v) + (c * (tail u ∙ tail v)) ≡⟨⟩
   ((c * head u) * head v) + (c * (tail u ∙ tail v))
   ≡⟨ left _+_ (sym (assoc c (head u) (head v)))⟩
   (c * (head u * head v)) + (c * (tail u ∙ tail v))
   ≡⟨ sym (lDistribute c (head u * head v) ((tail u ∙ tail v)))⟩
-  c * ((head u * head v) + (tail u ∙ tail v)) ≡⟨By-Definition⟩
+  c * ((head u * head v) + (tail u ∙ tail v)) ≡⟨⟩
   c * (u ∙ v) ∎
  
  _orthogonal-to_ : < C ^ n > → (W : < C ^ n > → Type l) → {{Submodule W}} → Type(l ⊔ cl)
@@ -332,13 +332,13 @@ module _{C : Type cl} {{R : Ring C}} where
              → (λ y → v ∙ λ x → M x y) ∙ u ≡ v ∙ λ x → M x ∙ u
    dotMatrix n Z u M v = dotZL u
    dotMatrix n (S m) u M v =
-    (λ n' → v ∙ (λ m' → M m' n')) ∙ u ≡⟨By-Definition⟩
-    (λ n' → (head v * (head M) n') + (tail v ∙ tail λ m' → M m' n')) ∙ u ≡⟨By-Definition⟩
+    (λ n' → v ∙ (λ m' → M m' n')) ∙ u ≡⟨⟩
+    (λ n' → (head v * (head M) n') + (tail v ∙ tail λ m' → M m' n')) ∙ u ≡⟨⟩
     ((λ n' → head v * (head M) n') <+> (λ n' → tail v ∙ λ m' → (tail M) m' n')) ∙ u
     ≡⟨ dotDistribute u (λ n' → (head v * head λ m' → M m' n')) (λ n' → tail v ∙ λ m' → (tail M) m' n')⟩
     ((head v *> head M) ∙ u) + ((λ n' → tail v ∙ λ m' → (tail M) m' n') ∙ u)
     ≡⟨ cong₂ _+_ (dot*> {n = n} (head v) (head M) u) (dotMatrix n m u (tail M) (tail v))⟩
-    (head v * (head M ∙ u)) + (tail v ∙ tail λ m' → M m' ∙ u) ≡⟨By-Definition⟩
+    (head v * (head M ∙ u)) + (tail v ∙ tail λ m' → M m' ∙ u) ≡⟨⟩
     v ∙ (λ m' → M m' ∙ u) ∎
 
  {- An infinite identity matrix is a function that takes two natural
@@ -371,10 +371,10 @@ module _{C : Type cl} {{R : Ring C}} where
    aux : (v : ℕ< n → C) → (a : ℕ< n) → MT I v a ≡ v a 
    aux {n = Z} v (x , y , p) = ZNotS (sym p) ~> UNREACHABLE
    aux {n = S n} v (Z , yp) =
-     MT I v (Z , yp) ≡⟨By-Definition⟩
-     v ∙ (I (Z , yp)) ≡⟨By-Definition⟩
+     MT I v (Z , yp) ≡⟨⟩
+     v ∙ (I (Z , yp)) ≡⟨⟩
      (head v * 1r) + (tail v ∙ λ _ → 0r) ≡⟨ left _+_ (rIdentity (head v))⟩
-     head v + (tail v ∙ λ _ → 0r) ≡⟨By-Definition⟩
+     head v + (tail v ∙ λ _ → 0r) ≡⟨⟩
      head v + (tail v ∙ λ _ → 0r) ≡⟨ right _+_ (dotZR (tail v))⟩
      head v + 0r ≡⟨ rIdentity (head v)⟩
      head v ≡⟨ cong v (ΣPathPProp (λ a → finSndIsProp a) refl)⟩
@@ -385,14 +385,14 @@ module _{C : Type cl} {{R : Ring C}} where
              R' = aux (tail v) (x , y , SInjective p) in
          let R : tail v ∙ I (x , y , SInjective p) ≡ tail v (x , y , SInjective p)
              R = cong (λ a → tail v ∙ a (x , y , SInjective p)) idTranspose ⋆ R' in
-    MT I v (S x , y , p) ≡⟨By-Definition⟩
+    MT I v (S x , y , p) ≡⟨⟩
     v ∙ (λ z → I z (S x , y , p)) ≡⟨ cong (λ a → v ∙ λ z → a z (S x , y , p)) idTranspose ⟩
-    v ∙ I (S x , y , p) ≡⟨By-Definition⟩
-    (head v * head (I (S x , y , p))) + (tail v ∙ tail (I (S x , y , p))) ≡⟨By-Definition⟩
-    (head v * (I (S x , y , p)) (Z , (S n) , refl)) + (tail v ∙ tail (I (S x , y , p))) ≡⟨By-Definition⟩
+    v ∙ I (S x , y , p) ≡⟨⟩
+    (head v * head (I (S x , y , p))) + (tail v ∙ tail (I (S x , y , p))) ≡⟨⟩
+    (head v * (I (S x , y , p)) (Z , (S n) , refl)) + (tail v ∙ tail (I (S x , y , p))) ≡⟨⟩
     (head v * 0r) + (tail v ∙ tail (I (S x , y , p))) ≡⟨ left _+_ (x*0≡0 (head v))⟩
     0r + (tail v ∙ tail (I (S x , y , p))) ≡⟨ lIdentity (tail v ∙ tail (I (S x , y , p)))⟩
-    tail v ∙ tail (I (S x , y , p)) ≡⟨By-Definition⟩
+    tail v ∙ tail (I (S x , y , p)) ≡⟨⟩
     tail v ∙ I (x , y , SInjective p) ≡⟨ R ⟩
     tail v (x , y , SInjective p) ≡⟨ cong v (ΣPathPProp (λ a → finSndIsProp a) refl)⟩
     v (S x , y , p) ∎
@@ -407,7 +407,7 @@ module _{C : Type cl} {{R : Ring C}} where
    aux : {n : ℕ} → (M : ℕ< n → A → C) → (a : ℕ< n) → (b : A) → mMult M I a b ≡ M a b
    aux {n = Z} M (x , y , p) b = ZNotS (sym p) ~> UNREACHABLE
    aux {n = S n} M (Z , yp) b =
-     I (Z , yp) ∙ (λ z → M z b) ≡⟨By-Definition⟩
+     I (Z , yp) ∙ (λ z → M z b) ≡⟨⟩
      (1r * head λ z → M z b) + ((λ _ → 0r) ∙ tail λ z → M z b) ≡⟨ left _+_ (lIdentity (head λ z → M z b))⟩
      head (λ z → M z b) + ((λ _ → 0r) ∙ tail λ z → M z b) ≡⟨ right _+_ (dotZL (tail λ z → M z b))⟩
      head (λ z → M z b) + 0r ≡⟨ rIdentity (head λ z → M z b)⟩
@@ -417,10 +417,10 @@ module _{C : Type cl} {{R : Ring C}} where
    aux {n = S (S n)} M (S x , y , p) b =
     let R : I (x , y , SInjective p) ∙ (λ z → tail M z b) ≡ tail M (x , y , SInjective p) b
         R = aux (tail M) (x , y , SInjective p) b in
-    I (S x , y , p) ∙ (λ z → M z b) ≡⟨By-Definition⟩
+    I (S x , y , p) ∙ (λ z → M z b) ≡⟨⟩
     (0r * head λ z → M z b) + (tail (I (S x , y , p)) ∙ tail λ z → M z b) ≡⟨ left _+_ (0*x≡0 (head λ z → M z b))⟩
     0r + (tail (I (S x , y , p)) ∙ tail (λ z → M z b)) ≡⟨ lIdentity (tail (I (S x , y , p)) ∙ tail λ z → M z b)⟩
-    tail (I (S x , y , p)) ∙ tail (λ z → M z b) ≡⟨By-Definition⟩
+    tail (I (S x , y , p)) ∙ tail (λ z → M z b) ≡⟨⟩
     I (x , y , SInjective p) ∙ tail (λ z → M z b) ≡⟨ R ⟩
     tail M (x , y , SInjective p) b ≡⟨ left M (ΣPathPProp (λ a → finSndIsProp a) refl)⟩
     M (S x , y , p) b ∎
@@ -508,7 +508,7 @@ module _ {{R : CRing C}} where
                 → (N : B → ℕ< n → C)
                 → (mMult M N) ᵀ ≡ mMult (N ᵀ) (M ᵀ)
  transposeMMult M N = funExt λ c → funExt λ b →
-     ((mMult M N) ᵀ) c b ≡⟨By-Definition⟩
+     ((mMult M N) ᵀ) c b ≡⟨⟩
      N b ∙ (λ x → M x c)       ≡⟨ comm (N b) (λ x → M x c)⟩
-     (λ x → M x c) ∙ N b       ≡⟨By-Definition⟩
+     (λ x → M x c) ∙ N b       ≡⟨⟩
      mMult (N ᵀ) (M ᵀ) c b ∎

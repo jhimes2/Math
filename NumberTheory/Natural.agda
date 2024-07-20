@@ -131,7 +131,7 @@ divLemma : (a : ℕ) → (b : nonZ) → a ≡ (fst b * div a b) + Mod a b
 divLemma a (b , c , p) =
     a ≡⟨ cutLemma a c ⟩
     (S c * (cut a c)) + paste a c  ≡⟨ left _+_ (left _*_ (sym p))⟩
-    (b * cut a c) + paste a c  ≡⟨By-Definition⟩
+    (b * cut a c) + paste a c  ≡⟨⟩
     (b * div a (b , c , p)) + Mod a (b , c , p) ∎
 
 commonDivisor : ℕ → ℕ → ℕ → Type

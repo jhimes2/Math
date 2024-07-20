@@ -71,13 +71,13 @@ module _{𝐀 Q₁ : Type}{{M₁ : Automaton 𝐀 Q₁}} where
  autoLemma1 : (x : < 𝐀 ^ n >) → (y : < 𝐀 ^ m >) → δ* x ≡ δ* y → L-indistinguishable (n , x) (m , y)
  autoLemma1 x y = λ (p : foldr δ q₀ x ≡ foldr δ q₀ y) →
                   λ z →
-  L (z ++ x)                         ≡⟨By-Definition⟩
-  accepts (δ* (z ++ x))              ≡⟨By-Definition⟩
+  L (z ++ x)                         ≡⟨⟩
+  accepts (δ* (z ++ x))              ≡⟨⟩
   accepts (foldr δ q₀ (z ++ x))      ≡⟨ cong accepts (foldr++ δ q₀ z x)⟩
   accepts (foldr δ (foldr δ q₀ x) z) ≡⟨ cong (λ i → accepts (foldr δ i z)) p ⟩
   accepts (foldr δ (foldr δ q₀ y) z) ≡⟨ sym (cong accepts (foldr++ δ q₀ z y))⟩
-  accepts (foldr δ q₀ (z ++ y))      ≡⟨By-Definition⟩
-  accepts (δ* (z ++ y))              ≡⟨By-Definition⟩
+  accepts (foldr δ q₀ (z ++ y))      ≡⟨⟩
+  accepts (δ* (z ++ y))              ≡⟨⟩
   L (z ++ y) ∎
 
  module _{Q₂ : Type}{{M₂ : Automaton 𝐀 Q₂}} where

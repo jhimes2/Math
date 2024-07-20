@@ -130,15 +130,15 @@ divisionℤ b =
            [ Z , y ] + (([ b , Z ] * [ Z , y ]) + [ b * y , Z ]) ≡⟨ assoc [ Z , y ] ( ([ b , Z ] * [ Z , y ])) [ b * y , Z ] ⟩
            ([ Z , y ] + ([ b , Z ] * [ Z , y ])) + [ b * y , Z ]
              ≡⟨ cong (λ x → ([ Z , y ] + x) + [ b * y , Z ]) (ℤℕMultNeg b y)⟩
-           ([ Z , y ] + [ Z , b * y ]) + [ b * y , Z ] ≡⟨By-Definition⟩
+           ([ Z , y ] + [ Z , b * y ]) + [ b * y , Z ] ≡⟨⟩
            [ Z , S b * y ] +  [ b * y , Z ] ≡⟨ cong (λ z → z + [ b * y , Z ]) (sym (ℤℕMultNeg (S b) y))⟩
            ([ S b , Z ] * [ Z , y ]) + [ b * y , Z ] ∎
    in
    let E =([ x , y ] ≡⟨ cong [_] (left _,_ (sym (addZ x)))⟩
-          [ x + Z , y ] ≡⟨By-Definition⟩
+          [ x + Z , y ] ≡⟨⟩
           [ x , Z ] + [ Z , y ] ≡⟨ cong (λ z → [ x , Z ] + z) J ⟩
           [ x , Z ] + (([ S b , Z ] * [ Z , y ]) + [ b * y , Z ]) ≡⟨ a[bc]≡b[ac] [ x , Z ] ([ S b , Z ] * [ Z , y ]) [ b * y , Z ] ⟩
-          ([ S b , Z ] * [ Z , y ]) + ([ x , Z ] + [ b * y , Z ]) ≡⟨By-Definition⟩
+          ([ S b , Z ] * [ Z , y ]) + ([ x , Z ] + [ b * y , Z ]) ≡⟨⟩
           ([ S b , Z ] * [ Z , y ]) + [ x + (b * y) , Z ] ∎ )
    in
  let H = leastTerm {P = T} (decT [ x , y ] b) $ x + (b * y) , neg [ y , Z ] ,

@@ -53,13 +53,13 @@ module _{A : Type l}{{R : Ring A}} where
  x+x≡2x : (x : A) → x + x ≡ 2r * x
  x+x≡2x x = x + x                 ≡⟨ sym( cong₂ _+_ (lIdentity x) (lIdentity x))⟩
             ((1r * x) + (1r * x)) ≡⟨ sym (rDistribute x 1r 1r)⟩
-            (1r + 1r) * x         ≡⟨By-Definition⟩
+            (1r + 1r) * x         ≡⟨⟩
             2r * x ∎
 
  x+x≡x2 : (x : A) → x + x ≡ x * 2r
  x+x≡x2 x = x + x                 ≡⟨ sym (cong₂ _+_ (rIdentity x) (rIdentity x))⟩
             ((x * 1r) + (x * 1r)) ≡⟨ sym (lDistribute x 1r 1r)⟩
-            x * (1r + 1r)         ≡⟨By-Definition⟩
+            x * (1r + 1r)         ≡⟨⟩
             x * 2r ∎
 
  -- Subset of ring that corresponds to natural numbers

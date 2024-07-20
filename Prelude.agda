@@ -3,7 +3,7 @@
 open import Agda.Primitive public
 open import Cubical.Foundations.Prelude
     renaming (Σ to Σ' ; I to Interval ; _∨_ to or ; congL to left
-             ; congR to right ; _≡⟨⟩_ to _≡⟨By-Definition⟩_ ; _∙_ to _⋆_) public
+             ; congR to right ; _∙_ to _⋆_) public
 open import Cubical.Relation.Nullary public
 open import Cubical.Data.Unit renaming (Unit to ⊤) public
 open import Cubical.Data.Empty public

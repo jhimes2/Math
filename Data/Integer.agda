@@ -269,7 +269,7 @@ instance
  natSub = record { _-_ = λ a b → [ a , b ] }
 
 ℤℕMultNeg : (a b : ℕ) → (a - Z) * (Z - b) ≡ Z - (a * b)
-ℤℕMultNeg a b = (a - Z) * (Z - b) ≡⟨By-Definition⟩
+ℤℕMultNeg a b = (a - Z) * (Z - b) ≡⟨⟩
                ((a * Z) + Z) - ((a * b) + Z) ≡⟨ cong (λ x → (x + Z) - ((a * b) + Z)) (multZ a)⟩
                Z - ((a * b) + Z) ≡⟨ cong (λ x → Z - x ) (rIdentity (a * b))⟩
                Z - (a * b) ∎
