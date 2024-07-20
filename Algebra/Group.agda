@@ -138,8 +138,8 @@ module grp {_∙_ : A → A → A}{{G : group _∙_}} where
 
   lemma1 : (a b : A) → inv b ∙ inv a ≡ inv (a ∙ b)
   lemma1 = λ(a b : A)
-   → [ inv b ∙ inv a ≡ inv (a ∙ b)] uniqueInv
-   $ [(inv b ∙ inv a) ∙ inv(inv(a ∙ b)) ≡ e ]
+   → [wts inv b ∙ inv a ≡ inv (a ∙ b)] uniqueInv
+   $ [wts (inv b ∙ inv a) ∙ inv(inv(a ∙ b)) ≡ e ]
       (inv b ∙ inv a) ∙ inv(inv(a ∙ b)) ≡⟨ right _∙_ (doubleInv (a ∙ b))⟩
       (inv b ∙ inv a) ∙ (a ∙ b)         ≡⟨ sym (assoc (inv b) (inv a) (a ∙ b))⟩
       inv b ∙ (inv a ∙ (a ∙ b))         ≡⟨ right _∙_ (a'[ab]≡b a b)⟩
@@ -204,7 +204,7 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
  centralizerSG : {H : A → Type l} → Subgroup (centralizer H)
  centralizerSG {H} = record
     { inv-closed = λ{x} (X : x ∈ centralizer H) z z∈H
-     → [ inv x ∙ z ≡ z ∙ inv x ] (grp.cancel x)
+     → [wts inv x ∙ z ≡ z ∙ inv x ] (grp.cancel x)
      $ x ∙ (inv x ∙ z) ≡⟨ a[a'b]≡b x z ⟩
        z               ≡⟨ sym ([ab]b'≡a z x)⟩
        (z ∙ x) ∙ inv x ≡⟨ left _∙_ (sym (X z z∈H))⟩
@@ -295,11 +295,11 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
  generatingIsSubgroup : (X : A → Type l) → Σ X → Subgroup ⟨ X ⟩
  generatingIsSubgroup X (x , H) = record
    { SGSM = record
-     { id-closed = [ e ∈ ⟨ X ⟩ ] subst ⟨ X ⟩ (lInverse x)
-                 $ [ inv x ∙ x ∈ ⟨ X ⟩ ] gen-op
-                   (  [ inv x ∈ ⟨ X ⟩ ] gen-inv
-                    $ [ x ∈ ⟨ X ⟩ ] gen-intro H)
-                   (  [ x ∈ ⟨ X ⟩ ] gen-intro H)
+     { id-closed = [wts e ∈ ⟨ X ⟩ ] subst ⟨ X ⟩ (lInverse x)
+                 $ [wts inv x ∙ x ∈ ⟨ X ⟩ ] gen-op
+                   (  [wts inv x ∈ ⟨ X ⟩ ] gen-inv
+                    $ [wts x ∈ ⟨ X ⟩ ] gen-intro H)
+                   (  [wts x ∈ ⟨ X ⟩ ] gen-intro H)
      ; op-closed = gen-op
      }
    ; inv-closed = gen-inv
@@ -325,8 +325,8 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
 
   -- A group homomorphism maps identity elements to identity elements
   idToId : (h : A → B) → {{X : Homomorphism h}} → h e ≡ e
-  idToId h = [ h e ≡ e ] grp.lemma3
-           $ [ h e ≡ h e * h e ]
+  idToId h = [wts h e ≡ e ] grp.lemma3
+           $ [wts h e ≡ h e * h e ]
                h e       ≡⟨ cong h (sym (lIdentity e))⟩
                h (e ∙ e) ≡⟨ preserve e e ⟩
                h e * h e ∎
@@ -334,8 +334,8 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
   -- A group homomorphism maps inverse elements to inverse elements
   invToInv : (h : A → B) → {{X : Homomorphism h}} → ∀ a → h (inv a) ≡ inv (h a)
   invToInv = λ h a
-   → [ h (inv a) ≡ inv (h a) ] grp.lcancel (h a)
-   $ [ h (inv a) * h a ≡ inv (h a) * h a ]
+   → [wts h (inv a) ≡ inv (h a) ] grp.lcancel (h a)
+   $ [wts h (inv a) * h a ≡ inv (h a) * h a ]
      h (inv a) * h a ≡⟨ sym (preserve (inv a) a)⟩
      h (inv a ∙ a)   ≡⟨ cong h (lInverse a)⟩
      h e             ≡⟨ idToId h ⟩

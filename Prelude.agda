@@ -86,21 +86,21 @@ infixr 0 _⇔_
 
 {- Syntax to show the goal as we apply proofs which allows
    the code to be more human readable. -}
-[_]_ : (A : Type l) → A → A
-[ _ ] a = a
-infixr 0 [_]_
+[wts_]_ : (A : Type l) → A → A
+[wts _ ] a = a
+infixr 0 [wts_]_
 
 -- Also contrapositive
 modusTollens : (A → B) → ¬ B → ¬ A
 modusTollens {A}{B} =
- [((A → B) → ¬ B → ¬ A)]       -- unnecessary line
- [((A → B) → (B → ⊥) → A → ⊥)] -- unnecessary line
+ [wts((A → B) → ¬ B → ¬ A)]       -- unnecessary line
+ [wts((A → B) → (B → ⊥) → A → ⊥)] -- unnecessary line
  λ(f : A → B)
   (H : B → ⊥)
   (a : A)
-  → [ ⊥ ] H
-  $ [ B ] f
-  $ [ A ] a
+  → [wts ⊥ ] H
+  $ [wts B ] f
+  $ [wts A ] a
 
 -- Although we could have proven 'modusTollens' by `λ f H a → H (f a)`.
 

@@ -38,16 +38,16 @@ module _{A : Type l}{{R : Rng A}} where
 
  x*0≡0 : (x : A) → x * 0r ≡ 0r
  x*0≡0 x =
-  [ x * 0r ≡ 0r ] grp.lemma3 $
-  [ x * 0r ≡ (x * 0r) + (x * 0r)]
+  [wts x * 0r ≡ 0r ] grp.lemma3 $
+  [wts x * 0r ≡ (x * 0r) + (x * 0r)]
     x * 0r              ≡⟨ right _*_ (sym (rIdentity 0r))⟩
     x * (0r + 0r)       ≡⟨ lDistribute x 0r 0r ⟩
     (x * 0r) + (x * 0r) ∎
  
  0*x≡0 : (x : A) → 0r * x ≡ 0r
  0*x≡0 x =
-  [ 0r * x ≡ 0r ] grp.lemma3 $
-  [ 0r * x ≡ (0r * x) + (0r * x)]
+  [wts 0r * x ≡ 0r ] grp.lemma3 $
+  [wts 0r * x ≡ (0r * x) + (0r * x)]
     0r * x              ≡⟨ left _*_ (sym (rIdentity 0r))⟩
     (0r + 0r) * x       ≡⟨ rDistribute x 0r 0r ⟩
     (0r * x) + (0r * x) ∎
@@ -79,8 +79,8 @@ module _{A : Type l}{{R : Rng A}} where
              0r ∎
  
   -x*y≡x*-y =
-   [ neg x * y ≡ x * neg y ] grp.cancel (x * y) $
-   [(x * y)+(neg x * y) ≡ (x * y)+(x * neg y)]
+   [wts neg x * y ≡ x * neg y ] grp.cancel (x * y) $
+   [wts(x * y)+(neg x * y) ≡ (x * y)+(x * neg y)]
     (x * y)+(neg x * y) ≡⟨ sym(rDistribute y x (neg x))⟩
     (x - x) * y         ≡⟨ [x-x]y≡0 ⟩
     0r                  ≡⟨ sym x[y-y]≡0 ⟩
@@ -88,8 +88,8 @@ module _{A : Type l}{{R : Rng A}} where
     (x * y)+(x * neg y) ∎
   
   -x*y≡-[x*y] =
-   [ neg x * y ≡ neg(x * y)] grp.cancel (x * y) $
-   [(x * y)+(neg x * y) ≡ (x * y) + neg(x * y)]
+   [wts neg x * y ≡ neg(x * y)] grp.cancel (x * y) $
+   [wts(x * y)+(neg x * y) ≡ (x * y) + neg(x * y)]
     (x * y)+(neg x * y) ≡⟨ sym(rDistribute y x (neg x))⟩
     (x - x) * y         ≡⟨ [x-x]y≡0 ⟩
     0r                  ≡⟨ sym (rInverse (x * y))⟩

@@ -30,8 +30,8 @@ module _(oddFunction : ∀ θ → neg(sin θ) ≡ sin(neg θ))
  sin0≡0 : sin 0r ≡ 0r
  sin0≡0 =
   -- We can prove sin(0)=0 by proving sin(0)=sin(0)+sin(0)
-  [ sin 0r ≡ 0r ] grp.lemma3 $
-  [ sin 0r ≡ sin 0r + sin 0r ]
+  [wts sin 0r ≡ 0r ] grp.lemma3 $
+  [wts sin 0r ≡ sin 0r + sin 0r ]
     sin 0r                                       ≡⟨ cong sin(sym (lIdentity 0r))⟩
     sin(0r + 0r)                                 ≡⟨ sinAngleAdd 0r 0r ⟩
     (sin 0r * cos 0r) + (sin 0r * cos 0r)        ≡⟨⟩
@@ -47,8 +47,8 @@ module _(oddFunction : ∀ θ → neg(sin θ) ≡ sin(neg θ))
  cosπ/2≡0 : cos π/2 ≡ 0r
  cosπ/2≡0 =
   -- We can prove cos(π/2)=0 by proving cos(π/2)=cos(π/2)+cos(π/2)
-  [ cos π/2 ≡ 0r ] grp.lemma3 $
-  [ cos π/2 ≡ cos π/2 + cos π/2 ]
+  [wts cos π/2 ≡ 0r ] grp.lemma3 $
+  [wts cos π/2 ≡ cos π/2 + cos π/2 ]
     cos π/2                                 ≡⟨⟩
     sin(π/2 + π/2)                          ≡⟨ sinAngleAdd π/2 π/2 ⟩
     (sin π/2 * cos π/2)+(sin π/2 * cos π/2) ≡⟨ left _+_ (left _*_ evaluation)⟩
@@ -80,8 +80,8 @@ module _(oddFunction : ∀ θ → neg(sin θ) ≡ sin(neg θ))
 
  sinπ/2-θ≡cosθ : ∀ θ → sin(π/2 - θ) ≡ cos θ
  sinπ/2-θ≡cosθ θ =
-  [ sin(π/2 - θ) ≡ cos θ ] grp.invInjective $
-  [ neg(sin(π/2 - θ)) ≡ neg(cos θ) ]
+  [wts sin(π/2 - θ) ≡ cos θ ] grp.invInjective $
+  [wts neg(sin(π/2 - θ)) ≡ neg(cos θ) ]
     neg(sin(π/2 - θ))           ≡⟨ oddFunction (π/2 - θ)⟩
     sin(neg(π/2 - θ))           ≡⟨⟩
     sin(neg(π/2 + neg θ))       ≡⟨ cong sin(sym (grp.lemma1 π/2 (neg θ)))⟩

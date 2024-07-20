@@ -33,9 +33,9 @@ injective f = ∀ x y → f x ≡ f y → x ≡ y
 surjective : {A : Set l}{B : Set l'} → (A → B) → Set (l ⊔ l')
 surjective f = ∀ b → Σ λ a → f a ≡ b
 
-[_]_ : (A : Set l) → A → A
-[ _ ] a = a
-infixr 0 [_]_
+[wts_]_ : (A : Set l) → A → A
+[wts _ ] a = a
+infixr 0 [wts_]_
 
 fst : {P : A → Set l} → Σ P → A
 fst (a , _) = a
@@ -309,7 +309,7 @@ instance
           → f ⁻¹[ ⋃ X ] ≡ ⋃ (map (f ⁻¹[_]) X)
 ∪preimage X f = funExt λ z → propExt (_>> λ(G , (fz∈G) , X∈G)
    → intro ((f ⁻¹[ G ]) , fz∈G , intro (G , X∈G , refl)))
-   (_>> λ(Y , z∈Y , Q) → Q >> λ(h , h∈X , Y≡f⁻¹[h]) → intro (h , ([ z ∈ f ⁻¹[ h ] ]
+   (_>> λ(Y , z∈Y , Q) → Q >> λ(h , h∈X , Y≡f⁻¹[h]) → intro (h , ([wts z ∈ f ⁻¹[ h ] ]
      substP z (sym Y≡f⁻¹[h]) z∈Y) , h∈X))
 
 record topology {A : set al} (T : ℙ(ℙ A)) : set al where
