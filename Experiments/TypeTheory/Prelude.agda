@@ -49,8 +49,11 @@ infixr 5 _∉_
 UNREACHABLE : ⊥ → {A : Set l} → A
 UNREACHABLE ()
 
-data Σ {A : Set l}(P : A → Set l') : Set (l ⊔ l') where
- _,_ : (x : A) → P x →  Σ P
+record Σ {A : Set l}(P : A → Set l') : Set (l ⊔ l') where
+ constructor _,_
+ field
+     fst : A
+     snd : P fst
 infixr 5 _,_
 
 fst : {P : A → Set l} → Σ P → A
@@ -65,6 +68,7 @@ A × B = Σ λ (_ : A) → B
 data _＋_ (A : Set l) (B : Set l') : Set (l ⊔ l') where
  inl : A → A ＋ B
  inr : B → A ＋ B
+infixr 5 _＋_
 
 orTy : {A B : Set l} → (A ＋ B) → Set l
 orTy {A} (inl x) = A
@@ -96,3 +100,21 @@ natDiscrete (S x) (S y) with natDiscrete x y
 ... | (inl p) = inl (cong S p)
 ... | (inr p) = inr λ q → p (SInjective q)
 
+max : ℕ → ℕ → ℕ
+max Z y = y
+max (S x) Z = S x
+max (S x) (S y) = S (max x y)
+
+_≤_ : ℕ → ℕ → Set
+Z ≤ _ = ⊤
+S a ≤ Z = ⊥
+S a ≤ S b = a ≤ b
+
+trichotomy : ∀ a b → (S a ≤ b) ＋ (a ≡ b) ＋ (S b ≤ a)
+trichotomy Z Z = inr (inl refl)
+trichotomy Z (S b) = inl tt
+trichotomy (S a) Z = inr (inr tt)
+trichotomy (S a) (S b) with trichotomy a b
+... | inl x = inl x
+... | inr (inl x) = inr (inl (cong S x))
+... | inr (inr x) = inr (inr x)

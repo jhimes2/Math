@@ -261,6 +261,11 @@ isLe (S x) (S y) with (isLe x y)
 ...              | (inl l) = inl l
 ...              | (inr (r , p)) = inr (r , cong S let q = Sout r y in p ⋆ sym q)
 
+leΣ : {a b : ℕ} → a ≤ b → Σ λ n → b ≡ a + n
+leΣ {Z} {b} H = b , refl
+leΣ {S a} {S b} H with leΣ {a} {b} H
+... | x , H = x , (cong S H)
+
 natSC : (a b : ℕ) → a ≤ b ＋ S b ≤ a
 natSC Z _ = inl tt
 natSC (S a) Z = inr tt
@@ -390,3 +395,12 @@ instance
 minIdempotent : ∀ a → min a a ≡ a
 minIdempotent Z = refl
 minIdempotent (S a) = cong S (minIdempotent a)
+
+trichotomy : ∀ a b → (S a ≤ b) ＋ (a ≡ b) ＋ (S b ≤ a)
+trichotomy Z Z = inr (inl refl)
+trichotomy Z (S b) = inl tt
+trichotomy (S a) Z = inr (inr tt)
+trichotomy (S a) (S b) with trichotomy a b
+... | inl x = inl x
+... | inr (inl x) = inr (inl (cong S x))
+... | inr (inr x) = inr (inr x)

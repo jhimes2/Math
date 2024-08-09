@@ -31,7 +31,7 @@ a ≢ b = ¬(a ≡ b)
 data _＋_ (A : Type al)(B : Type bl) : Type (al ⊔ bl) where
   inl : A → A ＋ B
   inr : B → A ＋ B
-infix 2 _＋_
+infixr 2 _＋_
 
 data Maybe (A : Type l) : Type l where
  Just : A → Maybe A

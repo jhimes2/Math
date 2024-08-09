@@ -2,25 +2,7 @@
 
 module standard.Lang1 where
 
-open import Prelude public
-open import standard.Terms public
-
-v0 = Var Z
-v1 = Var (S Z)
-v2 = Var (S(S Z))
-v3 = Var (S(S(S Z)))
-v4 = Var (S(S(S(S Z))))
-v5 = Var (S(S(S(S(S Z)))))
-
-Induction : (P : ℕ → Set) → P Z → (∀ x → P x → P (S x)) → ∀ x → P x
-Induction P base step Z = base
-Induction P base step (S x) = step x (Induction P base step x)
-
-addℕ : ℕ → ℕ → ℕ
-addℕ x = Induction (λ _ → ℕ) x (λ a b → S b)
-
-testadd : addℕ (S(S(S(S Z)))) (S(S Z)) ≡ (S(S(S(S Z)))) + (S(S Z))
-testadd = refl
+open import standard.Terms
 
 data _⊢_::_ : {n : ℕ} → Context n → tm → tm → Set where
   sort : <> ⊢ ■ Z :: ■ (S Z)
@@ -37,7 +19,7 @@ data _⊢_::_ : {n : ℕ} → Context n → tm → tm → Set where
   form : ∀{n} → {Γ : Context n} → ∀{A B l l'}
        → Γ ⊢ A :: ■ l
        → (cons A Γ ⊢ B :: ■ l')
-       → Γ ⊢ A ⇒ B :: ■ (max l l')
+       → Γ ⊢ A ⇒ B :: ■ l'
   appl : ∀{n} → {Γ : Context n} → ∀{A B M N}
       → Γ ⊢ M :: (A ⇒ B)
       → Γ ⊢ N :: A
@@ -45,36 +27,14 @@ data _⊢_::_ : {n : ℕ} → Context n → tm → tm → Set where
   abst : ∀{n} → {Γ : Context n} → ∀{A B M}
       → cons A Γ ⊢ M :: B
       → Γ ⊢ (↦ M) :: (A ⇒ B)
-  ΣForm : ∀{n} → {Γ : Context n}
-        → ∀{l l'} → {A B : tm} → (Γ ⊢ A :: ■ l) → cons A Γ ⊢ B :: ■ l' → Γ ⊢ Sigma A B :: ■ (max l l')
-  ΣIntro : ∀{n} → {Γ : Context n}
-         → ∀{A x N B} → Γ ⊢ x :: A → cons A Γ ⊢ N :: substitution n B x → Γ ⊢ x ,, N :: Sigma A B
-  First : ∀{n} → {Γ : Context n}
-        → {A B t : tm}
-        → Γ ⊢ t :: Sigma A B
-        → Γ ⊢ first t :: A
-  Second : ∀{n} → {Γ : Context n}
-        → {A B t : tm}
-        → Γ ⊢ t :: Sigma A B
-        → Γ ⊢ second t :: substitution n B (first t)
-  ℕType : ∀{n} → {Γ : Context n}
-        → Γ ⊢ Nat :: ■ (S(S Z))
-  ZType : ∀{n} → {Γ : Context n}
-        → Γ ⊢ Zero :: Nat
-  SType : ∀{n} → {Γ : Context n}
-        → Γ ⊢ Suc :: (Nat ⇒ Nat)
-  ℕElim : ∀{n l} → {Γ : Context n}
-        → Γ ⊢ ℕelim :: ((Nat ⇒ ■ l) ⇒ Appl v0 Zero ⇒ (Nat ⇒ Appl v0 v2 ⇒ Appl v0 (Appl Suc v4)) ⇒ Nat ⇒ Appl v0 v3)
-        
+
 _::_ : tm → tm → Set
 x :: A =  <> ⊢ x :: A
 infix 4 _::_
 
-parseId : ↦ ↦ v1 :: ■ Z ⇒ v0 ⇒ v0
+parseId : ↦ ↦ Var (S Z) :: ■ Z ⇒ Var Z ⇒ Var Z
 parseId = abst(abst (var (var sort)))
-
-idApplication : ∀(A : tm) → (A :: ■ Z) → (Appl (↦ ↦ v1) A) :: A ⇒ A
-idApplication A X = appl parseId X
+          
 
 testId2 : (A : tm) → (A :: ■ Z)
         → ↦ Var Z :: (A ⇒ A)
@@ -85,7 +45,7 @@ test : ↦ (Var Z ⇒ Var Z) :: (■ Z ⇒ ■ Z)
 test = abst (form (var sort) (weak (var sort) (var sort))) 
 
 -- Definition of false
-FALSE : ■ Z ⇒ Var Z :: ■ (S Z)
+FALSE : ■ Z ⇒ Var Z :: ■ Z
 FALSE = form sort (var sort)
 
 sortStepBack : ∀ {A l} → ■ (S l) :: A → ■ l :: A
@@ -116,27 +76,12 @@ sortStepBack {.(■ (S _))} (sortStep H) = sortStep (sortStepBack H)
 ⇒has↦ (Appl t u) = ⊥
 ⇒has↦ (■ x) = ⊥
 ⇒has↦ (t ⇒ u) = ⇒has↦ u
-⇒has↦ (t ,, u) = ⇒has↦ u
-⇒has↦ (Sigma t u) = ⇒has↦ u
-⇒has↦ (first u) = ⇒has↦ u
-⇒has↦ (second u) = ⇒has↦ u
-⇒has↦ ℕelim = ⊥
-⇒has↦ Nat = ⊥
-⇒has↦ Suc = ⊥
-⇒has↦ Zero = ⊥
 
---impossibleType : {Γ : Context n} → ∀ x y → ⇒has↦ y → ∀{l} → ¬(Γ ⊢ (x ⇒ y) :: ■ l)
---impossibleType x y H (weak p x₁) = impossibleType x y H p
---impossibleType x (↦ y) H (form p q) = ↦notOf■ y q
---impossibleType x (y ⇒ z) H (form p q) = impossibleType y z H q
---impossibleType x p z (sortStep w) = impossibleType x p z w
---impossibleType x (Sigma y z) H (form p (sortStep q)) = impossibleType x (Sigma y z) H (form p q)
---impossibleType {Γ = cons x₁ Γ} x (Sigma y z) H (form p (weak q q₁)) = {!!}
---impossibleType {.Z} {Γ = <>} x (Sigma y (↦ z)) H (form p (weak (sortStep q) r)) = {!!}
---impossibleType {.Z} {Γ = <>} x (Sigma y (z ⇒ z₁)) H (form p (weak (sortStep q) r)) = {!!}
---impossibleType {.Z} {Γ = <>} x (Sigma y (Sigma z z₁)) H (form p (weak (sortStep q) r)) = {!!}
---impossibleType {.Z} {Γ = <>} x (Sigma y (z ,, z₁)) H (form p (weak (sortStep q) r)) = {!!}
---impossibleType x (y ,, z) H (form p q) = {!!}
+impossibleType : {Γ : Context n} → ∀ x y → ⇒has↦ y → ∀{l} → ¬(Γ ⊢ (x ⇒ y) :: ■ l)
+impossibleType x y H (weak p x₁) = impossibleType x y H p
+impossibleType x (↦ y) H (form p q) = ↦notOf■ y q
+impossibleType x (y ⇒ z) H (form p q) = impossibleType y z H q
+impossibleType x p z (sortStep w) = impossibleType x p z w
 
 --⇒has↦subst : {Γ : Context n} → ∀ {B N} → ⇒has↦ (substitution n B N) → ⇒has↦ B
 --⇒has↦subst {n = n} {Γ = Γ} {B = B} {N = ↦ N} H = {!!}
@@ -167,15 +112,26 @@ sortStepBack {.(■ (S _))} (sortStep H) = sortStep (sortStepBack H)
 --⇒has↦subst {n = n} {B = B ⇒ C} {■ l} x = {!!}
 --⇒has↦subst {n = n} {B = B ⇒ C} {N ⇒ M} x = {!!}
 
----- A generalization of ↦notType
---↦notTypeGen : {Γ : Context n} → ∀ x {y} → ⇒has↦ y → ¬(Γ ⊢ x :: y)
---↦notTypeGen {(Z)} {(<>)} (Appl x z) {↦ Var y} tt G = {!!}
---↦notTypeGen {(Z)} {(<>)} (Appl x z) {↦ ↦ y} tt G = {!!}
---↦notTypeGen {(Z)} {(<>)} (Appl x z) {↦ Appl y y₁} tt G = {!!}
---↦notTypeGen {(Z)} {(<>)} (Appl x z) {↦ ■ x₁} tt G = {!!}
---↦notTypeGen {(Z)} {(<>)} (Appl x z) {↦ y ⇒ y₁} tt G = {!!}
---↦notTypeGen {S n} {(Γ)} x {↦ y} tt G = {!!}
---↦notTypeGen {(n)} {(Γ)} x {y ⇒ z} H G = {!!}
+-- A generalization of ↦notType
+↦notTypeGen : {Γ : Context n} → ∀ x {y} → ⇒has↦ y → ¬(Γ ⊢ x :: y)
+↦notTypeGen {(Z)} {(<>)} (Appl x z) {↦ Var y} tt G = {!!}
+↦notTypeGen {(Z)} {(<>)} (Appl x z) {↦ ↦ y} tt G = {!!}
+↦notTypeGen {(Z)} {(<>)} (Appl x z) {↦ Appl y y₁} tt G = {!!}
+↦notTypeGen {(Z)} {(<>)} (Appl x z) {↦ ■ x₁} tt G = {!!}
+↦notTypeGen {(Z)} {(<>)} (Appl x z) {↦ y ⇒ y₁} tt G = {!!}
+↦notTypeGen {S n} {(Γ)} x {↦ y} tt G = {!!}
+↦notTypeGen {(n)} {(Γ)} x {y ⇒ z} H G = {!!}
+--↦notTypeGen .(Var _) {y = Var x} H (var G) = ?
+--↦notTypeGen .(Var _) {y = Appl y y₁} H (var G) = ?
+--↦notTypeGen .(Var _) {y = ■ x} H (var G) = ?
+--↦notTypeGen x H (weak G F) = ↦notTypeGen x H G
+--↦notTypeGen .(Appl _ _) {y = .(substitution _ _ _)} H (appl {A = A}{B}{M}{N} G F) = {!!}
+--↦notTypeGen .(↦ _) {y = .(_ ⇒ _)} H (abst {M = M} G) = ↦notTypeGen M H G
+--↦notTypeGen .(Var _) {y = (↦ y)} p (var H) = ↦notOf■ y H
+--↦notTypeGen .(Var _) {y = (y ⇒ z)} p (var H) = impossibleType y z p H
+--↦notTypeGen x {y = y} p (weak H G) = {!!} -- ↦notTypeGen x y p H
+--↦notTypeGen .(Appl _ _) {y = y} p (appl {A = A}{M = M} H G) = {!!} -- ↦notTypeGen M (A ⇒ y) p H
+--↦notTypeGen .(↦ _) {y = .(_ ⇒ _)} H (abst {B = B} {M = M} p) = ↦notTypeGen M H p
 
 ---- A type cannot start with a lambda function (unless it's being applied)
 --↦notType : {Γ : Context n} → ∀ x y → ¬(Γ ⊢ x :: (↦ y))
@@ -200,10 +156,18 @@ testRight = abst
 ΓProof {n = Z} = sort
 ΓProof {n = S n} = weak (ΓProof {n}) (ΓProof {n})
 
+v0 = Var Z
+v1 = Var (S Z)
+v2 = Var (S(S Z))
+v3 = Var (S(S(S Z)))
+v4 = Var (S(S(S(S Z))))
+v5 = Var (S(S(S(S(S Z)))))
+
 -- Test parsing a function that transposes a matrix
 transposeParse : ↦ ↦ ↦ ↦ ↦ ↦ Appl (Appl v3 v5) v4
               :: ■ Z ⇒ ■ Z ⇒ ■ Z ⇒ (v0 ⇒ v1 ⇒ v2) ⇒ v1 ⇒ v0 ⇒ v2
-transposeParse = abst (abst (abst (abst (abst (abst (appl (appl f1 (var v03)) (weak (var v12) v03))))))) 
+transposeParse = abst (abst (abst (abst (abst (abst (appl
+       (appl f1 (var v03)) (weak (var v12) v03))))))) 
  where
   v01 : cons (■ Z) (cons (■ Z) (cons (■ Z) <>)) ⊢ v0 :: (■ Z)
   v01 = weak (weak (var sort) (weak sort sort))
