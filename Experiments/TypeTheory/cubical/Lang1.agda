@@ -169,17 +169,11 @@ interleaved mutual
         → Γ ⊢ t $ r :: A
   ext : (Γ : Context n)(A B : tm)
       → isProp (Γ ⊢ A :: B)
---   Step : (A B C : tm) → Π-elim (ℕelim A B) (Π-elim Suc C) ≡ Π-elim(Π-elim B C) (Π-elim (ℕelim A B) C)
---   firstComp : (A B : tm) → first (A ,, B) ≡ A
---   secondComp : (A B : tm) → second (A ,, B) ≡ B
- --  path3 :{Γ : Context n}{A t r : tm}{l : ℕ}
- --        → Γ ⊢ A :: ■ l
- --        → cons 𝕀 Γ ⊢ t :: A
- --        → Γ ⊢ r :: 𝕀
- --        → Γ ⊢ (Π-elim (⟨ Var (S n) ⟩ t) r) ::  ≡ Γ ⊢ ([ r / S n ] t)
 
  data _⊢_＝_::_ where
-  Π-Comp : {f A x : tm}{Γ : Context n} → Γ ⊢ (n ↦ f) $ x :: A → Γ ⊢ (n ↦ f) $ x ＝ f [ x / n ] :: A
+  Π-Comp : {f A x : tm}{Γ : Context n}
+         → Γ ⊢ (n ↦ f) $ x :: A
+         → Γ ⊢ (n ↦ f) $ x ＝ f [ x / n ] :: A
   jWeak :{Γ : Context n}{a b A B : tm}{l : ℕ}
         → Γ ⊢ B :: ■ l
         → Γ ⊢ a ＝ b :: A
@@ -213,6 +207,17 @@ interleaved mutual
           → Γ ⊢ b :: Nat ⇒ P ⇒ P [ Suc $ Var n / n ]
           → Γ ⊢ m :: Nat
           → Γ ⊢ ℕelim a b $ (Suc $ m) ＝ Suc $ (ℕelim a b $ m) :: (P [ Suc $ m / n ])
+  path-comp₁ :{Γ : Context n}{A t r : tm}{l : ℕ}
+             → Γ ⊢ A :: ■ l
+             → cons 𝕀 Γ ⊢ t :: A
+             → Γ ⊢ r :: 𝕀
+             → Γ ⊢ (⟨ Var (S n) ⟩ t) $ r ＝ t [ r / S n ] :: A
+  path-comp₂ :{Γ : Context n}{A t r u₀ u₁ : tm}
+        → Γ ⊢ t :: path A u₀ u₁
+        → Γ ⊢ t $ i0 ＝ u₀ :: A
+  path-comp₃ :{Γ : Context n}{A t r u₀ u₁ : tm}
+        → Γ ⊢ t :: path A u₀ u₁
+        → Γ ⊢ t $ i1 ＝ u₁ :: A
 
 _::_ : tm → tm → Set
 x :: A = cons 𝕀 (cons 𝕀 (cons (■ (S(S Z))) <>)) ⊢ x :: A
