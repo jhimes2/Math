@@ -112,9 +112,9 @@ interleaved mutual
        → Γ ⊢ C :: ■ l
        → cons C Γ ⊢ A :: B
   Π-form :{Γ : Context n}{A B : tm}{l l' : ℕ}
-       → Γ ⊢ A :: ■ l
-       → cons A Γ ⊢ B :: ■ l'
-       → Γ ⊢ A ⇒ B :: ■ (max l l')
+         → Γ ⊢ A :: ■ l
+         → cons A Γ ⊢ B :: ■ l'
+         → Γ ⊢ A ⇒ B :: ■ (max l l')
   Π-elim :{Γ : Context n}{A B M N : tm}
        → Γ ⊢ M :: (A ⇒ B)
        → Γ ⊢ N :: A
@@ -159,20 +159,19 @@ interleaved mutual
             → Γ ⊢ a :: A
             → Γ ⊢ A ＝ B :: ■ l
             → Γ ⊢ a :: B
---  path1 :{Γ : Context n}{A t : tm}{l : ℕ}
---        → Γ ⊢ A :: ■ l
---        → cons 𝕀 Γ ⊢ t :: A
---        → Γ ⊢ ⟨ Var (S n) ⟩ t :: path A (t [ i0 / S n ]) (t [ i1 / S n ])
---  path2 :{Γ : Context n}{A t r u₀ u₁ : tm}
---        → Γ ⊢ t :: path A u₀ u₁
---        → Γ ⊢ r :: 𝕀
---        → Γ ⊢ Π-elim t r :: A
---  ext : (Γ : Context n)(A B : tm)
---      → isProp (Γ ⊢ A :: B)
+  path1 :{Γ : Context n}{A t : tm}{l : ℕ}
+        → Γ ⊢ A :: ■ l
+        → cons 𝕀 Γ ⊢ t :: A
+        → Γ ⊢ ⟨ Var (S n) ⟩ t :: path A (t [ i0 / S n ]) (t [ i1 / S n ])
+  path2 :{Γ : Context n}{A t r u₀ u₁ : tm}
+        → Γ ⊢ t :: path A u₀ u₁
+        → Γ ⊢ r :: 𝕀
+        → Γ ⊢ t $ r :: A
+  ext : (Γ : Context n)(A B : tm)
+      → isProp (Γ ⊢ A :: B)
 --   Step : (A B C : tm) → Π-elim (ℕelim A B) (Π-elim Suc C) ≡ Π-elim(Π-elim B C) (Π-elim (ℕelim A B) C)
 --   firstComp : (A B : tm) → first (A ,, B) ≡ A
 --   secondComp : (A B : tm) → second (A ,, B) ≡ B
---   ΠComp : {f A x : tm}{Γ : Context n} → Γ ⊢ Π-elim (↦ f) x :: A → Π-elim (↦ f) x ≡ f [ x / n ]
  --  path3 :{Γ : Context n}{A t r : tm}{l : ℕ}
  --        → Γ ⊢ A :: ■ l
  --        → cons 𝕀 Γ ⊢ t :: A
@@ -180,6 +179,7 @@ interleaved mutual
  --        → Γ ⊢ (Π-elim (⟨ Var (S n) ⟩ t) r) ::  ≡ Γ ⊢ ([ r / S n ] t)
 
  data _⊢_＝_::_ where
+  Π-Comp : {f A x : tm}{Γ : Context n} → Γ ⊢ (n ↦ f) $ x :: A → Γ ⊢ (n ↦ f) $ x ＝ f [ x / n ] :: A
   jWeak :{Γ : Context n}{a b A B : tm}{l : ℕ}
         → Γ ⊢ B :: ■ l
         → Γ ⊢ a ＝ b :: A
@@ -191,9 +191,9 @@ interleaved mutual
        → Γ ⊢ a ＝ b :: A
        → Γ ⊢ b ＝ a :: A
   jTrans :{Γ : Context n}{a b c A : tm}
-       → Γ ⊢ a ＝ b :: A
-       → Γ ⊢ b ＝ c :: A
-       → Γ ⊢ a ＝ c :: A
+         → Γ ⊢ a ＝ b :: A
+         → Γ ⊢ b ＝ c :: A
+         → Γ ⊢ a ＝ c :: A
   jTransport :{Γ : Context n}{a b A B : tm}{l : ℕ}
              → Γ ⊢ a ＝ b :: A
              → Γ ⊢ A ＝ B :: ■ l
