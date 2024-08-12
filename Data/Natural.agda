@@ -404,3 +404,8 @@ trichotomy (S a) (S b) with trichotomy a b
 ... | inl x = inl x
 ... | inr (inl x) = inr (inl (cong S x))
 ... | inr (inr x) = inr (inr x)
+
+≤＋> : (a b : ℕ) → a ≤ b ＋ S b ≤ a
+≤＋> Z b = inl tt
+≤＋> (S a) Z = inr tt
+≤＋> (S a) (S b) = ≤＋> a b
