@@ -55,6 +55,20 @@ tuple-η {n = S n} f = funExt λ{ (Z , b , p) →
     cong f (ΣPathP (refl , (Σ≡Prop (λ x → IsSet (S (S (a + x))) (S (S n))) refl)))
   }
 
+instance
+ emptyTupleIsProp : is-prop < A ^ Z >
+ emptyTupleIsProp = record { IsProp = λ x y → funExt λ(_ , _ , p) → UNREACHABLE (ZNotS (sym p)) }
+
+tuple-elim : (P : ∀{n} → < A ^ n > → Type l)
+           → P <>
+           → (∀{n} → (x : < A ^ n >) → P x → (a : A) → P (a ∷ x))
+           → ∀{n} → (x : < A ^ n >) → P x
+tuple-elim P base step {n = Z} x = transport (λ i → P (IsProp <> x i)) base
+tuple-elim P base step {n = S n} x =
+  let a = head x in
+  let T = tail x in transport (λ i → P (tuple-η x i))
+   (step T (tuple-elim P base step T) a)
+
 zip : (A → B → C) → {D : Type l} → (D → A) → (D → B) → (D → C)
 zip f u v d = f (u d) (v d)
 
@@ -78,10 +92,6 @@ instance
                          ; monadLemma2 = funExt λ x → funExt λ y → refl 
                          ; monadLemma3 = funExt λ x → funExt λ y → refl 
                          }
-
-instance
- id++Prop : is-prop < A ^ Z >
- id++Prop = record { IsProp = λ x y → funExt λ(_ , _ , p) → UNREACHABLE (ZNotS (sym p)) }
 
 foldr : (A → B → B) → B → < A ^ n > → B
 foldr {n = Z}f b _ = b
