@@ -33,6 +33,28 @@ _∷_ : A → < A ^ n > → < A ^ S n >
 (a ∷ _) (Z , _) = a
 (a ∷ v) (S x , x' , P) = v (x , x' , SInjective P)
 
+-- tuple η-conversion
+tuple-η : (f : < A ^ S n >) → head f ∷ tail f ≡ f
+tuple-η {n = Z} f = funExt
+  λ{(Z , b , p) →
+  let H : b ≡ Z
+      H = SInjective p in
+  [wts (head f ∷ tail f) (Z , b , p) ≡ f (Z , b , p) ] cong f $
+  [wts finZ ≡ (Z , b , p) ]
+  ΣPathP (refl , Σ≡Prop (λ x → IsSet (S x) (S Z)) (sym H))
+  ;(S a , b , p) → UNREACHABLE (ZNotS (sym(SInjective p)))
+  }
+ where
+  open import Cubical.Foundations.Univalence
+tuple-η {n = S n} f = funExt λ{ (Z , b , p) →
+   cong f (ΣPathP (refl , (Σ≡Prop (λ x → IsSet (S x) (S(S n))) (sym (SInjective p)))))
+     ; (S a , b , p) →
+  [wts tail f (a , b , SInjective p) ≡ f (S a , b , p) ]
+  [wts f (finS (a , b , SInjective p)) ≡ f (S a , b , p) ]
+  [wts f ((S a , b , cong S (SInjective p))) ≡ f (S a , b , p) ]
+    cong f (ΣPathP (refl , (Σ≡Prop (λ x → IsSet (S (S (a + x))) (S (S n))) refl)))
+  }
+
 zip : (A → B → C) → {D : Type l} → (D → A) → (D → B) → (D → C)
 zip f u v d = f (u d) (v d)
 
@@ -473,7 +495,7 @@ module _{C : Type cl} {{R : Ring C}} where
   sqrMatrixRing : Ring (Matrix C n n)
   sqrMatrixRing = record {}
 
-{- The function 'withoutEach' is used as part of the definition of the determinant.
+ {- The function 'withoutEach' is used as part of the definition of the determinant.
    If you give it a vector
       <a b c d e>
    then it outputs the matrix
@@ -482,7 +504,7 @@ module _{C : Type cl} {{R : Ring C}} where
      < a b d e >
      < a b c e >
      < a b c d >>
--}
+ -}
 withoutEach : < C ^ S n > → Matrix C n (S n)
 withoutEach {n = Z} v u _ = v u
 withoutEach {n = S n} v = tail v ∷ map (head v ∷_) (withoutEach (tail v))
