@@ -409,3 +409,20 @@ trichotomy (S a) (S b) with trichotomy a b
 ≤＋> Z b = inl tt
 ≤＋> (S a) Z = inr tt
 ≤＋> (S a) (S b) = ≤＋> a b
+
+completeInduction : (P : ℕ → Type l)
+                → (a : ℕ)
+                → ((b : ℕ) → b ≤ a → P b)
+                → ((x : ℕ) → P x → P (S(x + a)))
+                → (n : ℕ) → P n
+completeInduction P a base jump n = Aux n n (reflexive n)
+ where
+  Aux : (n l : ℕ) → n ≤ l → P n
+  Aux Z Z H = base Z tt
+  Aux n (S l) H with isLe n a 
+  ... | inl X = base n X
+  ... | inr (r , Q) =
+        let G : (r + a) ≤ l
+            G = transport (λ i → Q i ≤ S l) H in
+         transport (λ i → P (Q (~ i))) $ jump r
+         $ Aux r l (leAdd r a l G)
