@@ -96,6 +96,16 @@ module _{_∙_ : A → A → A} {{G : group _∙_}}(a b : A) where
              a ∙ (inv b ∙ b) ≡⟨ a[b'b]≡a ⟩
              a ∎
 
+  [ab'][bc]≡ac = λ (c : A)
+               → (a ∙ inv b) ∙ (b ∙ c) ≡⟨ [ab][cd]≡[a[bc]]d a (inv b) b c ⟩
+                 (a ∙ (inv b ∙ b)) ∙ c ≡⟨ left _∙_ a[b'b]≡a ⟩
+                 a ∙ c ∎
+
+  [ab][b'c]≡ac = λ (c : A)
+               → (a ∙ b) ∙ (inv b ∙ c) ≡⟨ [ab][cd]≡[a[bc]]d a b (inv b) c ⟩
+                 (a ∙ (b ∙ inv b)) ∙ c ≡⟨ left _∙_ a[bb']≡a ⟩
+                 a ∙ c ∎
+
 module grp {_∙_ : A → A → A}{{G : group _∙_}} where
 
   cancel : (a : A) → {x y : A} → a ∙ x ≡ a ∙ y → x ≡ y
@@ -177,8 +187,8 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
  -- https://en.wikipedia.org/wiki/Normal_subgroup
  record NormalSG(N : A → Type bl) : Type (al ⊔ bl) where
    field
-     overlap {{NisSubgroup}} : Subgroup N
-     gng' : ∀ n → n ∈ N → ∀ g → (g ∙ n) ∙ inv g ∈ N
+     overlap {{NisSG}} : Subgroup N
+     [gn]g' : ∀ n → n ∈ N → ∀ g → (g ∙ n) ∙ inv g ∈ N
  open NormalSG {{...}} public
 
  SG-Criterion : {H : A → Type l} → {{Property H}} → Σ H → (∀ x y → x ∈ H → y ∈ H → x ∙ inv y ∈ H)
@@ -238,22 +248,27 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
    where
     open import Cubical.HITs.PropositionalTruncation renaming (rec to recTrunc ; map to mapTrunc)
 
- def1SG : {N : A → Type l} → {{Property N}} → Subgroup (def1 N)
- def1SG {N} =
-   record
-   { inv-closed = λ{x} (X : x ∈ def1 N) z →
-       inv x ∙ z ∈ N                 ≡⟨ cong N (sym ([ab']b≡a (inv x ∙ z) x))⟩
-       ((inv x ∙ z) ∙ inv x) ∙ x ∈ N ≡⟨ sym (X ((inv x ∙ z) ∙ inv x))⟩
-       x ∙ ((inv x ∙ z) ∙ inv x) ∈ N ≡⟨ cong N (assoc x (inv x ∙ z) (inv x))⟩
-       (x ∙ (inv x ∙ z)) ∙ inv x ∈ N ≡⟨ cong N (left _∙_ (a[a'b]≡b x z))⟩
-       z ∙ inv x ∈ N ∎
-   ; SGSM = def1SM {N = N}
-   }
+-- def1SG : {N : A → Type l} → {{Property N}} → Subgroup (def1 N)
+-- def1SG {N} =
+--   record
+--   { inv-closed = λ{x} (X : x ∈ def1 N) z →
+--       inv x ∙ z ∈ N                 ≡⟨ cong N (sym ([ab']b≡a (inv x ∙ z) x))⟩
+--       ((inv x ∙ z) ∙ inv x) ∙ x ∈ N ≡⟨ sym (X ((inv x ∙ z) ∙ inv x))⟩
+--       x ∙ ((inv x ∙ z) ∙ inv x) ∈ N ≡⟨ cong N (assoc x (inv x ∙ z) (inv x))⟩
+--       (x ∙ (inv x ∙ z)) ∙ inv x ∈ N ≡⟨ cong N (left _∙_ (a[a'b]≡b x z))⟩
+--       z ∙ inv x ∈ N ∎
+--   ; SGSM = def1SM {N = N}
+--   }
 
  centralizeAbelian : {{Commutative _∙_}} → {H : A → Type l} → ∀ x → x ∈ centralizer H
  centralizeAbelian x y y∈H = comm x y
 
 module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
+ module _{N : A → Type l}{{SG : NormalSG N}} where
+
+  [g'n]g : ∀ n → n ∈ N → ∀ g → (inv g ∙ n) ∙ g ∈ N
+  [g'n]g n n∈N g = subst N (right _∙_ (grp.doubleInv g)) ([gn]g' n n∈N (inv g))
+
  module _{H : A → Type l}{{SG : Subgroup H}} where
 
   -- The intersection of two subgroups are subgroups
@@ -268,6 +283,9 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
   {- I stated 'Submonoid.op-closed (G .SGSM) x∈H y∈H' instead of 'op-closed x∈H y∈H'
      for faster compilation (temporary kludge). -}
  
+   -- Used for faster compilation (temporary kludge)
+  IdClosed : e ∈ H
+  IdClosed = Submonoid.id-closed (G .SGSM)
 
   instance
    ⪀assoc : Associative _⪀_
@@ -276,9 +294,7 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
    -- Group structure of a subgroup
    subgrpStr : group _⪀_
    subgrpStr = record
-       { e = e , Submonoid.id-closed (G .SGSM)
-       {- I stated 'Submonoid.id-closed (G .SGSM)' instead of 'id-closed'
-          for faster compilation (temporary kludge). -}
+       { e = e , IdClosed
        ; inverse = λ(a , a') → (inv a , inv-closed a') , ΣPathPProp setProp (lInverse a)
        ; lIdentity = λ(a , a') → ΣPathPProp setProp (lIdentity a)
        ; IsSetGrp = ΣSet
@@ -287,9 +303,9 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
   -- Every subgroup of an abelian group is normal
   abelian≥→⊵ : {{Commutative _∙_}} → NormalSG H
   abelian≥→⊵ = record
-     { gng' = λ n n∈H g → let P : n ∈ H ≡ (g ∙ n) ∙ inv g ∈ H
-                              P = cong H $ sym (a'[ab]≡b g n) ⋆ comm (inv g) (g ∙ n)
-                          in transport P n∈H
+     { [gn]g' = λ n n∈H g → let P : n ∈ H ≡ (g ∙ n) ∙ inv g ∈ H
+                                P = cong H $ sym (a'[ab]≡b g n) ⋆ comm (inv g) (g ∙ n)
+                             in transport P n∈H
      }
 
  -- Overloading '⟨_⟩' for cyclic and generating set of a group
@@ -415,7 +431,7 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
 
     -- The kernel is a normal subgroup
     NG : NormalSG (Kernel h)
-    NG = record { gng' = λ n n∈Ker g →
+    NG = record { [gn]g' = λ n n∈Ker g →
        h ((g ∙ n) ∙ inv g)     ≡⟨ preserve (g ∙ n) (inv g)⟩
        h (g ∙ n) * h (inv g)   ≡⟨ left _*_ (preserve g n)⟩
        (h g * h n) * h (inv g) ≡⟨ left _*_ (right _*_ n∈Ker)⟩
@@ -659,8 +675,93 @@ groupIsProp {A} _∙_ G1 G2 i =
   open import Cubical.Foundations.HLevels
 
 -- https://en.wikipedia.org/wiki/Quotient_group
-[_/_] : {A : Type al}
+_G/_ : {A : Type al}
       → (_∙_ : A → A → A) → {{G : group _∙_}}
       → (H : A → Type l) → {{SG : NormalSG H}}
       → Type (al ⊔ l)
-[_/_] {A} _∙_ H = A / λ x y → (x ∙ inv y) ∈ H
+_G/_ {A} _∙_ H = A / λ x y → (x ∙ inv y) ∈ H
+
+{- Quotient group operator -}
+{- I need to think of ways of making the quotient group operator less verbose while keeping compilation times tolerable. -}
+⋆[_/_] : {A : Type al}
+      → (_∙_ : A → A → A) → {{G : group _∙_}}
+      → (H : A → Type l) → {{SG : NormalSG H}}
+      → _∙_ G/ H → _∙_ G/ H → _∙_ G/ H
+⋆[_/_] {A} _∙_ {{G}} H =
+   (setQuotBinOp (λ a → subst H (sym (rInverse a)) idClosed)
+  (λ a →  subst H (sym (rInverse a)) idClosed) _∙_ λ a a' b b' P Q →
+    let H1 : (a ∙ (b ∙ inv b')) ∙ inv a ∈ H
+        H1 = [gn]g' (b ∙ inv b') Q a in
+    let H2 : ((a ∙ (b ∙ inv b')) ∙ inv a) ∙ (a ∙ inv a') ∈ H
+        H2 = opClosed H1 P in
+    let H3 : (a ∙ (b ∙ inv b')) ∙ inv a' ∈ H
+        H3 = subst H ([ab'][bc]≡ac ((a ∙ (b ∙ inv b'))) a (inv a')) H2 in
+    let H4 : (a ∙ b) ∙ (inv b' ∙ inv a') ∈ H
+        H4 = subst H (sym ([ab][cd]≡[a[bc]]d a b (inv b') (inv a'))) H3 in
+    let H5 : (a ∙ b) ∙ (inv( a' ∙ b')) ∈ H
+        H5 = subst H (right _∙_ (grp.lemma1 a' b')) H4 in
+   [wts (a ∙ b) ∙ (inv (a' ∙ b')) ∈ H ] H5)
+ where
+  -- Restated for faster compilation (kludge)
+  idClosed = Submonoid.id-closed (Subgroup.SGSM (G .NisSG))
+  opClosed = Submonoid.op-closed (Subgroup.SGSM (G .NisSG))
+
+module _ {A : Type al}
+         {_∙_ : A → A → A} {{G : group _∙_}}
+         {H : A → Type l} {{SG : NormalSG H}} where
+
+ -- Restated for faster compilation (kludge)
+ idClosed = Submonoid.id-closed (Subgroup.SGSM (G .NisSG))
+ opClosed = Submonoid.op-closed (Subgroup.SGSM (G .NisSG))
+ invClosed = Subgroup.inv-closed (G .NisSG)
+ SetProp = Property.setProp (Submonoid.submonoid-set (Subgroup.SGSM (G .NisSG)))
+
+ effectQG : {x y : A} → _≡_ { A = _∙_ G/ H } [ x ] [ y ] → (x ∙ inv y) ∈ H
+ effectQG {x} {y} =
+    effective (λ x y → SetProp (x ∙ inv y))
+              (BinaryRelation.equivRel (λ a → subst H (sym (rInverse a)) idClosed)
+                                       (λ a b x →
+                                          let T1 : inv (a ∙ inv b) ∈ H
+                                              T1 = invClosed x in
+                                          let T2 : inv (inv b) ∙ inv a ∈ H
+                                              T2 = subst H ( sym(grp.lemma1 a (inv b))) T1 in
+                                          let T3 : b ∙ inv a ∈ H
+                                              T3 = subst H (left _∙_ (grp.doubleInv b)) T2 in
+                                              T3)
+                                        λ a b c P Q →
+                                          let T1 : (a ∙ inv b) ∙ (b ∙ inv c) ∈ H
+                                              T1 = opClosed P Q in
+                                          let T2 : a ∙ inv c ∈ H
+                                              T2 = subst H ([ab'][bc]≡ac a b (inv c)) T1 in
+                                              T2) x y
+  where
+   open import Cubical.Relation.Binary
+
+ instance
+  qGrpOpAssoc : Associative ⋆[ _∙_ / H ]
+  qGrpOpAssoc = record { assoc = elimProp3 (λ x y z → squash/ (⋆[ _∙_ / H ] x (⋆[ _∙_ / H ] y z))
+                                                              (⋆[ _∙_ / H ](⋆[ _∙_ / H ] x y) z))
+                                            λ a b c → cong [_] (assoc a b c) }
+  qGrpIsSet : is-set (_∙_ G/ H )
+  qGrpIsSet = record { IsSet = squash/ }
+  quotientGrp : group ⋆[ _∙_ / H ]
+  quotientGrp = record
+    { e = [ e ] 
+    ; inverse = elimProp (λ z (a , A) (b , B) →
+        let T : a ≡ b
+            T = grp.lcancel z (A ⋆ sym B) in
+      ΣPathPProp (λ a → squash/ (⋆[ _∙_ / H ] a z) [ e ])
+       let U : ⋆[ _∙_ / H ] a z ≡ ⋆[ _∙_ / H ] b z
+           U = (A ⋆ sym B) in aux a b z U) λ a → [ inv a ] , (cong [_] (lInverse a))
+    ; lIdentity = elimProp (λ x → squash/ (⋆[ _∙_ / H ] [ e ] x) x) λ a → cong [_] (lIdentity a)
+    }
+    where
+     aux : (a b z : _∙_ G/ H) → ⋆[ _∙_ / H ] a z ≡ ⋆[ _∙_ / H ] b z → a ≡ b
+     aux = elimProp3 (λ x y z → isPropΠ (λ H → squash/ x y))
+      λ a b c P → let T1 : (a ∙ c) ∙ inv (b ∙ c) ∈ H
+                      T1 = effectQG P in
+                  let T2 : ((a ∙ c) ∙ (inv c ∙ inv b)) ∈ H
+                      T2 = subst H (right _∙_ (sym (grp.lemma1 b c))) T1 in
+                  let T3 : a ∙ inv b ∈ H
+                      T3 = subst H ([ab][b'c]≡ac a c (inv b)) T2 in
+                     eq/ a b T3
