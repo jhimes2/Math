@@ -541,12 +541,6 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
           act e b               ≡⟨ act-identity b ⟩
           b ∎)
 
- -- https://en.wikipedia.org/wiki/Coset
- data Coset (g : A)(H : A → Type al){{SG : Subgroup H}} : (A → Type al) → Type (lsuc al) where
-   coIntro : H ∈ Coset g H
-   coS : ∀ F → F ∈ Coset g H → (λ x → inv g ∙ x ∈ F) ∈ Coset g H
-   coset : ∀ F → isProp (F ∈ Coset g H)
-
 -- https://en.wikipedia.org/wiki/Symmetric_group
 {- Instantiating this symmetric group publicly may cause severely long compile
    times for files using the '--overlapping-instances' flag. -}
