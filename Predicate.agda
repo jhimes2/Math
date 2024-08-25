@@ -21,15 +21,27 @@ _∉_ :  A → (A → Type l) → Type l
 _∉_ a X = ¬(a ∈ X)
 infixr 5 _∉_
 
+
 module _{A : Type l}{_∙_ : A → A → A}{{_ : Associative _∙_}} where
 
--- https://en.wikipedia.org/wiki/Centralizer_and_normalizer
+ lCoset : (A → Type l') → A → A → Type (l ⊔ l')
+ lCoset H a = λ x → ∃ λ y → (y ∈ H) × (x ≡ a ∙ y)
+
+ rCoset : (A → Type l') → A → A → Type (l ⊔ l')
+ rCoset H a = λ x → ∃ λ y → (y ∈ H) × (x ≡ y ∙ a)
+
+-- https://en.wikipedia.org/wiki/Centralizer_and_def1
 
  centralizer : (A → Type l') → A → Type (l ⊔ l')
  centralizer X a = ∀ x → x ∈ X → a ∙ x ≡ x ∙ a
 
- normalizer : (H : A → Type l') → A → Type (l ⊔ lsuc l')
- normalizer X a = ∀ x → a ∙ x ∈ X ≡ x ∙ a ∈ X
+ normalizer : (A → Type l') → A → Type (lsuc (l ⊔ l'))
+ normalizer X a = lCoset X a ≡ rCoset X a
+
+ {- This was an erroneous definition of a normalizer that could still yield a
+    subgroup from a subset of an underlying set of a group -}
+ def1 : (H : A → Type l') → A → Type (l ⊔ lsuc l')
+ def1 X a = ∀ x → a ∙ x ∈ X ≡ x ∙ a ∈ X
 
  -- https://en.wikipedia.org/wiki/Center_(group_theory)
  center : A → Type l
@@ -102,9 +114,9 @@ instance
  imageProp : {f : A → B} → Property (image f)
  imageProp = record { setProp = λ x → squash₁ }
 
-normalizerProperty : {_∙_ : A → A → A} → {{_ : Associative _∙_}}
-                   → {H : A → Type l} → {{M : Property H}} → Property (normalizer H)
-normalizerProperty {_∙_} {H} {{M}} = record { setProp = λ x a b → funExt λ c →
+def1Property : {_∙_ : A → A → A} → {{_ : Associative _∙_}}
+                   → {H : A → Type l} → {{M : Property H}} → Property (def1 H)
+def1Property {_∙_} {H} {{M}} = record { setProp = λ x a b → funExt λ c →
   let P = M .setProp (x ∙ c) in
   let Q = M .setProp (c ∙ x) in
   let A = a c in let B = b c in

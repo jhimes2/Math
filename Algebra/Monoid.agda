@@ -5,6 +5,7 @@ module Algebra.Monoid where
 open import Prelude
 open import Predicate
 open import Cubical.Foundations.HLevels
+open import Cubical.HITs.PropositionalTruncation renaming (rec to recTrunc ; map to mapTrunc)
 
 -- https://en.wikipedia.org/wiki/Monoid
 record monoid {A : Type l}(_∙_ : A → A → A) : Type(lsuc l) where
@@ -78,13 +79,54 @@ module _{_∙_ : A → A → A} {{M : monoid _∙_}} where
       z ∙ (x ∙ y) ∎
     }
 
+
   -- Normalizing any subset of a monoid is a submonoid
   normalizerSM : {N : A → Type l} → {{Property N}} → Submonoid (normalizer N) _∙_
   normalizerSM {N} = record
+     { id-closed = funExt λ
+     x → propExt squash₁ squash₁ (map λ(y , y∈N , H) → y , y∈N , H ⋆ lIdentity y ⋆ sym (rIdentity y))
+                                 (map λ(y , y∈N , H) → y , y∈N , H ⋆ rIdentity y ⋆ sym (lIdentity y))
+     ; op-closed = λ{x}{y} x∈norm y∈norm → funExt λ a →
+         let H = funRed x∈norm in
+         let G = funRed y∈norm in
+         propExt squash₁  squash₁
+    (_>>= λ(b , b∈N , P) →
+         let T = transport (G (y ∙ b)) in
+         T (η (b , b∈N , refl))
+             >>= λ (r , r∈N , T1) →
+         let U = transport (H (x ∙ r)) in
+         U (η (r , r∈N , refl))
+             >>= λ (q , q∈N , U1) →
+             η $ q , q∈N , (a           ≡⟨ P ⟩
+                            (x ∙ y) ∙ b ≡⟨ sym (assoc x y b) ⟩
+                            x ∙ (y ∙ b) ≡⟨ right _∙_ T1 ⟩
+                            x ∙ (r ∙ y) ≡⟨ assoc x r y ⟩
+                            (x ∙ r) ∙ y ≡⟨ left _∙_ U1 ⟩
+                            (q ∙ x) ∙ y ≡⟨ sym (assoc q x y) ⟩
+                           q ∙ (x ∙ y)  ∎))
+    (_>>= λ(b , b∈N , P) →
+         let U = transport (sym(H (b ∙ x))) in
+         U (η (b , b∈N , refl))
+             >>= λ (q , q∈N , U1) →
+         let T = transport (sym (G (q ∙ y))) in
+         T (η (q , q∈N , refl))
+             >>= λ (r , r∈N , T1) →
+             η $ r , r∈N , (a           ≡⟨ P ⟩
+                            b ∙ (x ∙ y) ≡⟨ assoc b x y ⟩
+                            (b ∙ x) ∙ y ≡⟨ left _∙_ U1 ⟩
+                            (x ∙ q) ∙ y ≡⟨ sym (assoc x q y) ⟩
+                            x ∙ (q ∙ y) ≡⟨ right _∙_ T1 ⟩
+                            x ∙ (y ∙ r) ≡⟨ assoc x y r ⟩
+                           (x ∙ y) ∙ r  ∎ ))
+         ; submonoid-set = record { setProp = λ r → [wts isProp (lCoset N r ≡ rCoset N r) ] rem₁ }
+         }
+
+  def1SM : {N : A → Type l} → {{Property N}} → Submonoid (def1 N) _∙_
+  def1SM {N} = record
     { id-closed = λ x →  e ∙ x ∈ N ≡⟨ cong N (lIdentity x)⟩
                              x ∈ N ≡⟨ cong N (sym (rIdentity x))⟩
                          x ∙ e ∈ N ∎
-    ; op-closed = λ{x y} (X : x ∈ normalizer N) (Y : y ∈ normalizer N) z
+    ; op-closed = λ{x y} (X : x ∈ def1 N) (Y : y ∈ def1 N) z
            → let p : x ∙ (y ∙ z) ∈ N ≡ (y ∙ z) ∙ x ∈ N
                  p = X (y ∙ z) in
              let q : y ∙ (z ∙ x) ∈ N ≡ (z ∙ x) ∙ y ∈ N

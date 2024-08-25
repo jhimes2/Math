@@ -214,15 +214,39 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
 
   -- Normalizing any subset of a group is a subgroup
  normalizerSG : {N : A → Type l} → {{Property N}} → Subgroup (normalizer N)
- normalizerSG {N} =
+ normalizerSG {N} = record { inv-closed = λ{x} x∈norm →
+     let f = funRed x∈norm in funExt λ y → propExt squash₁ squash₁ (_>>= λ (p , p∈N , H) →
+        transport (sym(f (p ∙ x))) (η (p , p∈N , refl)) >>= λ (q , q∈N , G) →
+       η $ q , q∈N ,
+       (H ⋆ grp.cancel x (
+          x ∙ (inv x ∙ p) ≡⟨ a[a'b]≡b x p ⟩
+          p               ≡⟨  sym ([ab]b'≡a p x)⟩
+          (p ∙ x) ∙ inv x ≡⟨ left _∙_ G ⟩
+          (x ∙ q) ∙ inv x ≡⟨ sym (assoc x q (inv x)) ⟩
+          x ∙ (q ∙ inv x) ∎
+       ))) ( (_>>= λ (p , p∈N , H) →
+        transport ((f (x ∙ p))) (η (p , p∈N , refl)) >>= λ (q , q∈N , G) →
+       η $ q , q∈N , H ⋆ grp.lcancel x (
+           (p ∙ inv x) ∙ x ≡⟨ [ab']b≡a p x ⟩
+           p ≡⟨ sym (a'[ab]≡b x p) ⟩
+           inv x ∙ (x ∙ p) ≡⟨ right _∙_ G ⟩
+           inv x ∙ (q ∙ x) ≡⟨ assoc (inv x) q x ⟩
+           (inv x ∙ q) ∙ x ∎
+       )))
+     ; SGSM = normalizerSM {N = N} }
+   where
+    open import Cubical.HITs.PropositionalTruncation renaming (rec to recTrunc ; map to mapTrunc)
+
+ def1SG : {N : A → Type l} → {{Property N}} → Subgroup (def1 N)
+ def1SG {N} =
    record
-   { inv-closed = λ{x} (X : x ∈ normalizer N) z →
+   { inv-closed = λ{x} (X : x ∈ def1 N) z →
        inv x ∙ z ∈ N                 ≡⟨ cong N (sym ([ab']b≡a (inv x ∙ z) x))⟩
        ((inv x ∙ z) ∙ inv x) ∙ x ∈ N ≡⟨ sym (X ((inv x ∙ z) ∙ inv x))⟩
        x ∙ ((inv x ∙ z) ∙ inv x) ∈ N ≡⟨ cong N (assoc x (inv x ∙ z) (inv x))⟩
        (x ∙ (inv x ∙ z)) ∙ inv x ∈ N ≡⟨ cong N (left _∙_ (a[a'b]≡b x z))⟩
        z ∙ inv x ∈ N ∎
-   ; SGSM = normalizerSM {N = N}
+   ; SGSM = def1SM {N = N}
    }
 
  centralizeAbelian : {{Commutative _∙_}} → {H : A → Type l} → ∀ x → x ∈ centralizer H

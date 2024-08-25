@@ -393,3 +393,15 @@ instance
 
 TrueEq : isProp A → A → A ≡ Lift ⊤
 TrueEq p a = propExt p (λ{ (lift tt) (lift tt) → refl}) (λ _ → lift tt) (λ _ → a)
+
+rem₁ : {P Q : A → Type l} → isProp ((λ(x : A) → ∥ P x ∥₁) ≡ (λ(x : A) → ∥ Q x ∥₁))
+rem₁ {A} {P} {Q} = isOfHLevelRetractFromIso {B = ∀ x → (∥ P x ∥₁) ≡ (∥ Q x ∥₁)}
+ (suc zero)
+ (iso (λ x y →
+   let f = funRed x in f y) (λ f → funExt λ x → f x) (λ b → funExt λ x → refl)
+   λ f → refl)
+ (isPropΠ λ x → isOfHLevel≡ (suc zero) squash₁ squash₁ )
+ where
+  open import Cubical.Foundations.Isomorphism
+  open import Cubical.Data.Nat
+
