@@ -7,6 +7,7 @@ open import Relations
 open import Predicate
 open import Algebra.Monoid public
 open import Cubical.Foundations.HLevels
+open import Cubical.HITs.SetQuotients
 
 -- https://en.wikipedia.org/wiki/Group_(mathematics)
 record group {A : Type l}(_∙_ : A → A → A) : Type(lsuc l) where
@@ -656,3 +657,10 @@ groupIsProp {A} _∙_ G1 G2 i =
  where
   open group
   open import Cubical.Foundations.HLevels
+
+-- https://en.wikipedia.org/wiki/Quotient_group
+[_/_] : {A : Type al}
+      → (_∙_ : A → A → A) → {{G : group _∙_}}
+      → (H : A → Type l) → {{SG : NormalSG H}}
+      → Type (al ⊔ l)
+[_/_] {A} _∙_ H = A / λ x y → (x ∙ inv y) ∈ H

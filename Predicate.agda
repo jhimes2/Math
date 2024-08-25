@@ -21,7 +21,6 @@ _∉_ :  A → (A → Type l) → Type l
 _∉_ a X = ¬(a ∈ X)
 infixr 5 _∉_
 
-
 module _{A : Type l}{_∙_ : A → A → A}{{_ : Associative _∙_}} where
 
  lCoset : (A → Type l') → A → A → Type (l ⊔ l')
