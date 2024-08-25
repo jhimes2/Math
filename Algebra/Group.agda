@@ -187,7 +187,7 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
  -- https://en.wikipedia.org/wiki/Normal_subgroup
  record NormalSG(N : A → Type bl) : Type (al ⊔ bl) where
    field
-     overlap {{NisSG}} : Subgroup N
+     {{NisSG}} : Subgroup N
      [gn]g' : ∀ n → n ∈ N → ∀ g → (g ∙ n) ∙ inv g ∈ N
  open NormalSG {{...}} public
 
@@ -223,7 +223,7 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
        x ∙ (z ∙ inv x) ∎
     }
 
-  -- Normalizing any subset of a group is a subgroup
+ -- Normalizing any subset of a group is a subgroup
  normalizerSG : {N : A → Type l} → {{Property N}} → Subgroup (normalizer N)
  normalizerSG {N} = record { inv-closed = λ{x} x∈norm →
      let f = funRed x∈norm in funExt λ y → propExt squash₁ squash₁ (_>>= λ (p , p∈N , H) →
@@ -248,20 +248,36 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
    where
     open import Cubical.HITs.PropositionalTruncation renaming (rec to recTrunc ; map to mapTrunc)
 
--- def1SG : {N : A → Type l} → {{Property N}} → Subgroup (def1 N)
--- def1SG {N} =
---   record
---   { inv-closed = λ{x} (X : x ∈ def1 N) z →
---       inv x ∙ z ∈ N                 ≡⟨ cong N (sym ([ab']b≡a (inv x ∙ z) x))⟩
---       ((inv x ∙ z) ∙ inv x) ∙ x ∈ N ≡⟨ sym (X ((inv x ∙ z) ∙ inv x))⟩
---       x ∙ ((inv x ∙ z) ∙ inv x) ∈ N ≡⟨ cong N (assoc x (inv x ∙ z) (inv x))⟩
---       (x ∙ (inv x ∙ z)) ∙ inv x ∈ N ≡⟨ cong N (left _∙_ (a[a'b]≡b x z))⟩
---       z ∙ inv x ∈ N ∎
---   ; SGSM = def1SM {N = N}
---   }
+ def1SG : {N : A → Type l} → {{Property N}} → Subgroup (def1 N)
+ def1SG {N} = record
+   { inv-closed = λ{x} (X : x ∈ def1 N) z →
+       inv x ∙ z ∈ N                 ≡⟨ cong N (sym ([ab']b≡a (inv x ∙ z) x))⟩
+       ((inv x ∙ z) ∙ inv x) ∙ x ∈ N ≡⟨ sym (X ((inv x ∙ z) ∙ inv x))⟩
+       x ∙ ((inv x ∙ z) ∙ inv x) ∈ N ≡⟨ cong N (assoc x (inv x ∙ z) (inv x))⟩
+       (x ∙ (inv x ∙ z)) ∙ inv x ∈ N ≡⟨ cong N (left _∙_ (a[a'b]≡b x z))⟩
+       z ∙ inv x ∈ N ∎
+   ; SGSM = def1SM {N = N}
+   }
 
- centralizeAbelian : {{Commutative _∙_}} → {H : A → Type l} → ∀ x → x ∈ centralizer H
+ centralizeAbelian : {{Commutative _∙_}}
+                   → {H : A → Type l}
+                   → ∀ x → x ∈ centralizer H
  centralizeAbelian x y y∈H = comm x y
+
+ instance
+  -- Any subgroup of an abelian group is normal
+  normalSGAbelian : {{Commutative _∙_}}
+                  → {H : A → Type l}
+                  → {{SG : Subgroup H}}
+                  → NormalSG H
+  normalSGAbelian {H} = record { [gn]g' = λ n n∈H g →
+     let T1 : (n ∙ inv g) ∙ g ∈ H
+         T1 = subst H (sym ([ab']b≡a n g)) n∈H in
+     let T2 : g ∙ (n ∙ inv g) ∈ H
+         T2 = subst H (comm (n ∙ inv g) g) T1 in
+     let T3 : (g ∙ n) ∙ inv g ∈ H
+         T3 = subst H (assoc g n (inv g)) T2 in
+         T3 }
 
 module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
  module _{N : A → Type l}{{SG : NormalSG N}} where
@@ -687,7 +703,7 @@ _G/_ {A} _∙_ H = A / λ x y → (x ∙ inv y) ∈ H
       → (_∙_ : A → A → A) → {{G : group _∙_}}
       → (H : A → Type l) → {{SG : NormalSG H}}
       → _∙_ G/ H → _∙_ G/ H → _∙_ G/ H
-⋆[_/_] {A} _∙_ {{G}} H =
+⋆[_/_] {A} _∙_ {{G}} H {{SG}} =
    (setQuotBinOp (λ a → subst H (sym (rInverse a)) idClosed)
   (λ a →  subst H (sym (rInverse a)) idClosed) _∙_ λ a a' b b' P Q →
     let H1 : (a ∙ (b ∙ inv b')) ∙ inv a ∈ H
@@ -703,18 +719,18 @@ _G/_ {A} _∙_ H = A / λ x y → (x ∙ inv y) ∈ H
    [wts (a ∙ b) ∙ (inv (a' ∙ b')) ∈ H ] H5)
  where
   -- Restated for faster compilation (kludge)
-  idClosed = Submonoid.id-closed (Subgroup.SGSM (G .NisSG))
-  opClosed = Submonoid.op-closed (Subgroup.SGSM (G .NisSG))
+  idClosed = Submonoid.id-closed (Subgroup.SGSM (NormalSG.NisSG SG))
+  opClosed = Submonoid.op-closed (Subgroup.SGSM (NormalSG.NisSG SG))
 
 module _ {A : Type al}
          {_∙_ : A → A → A} {{G : group _∙_}}
          {H : A → Type l} {{SG : NormalSG H}} where
 
  -- Restated for faster compilation (kludge)
- idClosed = Submonoid.id-closed (Subgroup.SGSM (G .NisSG))
- opClosed = Submonoid.op-closed (Subgroup.SGSM (G .NisSG))
- invClosed = Subgroup.inv-closed (G .NisSG)
- SetProp = Property.setProp (Submonoid.submonoid-set (Subgroup.SGSM (G .NisSG)))
+ idClosed = Submonoid.id-closed (Subgroup.SGSM (NormalSG.NisSG SG))
+ opClosed = Submonoid.op-closed (Subgroup.SGSM (NormalSG.NisSG SG))
+ invClosed = Subgroup.inv-closed (NormalSG.NisSG SG)
+ SetProp = Property.setProp (Submonoid.submonoid-set (Subgroup.SGSM (NormalSG.NisSG SG)))
 
  effectQG : {x y : A} → _≡_ { A = _∙_ G/ H } [ x ] [ y ] → (x ∙ inv y) ∈ H
  effectQG {x} {y} =
