@@ -286,6 +286,13 @@ open Commutative {{...}} public
                     a ∙ (b ∙ (c ∙ d)) ≡⟨ right _∙_ (assoc b c d)⟩
                     a ∙ ((b ∙ c) ∙ d) ∎
 
+[ab][cd]≡[a[bc]]d : {_∙_ : A → A → A} → {{Associative _∙_}} →
+                    (a b c d : A) → (a ∙ b) ∙ (c ∙ d) ≡ (a ∙ (b ∙ c)) ∙ d
+[ab][cd]≡[a[bc]]d {_∙_} a b c d =
+                    (a ∙ b) ∙ (c ∙ d) ≡⟨ assoc (a ∙ b) c d ⟩
+                    ((a ∙ b) ∙ c) ∙ d ≡⟨ left _∙_ (sym(assoc a b c))⟩
+                    (a ∙ (b ∙ c)) ∙ d ∎
+
 
 module _{_∙_ : A → A → A}{{_ : Commutative _∙_}}(a b c : A) where
 
