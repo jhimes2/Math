@@ -250,7 +250,7 @@ Pair A B X = ∥ (X ≡ A) ＋ (X ≡ B) ∥
 cover : {A : Set al} (X : ℙ (ℙ A)) → Set al
 cover X = ∀ x → x ∈ ⋃ X
 
--- https://en.wikipedia.org/wiki/Functor_(functional_programmingj)
+-- https://en.wikipedia.org/wiki/Functor_(functional_programming)
 record Functor (F : Set al → Set bl) : Set (lsuc (al ⊔ bl))  where
   field
     map : (A → B) → F A → F B
