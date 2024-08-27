@@ -1,4 +1,4 @@
-{-# OPTIONS --cubical --safe --overlapping-instances --hidden-argument-pun #-}
+{-# OPTIONS --cubical --safe --hidden-argument-pun --overlapping-instances #-}
 
 module Algebra.Group where
 
@@ -8,6 +8,7 @@ open import Predicate
 open import Algebra.Monoid public
 open import Cubical.Foundations.HLevels
 open import Cubical.HITs.SetQuotients
+open import Cubical.HITs.PropositionalTruncation renaming (rec to recTrunc ; map to mapTrunc)
 
 -- https://en.wikipedia.org/wiki/Group_(mathematics)
 record group {A : Type l}(_∙_ : A → A → A) : Type(lsuc l) where
@@ -42,22 +43,20 @@ module _{_∙_ : A → A → A} {{G : group _∙_}} where
       inv(inv a) ∙ (inv a)               ≡⟨ lInverse (inv a)⟩
       e ∎
 
-instance
-  grpIsMonoid : {_∙_ : A → A → A}{{G : group _∙_}} → monoid _∙_
-  grpIsMonoid {_∙_} {{G}} =
-   record
-    { e = e
-    ; lIdentity = lIdentity
-      -- Proof that a group has right identity property
-    ; rIdentity = λ a →
-        a ∙ e           ≡⟨ right _∙_ (sym (lInverse a))⟩
-        a ∙ (inv a ∙ a) ≡⟨ assoc a (inv a) a ⟩
-        (a ∙ inv a) ∙ a ≡⟨ left _∙_ (rInverse a)⟩
-        e ∙ a           ≡⟨ lIdentity a ⟩
-        a ∎
-    }
-   where
-     open group {{...}}
+  instance
+    grpIsMonoid : monoid _∙_
+    grpIsMonoid =
+     record
+      { e = e
+      ; lIdentity = lIdentity
+        -- Proof that a group has right identity property
+      ; rIdentity = λ a →
+          a ∙ e           ≡⟨ right _∙_ (sym (lInverse a))⟩
+          a ∙ (inv a ∙ a) ≡⟨ assoc a (inv a) a ⟩
+          (a ∙ inv a) ∙ a ≡⟨ left _∙_ (rInverse a)⟩
+          e ∙ a           ≡⟨ lIdentity a ⟩
+          a ∎
+      }
 
 open monoid {{...}} public
 
@@ -212,9 +211,9 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
  fullSG = record { inv-closed = λ x → lift tt }
 
  -- Centralizing any subset of a group is a subgroup
- centralizerSG : {H : A → Type l} → Subgroup (centralizer H)
+ centralizerSG : {H : A → Type l} → Subgroup (centralizer _∙_ H)
  centralizerSG {H} = record
-    { inv-closed = λ{x} (X : x ∈ centralizer H) z z∈H
+    { inv-closed = λ{x} (X : x ∈ centralizer _∙_ H) z z∈H
      → [wts inv x ∙ z ≡ z ∙ inv x ] (grp.cancel x)
      $ x ∙ (inv x ∙ z) ≡⟨ a[a'b]≡b x z ⟩
        z               ≡⟨ sym ([ab]b'≡a z x)⟩
@@ -224,7 +223,7 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
     }
 
  -- Normalizing any subset of a group is a subgroup
- normalizerSG : {N : A → Type l} → {{Property N}} → Subgroup (normalizer N)
+ normalizerSG : {N : A → Type l} → {{Property N}} → Subgroup (normalizer _∙_ N)
  normalizerSG {N} = record { inv-closed = λ{x} x∈norm →
      let f = funRed x∈norm in funExt λ y → propExt squash₁ squash₁ (_>>= λ (p , p∈N , H) →
         transport (sym(f (p ∙ x))) (η (p , p∈N , refl)) >>= λ (q , q∈N , G) →
@@ -245,23 +244,10 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
            (inv x ∙ q) ∙ x ∎
        )))
      ; SGSM = normalizerSM {N = N} }
-   where
-    open import Cubical.HITs.PropositionalTruncation renaming (rec to recTrunc ; map to mapTrunc)
-
- def1SG : {N : A → Type l} → {{Property N}} → Subgroup (def1 N)
- def1SG {N} = record
-   { inv-closed = λ{x} (X : x ∈ def1 N) z →
-       inv x ∙ z ∈ N                 ≡⟨ cong N (sym ([ab']b≡a (inv x ∙ z) x))⟩
-       ((inv x ∙ z) ∙ inv x) ∙ x ∈ N ≡⟨ sym (X ((inv x ∙ z) ∙ inv x))⟩
-       x ∙ ((inv x ∙ z) ∙ inv x) ∈ N ≡⟨ cong N (assoc x (inv x ∙ z) (inv x))⟩
-       (x ∙ (inv x ∙ z)) ∙ inv x ∈ N ≡⟨ cong N (left _∙_ (a[a'b]≡b x z))⟩
-       z ∙ inv x ∈ N ∎
-   ; SGSM = def1SM {N = N}
-   }
 
  centralizeAbelian : {{Commutative _∙_}}
                    → {H : A → Type l}
-                   → ∀ x → x ∈ centralizer H
+                   → ∀ x → x ∈ centralizer _∙_ H
  centralizeAbelian x y y∈H = comm x y
 
  instance
@@ -278,6 +264,92 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
      let T3 : (g ∙ n) ∙ inv g ∈ H
          T3 = subst H (assoc g n (inv g)) T2 in
          T3 }
+
+module _{_∙_ : A → A → A}{{G : group _∙_}}
+        {_*_ : B → B → B}{h : A → B}{{E : Epimorphism _∙_ _*_ h}} where
+   EpimorphismCodomainGroup : group _*_
+   EpimorphismCodomainGroup = record
+     { e = e                  -- From EpimorphismCodomainMonoid
+     ; lIdentity = lIdentity  --
+     ; inverse = λ a → recTrunc (λ(x , P)(y , Q) → ΣPathPProp
+       (λ z → IsSet (z * a) (h e))
+       (rec3 (IsSet x y)
+         (λ(a' , H1)(x' , H2)(y' , H3) →
+          x                          ≡⟨ sym H2 ⟩
+          h x'                       ≡⟨ sym(rIdentity (h x'))⟩
+          h x' * h e                 ≡⟨ right _*_ (cong h (sym (rInverse a')))⟩
+          h x' * h (a' ∙ inv a')     ≡⟨ right _*_ (preserve a' (inv a'))⟩
+          h x' * (h a' * h (inv a')) ≡⟨ assoc (h x') (h a') (h (inv a'))⟩
+          (h x' * h a') * h (inv a') ≡⟨ left _*_ (cong₂ _*_ H2 H1)⟩
+          (x * a) * h (inv a')       ≡⟨ left _*_  P ⟩
+          e * h (inv a')             ≡⟨ left _*_ (sym Q)⟩
+          (y * a) * h (inv a')       ≡⟨ left _*_ (sym (cong₂ _*_ H3 H1))⟩
+          (h y' * h a') * h (inv a') ≡⟨ sym (assoc (h y') (h a') (h (inv a')))⟩
+          h y' * (h a' * h (inv a')) ≡⟨ right _*_ (sym (preserve a' (inv a'))) ⟩
+          h y' * h (a' ∙ inv a')     ≡⟨ right _*_ (cong h (rInverse a')) ⟩
+          h y' * h e                 ≡⟨ rIdentity (h y') ⟩
+          h y'                       ≡⟨ H3 ⟩
+          y ∎
+            ) (surject a) (surject x) (surject y))) (λ (a' , H) →
+             h (inv a') ,
+             (h (inv a') * a    ≡⟨ right _*_ (sym H)⟩
+              h (inv a') * h a' ≡⟨ sym (preserve (inv a') a')⟩
+              h (inv a' ∙ a')   ≡⟨ cong h (lInverse a')⟩
+              h e ∎)
+              ) (surject a)
+     }
+      where instance
+        GAssoc : Associative _*_
+        GAssoc = EpimorphismCodomainAssoc {{E = E}}
+        GMonoid : monoid _*_
+        GMonoid = EpimorphismCodomainMonoid {{E = E}}
+
+module _{A : Type al}{_∙_ : A → A → A}
+        {B : Type bl}{_*_ : B → B → B}{{H : monoid _*_}} where
+  Kernel : (h : A → B) → {{_ : Homomorphism _∙_ _*_ h}} → A → Type bl
+  Kernel h u = h u ≡ e
+
+  instance
+    property : {h : A → B} → {{_ : Homomorphism _∙_ _*_ h}} → Property (Kernel h)
+    property {h} = record { setProp = λ x → IsSet (h x) e }
+
+module _{_∙_ : A → A → A}{{G : monoid _∙_}}
+        {_*_ : B → B → B}{{H : group _*_}} where
+
+  -- A group homomorphism maps identity elements to identity elements
+  idToId : (h : A → B) → {{X : Homomorphism _∙_ _*_ h}} → h e ≡ e
+  idToId h = [wts h e ≡ e ] grp.lemma3
+           $ [wts h e ≡ h e * h e ]
+               h e       ≡⟨ cong h (sym (lIdentity e))⟩
+               h (e ∙ e) ≡⟨ preserve e e ⟩
+               h e * h e ∎
+
+  instance
+   -- The image of a homomorphism is a submonoid
+   image-HM-SM : {h : A → B} → {{_ : Homomorphism _∙_ _*_ h}} → Submonoid (image h) _*_
+   image-HM-SM {h = h} = record
+     { id-closed = η $ e , idToId h
+     ; op-closed = λ{x y} x∈Im y∈Im
+                 → x∈Im >>= λ(a , ha≡x)
+                 → y∈Im >>= λ(b , hb≡y)
+                 → η $ (a ∙ b) ,
+                   (h (a ∙ b) ≡⟨ preserve a b ⟩
+                    h a * h b ≡⟨ cong₂ _*_ ha≡x hb≡y ⟩
+                    x * y ∎)
+     }
+  module _{h : A → B}{{X : Homomorphism _∙_ _*_ h}} where
+
+   instance
+    -- The kernel is a submonoid
+    SM : Submonoid (Kernel h) _∙_
+    SM = record
+       { id-closed = idToId h
+       ; op-closed = λ{x y} (p : h x ≡ e) (q : h y ≡ e)
+                   → h (x ∙ y) ≡⟨ preserve x y ⟩
+                     h x * h y ≡⟨ cong₂ _*_ p q ⟩
+                     e * e     ≡⟨ lIdentity e ⟩
+                     e ∎
+       }
 
 module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
  module _{N : A → Type l}{{SG : NormalSG N}} where
@@ -367,29 +439,8 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
 
  module _{B : Type bl}{_*_ : B → B → B}{{H : group _*_}} where
 
-  -- https://en.wikipedia.org/wiki/Group_homomorphism
-  record Homomorphism(h : A → B) : Type (lsuc(al ⊔ bl))
-    where field
-     preserve : (u v : A) → h (u ∙ v) ≡ h u * h v
-  open Homomorphism {{...}} public
-
-  -- https://en.wikipedia.org/wiki/Monomorphism
-  record Monomorphism(h : A → B) : Type (lsuc(al ⊔ bl))
-    where field
-     {{homo}} : Homomorphism h
-     inject : injective h
-  open Monomorphism {{...}} public
-
-  -- A group homomorphism maps identity elements to identity elements
-  idToId : (h : A → B) → {{X : Homomorphism h}} → h e ≡ e
-  idToId h = [wts h e ≡ e ] grp.lemma3
-           $ [wts h e ≡ h e * h e ]
-               h e       ≡⟨ cong h (sym (lIdentity e))⟩
-               h (e ∙ e) ≡⟨ preserve e e ⟩
-               h e * h e ∎
-
   -- A group homomorphism maps inverse elements to inverse elements
-  invToInv : (h : A → B) → {{X : Homomorphism h}} → ∀ a → h (inv a) ≡ inv (h a)
+  invToInv : (h : A → B) → {{X : Homomorphism _∙_ _*_ h}} → ∀ a → h (inv a) ≡ inv (h a)
   invToInv = λ h a
    → [wts h (inv a) ≡ inv (h a) ] grp.lcancel (h a)
    $ [wts h (inv a) * h a ≡ inv (h a) * h a ]
@@ -399,14 +450,11 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
      e               ≡⟨ sym (lInverse (h a))⟩
      inv (h a) * h a ∎
 
-  Kernel : (h : A → B) → {{_ : Homomorphism h}} → A → Type bl
-  Kernel h u = h u ≡ e
-
-  module ker{h : A → B}{{X : Homomorphism h}} where
+  module ker{h : A → B}{{X : Homomorphism _∙_ _*_ h}} where
 
    {- If the kernel only contains the identity element, then the
       homomorphism is a monomorphism -}
-   onlyId1-1 : (∀ x → x ∈ Kernel h → x ≡ e) → Monomorphism h
+   onlyId1-1 : (∀ x → x ∈ Kernel h → x ≡ e) → Monomorphism _∙_ _*_ h
    onlyId1-1 = λ(p : ∀ x → h x ≡ e → x ≡ e) → record
     { inject =
        λ x y
@@ -421,20 +469,6 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
     }
  
    instance
-    property : Property (Kernel h)
-    property = record { setProp = λ x → IsSet (h x) e }
- 
-    -- The kernel is a submonoid
-    SM : Submonoid (Kernel h) _∙_
-    SM = record
-       { id-closed = idToId h
-       ; op-closed = λ{x y} (p : h x ≡ e) (q : h y ≡ e)
-                   → h (x ∙ y) ≡⟨ preserve x y ⟩
-                     h x * h y ≡⟨ cong₂ _*_ p q ⟩
-                     e * e     ≡⟨ lIdentity e ⟩
-                     e ∎
-       }
-
     -- The kernel is a subgroup
     SG : Subgroup (Kernel h)
     SG = record
@@ -458,21 +492,9 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
       }
  
   instance
-   -- The image of a homomorphism is a submonoid
-   image-HM-SM : {h : A → B} → {{_ : Homomorphism h}} → Submonoid (image h) _*_
-   image-HM-SM {h = h} = record
-     { id-closed = η $ e , idToId h
-     ; op-closed = λ{x y} x∈Im y∈Im
-                 → x∈Im >>= λ(a , ha≡x)
-                 → y∈Im >>= λ(b , hb≡y)
-                 → η $ (a ∙ b) ,
-                   (h (a ∙ b) ≡⟨ preserve a b ⟩
-                    h a * h b ≡⟨ cong₂ _*_ ha≡x hb≡y ⟩
-                    x * y ∎)
-     }
 
    -- The image of a homomorphism is a subgroup
-   image-HM-SG : {h : A → B} → {{_ : Homomorphism h}} → Subgroup (image h)
+   image-HM-SG : {h : A → B} → {{_ : Homomorphism _∙_ _*_ h}} → Subgroup (image h)
    image-HM-SG {h = h} = record
       { inv-closed = λ{x} x∈Im → x∈Im >>= λ(a , ha≡x)
                     → η $ inv a ,
@@ -480,73 +502,6 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
                     inv (h a) ≡⟨ cong inv ha≡x ⟩
                     inv x ∎)
       }
-
- -- https://en.wikipedia.org/wiki/Epimorphism
- record Epimorphism{B : Type bl}(h : A → B) : Type (lsuc(al ⊔ bl))
-   where field
-    _∗_ : B → B → B
-    epi-preserve : (u v : A) → h (u ∙ v) ≡ h u ∗ h v
-    surject : surjective h
-    {{epi-set}} : is-set B
- open Epimorphism {{...}} public
-
- {- We didn't require the codomain of an epimorphism to be an underlying set of a group
-    because it already was. -}
- private instance
-  EpimorphismCodomainGroup : {h : A → B} → {{E : Epimorphism h}}
-                           → group _∗_
-  EpimorphismCodomainGroup {h = h} = record
-    { e = h e
-    ; inverse = λ a →
-       let a' = fst (surject a) in
-       let H : h a' ≡ a
-           H = snd (surject a) in
-       h (inv a') ,
-            (h (inv a') ∗ a    ≡⟨ right _∗_ (sym H)⟩
-             h (inv a') ∗ h a' ≡⟨ sym (epi-preserve (inv a') a')⟩
-             h (inv a' ∙ a')   ≡⟨ cong h (lInverse a')⟩
-             h e ∎)
-    ; lIdentity = λ a →
-       let a' = fst (surject a) in
-       let H : h a' ≡ a
-           H = snd (surject a) in
-              h e ∗ a    ≡⟨ right _∗_ (sym H)⟩
-              h e ∗ h a' ≡⟨ sym (epi-preserve e a')⟩
-              h (e ∙ a') ≡⟨ cong h (lIdentity a')⟩
-              h a'       ≡⟨ H ⟩
-              a ∎
-    ; gAssoc = record
-       { assoc = λ a b c →
-          let a' = fst (surject a) in
-          let H : h a' ≡ a
-              H = snd (surject a) in
-          let b' = fst (surject b) in
-          let G : h b' ≡ b
-              G = snd (surject b) in
-          let c' = fst (surject c) in
-          let F : h c' ≡ c
-              F = snd (surject c) in
-           a ∗ (b ∗ c)          ≡⟨ cong₂ _∗_ (sym H) (cong₂ _∗_ (sym G) (sym F))⟩
-           h a' ∗ (h b' ∗ h c') ≡⟨ right _∗_ (sym (epi-preserve b' c'))⟩
-           h a' ∗ h (b' ∙ c')   ≡⟨ sym (epi-preserve a' (b' ∙ c'))⟩
-           h (a' ∙ (b' ∙ c'))   ≡⟨ cong h (assoc a' b' c')⟩
-           h ((a' ∙ b') ∙ c')   ≡⟨ epi-preserve (a' ∙ b') c' ⟩
-           h (a' ∙ b') ∗ h c'   ≡⟨ left _∗_ (epi-preserve a' b')⟩
-           (h a' ∗ h b') ∗ h c' ≡⟨ cong₂ _∗_ (cong₂ _∗_ H G) F ⟩
-           (a ∗ b) ∗ c ∎
-       }
-    }
-
-  {- Now that we proved that epimorphism codomains are groups, we
-     can conclude that epimorphisms are homomorphisms. -}
-  Epi→Homo : {h : A → B}{{_ : Epimorphism h}} → Homomorphism h
-  Epi→Homo = record { preserve = epi-preserve }
-
- record Isomorphism{B : Type bl}(h : A → B) : Type (lsuc(al ⊔ bl))
-   where field
-    {{epi}} : Epimorphism h
-    {{mono}} : Monomorphism h
- open Isomorphism {{...}} public
 
  -- https://en.wikipedia.org/wiki/Group_action
  -- Left group action
@@ -600,13 +555,13 @@ module _{_∙_ : A → A → A} {{G : group _∙_}} where
 
   {- If 'H' is a subgroup of 'G', then the inclusion map 'H → G' sending each element 'a' of 'H'
      to itself is a homomorphism. -}
-  inclusionMapHM : {H : A → Type l} {{_ : Subgroup H}} → Homomorphism (λ((x , _) : Σ H) → x)
+  inclusionMapHM : {H : A → Type l} {{_ : Subgroup H}} → Homomorphism _⪀_ _∙_ (λ((x , _) : Σ H) → x)
   inclusionMapHM = record
       { preserve = λ (u , u') (v , v') → refl }
  
   -- Group action homomorphism
   actionHomomorphism : {B : Type bl} {act : A → B → B} → {{R : Action act}}
-                     → Homomorphism λ x → act x , ActionBijective act x
+                     → Homomorphism _∙_ ≅transitive λ x → act x , ActionBijective act x
   actionHomomorphism {act = act} = record
      {preserve = λ u v → ΣPathPProp bijectiveProp
                                     (funExt λ x → sym (act-compatibility x u v))
@@ -690,7 +645,6 @@ groupIsProp {A} _∙_ G1 G2 i =
   open group
   open import Cubical.Foundations.HLevels
 
--- https://en.wikipedia.org/wiki/Quotient_group
 _G/_ : {A : Type al}
       → (_∙_ : A → A → A) → {{G : group _∙_}}
       → (H : A → Type l) → {{SG : NormalSG H}}
@@ -698,7 +652,8 @@ _G/_ : {A : Type al}
 _G/_ {A} _∙_ H = A / λ x y → (x ∙ inv y) ∈ H
 
 {- Quotient group operator -}
-{- I need to think of ways of making the quotient group operator less verbose while keeping compilation times tolerable. -}
+{- I need to think of ways of making the quotient group operator less verbose
+   while keeping compilation times tolerable. -}
 ⋆[_/_] : {A : Type al}
       → (_∙_ : A → A → A) → {{G : group _∙_}}
       → (H : A → Type l) → {{SG : NormalSG H}}
@@ -716,7 +671,7 @@ _G/_ {A} _∙_ H = A / λ x y → (x ∙ inv y) ∈ H
         H4 = subst H (sym ([ab][cd]≡[a[bc]]d a b (inv b') (inv a'))) H3 in
     let H5 : (a ∙ b) ∙ (inv( a' ∙ b')) ∈ H
         H5 = subst H (right _∙_ (grp.lemma1 a' b')) H4 in
-   [wts (a ∙ b) ∙ (inv (a' ∙ b')) ∈ H ] H5)
+        H5)
  where
   -- Restated for faster compilation (kludge)
   idClosed = Submonoid.id-closed (Subgroup.SGSM (NormalSG.NisSG SG))
@@ -724,7 +679,7 @@ _G/_ {A} _∙_ H = A / λ x y → (x ∙ inv y) ∈ H
 
 module _ {A : Type al}
          {_∙_ : A → A → A} {{G : group _∙_}}
-         {H : A → Type l} {{SG : NormalSG H}} where
+         {N : A → Type l} {{SG : NormalSG N}} where
 
  -- Restated for faster compilation (kludge)
  idClosed = Submonoid.id-closed (Subgroup.SGSM (NormalSG.NisSG SG))
@@ -732,52 +687,35 @@ module _ {A : Type al}
  invClosed = Subgroup.inv-closed (NormalSG.NisSG SG)
  SetProp = Property.setProp (Submonoid.submonoid-set (Subgroup.SGSM (NormalSG.NisSG SG)))
 
- effectQG : {x y : A} → _≡_ { A = _∙_ G/ H } [ x ] [ y ] → (x ∙ inv y) ∈ H
+ instance
+  qGrpIsSet : is-set (_∙_ G/ N )
+  qGrpIsSet = record { IsSet = squash/ }
+  naturalEpimorphism : Epimorphism _∙_  ⋆[ _∙_ / N ] [_]
+  naturalEpimorphism = record { epi-preserve = record { preserve = λ u v → refl }
+                              ; surject = elimProp (λ x → squash₁) λ a → η (a , refl)
+                              }
+
+ effectQG : {x y : A} → [ x ] ≡ [ y ] → (x ∙ inv y) ∈ N
  effectQG {x} {y} =
     effective (λ x y → SetProp (x ∙ inv y))
-              (BinaryRelation.equivRel (λ a → subst H (sym (rInverse a)) idClosed)
+              (BinaryRelation.equivRel (λ a → subst N (sym (rInverse a)) idClosed)
                                        (λ a b x →
-                                          let T1 : inv (a ∙ inv b) ∈ H
+                                          let T1 : inv (a ∙ inv b) ∈ N
                                               T1 = invClosed x in
-                                          let T2 : inv (inv b) ∙ inv a ∈ H
-                                              T2 = subst H ( sym(grp.lemma1 a (inv b))) T1 in
-                                          let T3 : b ∙ inv a ∈ H
-                                              T3 = subst H (left _∙_ (grp.doubleInv b)) T2 in
+                                          let T2 : inv (inv b) ∙ inv a ∈ N
+                                              T2 = subst N ( sym(grp.lemma1 a (inv b))) T1 in
+                                          let T3 : b ∙ inv a ∈ N
+                                              T3 = subst N (left _∙_ (grp.doubleInv b)) T2 in
                                               T3)
                                         λ a b c P Q →
-                                          let T1 : (a ∙ inv b) ∙ (b ∙ inv c) ∈ H
+                                          let T1 : (a ∙ inv b) ∙ (b ∙ inv c) ∈ N
                                               T1 = opClosed P Q in
-                                          let T2 : a ∙ inv c ∈ H
-                                              T2 = subst H ([ab'][bc]≡ac a b (inv c)) T1 in
+                                          let T2 : a ∙ inv c ∈ N
+                                              T2 = subst N ([ab'][bc]≡ac a b (inv c)) T1 in
                                               T2) x y
   where
    open import Cubical.Relation.Binary
 
  instance
-  qGrpOpAssoc : Associative ⋆[ _∙_ / H ]
-  qGrpOpAssoc = record { assoc = elimProp3 (λ x y z → squash/ (⋆[ _∙_ / H ] x (⋆[ _∙_ / H ] y z))
-                                                              (⋆[ _∙_ / H ](⋆[ _∙_ / H ] x y) z))
-                                            λ a b c → cong [_] (assoc a b c) }
-  qGrpIsSet : is-set (_∙_ G/ H )
-  qGrpIsSet = record { IsSet = squash/ }
-  quotientGrp : group ⋆[ _∙_ / H ]
-  quotientGrp = record
-    { e = [ e ] 
-    ; inverse = elimProp (λ z (a , A) (b , B) →
-        let T : a ≡ b
-            T = grp.lcancel z (A ⋆ sym B) in
-      ΣPathPProp (λ a → squash/ (⋆[ _∙_ / H ] a z) [ e ])
-       let U : ⋆[ _∙_ / H ] a z ≡ ⋆[ _∙_ / H ] b z
-           U = (A ⋆ sym B) in aux a b z U) λ a → [ inv a ] , (cong [_] (lInverse a))
-    ; lIdentity = elimProp (λ x → squash/ (⋆[ _∙_ / H ] [ e ] x) x) λ a → cong [_] (lIdentity a)
-    }
-    where
-     aux : (a b z : _∙_ G/ H) → ⋆[ _∙_ / H ] a z ≡ ⋆[ _∙_ / H ] b z → a ≡ b
-     aux = elimProp3 (λ x y z → isPropΠ (λ H → squash/ x y))
-      λ a b c P → let T1 : (a ∙ c) ∙ inv (b ∙ c) ∈ H
-                      T1 = effectQG P in
-                  let T2 : ((a ∙ c) ∙ (inv c ∙ inv b)) ∈ H
-                      T2 = subst H (right _∙_ (sym (grp.lemma1 b c))) T1 in
-                  let T3 : a ∙ inv b ∈ H
-                      T3 = subst H ([ab][b'c]≡ac a c (inv b)) T2 in
-                     eq/ a b T3
+  quotientGrp : group ⋆[ _∙_ / N ]
+  quotientGrp = EpimorphismCodomainGroup {{E = naturalEpimorphism}}

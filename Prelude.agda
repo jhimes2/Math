@@ -412,3 +412,57 @@ rem₁ {A} {P} {Q} = isOfHLevelRetractFromIso {B = ∀ x → (∥ P x ∥₁) �
   open import Cubical.Foundations.Isomorphism
   open import Cubical.Data.Nat
 
+record Homomorphism{A : Type al}
+                   {B : Type bl}
+                   (_∙_ : A → A → A)
+                   (_*_ : B → B → B)
+                   (h : A → B) : Type (al ⊔ bl)
+  where field
+   preserve : (u v : A) → h (u ∙ v) ≡ h u * h v
+open Homomorphism {{...}} public
+
+record Monomorphism{A : Type al}
+                   {B : Type bl}
+                   (_∙_ : A → A → A)
+                   (_*_ : B → B → B)
+                   (h : A → B) : Type (lsuc(al ⊔ bl))
+  where field
+   {{homo}} : Homomorphism _∙_ _*_ h
+   inject : injective h
+open Monomorphism {{...}} public
+
+record Epimorphism{A : Type al}
+                  {B : Type bl}
+                  (_∙_ : A → A → A)
+                  (_*_ : B → B → B)
+                  (h : A → B) : Type (lsuc(al ⊔ bl))
+  where field
+   {{epi-preserve}} : Homomorphism _∙_ _*_ h
+   surject : ∀ x → ∃ λ a → h a ≡ x
+   overlap {{epi-set}} : is-set B
+open Epimorphism {{...}} public
+
+module _{_∙_ : A → A → A}
+        {_*_ : B → B → B}{{H : Associative _∙_}} where
+ {- If `h` is a surjective function such that
+       (∀ x y, h (x ∙ y) ≡ h x * h y),
+    and if _∙_ is associative, then _*_ is associative. -}
+  EpimorphismCodomainAssoc : {h : A → B}
+                           → {{E : Epimorphism _∙_ _*_ h}}
+                           → Associative _*_
+  EpimorphismCodomainAssoc {h} = record
+       { assoc = λ a b c → rec3 (IsSet (a * (b * c)) ((a * b) * c))
+        (λ(a' , H) →
+         λ(b' , G) →
+         λ(c' , F) →
+           a * (b * c)          ≡⟨ cong₂ _*_ (sym H) (cong₂ _*_ (sym G) (sym F))⟩
+           h a' * (h b' * h c') ≡⟨ right _*_ (sym (preserve b' c'))⟩
+           h a' * h (b' ∙ c')   ≡⟨ sym (preserve a' (b' ∙ c'))⟩
+           h (a' ∙ (b' ∙ c'))   ≡⟨ cong h (assoc a' b' c')⟩
+           h ((a' ∙ b') ∙ c')   ≡⟨ preserve (a' ∙ b') c' ⟩
+           h (a' ∙ b') * h c'   ≡⟨ left _*_ (preserve a' b')⟩
+           (h a' * h b') * h c' ≡⟨ cong₂ _*_ (cong₂ _*_ H G) F ⟩
+           (a * b) * c ∎
+           ) (surject a) (surject b) (surject c)
+       }
+

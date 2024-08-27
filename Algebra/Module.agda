@@ -274,7 +274,7 @@ record moduleHomomorphism {A : Type l}
                          {{U : Module <U>}}
                           (T : <U> → <V>) : Type (l ⊔ lsuc(l' ⊔ al))
   where field
-  {{addT}} : Homomorphism T
+  {{addT}} : Homomorphism _<+>_ _<+>_ T
   multT : ∀ u → (c : A) → T (c *> u) ≡ c *> T u
 open moduleHomomorphism {{...}} public 
 
@@ -394,11 +394,11 @@ module _ {A : Type l}  {{CR : CRing A}}
  bilinearLZ : {B : V → W → X} → {{BL : Bilinear B}} → (v : V) → B v Ô ≡ Ô
  bilinearLZ {B = B} v = idToId (B v)
    where instance
-       H : Homomorphism (B v)
+       H : Homomorphism _<+>_ _<+>_ (B v)
        H = moduleHomomorphism.addT (lLinear v)
 
  bilinearRZ : {B : V → W → X} → {{BL : Bilinear B}} → (w : W) → B Ô w ≡ Ô
  bilinearRZ {B = B} w = idToId (λ x → B x w)
    where instance
-       H : Homomorphism λ x → B x w
+       H : Homomorphism _<+>_ _<+>_ λ x → B x w
        H = moduleHomomorphism.addT (rLinear w)

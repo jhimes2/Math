@@ -63,7 +63,7 @@ module _{_∙_ : A → A → A} {{M : monoid _∙_}} where
   fullSM = record { id-closed = lift tt ; op-closed = λ _ _ → lift tt }
 
   -- Centralizing any subset of a monoid is a submonoid
-  centralizerSM : {H : A → Type l} → Submonoid (centralizer H) _∙_
+  centralizerSM : {H : A → Type l} → Submonoid (centralizer _∙_ H) _∙_
   centralizerSM {H} = record
     { id-closed = λ x x∈H → lIdentity x ⋆ sym (rIdentity x)
     ; op-closed = λ{x y} x∈Cent y∈Cent z z∈H →
@@ -81,7 +81,7 @@ module _{_∙_ : A → A → A} {{M : monoid _∙_}} where
 
 
   -- Normalizing any subset of a monoid is a submonoid
-  normalizerSM : {N : A → Type l} → {{Property N}} → Submonoid (normalizer N) _∙_
+  normalizerSM : {N : A → Type l} → {{Property N}} → Submonoid (normalizer _∙_ N) _∙_
   normalizerSM {N} = record
      { id-closed = funExt λ
      x → propExt squash₁ squash₁ (map λ(y , y∈N , H) → y , y∈N , H ⋆ lIdentity y ⋆ sym (rIdentity y))
@@ -118,31 +118,8 @@ module _{_∙_ : A → A → A} {{M : monoid _∙_}} where
                             x ∙ (q ∙ y) ≡⟨ right _∙_ T1 ⟩
                             x ∙ (y ∙ r) ≡⟨ assoc x y r ⟩
                            (x ∙ y) ∙ r  ∎ ))
-         ; submonoid-set = record { setProp = λ r → [wts isProp (lCoset N r ≡ rCoset N r) ] rem₁ }
+         ; submonoid-set = record { setProp = λ r → [wts isProp (lCoset _∙_ N r ≡ rCoset _∙_ N r) ] rem₁ }
          }
-
-  def1SM : {N : A → Type l} → {{Property N}} → Submonoid (def1 N) _∙_
-  def1SM {N} = record
-    { id-closed = λ x →  e ∙ x ∈ N ≡⟨ cong N (lIdentity x)⟩
-                             x ∈ N ≡⟨ cong N (sym (rIdentity x))⟩
-                         x ∙ e ∈ N ∎
-    ; op-closed = λ{x y} (X : x ∈ def1 N) (Y : y ∈ def1 N) z
-           → let p : x ∙ (y ∙ z) ∈ N ≡ (y ∙ z) ∙ x ∈ N
-                 p = X (y ∙ z) in
-             let q : y ∙ (z ∙ x) ∈ N ≡ (z ∙ x) ∙ y ∈ N
-                 q = Y (z ∙ x) in
-             (x ∙ y) ∙ z ∈ N ≡⟨ cong N (sym (assoc x y z))⟩
-             x ∙ (y ∙ z) ∈ N ≡⟨ p ⟩
-             (y ∙ z) ∙ x ∈ N ≡⟨ cong N (sym(assoc y z x))⟩
-             y ∙ (z ∙ x) ∈ N ≡⟨ q ⟩
-             (z ∙ x) ∙ y ∈ N ≡⟨ cong N (sym(assoc z x y))⟩
-               z ∙ (x ∙ y) ∈ N ∎
-    ; submonoid-set = record { setProp = λ x a b → funExt λ c →
-         isOfHLevel≡ (suc zero) (setProp (x ∙ c)) (setProp (c ∙ x)) (a c) (b c)
-      }
-    }
-   where
-    open import Cubical.Data.Nat
 
 -- Every operator can only be part of at most one monoid
 monoidIsProp : (_∙_ : A → A → A) → isProp (monoid _∙_)
@@ -163,3 +140,26 @@ monoidIsProp {A} _∙_ M1 M2 i =
       ; mAssoc = record { assoc = λ a b c → set {p = M1 .mAssoc .assoc a b c}
                                                     {M2 .mAssoc .assoc a b c} i }
           }
+
+module _{_∙_ : A → A → A}{{M : monoid _∙_}}
+        {_*_ : B → B → B}
+        {h : A → B}{{E : Epimorphism _∙_ _*_ h}} where
+   EpimorphismCodomainMonoid : monoid _*_
+   EpimorphismCodomainMonoid = record
+     { e = h e
+     ; lIdentity = λ a → recTrunc (IsSet (h e * a) a) (λ(a' , H) →
+               h e * a    ≡⟨ right _*_ (sym H)⟩
+               h e * h a' ≡⟨ sym (preserve e a')⟩
+               h (e ∙ a') ≡⟨ cong h (lIdentity a')⟩
+               h a'       ≡⟨ H ⟩
+               a ∎
+     ) (surject a)
+     ; rIdentity = λ a → recTrunc (IsSet (a * h e) a) (λ(a' , H) →
+               a * h e    ≡⟨ left _*_ (sym H)⟩
+               h a' * h e ≡⟨ sym (preserve a' e)⟩
+               h (a' ∙ e) ≡⟨ cong h (rIdentity a')⟩
+               h a'       ≡⟨ H ⟩
+               a ∎
+         ) (surject a)
+     ; mAssoc = EpimorphismCodomainAssoc
+     }

@@ -21,7 +21,7 @@ _∉_ :  A → (A → Type l) → Type l
 _∉_ a X = ¬(a ∈ X)
 infixr 5 _∉_
 
-module _{A : Type l}{_∙_ : A → A → A}{{_ : Associative _∙_}} where
+module _{A : Type l}(_∙_ : A → A → A) where
 
  lCoset : (A → Type l') → A → A → Type (l ⊔ l')
  lCoset H a = λ x → ∃ λ y → (y ∈ H) × (x ≡ a ∙ y)
@@ -36,11 +36,6 @@ module _{A : Type l}{_∙_ : A → A → A}{{_ : Associative _∙_}} where
 
  normalizer : (A → Type l') → A → Type (lsuc (l ⊔ l'))
  normalizer X a = lCoset X a ≡ rCoset X a
-
- {- This was an erroneous definition of a normalizer that could still yield a
-    subgroup from a subset of an underlying set of a group -}
- def1 : (H : A → Type l') → A → Type (l ⊔ lsuc l')
- def1 X a = ∀ x → a ∙ x ∈ X ≡ x ∙ a ∈ X
 
  -- https://en.wikipedia.org/wiki/Center_(group_theory)
  center : A → Type l
@@ -105,25 +100,13 @@ instance
  fullProp : Property $ 𝓤 {A = A} {l}
  fullProp = record { setProp = λ x tt tt → refl }
 
- centralizerProperty : {{_ : is-set A}} → {_∙_ : A → A → A} → {{_ : Associative _∙_}}
-                     → {H : A → Type l} → Property (centralizer H)
+ centralizerProperty : {{_ : is-set A}} → {_∙_ : A → A → A}
+                     → {H : A → Type l} → Property (centralizer _∙_ H)
  centralizerProperty {_∙_} =
      record { setProp = λ x → isPropΠ λ y → isProp→ (IsSet (x ∙ y) (y ∙ x)) }
 
  imageProp : {f : A → B} → Property (image f)
  imageProp = record { setProp = λ x → squash₁ }
-
-def1Property : {_∙_ : A → A → A} → {{_ : Associative _∙_}}
-                   → {H : A → Type l} → {{M : Property H}} → Property (def1 H)
-def1Property {_∙_} {H} {{M}} = record { setProp = λ x a b → funExt λ c →
-  let P = M .setProp (x ∙ c) in
-  let Q = M .setProp (c ∙ x) in
-  let A = a c in let B = b c in
-  let R = isOfHLevel≡ (suc zero) P Q in
-  R A B
-  }
- where
-  open import Cubical.Data.Nat
 
 data Support{A : Type al}(X : A → Type l) : A → Type(al ⊔ l) where
   supportIntro : ∀ x → x ∈ X → x ∈ Support X 
