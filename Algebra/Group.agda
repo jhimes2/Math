@@ -304,15 +304,6 @@ module _{_∙_ : A → A → A}{{G : group _∙_}}
         GMonoid : monoid _*_
         GMonoid = EpimorphismCodomainMonoid {{E = E}}
 
-module _{A : Type al}{_∙_ : A → A → A}
-        {B : Type bl}{_*_ : B → B → B}{{H : monoid _*_}} where
-  Kernel : (h : A → B) → {{_ : Homomorphism _∙_ _*_ h}} → A → Type bl
-  Kernel h u = h u ≡ e
-
-  instance
-    property : {h : A → B} → {{_ : Homomorphism _∙_ _*_ h}} → Property (Kernel h)
-    property {h} = record { setProp = λ x → IsSet (h x) e }
-
 module _{_∙_ : A → A → A}{{G : monoid _∙_}}
         {_*_ : B → B → B}{{H : group _*_}} where
 

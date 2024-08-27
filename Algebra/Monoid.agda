@@ -163,3 +163,13 @@ module _{_∙_ : A → A → A}{{M : monoid _∙_}}
          ) (surject a)
      ; mAssoc = EpimorphismCodomainAssoc
      }
+
+module _{A : Type al}{_∙_ : A → A → A}
+        {B : Type bl}{_*_ : B → B → B}{{H : monoid _*_}} where
+  Kernel : (h : A → B) → {{_ : Homomorphism _∙_ _*_ h}} → A → Type bl
+  Kernel h u = h u ≡ e
+
+  instance
+    property : {h : A → B} → {{_ : Homomorphism _∙_ _*_ h}} → Property (Kernel h)
+    property {h} = record { setProp = λ x → IsSet (h x) e }
+
