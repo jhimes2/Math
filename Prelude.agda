@@ -375,6 +375,8 @@ instance
  →IsSet : {{is-set B}} → is-set (A → B)
  →IsSet = record { IsSet = isSet→ IsSet }
 
+-- ∃!isProp : {{is-set A}} → {p : A → Type}
+
 compAssoc : (f g h : A → A) → f ∘ (g ∘ h) ≡ (f ∘ g) ∘ h
 compAssoc f g h = funExt λ x → refl
 
@@ -412,57 +414,65 @@ rem₁ {A} {P} {Q} = isOfHLevelRetractFromIso {B = ∀ x → (∥ P x ∥₁) �
   open import Cubical.Foundations.Isomorphism
   open import Cubical.Data.Nat
 
-record Homomorphism{A : Type al}
-                   {B : Type bl}
-                   (_∙_ : A → A → A)
-                   (_*_ : B → B → B)
-                   (h : A → B) : Type (al ⊔ bl)
+module _{A : Type al}(_∙_ : A → A → A)
+        {B : Type bl}(_*_ : B → B → B)
+        (h : A → B) where
+
+ record Homomorphism : Type (al ⊔ bl)
   where field
    preserve : (u v : A) → h (u ∙ v) ≡ h u * h v
-open Homomorphism {{...}} public
+ open Homomorphism {{...}} public
 
-record Monomorphism{A : Type al}
-                   {B : Type bl}
-                   (_∙_ : A → A → A)
-                   (_*_ : B → B → B)
-                   (h : A → B) : Type (lsuc(al ⊔ bl))
+ record Monomorphism : Type (lsuc(al ⊔ bl))
   where field
-   {{homo}} : Homomorphism _∙_ _*_ h
+   {{mono-preserve}} : Homomorphism
    inject : injective h
-open Monomorphism {{...}} public
+ open Monomorphism {{...}} public
 
-record Epimorphism{A : Type al}
-                  {B : Type bl}
-                  (_∙_ : A → A → A)
-                  (_*_ : B → B → B)
-                  (h : A → B) : Type (lsuc(al ⊔ bl))
+ record Epimorphism : Type (lsuc(al ⊔ bl))
   where field
-   {{epi-preserve}} : Homomorphism _∙_ _*_ h
+   {{epi-preserve}} : Homomorphism
    surject : ∀ x → ∃ λ a → h a ≡ x
-   overlap {{epi-set}} : is-set B
-open Epimorphism {{...}} public
+   overlap {{epi-set}} : is-set B -- TODO: Get rid of this requirement
+ open Epimorphism {{...}} public
+
+ record Isomorphism : Type (lsuc(al ⊔ bl))
+  where field
+   {{iso-mono}} : Monomorphism
+   {{iso-epi}} : Epimorphism
+ open Isomorphism {{...}} public
 
 module _{_∙_ : A → A → A}
-        {_*_ : B → B → B}{{H : Associative _∙_}} where
+        {_*_ : B → B → B}
+        {h : A → B} where
  {- If `h` is a surjective function such that
        (∀ x y, h (x ∙ y) ≡ h x * h y),
     and if _∙_ is associative, then _*_ is associative. -}
-  EpimorphismCodomainAssoc : {h : A → B}
-                           → {{E : Epimorphism _∙_ _*_ h}}
-                           → Associative _*_
-  EpimorphismCodomainAssoc {h} = record
-       { assoc = λ a b c → rec3 (IsSet (a * (b * c)) ((a * b) * c))
-        (λ(a' , H) →
-         λ(b' , G) →
-         λ(c' , F) →
-           a * (b * c)          ≡⟨ cong₂ _*_ (sym H) (cong₂ _*_ (sym G) (sym F))⟩
-           h a' * (h b' * h c') ≡⟨ right _*_ (sym (preserve b' c'))⟩
-           h a' * h (b' ∙ c')   ≡⟨ sym (preserve a' (b' ∙ c'))⟩
-           h (a' ∙ (b' ∙ c'))   ≡⟨ cong h (assoc a' b' c')⟩
-           h ((a' ∙ b') ∙ c')   ≡⟨ preserve (a' ∙ b') c' ⟩
-           h (a' ∙ b') * h c'   ≡⟨ left _*_ (preserve a' b')⟩
-           (h a' * h b') * h c' ≡⟨ cong₂ _*_ (cong₂ _*_ H G) F ⟩
-           (a * b) * c ∎
-           ) (surject a) (surject b) (surject c)
-       }
+ EpimorphismCodomainAssoc :{{H : Associative _∙_}}{{E : Epimorphism _∙_ _*_ h}}
+                          → Associative _*_
+ EpimorphismCodomainAssoc = record
+      { assoc = λ a b c → rec3 (IsSet (a * (b * c)) ((a * b) * c))
+       (λ(a' , H) →
+        λ(b' , G) →
+        λ(c' , F) →
+          a * (b * c)          ≡⟨ cong₂ _*_ (sym H) (cong₂ _*_ (sym G) (sym F))⟩
+          h a' * (h b' * h c') ≡⟨ right _*_ (sym (preserve b' c'))⟩
+          h a' * h (b' ∙ c')   ≡⟨ sym (preserve a' (b' ∙ c'))⟩
+          h (a' ∙ (b' ∙ c'))   ≡⟨ cong h (assoc a' b' c')⟩
+          h ((a' ∙ b') ∙ c')   ≡⟨ preserve (a' ∙ b') c' ⟩
+          h (a' ∙ b') * h c'   ≡⟨ left _*_ (preserve a' b')⟩
+          (h a' * h b') * h c' ≡⟨ cong₂ _*_ (cong₂ _*_ H G) F ⟩
+          (a * b) * c ∎
+          ) (surject a) (surject b) (surject c)
+      }
+
+ instance
+  isHomomorphismIsProp : {{is-set B}} → is-prop (Homomorphism _∙_ _*_ h)
+  isHomomorphismIsProp = record { IsProp = λ (record {preserve = p}) (record {preserve = q})
+                       → let H : p ≡ q
+                             H = funExt λ u → funExt λ v → IsSet (h (u ∙ v)) (h u * h v) (p u v) (q u v)
+                         in
+                      λ i → record {preserve = λ u v → H i u v}
+                      }
+
 

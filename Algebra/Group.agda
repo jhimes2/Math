@@ -7,7 +7,7 @@ open import Relations
 open import Predicate
 open import Algebra.Monoid public
 open import Cubical.Foundations.HLevels
-open import Cubical.HITs.SetQuotients
+open import Cubical.HITs.SetQuotients renaming (rec to recQuot)
 open import Cubical.HITs.PropositionalTruncation renaming (rec to recTrunc ; map to mapTrunc)
 
 -- https://en.wikipedia.org/wiki/Group_(mathematics)
@@ -316,7 +316,7 @@ module _{_∙_ : A → A → A}{{G : monoid _∙_}}
                h e * h e ∎
 
   instance
-   -- The image of a homomorphism is a submonoid
+   -- The image of a group homomorphism is a submonoid
    image-HM-SM : {h : A → B} → {{_ : Homomorphism _∙_ _*_ h}} → Submonoid (image h) _*_
    image-HM-SM {h = h} = record
      { id-closed = η $ e , idToId h
@@ -515,7 +515,7 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
       act e b               ≡⟨ act-identity b ⟩
       b ∎) ,
       λ b → (act (inv z) b) ,
-         (act z (act (inv z) b) ≡⟨ act-compatibility b z (inv z) ⟩
+         (act z (act (inv z) b) ≡⟨ act-compatibility b z (inv z)⟩
           act (z ∙ inv z) b     ≡⟨ left act (rInverse z)⟩
           act e b               ≡⟨ act-identity b ⟩
           b ∎)
@@ -710,3 +710,68 @@ module _ {A : Type al}
  instance
   quotientGrp : group ⋆[ _∙_ / N ]
   quotientGrp = EpimorphismCodomainGroup {{E = naturalEpimorphism}}
+
+ module _{B : Type bl}{_*_ : B → B → B}{{H : group _*_}}
+         (f : A → B){{HM : Homomorphism _∙_ _*_ f}} where
+ 
+  ψ : _∙_ G/ Kernel f → Σ (image f)
+  ψ = recQuot (isSetΣ IsSet (λ x → isProp→isSet squash₁))
+                 (λ a → f a , η (a , refl)) λ a b ab'∈Ker[f] → ΣPathPProp (λ _ → squash₁)
+                 (f a ≡⟨ sym (rIdentity (f a))⟩
+                  f a * e ≡⟨ right _*_ (sym(idToId f))⟩
+                  f a * f e ≡⟨ right _*_ (cong f (sym (lInverse b)))⟩
+                  f a * f (inv b ∙ b) ≡⟨ right _*_ (preserve (inv b) b)⟩
+                  f a * (f (inv b) * f b) ≡⟨ assoc (f a) (f (inv b)) (f b)⟩
+                  (f a * f (inv b)) * f b ≡⟨ left _*_ (sym (preserve a (inv b)))⟩
+                  (f (a ∙ inv b)) * f b ≡⟨ left _*_ ab'∈Ker[f] ⟩
+                  e * f b ≡⟨ lIdentity (f b)⟩
+                  f b ∎)
+
+  instance
+   FToH-lemma1 : Homomorphism ⋆[ _∙_ / Kernel f ] _⪀_ ψ
+   FToH-lemma1 = record { preserve =
+      elimProp2 (λ u v → [wts isProp((ψ (⋆[ _∙_ / Kernel f ] u v)) ≡ (ψ u ⪀ ψ v)) ]
+         isSetΣSndProp IsSet (λ _ → squash₁) (ψ (⋆[ _∙_ / Kernel f ] u v)) (ψ u ⪀ ψ v))
+             λ a b → [wts (ψ (⋆[ _∙_ / Kernel f ] [ a ] [ b ])) ≡ (ψ [ a ] ⪀ ψ [ b ]) ]
+                   ΣPathPProp (λ _ → squash₁) (preserve a b) 
+     }
+ 
+   FToH-lemma2 : Monomorphism ⋆[ _∙_ / Kernel f ] _⪀_ ψ
+   FToH-lemma2 = record { inject = elimProp2 (λ x y → isProp→ (squash/ x y))
+     λ a b P →
+       let Q : f a ≡ f b
+           Q = λ i → fst (P i) in
+       eq/ a b $ f (a ∙ inv b)   ≡⟨ preserve a (inv b) ⟩
+                 f a * f (inv b) ≡⟨ left _*_ Q ⟩
+                 f b * f (inv b) ≡⟨ sym (preserve b (inv b)) ⟩
+                 f (b ∙ inv b)   ≡⟨ cong f (rInverse b) ⟩
+                 f e             ≡⟨ idToId f ⟩
+                 e ∎
+    }
+
+   FToH-lemma3 : Epimorphism ⋆[ _∙_ / Kernel f ] _⪀_ ψ
+   FToH-lemma3 = record { surject = λ (x , P) → P >>= λ(r , R) → η ([ r ] , ΣPathPProp (λ _ → squash₁) R) }
+
+   FToH-lemma : Isomorphism ⋆[ _∙_ / Kernel f ] _⪀_ ψ
+   FToH-lemma = record {}
+
+  -- https://en.wikipedia.org/wiki/Fundamental_theorem_on_homomorphisms
+  fundamentalTheoremOnHomomorphisms : N ⊆ Kernel f
+                                    → ∃! λ(h : _∙_ G/ N → B) → Homomorphism ⋆[ _∙_ / N ] _*_ h × (f ≡ h ∘ [_])
+  fundamentalTheoremOnHomomorphisms N⊆Ker[f] = ϕ ,
+      (record { preserve = elimProp2 (λ a b → IsSet (ϕ (⋆[ _∙_ / N ] a b)) (ϕ a * ϕ b))
+           λ a b → preserve a b } , refl) , λ y (P , Q) → funExt $ elimProp (λ x → IsSet (ϕ x) (y x))
+             λ x → funRed Q x
+     where
+        ϕ : _∙_ G/ N → B
+        ϕ = recQuot IsSet f (λ a b P →
+            recTrunc (IsSet (f a) (f b)) (λ Q →
+                          ( f a ≡⟨ sym (rIdentity (f a))⟩
+                           f a * e ≡⟨ right _*_ (sym (idToId f))⟩
+                           f a * f e ≡⟨ right _*_ (cong f (sym (lInverse b)))⟩
+                           f a * (f (inv b ∙ b)) ≡⟨ right _*_ (preserve (inv b) b)⟩
+                           f a * (f (inv b) * f b) ≡⟨ assoc (f a) (f (inv b)) (f b)⟩
+                           (f a * f (inv b)) * f b ≡⟨ left _*_ (sym (preserve a (inv b))) ⟩
+                           (f (a ∙ inv b)) * f b ≡⟨ left _*_ Q ⟩
+                           e * f b ≡⟨ lIdentity (f b) ⟩
+                           f b ∎)) (N⊆Ker[f] (a ∙ inv b) P))
