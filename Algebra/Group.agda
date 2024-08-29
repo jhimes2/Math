@@ -7,7 +7,7 @@ open import Relations
 open import Predicate
 open import Algebra.Monoid public
 open import Cubical.Foundations.HLevels
-open import Cubical.HITs.SetQuotients renaming (rec to recQuot)
+open import Cubical.HITs.SetQuotients renaming (rec to rec/)
 open import Cubical.HITs.PropositionalTruncation renaming (rec to recTrunc ; map to mapTrunc)
 
 -- https://en.wikipedia.org/wiki/Group_(mathematics)
@@ -715,7 +715,7 @@ module _ {A : Type al}
          (f : A → B){{HM : Homomorphism _∙_ _*_ f}} where
  
   ψ : _∙_ G/ Kernel f → Σ (image f)
-  ψ = recQuot (isSetΣ IsSet (λ x → isProp→isSet squash₁))
+  ψ = rec/ (isSetΣ IsSet (λ x → isProp→isSet squash₁))
                  (λ a → f a , η (a , refl)) λ a b ab'∈Ker[f] → ΣPathPProp (λ _ → squash₁)
                  (f a ≡⟨ sym (rIdentity (f a))⟩
                   f a * e ≡⟨ right _*_ (sym(idToId f))⟩
@@ -761,17 +761,19 @@ module _ {A : Type al}
   fundamentalTheoremOnHomomorphisms N⊆Ker[f] = ϕ ,
       (record { preserve = elimProp2 (λ a b → IsSet (ϕ (⋆[ _∙_ / N ] a b)) (ϕ a * ϕ b))
            λ a b → preserve a b } , refl) , λ y (P , Q) → funExt $ elimProp (λ x → IsSet (ϕ x) (y x))
-             λ x → funRed Q x
-     where
-        ϕ : _∙_ G/ N → B
-        ϕ = recQuot IsSet f (λ a b P →
-            recTrunc (IsSet (f a) (f b)) (λ Q →
-                          ( f a ≡⟨ sym (rIdentity (f a))⟩
-                           f a * e ≡⟨ right _*_ (sym (idToId f))⟩
-                           f a * f e ≡⟨ right _*_ (cong f (sym (lInverse b)))⟩
-                           f a * (f (inv b ∙ b)) ≡⟨ right _*_ (preserve (inv b) b)⟩
-                           f a * (f (inv b) * f b) ≡⟨ assoc (f a) (f (inv b)) (f b)⟩
-                           (f a * f (inv b)) * f b ≡⟨ left _*_ (sym (preserve a (inv b))) ⟩
-                           (f (a ∙ inv b)) * f b ≡⟨ left _*_ Q ⟩
-                           e * f b ≡⟨ lIdentity (f b) ⟩
-                           f b ∎)) (N⊆Ker[f] (a ∙ inv b) P))
+                                                                             λ x → funRed Q x
+   where
+    ϕ : _∙_ G/ N → B
+    ϕ = rec/ IsSet
+              f
+              λ a b P → recTrunc (IsSet (f a) (f b))
+                                 (λ Q → f a                     ≡⟨ sym (rIdentity (f a))⟩
+                                        f a * e                 ≡⟨ right _*_ (sym (idToId f))⟩
+                                        f a * f e               ≡⟨ right _*_ (cong f (sym (lInverse b)))⟩
+                                        f a * (f (inv b ∙ b))   ≡⟨ right _*_ (preserve (inv b) b)⟩
+                                        f a * (f (inv b) * f b) ≡⟨ assoc (f a) (f (inv b)) (f b)⟩
+                                        (f a * f (inv b)) * f b ≡⟨ left _*_ (sym (preserve a (inv b)))⟩
+                                        (f (a ∙ inv b)) * f b   ≡⟨ left _*_ Q ⟩
+                                        e * f b                 ≡⟨ lIdentity (f b)⟩
+                                        f b ∎)
+                                 (N⊆Ker[f] (a ∙ inv b) P)

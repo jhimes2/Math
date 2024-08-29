@@ -452,27 +452,33 @@ module _{_∙_ : A → A → A}
                           → Associative _*_
  EpimorphismCodomainAssoc = record
       { assoc = λ a b c → rec3 (IsSet (a * (b * c)) ((a * b) * c))
-       (λ(a' , H) →
-        λ(b' , G) →
-        λ(c' , F) →
-          a * (b * c)          ≡⟨ cong₂ _*_ (sym H) (cong₂ _*_ (sym G) (sym F))⟩
-          h a' * (h b' * h c') ≡⟨ right _*_ (sym (preserve b' c'))⟩
-          h a' * h (b' ∙ c')   ≡⟨ sym (preserve a' (b' ∙ c'))⟩
-          h (a' ∙ (b' ∙ c'))   ≡⟨ cong h (assoc a' b' c')⟩
-          h ((a' ∙ b') ∙ c')   ≡⟨ preserve (a' ∙ b') c' ⟩
-          h (a' ∙ b') * h c'   ≡⟨ left _*_ (preserve a' b')⟩
-          (h a' * h b') * h c' ≡⟨ cong₂ _*_ (cong₂ _*_ H G) F ⟩
-          (a * b) * c ∎
-          ) (surject a) (surject b) (surject c)
+                               (λ(a' , H)
+                                 (b' , G)
+                                 (c' , F) →
+                                  a * (b * c)          ≡⟨ cong₂ _*_ (sym H) (cong₂ _*_ (sym G) (sym F))⟩
+                                  h a' * (h b' * h c') ≡⟨ right _*_ (sym (preserve b' c'))⟩
+                                  h a' * h (b' ∙ c')   ≡⟨ sym (preserve a' (b' ∙ c'))⟩
+                                  h (a' ∙ (b' ∙ c'))   ≡⟨ cong h (assoc a' b' c')⟩
+                                  h ((a' ∙ b') ∙ c')   ≡⟨ preserve (a' ∙ b') c' ⟩
+                                  h (a' ∙ b') * h c'   ≡⟨ left _*_ (preserve a' b')⟩
+                                  (h a' * h b') * h c' ≡⟨ cong₂ _*_ (cong₂ _*_ H G) F ⟩
+                                  (a * b) * c ∎
+                                  )
+                               (surject a)
+                               (surject b)
+                               (surject c)
       }
 
  instance
   isHomomorphismIsProp : {{is-set B}} → is-prop (Homomorphism _∙_ _*_ h)
-  isHomomorphismIsProp = record { IsProp = λ (record {preserve = p}) (record {preserve = q})
-                       → let H : p ≡ q
-                             H = funExt λ u → funExt λ v → IsSet (h (u ∙ v)) (h u * h v) (p u v) (q u v)
-                         in
-                      λ i → record {preserve = λ u v → H i u v}
-                      }
+  isHomomorphismIsProp = record {
+                             IsProp = λ (record {preserve = p}) (record {preserve = q})
+                                    → let H : p ≡ q
+                                          H = funExt λ u → funExt λ v → IsSet (h (u ∙ v))
+                                                                              (h u * h v)
+                                                                              (p u v)
+                                                                              (q u v)
+                                      in λ i → record {preserve = λ u v → H i u v}
+                       }
 
 
