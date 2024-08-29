@@ -1,8 +1,13 @@
-{-# OPTIONS --hidden-argument-pun --two-level #-}
+{-# OPTIONS --hidden-argument-pun --cubical #-}
 
 module Classical.Topology where
 
 open import Agda.Primitive hiding (Prop) public
+open import Cubical.Foundations.Prelude
+    renaming (Σ to Σ' ; I to Interval ; _∨_ to or ; congL to left
+             ; congR to right) public
+open import Cubical.HITs.PropositionalTruncation renaming (map to truncMap)
+
 
 variable
   l l' al bl cl : Level
@@ -13,19 +18,8 @@ variable
 id : A → A
 id x = x
 
-data _≡_{A : Set l}(a : A) : A → Set l where
- refl : a ≡ a
-infix 4 _≡_
-
-sym : {a b : A} → a ≡ b → b ≡ a
-sym refl = refl
-
-record Σ {A : Set l} (B : A → Set l') : Set (l ⊔ l') where
-  constructor _,_
-  field
-    fst : A
-    snd : B fst
-infixr 4 _,_
+Σ : {A : Type l} → (P : A → Type l') → Type(l ⊔ l')
+Σ {A} = Σ' A
 
 injective : {A : Set l}{B : Set l'} → (A → B) → Set (l ⊔ l')
 injective f = ∀ x y → f x ≡ f y → x ≡ y
@@ -37,21 +31,9 @@ surjective f = ∀ b → Σ λ a → f a ≡ b
 [wts _ ] a = a
 infixr 0 [wts_]_
 
-fst : {P : A → Set l} → Σ P → A
-fst (a , _) = a
-
-snd : {P : A → Set l} → (p : Σ P) → P (fst p)
-snd (_ , p) = p
-
-cong : (f : A → B) {x y : A} → x ≡ y → f x ≡ f y
-cong f refl = refl
-
 _×_ : Set l → Set l' → Set (l ⊔ l')
 A × B = Σ λ(_ : A) → B
 infixr 5 _×_
-
-isProp : Set l → Set l
-isProp X = (x y : X) → x ≡ y
 
 -- https://en.wikipedia.org/wiki/Fiber_(mathematics)
 fiber : {B : Set bl} → (A → B) → B → A → Set bl
@@ -60,11 +42,8 @@ fiber f y = λ x → f x ≡ y
 embedding : {A : Set al}{B : Set bl} → (A → B) → Set(al ⊔ bl)
 embedding f = ∀ y → isProp (Σ(fiber f y))
 
-subst : {x y : A} → (f : A → Set l) → y ≡ x → f x → f y
-subst f refl x = x
-
 substP : (x : A) → {P Q : A → Set l} → P ≡ Q → Q x → P x
-substP x refl y = y
+substP x P≡Q y = transport (λ i → P≡Q (~ i) x) y
 
 data _＋_ (A : Set l)(B : Set l') : Set (l ⊔ l' ⊔ (lsuc lzero)) where
  inl : A → A ＋ B
@@ -72,10 +51,6 @@ data _＋_ (A : Set l)(B : Set l') : Set (l ⊔ l' ⊔ (lsuc lzero)) where
 
 data ⊤ : Set where
  tt : ⊤
-
-_∙_ : {a b c : A} → a ≡ b → b ≡ c → a ≡ c
-refl ∙ refl = refl
-infixr 3 _∙_
 
 data ⊥ : Set where
 
@@ -116,17 +91,32 @@ infixr 5 _∉_
 ∅ : A → Prop
 ∅ = λ _ → ⊥
 
+-- Propositional Extensionality
+propExt' : isProp A → isProp B → (A → B) → (B → A) → A ≡ B
+propExt' pA pB ab ba = isoToPath (iso ab ba (λ b → pB (ab (ba b)) b) λ a → pA (ba (ab a)) a)
+  where open import Cubical.Foundations.Isomorphism
+
 --------------------------------------------------------
 -- Don't use types of Set₀ that are not propositions. --
 --------------------------------------------------------
 postulate
- ∥_∥ : (A : Set l) → Prop
- intro : A → ∥ A ∥
+ lem : {A : Set l} → isProp A → A ＋ (¬ A)
  squash : {X : Prop} → isProp X
+
+LEM : (A : Prop) → A ＋ (¬ A)
+LEM A = lem squash
+
+∥_∥ : (A : Set l) → Prop
+∥ A ∥ with lem {A = ∥ A ∥₁} squash₁
+... | (inl p) = ⊤
+... | (inr p) = ⊥
+
+postulate
+ intro : {A : Set l} → A → ∥ A ∥
  _>>_ : {B : Prop} → ∥ A ∥ → (A → B) → B
- LEM : (A : Prop) → A ＋ (¬ A)
- propExt : {A B : Prop} → (A → B) → (B → A) → A ≡ B
- funExt : {f g : A → B} → (∀ x → f x ≡ g x) → f ≡ g
+
+propExt : {A B : Prop} → (A → B) → (B → A) → A ≡ B
+propExt = propExt' squash squash
 
 ∃ : {A : Set l} → (A → Set l') → Prop
 ∃ P = ∥ Σ P ∥
@@ -178,21 +168,6 @@ record Associative {A : Set l}(_∙_ : A → A → A) : Set(lsuc l) where
   field
       assoc : (a b c : A) → a ∙ (b ∙ c) ≡ (a ∙ b) ∙ c
 open Associative {{...}} public
-
-_≡⟨_⟩_ : (x : A) → {y z : A} → x ≡ y → y ≡ z → x ≡ z
-_ ≡⟨ refl ⟩ refl = refl
-infixr 3 _≡⟨_⟩_
-
-_∎ : (x : A) → x ≡ x
-_ ∎ = refl
-
-left : (f : A → B → C) {x y : A} (p : x ≡ y)
-     → {z : B} → f x z ≡ f y z
-left f refl = refl
-
-right : (f : A → B → C) {x y : B} (p : x ≡ y)
-      → {z : A} → f z x ≡ f z y
-right f refl = refl
 
 _∘_ : (B → C) → (A → B) → (A → C)
 _∘_ f g x = f (g x) 
@@ -278,7 +253,7 @@ instance
                           → funExt λ y → propExt (_>> λ(b , H , G)
                           → intro (g b , intro (b , H , refl) , G))
                        (_>> λ(b , H , G) → H >> λ(p , p∈X , R) → intro (p , p∈X , (G ∙ cong f R)))
-   ; idPreserve = funExt λ X → funExt λ b → propExt (_>> λ(x , x∈X , b≡x) → subst X b≡x x∈X)
+   ; idPreserve = funExt λ X → funExt λ b → propExt (_>> λ(x , x∈X , b≡x) → subst X (sym b≡x) x∈X)
          λ b∈X → intro (b , b∈X , refl) }
 
  ℙMonad : Monad (ℙ {lsuc l})
@@ -291,7 +266,7 @@ instance
                 → intro (⋃ G , intro (P , x∈P , P∈G) , intro (G , G∈X , refl)))
              (_>> λ(P , x∈P , G) → G >> λ(G , G∈X , P≡∪G) →
              let H : x ∈ ⋃ G
-                 H = subst (x ∈_) (sym P≡∪G) x∈P in
+                 H = subst (x ∈_) P≡∪G x∈P in
                 H >> λ(h , x∈h , h∈G) →
                      intro (h , x∈h , intro (G , h∈G , G∈X)))
            ; monadLemma2 =  funExt λ X → funExt λ x → propExt
@@ -300,8 +275,8 @@ instance
            ; monadLemma3 =  funExt λ x → funExt λ y → propExt
              (_>> λ(Y , y∈Y , G) → G >> λ (h , h∈x , Y≡[h]) →
               let y∈[h] : y ∈ (λ z → ∥ z ≡ h ∥)
-                  y∈[h] = subst (y ∈_) (sym Y≡[h]) y∈Y in
-             y∈[h] >> λ y≡h → subst x y≡h h∈x)
+                  y∈[h] = subst (y ∈_) Y≡[h] y∈Y in
+             y∈[h] >> λ y≡h → subst x (sym y≡h) h∈x)
              λ y∈x → intro ((λ z → ∥ z ≡ y ∥) , intro refl , intro (y , y∈x , refl))
            }
 
@@ -325,7 +300,7 @@ tempty {τ} =
       H = (λ x ()) in
   let G : ⋃ ∅ ∈ τ
       G = tunion H in
-    subst τ (sym Union∅) G
+    subst τ Union∅ G
 
 record disconnectedTopology {A : set al} (T : ℙ(ℙ A)) : set al where
  field
@@ -362,7 +337,7 @@ instance
          |> λ{ (inl p) → intro (inl (funExt λ x → propExt 
             (λ G → tt) λ G → intro (𝓤 , tt , p))) 
              ; (inr p) → intro $ inr (funExt λ x → propExt (_>> λ(Y , F , G)
-              → H Y G >> λ{ (inl refl) → p G ; (inr refl) → F}) λ x∈∅ → UNREACHABLE $ x∈∅)}
+              → H Y G >> λ{ (inl q) → p (subst X q G) ; (inr q) → substP x (sym q) F }) λ x∈∅ → UNREACHABLE $ x∈∅)}
       ; tintersection = λ{X}{Y} ∥X∈ind∥ ∥Y∈ind∥ →
                                 ∥X∈ind∥ >> λ{(inl x)
                               → ∥Y∈ind∥ >> λ{(inl y)
@@ -429,10 +404,10 @@ module _{A : set al}(τ : ℙ(ℙ A)){{T : topology τ}} where
               Inst : HousedOff (f y) y
               Inst = haus fy≢y in
         let H1 : x ∈ V ∩ f ⁻¹[ U ]
-            H1 = subst (x ∈_) (sym H) x∈X in
+            H1 = subst (x ∈_) H x∈X in
         let x∈V = fst H1 in
         let fx∈U = snd H1 in
-        let fx∈V = subst V fx≡x x∈V in
+        let fx∈V = subst V (sym fx≡x) x∈V in
             U⊆Vᶜ (f x) fx∈U (fx∈V) in
   let Q1 : ⋃ S ⊆ (fix f)ᶜ
       Q1 = Union⊆ S ((fix f)ᶜ) P in
@@ -446,10 +421,10 @@ module _{A : set al}(τ : ℙ(ℙ A)){{T : topology τ}} where
       S⊆τ = λ x → _>> λ (y , fy≢y , X)
           → let instance
                   H : HousedOff (f y) y
-                  H = haus fy≢y in subst τ X (tintersection V∈ (cont U U∈)) in
+                  H = haus fy≢y in subst τ (sym X) (tintersection V∈ (cont U U∈)) in
   let R :  (fix f)ᶜ ≡ ⋃ S
       R = setExt Q2 Q1 in
-    subst τ R (tunion S⊆τ)
+    subst τ (sym R) (tunion S⊆τ)
    where
     open HousedOff {{...}}
 
@@ -469,7 +444,7 @@ module _{A : set al}
      { tfull = intro $ 𝓤 , tfull , refl
      ; tunion = λ{X} H → intro $ (⋃ λ U → (U ∈ τ) × (λ x → fst x ∈ U) ∈ X) , tunion
      (λ x (G , F) → G) , funExt λ Y → propExt (_>> λ(F , Y∈F , F∈X)
-       → H F F∈X >> λ(U , U∈τ , R ) → intro $ U , (substP Y (sym R) Y∈F) , (U∈τ , (subst X (sym R) F∈X))
+       → H F F∈X >> λ(U , U∈τ , R ) → intro $ U , (substP Y (sym R) Y∈F) , (U∈τ , (subst X R F∈X))
        ) λ a → ∥map a λ(U , e , (U∈τ , d)) → (λ x → fst x ∈ U) , (e , d)
      ; tintersection = λ{X}{Y} H1 G1 → H1 >> λ (U , U∈τ , Y≡U) → G1 >> λ (V , V∈τ , Y≡V) → intro ((U ∩ V) , ((tintersection U∈τ V∈τ)
       , ( right _∩_ Y≡V ∙ left _∩_ Y≡U ∙ refl)))
@@ -489,11 +464,11 @@ module _{A : set al}
   λ{ (inl p) →
    let H : f ⁻¹[ V ] ≡ 𝓤
        H = cong (f ⁻¹[_]) p in
-    subst τ H tfull
+    subst τ (sym H) tfull
    ; (inr p) →
    let H : f ⁻¹[ V ] ≡ ∅
        H = cong (f ⁻¹[_]) p in
-       subst τ H tempty
+       subst τ (sym H) tempty
     }
 
  record Base (ℬ : ℙ(ℙ A)) : set al where
@@ -527,7 +502,7 @@ module _{A : set al}
    let H : x ∈ ⋃ X
        H = substP x (sym B₀∩B₁≡∪X) x∈B₀∩B₁ in
    H >> λ(U , x∈U , U∈X)
-         → intro $ U , x∈U , X⊆B U U∈X , subst (λ a → U ⊆ a) B₀∩B₁≡∪X λ y y∈U → intro $ U , y∈U , U∈X
+         → intro $ U , x∈U , X⊆B U U∈X , subst (λ a → U ⊆ a) (sym B₀∩B₁≡∪X) λ y y∈U → intro $ U , y∈U , U∈X
 
   {- If f : B → A is a function between two topological spaces B and A, and A has
      basis ℬ, then f is continuous if f⁻¹(A) is open for every set A in the basis ℬ. -}
@@ -535,11 +510,11 @@ module _{A : set al}
                  → (f : B → A) → ((a : ℙ A) → a ∈ ℬ → f ⁻¹[ a ] ∈ τ₁) → continuous τ₁ τ f
   baseContinuous {τ₁} f H x x∈τ =
    BaseAxiom2 x∈τ >> λ(X , X⊆ℬ , x≡∪X) →
-    subst (λ z → (f ⁻¹[ z ]) ∈ τ₁) x≡∪X $ subst (_∈ τ₁) (∪preimage X f)
+    subst (λ z → (f ⁻¹[ z ]) ∈ τ₁) (sym x≡∪X) $ subst (_∈ τ₁) (sym (∪preimage X f))
       $ tunion λ P P∈map →
        let G : (a : ℙ A) → a ∈ X → f ⁻¹[ a ] ∈ τ₁
            G = λ a a∈X → let a∈ℬ = X⊆ℬ a a∈X in H a a∈ℬ in
-       P∈map >> λ(Q , Q∈X , P≡f⁻¹[Q]) → subst (_∈ τ₁) P≡f⁻¹[Q] (G Q Q∈X)
+       P∈map >> λ(Q , Q∈X , P≡f⁻¹[Q]) → subst (_∈ τ₁) (sym P≡f⁻¹[Q]) (G Q Q∈X)
 
  module _(τ₁ : ℙ(ℙ B)){{T1 : topology τ₁}} where
 
