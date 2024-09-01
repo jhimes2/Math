@@ -106,15 +106,11 @@ postulate
 LEM : (A : Prop) → A ＋ (¬ A)
 LEM A = lem squash
 
-∥_∥ : (A : Set l) → Prop
-∥ A ∥ with lem {A = ∥ A ∥₁} squash₁
-... | (inl p) = ⊤
-... | (inr p) = ⊥
 
 postulate
+ ∥_∥ : (A : Set l) → Prop
  intro : {A : Set l} → A → ∥ A ∥
  _>>_ : {B : Prop} → ∥ A ∥ → (A → B) → B
-
 propExt : {A B : Prop} → (A → B) → (B → A) → A ≡ B
 propExt = propExt' squash squash
 
@@ -134,7 +130,10 @@ setExt : {X Y : ℙ A} → X ⊆ Y → Y ⊆ X → X ≡ Y
 setExt X⊆Y Y⊆X = funExt λ x → propExt (X⊆Y x) (Y⊆X x)
 
 ⋃ : ℙ(ℙ A) → ℙ A
-⋃ P x = ∃ λ Y → Y x × P Y
+⋃ P x = ∃ λ Y → x ∈ Y × Y ∈ P
+
+⋂ : ℙ(ℙ A) → ℙ A
+⋂ X = λ x → ∥ (∀ P → P ∈ X → x ∈ P) ∥
 
 Union∅ : ⋃ ∅ ≡ ∅ {A = A}
 Union∅ = funExt λ x → propExt (_>> λ(a , x∈a , a∈∅) → a∈∅) λ()
@@ -142,8 +141,15 @@ Union∅ = funExt λ x → propExt (_>> λ(a , x∈a , a∈∅) → a∈∅) λ(
 Union⊆ : (X : ℙ(ℙ A))(Y : ℙ A) → (∀ x → x ∈ X → x ⊆ Y) → ⋃ X ⊆ Y
 Union⊆ X Y H a = _>> λ (Z , a∈Z , Z∈X) → H Z Z∈X a a∈Z
 
-∥map : ∥ A ∥ → (A → B) → ∥ B ∥
-∥map X f = X >> λ a → intro (f a)
+_∘_ : (B → C) → (A → B) → (A → C)
+_∘_ f g x = f (g x) 
+
+∥map : (A → B) → ∥ A ∥ → ∥ B ∥
+∥map f X = X >> λ a → intro (f a)
+
+postulate
+ mapComp : (f : B → C) (g : A → B) → ∥map (f ∘ g) ≡ (∥map f ∘ ∥map g)
+ mapId : ∥map {A = A} id ≡ id
 
 -- Intersection
 _∩_ : (A → Set l) → (A → Set l') → A → Set (l ⊔ l')
@@ -169,9 +175,6 @@ record Associative {A : Set l}(_∙_ : A → A → A) : Set(lsuc l) where
       assoc : (a b c : A) → a ∙ (b ∙ c) ≡ (a ∙ b) ∙ c
 open Associative {{...}} public
 
-_∘_ : (B → C) → (A → B) → (A → C)
-_∘_ f g x = f (g x) 
-
 -- preimage
 _⁻¹[_] : (f : A → B) → (B → Set l) → (A → Set l)
 f ⁻¹[ g ] = g ∘ f
@@ -193,7 +196,7 @@ instance
  ∪Comm : Commutative (_∪_ {A = A} {l})
  ∪Comm = record { comm = λ a b → funExt λ x → propExt (λ X → X >> λ{ (inl p) → intro (inr p)
                                                                     ; (inr p) → intro (inl p)})
-                            λ{p → ∥map p (λ{ (inl x) → inr x ; (inr x) → inl x})} }
+                            λ{p → ∥map (λ{ (inl x) → inr x ; (inr x) → inl x}) p} }
 
  ∪assoc : Associative (_∪_ {A = A})
  ∪assoc = record { assoc = λ X Y Z → funExt λ x →
@@ -242,6 +245,17 @@ record Monad (m : Set l → Set l) : Set (lsuc l) where
       monadLemma1 : μ ∘ μ ≡ λ(a : m(m(m A))) → μ (map μ a)
       monadLemma2 : μ ∘ η ≡ λ(a : m A) → a
       monadLemma3 : μ ∘ map η ≡ λ(a : m A) → a
+open Monad {{...}} public
+
+-- bind
+_>>=_ : {m : Type l → Type l} → {{Monad m}}
+      → m A → (A → m B) → m B
+_>>=_ {m} mA p = μ (map p mA)
+
+-- apply
+_<*>_ : {m : Type l → Type l} → {{Monad m}}
+      → m (A → B) → m A → m B
+_<*>_ {m} mf mA = mf >>= λ f → map f mA
 
 instance
  -- Covariant powerset endofunctor
@@ -279,6 +293,12 @@ instance
              y∈[h] >> λ y≡h → subst x (sym y≡h) h∈x)
              λ y∈x → intro ((λ z → ∥ z ≡ y ∥) , intro refl , intro (y , y∈x , refl))
            }
+
+ ∥map∥ : Functor (∥_∥ {l})
+ ∥map∥ = record { map = ∥map
+                ; compPreserve = mapComp
+                ; idPreserve = mapId 
+                }
 
 ∪preimage : {A B : set l} (X : ℙ(ℙ B)) → (f : A → B)
           → f ⁻¹[ ⋃ X ] ≡ ⋃ (map (f ⁻¹[_]) X)
@@ -321,38 +341,76 @@ UNREACHABLE : ⊥ → {A : Set l} → A
 UNREACHABLE ()
 
 instance
-  DiscreteTopology : topology (discrete {lsuc l} {A})
-  DiscreteTopology =
-     record
-      { tfull = tt
-      ; tunion = λ _ → tt
-      ; tintersection = λ _ _ → tt
-      }
-  IndiscreteTopology : topology (indiscrete {A = A})
-  IndiscreteTopology =
-     record
-      { tfull = intro $ inl refl
-      ; tunion = λ {X} H →
-       LEM (𝓤 ∈ X)
-         |> λ{ (inl p) → intro (inl (funExt λ x → propExt 
-            (λ G → tt) λ G → intro (𝓤 , tt , p))) 
-             ; (inr p) → intro $ inr (funExt λ x → propExt (_>> λ(Y , F , G)
-              → H Y G >> λ{ (inl q) → p (subst X q G) ; (inr q) → substP x (sym q) F }) λ x∈∅ → UNREACHABLE $ x∈∅)}
-      ; tintersection = λ{X}{Y} ∥X∈ind∥ ∥Y∈ind∥ →
-                                ∥X∈ind∥ >> λ{(inl x)
-                              → ∥Y∈ind∥ >> λ{(inl y)
-                              → intro $ inl $ funExt λ z →
-                              (X ∩ Y) z ≡⟨ cong (λ w → (w ∩ Y) z) x ⟩
-                              (𝓤 ∩ Y) z ≡⟨ cong (λ w → (𝓤 ∩ w) z) y ⟩
-                              (𝓤 ∩ 𝓤) z ≡⟨ propExt (λ (T , U) → U)
-                               (λ _ → tt , tt) ⟩
-                              𝓤 z ∎
-                              ; (inr y) → intro $ inr $ right _∩_ y ∙ X∩∅≡∅ X  }; (inr x)
-                              →  intro $ inr ((left _∩_ x) ∙ comm ∅ Y ∙ (X∩∅≡∅ Y))}
-      }
+ DiscreteTopology : topology (discrete {lsuc l} {A})
+ DiscreteTopology =
+    record
+     { tfull = tt
+     ; tunion = λ _ → tt
+     ; tintersection = λ _ _ → tt
+     }
+ IndiscreteTopology : topology (indiscrete {A = A})
+ IndiscreteTopology =
+    record
+     { tfull = intro $ inl refl
+     ; tunion = λ {X} H →
+      LEM (𝓤 ∈ X)
+        |> λ{ (inl p) → intro (inl (funExt λ x → propExt 
+           (λ G → tt) λ G → intro (𝓤 , tt , p))) 
+            ; (inr p) → intro $ inr (funExt λ x → propExt (_>> λ(Y , F , G)
+             → H Y G >> λ{ (inl q) → p (subst X q G) ; (inr q) → substP x (sym q) F }) λ x∈∅ → UNREACHABLE $ x∈∅)}
+     ; tintersection = λ{X}{Y} ∥X∈ind∥ ∥Y∈ind∥ →
+                               ∥X∈ind∥ >> λ{(inl x)
+                             → ∥Y∈ind∥ >> λ{(inl y)
+                             → intro $ inl $ funExt λ z →
+                             (X ∩ Y) z ≡⟨ cong (λ w → (w ∩ Y) z) x ⟩
+                             (𝓤 ∩ Y) z ≡⟨ cong (λ w → (𝓤 ∩ w) z) y ⟩
+                             (𝓤 ∩ 𝓤) z ≡⟨ propExt (λ (T , U) → U)
+                              (λ _ → tt , tt) ⟩
+                             𝓤 z ∎
+                             ; (inr y) → intro $ inr $ right _∩_ y ∙ X∩∅≡∅ X  }; (inr x)
+                             →  intro $ inr ((left _∩_ x) ∙ comm ∅ Y ∙ (X∩∅≡∅ Y))}
+     }
+
+mapContra : (A → B) → ℙ(ℙ A) → ℙ(ℙ B)
+mapContra f H = λ z → H (λ z₁ → z (f z₁))
+
+module _(τ₀ : ℙ(ℙ A)){{T0 : topology τ₀}}
+        (τ₁ : ℙ(ℙ B)){{T1 : topology τ₁}} where
+ _⊎_  : ℙ(ℙ (A ＋ B))
+ _⊎_ P = (λ a → P (inl a)) ∈ τ₀ × (λ b → P (inr b)) ∈ τ₁
+ ⊎left : ℙ(ℙ (A ＋ B)) → ℙ(ℙ A)
+ ⊎left P h = P (λ{ (inl x) → h x ; (inr x) → ⊥})
+ left⊎ :  ℙ(ℙ A) → ℙ(ℙ (A ＋ B))
+ left⊎ P h = P λ x → h (inl x)
+ ⊎lemma : (X : ℙ (A ＋ B)) → X ∈ _⊎_ → X ∩ (λ{(inl x) → ⊤ ;(inr x) → ⊥}) ∈ _⊎_
+ ⊎lemma X X∈⊎ = (tintersection (fst X∈⊎) tfull) , tintersection (snd X∈⊎) tempty
+-- disjointUnion : topology _⊎_
+-- disjointUnion = record
+--               { tfull = (tfull , tfull)
+--               ; tunion = λ{Z}
+--                           (Z⊆⊎ : (∀ x → x ∈ Z → (λ p → x (inl p)) ∈ τ₀
+--                                                × (λ p → x (inr p)) ∈ τ₁)) →
+--                 let H : ⋃ (⊎left Z) ≡ λ a → ⋃ Z (inl a)
+--                     H = funExt λ x → propExt (_>> λ (Y , x∈Y , R) → intro ((λ{(inl x) → Y x ; (inr _) → ⊥}) , x∈Y ,
+--                       {!R!})) (_>> λ(Y , Q , Y∈Z) → intro ((λ x → Y(inl x)) , (Q , {!Y∈Z!}))) in 
+--                  subst τ₀ H (tunion {!!}) , {!!}
+--               ; tintersection = λ{X Y} (p , P) (q , Q) → tintersection p q , tintersection P Q
+--               }
 
 closed : {τ : ℙ(ℙ A)}{{T : topology τ}} → ℙ(ℙ A)
 closed {τ = τ} s = s ᶜ ∈ τ
+
+closure : {τ : ℙ(ℙ A)}{{T : topology τ}} → ℙ A → ℙ A
+closure {τ} X = ⋂ λ B → ∥ X ⊆ B × B ᶜ ∈ τ ∥
+
+interior : {τ : ℙ(ℙ A)}{{T : topology τ}} → ℙ A → ℙ A
+interior {τ} X = ⋃ λ C → ∥ C ⊆ X × C ∈ τ ∥
+
+exterior : {τ : ℙ(ℙ A)}{{T : topology τ}} → ℙ A → ℙ A
+exterior {τ} X = ⋃ λ B → ∥ (Σ λ a → a ∈ X × a ∉ B) ＋ (B ᶜ ∉ τ) ∥
+
+boundary : {τ : ℙ(ℙ A)}{{T : topology τ}} → ℙ A → ℙ A
+boundary {τ}{{T}} X = λ p → p ∈ closure {{T}} X × p ∉ interior {{T}} X 
 
 restrict : (f : A → B) → (S : A → Set l) → Σ S → B
 restrict f S = λ(x : Σ S) → f (fst x)
@@ -445,7 +503,7 @@ module _{A : set al}
      ; tunion = λ{X} H → intro $ (⋃ λ U → (U ∈ τ) × (λ x → fst x ∈ U) ∈ X) , tunion
      (λ x (G , F) → G) , funExt λ Y → propExt (_>> λ(F , Y∈F , F∈X)
        → H F F∈X >> λ(U , U∈τ , R ) → intro $ U , (substP Y (sym R) Y∈F) , (U∈τ , (subst X R F∈X))
-       ) λ a → ∥map a λ(U , e , (U∈τ , d)) → (λ x → fst x ∈ U) , (e , d)
+       ) λ a → ∥map (λ(U , e , (U∈τ , d)) → (λ x → fst x ∈ U) , (e , d)) a
      ; tintersection = λ{X}{Y} H1 G1 → H1 >> λ (U , U∈τ , Y≡U) → G1 >> λ (V , V∈τ , Y≡V) → intro ((U ∩ V) , ((tintersection U∈τ V∈τ)
       , ( right _∩_ Y≡V ∙ left _∩_ Y≡U ∙ refl)))
    }
