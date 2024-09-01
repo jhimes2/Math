@@ -9,51 +9,51 @@ open import Algebra.CRing public
 open import Cubical.HITs.PropositionalTruncation renaming (rec to truncRec)
 
 --------------------------------------------------------------------------------------
--- Several definitions in this file are generalized from a vector space to a module --
+-- Several definitions in this file are generalized from a member space to a module --
 --------------------------------------------------------------------------------------
 
 -- https://en.wikipedia.org/wiki/Module_(mathematics)
 -- Try not to confuse 'Module' with Agda's built-in 'module' keyword.
-record Module {scalar : Type l} {{R : Ring scalar}} (vector : Type l') : Type (lsuc (l ⊔ l')) where
+record Module {scalar : Type l} {{R : Ring scalar}} (member : Type l') : Type (lsuc (l ⊔ l')) where
   field
-    _<+>_ : vector → vector → vector
+    _<+>_ : member → member → member
     {{addvStr}} : group _<+>_
     {{comMod}} : Commutative _<+>_
-    _*>_ : scalar → vector → vector
-    scalarDistribute : (a : scalar) → (u v : vector)
+    _*>_ : scalar → member → member
+    scalarDistribute : (a : scalar) → (u v : member)
                      →  a *> (u <+> v) ≡ (a *> u) <+> (a *> v)
-    vectorDistribute : (v : vector) → (a b : scalar)
+    memberDistribute : (v : member) → (a b : scalar)
                      → (a + b) *> v ≡ (a *> v) <+> (b *> v)
-    scalarAssoc : (v : vector) → (a b : scalar) → a *> (b *> v) ≡ (a * b) *> v
-    scaleId : (v : vector) → 1r *> v ≡ v
+    scalarAssoc : (v : member) → (a b : scalar) → a *> (b *> v) ≡ (a * b) *> v
+    scaleId : (v : member) → 1r *> v ≡ v
 open Module {{...}} public
 
-module _{scalar : Type l}{vector : Type l'}{{R : Ring scalar}}{{V : Module vector}} where
+module _{scalar : Type l}{member : Type l'}{{R : Ring scalar}}{{V : Module member}} where
 
-  -- Zero vector; This looks like a zero with a hat
-  Ô : vector
+  -- Zero member; This looks like a zero with a hat
+  Ô : member
   Ô = e
 
-  -- Additive inverse for vectors
-  -<_> : vector → vector
+  -- Additive inverse for members
+  -<_> : member → member
   -<_> = inv
 
-  -- Vector subtraction
-  _<->_ : vector → vector → vector
+  -- Member subtraction
+  _<->_ : member → member → member
   a <-> b = a <+> -< b >
 
-  -- Vector scaled by 0r is zero vector
-  scaleZ : (v : vector) → 0r *> v ≡ Ô
+  -- Member scaled by 0r is Ô
+  scaleZ : (v : member) → 0r *> v ≡ Ô
   scaleZ v =
     let H : (0r *> v) <+> (0r *> v) ≡ (0r *> v) <+> Ô
                           → 0r *> v ≡ Ô
         H = grp.cancel (0r *> v) in H $
-    (0r *> v) <+> (0r *> v) ≡⟨ sym (vectorDistribute v 0r 0r)⟩
+    (0r *> v) <+> (0r *> v) ≡⟨ sym (memberDistribute v 0r 0r)⟩
     (0r + 0r) *> v          ≡⟨ left _*>_ (lIdentity 0r)⟩
     0r *> v                 ≡⟨ sym (rIdentity (_*>_ 0r v))⟩
     (0r *> v) <+> Ô ∎
 
-  -- zero vector scaled is 0r vector
+  -- zero member scaled is 0r member
   scaleVZ : (c : scalar) → c *> Ô ≡ Ô
   scaleVZ c =
     let H : (c *> Ô) <+> (c *> Ô) ≡ (c *> Ô) <+> Ô
@@ -64,57 +64,57 @@ module _{scalar : Type l}{vector : Type l'}{{R : Ring scalar}}{{V : Module vecto
     c *> Ô                ≡⟨ sym (rIdentity (c *> Ô))⟩
     (c *> Ô) <+> Ô ∎
 
-  scaleInv : (v : vector) → (c : scalar) → neg c *> v ≡ -< c *> v >
+  scaleInv : (v : member) → (c : scalar) → neg c *> v ≡ -< c *> v >
   scaleInv v c =
     let H : (neg c *> v) <+> -< -< c *> v > > ≡ Ô
                                  → neg c *> v ≡ -< c *> v >
         H = grp.uniqueInv in H $
     (neg c *> v) <+> -< -< c *> v > > ≡⟨ right _<+>_ (grp.doubleInv (c *> v))⟩
-    (neg c *> v) <+> (c *> v)         ≡⟨ sym (vectorDistribute v (neg c) c)⟩
+    (neg c *> v) <+> (c *> v)         ≡⟨ sym (memberDistribute v (neg c) c)⟩
     (neg c + c) *> v                  ≡⟨ left _*>_ (lInverse c)⟩
     0r *> v                           ≡⟨ scaleZ v ⟩
     Ô ∎
 
-  scaleNegOneInv : (v : vector) → neg 1r *> v ≡ -< v >
+  scaleNegOneInv : (v : member) → neg 1r *> v ≡ -< v >
   scaleNegOneInv v =
     neg 1r *> v  ≡⟨ scaleInv v 1r ⟩
     -< 1r *> v > ≡⟨ cong -<_> (scaleId v) ⟩
     -< v > ∎
 
-  scaleNeg : (v : vector) → (c : scalar) → neg c *> v ≡ c *> -< v >
+  scaleNeg : (v : member) → (c : scalar) → neg c *> v ≡ c *> -< v >
   scaleNeg v c = neg c *> v         ≡⟨ left _*>_ (sym(x*-1≡-x c))⟩
                  (c * neg 1r) *> v  ≡⟨ sym (scalarAssoc v c (neg 1r))⟩
                  c *> (neg 1r *> v) ≡⟨ right _*>_ (scaleNegOneInv v)⟩
                  c *> -< v > ∎
 
   -- https://en.wikipedia.org/wiki/Linear_span
-  data Span (X : vector → Type al) : vector → Type (l ⊔ l' ⊔ al) where
+  data Span (X : member → Type al) : member → Type (l ⊔ l' ⊔ al) where
     spanÔ : Ô ∈ Span X
     spanStep : ∀{u v} → u ∈ X → v ∈ Span X → (c : scalar) → (c *> u) <+> v ∈ Span X
     spanSet : ∀{v} → isProp (v ∈ Span X)
 
   instance
-    spanIsSet : {X : vector → Type al} → Property (Span X)
+    spanIsSet : {X : member → Type al} → Property (Span X)
     spanIsSet = record { setProp = λ x y z → spanSet y z }
 
-  spanIntro : {X : vector → Type al} → ∀ v → v ∈ X → v ∈ Span X
+  spanIntro : {X : member → Type al} → ∀ v → v ∈ X → v ∈ Span X
   spanIntro {X = X} v v∈X =
      transport (λ i → ((1r *> v) <+> Ô ≡⟨ rIdentity (1r *> v)⟩
                        1r *> v         ≡⟨ scaleId v ⟩
                        v ∎) i ∈ Span X)
      (spanStep v∈X spanÔ 1r)
 
-  span*> : {X : vector → Type al} → ∀ v → v ∈ X → (c : scalar) → c *> v ∈ Span X
+  span*> : {X : member → Type al} → ∀ v → v ∈ X → (c : scalar) → c *> v ∈ Span X
   span*> {X = X} v v∈X c =
      transport (λ i → ((c *> v) <+> Ô ≡⟨ rIdentity (c *> v)⟩
                        c *> v ∎) i ∈ Span X)
      (spanStep v∈X spanÔ c)
 
-  spanAdd : {X : vector → Type al} → ∀ u v → u ∈ X → v ∈ Span X → u <+> v ∈ Span X
+  spanAdd : {X : member → Type al} → ∀ u v → u ∈ X → v ∈ Span X → u <+> v ∈ Span X
   spanAdd {X = X} u v u∈X v∈X =
     transport (λ i → (scaleId u i) <+> v ∈ Span X) (spanStep u∈X v∈X 1r)
 
-  spanStep2 : {X : vector → Type al} → ∀{u v} → u ∈ Span X → v ∈ Span X → (c : scalar) → (c *> u) <+> v ∈ Span X
+  spanStep2 : {X : member → Type al} → ∀{u v} → u ∈ Span X → v ∈ Span X → (c : scalar) → (c *> u) <+> v ∈ Span X
   spanStep2 {X = X} {w} {v} spanÔ q c = transport (λ i → ((v ≡⟨ sym (lIdentity v)⟩
                                                      Ô <+> v ≡⟨ sym (left _<+>_ (scaleVZ c))⟩
                                                      (c *> Ô) <+> v ∎) i) ∈ Span X) q
@@ -128,29 +128,29 @@ module _{scalar : Type l}{vector : Type l'}{{R : Ring scalar}}{{V : Module vecto
   spanStep2 (spanSet {w} a b i) q c = spanSet (spanStep2 a q c)
                                               (spanStep2 b q c) i
 
-  spanScale2 : {X : vector → Type al} → ∀ v → v ∈ Span X → (c : scalar) → c *> v ∈ Span X
+  spanScale2 : {X : member → Type al} → ∀ v → v ∈ Span X → (c : scalar) → c *> v ∈ Span X
   spanScale2 {X = X} v H c =
      transport (λ i → ((c *> v) <+> Ô ≡⟨ rIdentity (c *> v)⟩
                        c *> v ∎) i ∈ Span X)
      (spanStep2 H spanÔ c)
 
-  spanAdd2 : {X : vector → Type al} → ∀ u v → u ∈ Span X → v ∈ Span X → u <+> v ∈ Span X
+  spanAdd2 : {X : member → Type al} → ∀ u v → u ∈ Span X → v ∈ Span X → u <+> v ∈ Span X
   spanAdd2 {X = X} u v p q =
     transport (λ i → (scaleId u i) <+> v ∈ Span X) (spanStep2 p q 1r)
 
   spanIdempotent : (Span ∘ Span) ≡ Span {al}
   spanIdempotent = funExt λ X → funExt λ x → propExt spanSet spanSet (aux X x) (spanIntro x)
    where
-    aux : (X : vector → Type al) → (x : vector) → x ∈ (Span ∘ Span) X → x ∈ Span X
+    aux : (X : member → Type al) → (x : member) → x ∈ (Span ∘ Span) X → x ∈ Span X
     aux X x spanÔ = spanÔ
     aux X x (spanStep {u} {v} p q c) = spanStep2 p (aux X v q) c
     aux X x (spanSet p q i) = spanSet (aux X x p) (aux X x q) i
 
-  support→span : (X : vector → Type al) → ∀ v → v ∈ Support X → v ∈ Span X
+  support→span : (X : member → Type al) → ∀ v → v ∈ Support X → v ∈ Span X
   support→span X v (supportIntro .v x) = spanIntro v x
   support→span X v (supportProp .v x y i) = spanSet (support→span X v x) (support→span X v y) i
 
-  spanSupport : (X : vector → Type al) → Span (Support X) ≡ Span X
+  spanSupport : (X : member → Type al) → Span (Support X) ≡ Span X
   spanSupport X = funExt λ v → propExt spanSet spanSet (aux1 v) (aux2 v)
     where
      aux1 : ∀ v → v ∈ Span (Support X) → v ∈ Span X
@@ -162,7 +162,7 @@ module _{scalar : Type l}{vector : Type l'}{{R : Ring scalar}}{{V : Module vecto
      aux2 z (spanStep {u} {v} x y c) = spanStep (supportIntro u x) (aux2 v y) c
      aux2 v (spanSet x y i) = spanSet (aux2 v x) (aux2 v y) i
 
-  span⊆preserve : ∀ {X Y : vector → Type al} → X ⊆ Y → Span X ⊆ Span Y
+  span⊆preserve : ∀ {X Y : member → Type al} → X ⊆ Y → Span X ⊆ Span Y
   span⊆preserve {X = X} {Y} p _ spanÔ = η spanÔ
   span⊆preserve {X = X} {Y} p _ (spanStep {u} {v} x y c) =
      span⊆preserve p v y >>= λ H →
@@ -171,23 +171,23 @@ module _{scalar : Type l}{vector : Type l'}{{R : Ring scalar}}{{V : Module vecto
   span⊆preserve {X = X} {Y} p v (spanSet x y i) = squash₁ (span⊆preserve p v x)
                                                           (span⊆preserve p v y) i
 
-  ⊆span : (X : vector → Type al) → X ⊆ Span X
+  ⊆span : (X : member → Type al) → X ⊆ Span X
   ⊆span X x P = η (spanIntro x P)
 
-  SpanX-Ô→SpanX : {X : vector → Type al} → ∀ v → v ∈ Span (λ x → (x ∈ X) × (x ≢ Ô)) → v ∈ Span X
+  SpanX-Ô→SpanX : {X : member → Type al} → ∀ v → v ∈ Span (λ x → (x ∈ X) × (x ≢ Ô)) → v ∈ Span X
   SpanX-Ô→SpanX _ spanÔ = spanÔ
   SpanX-Ô→SpanX _ (spanStep {u} {v} x y c) = spanStep (fst x) (SpanX-Ô→SpanX v y) c
   SpanX-Ô→SpanX v (spanSet x y i) = spanSet (SpanX-Ô→SpanX v x) (SpanX-Ô→SpanX v y) i
 
-  record Submodule (X : vector → Type al) : Type (lsuc (al ⊔ l ⊔ l'))
+  record Submodule (X : member → Type al) : Type (lsuc (al ⊔ l ⊔ l'))
     where field
         ssZero : Ô ∈ X 
-        ssAdd : {v u : vector} → v ∈ X → u ∈ X → v <+> u ∈ X
-        ss*> : {v : vector} → v ∈ X → (c : scalar) →  c *> v ∈ X
-        ssSet : (v : vector) → isProp (v ∈ X)
+        ssAdd : {v u : member} → v ∈ X → u ∈ X → v <+> u ∈ X
+        ss*> : {v : member} → v ∈ X → (c : scalar) →  c *> v ∈ X
+        ssSet : (v : member) → isProp (v ∈ X)
   open Submodule {{...}} public
 
-  SS2ToSS : (X : vector → Type al)
+  SS2ToSS : (X : member → Type al)
           → {{SS : Submodule X}} → Span X ⊆ X
   SS2ToSS X _ spanÔ = η $ ssZero
   SS2ToSS X _ (spanStep {u}{w} p q c) =
@@ -199,7 +199,7 @@ module _{scalar : Type l}{vector : Type l'}{{R : Ring scalar}}{{V : Module vecto
     let R2 = SS2ToSS X x q in
      squash₁ R1 R2 i
 
-  SSToSS2 : (X : vector → Type al) → {{XP : Property X}}
+  SSToSS2 : (X : member → Type al) → {{XP : Property X}}
           → Span X ⊆ X → Submodule X
   SSToSS2 X {{XP}} H = record {
         ssZero =
@@ -215,18 +215,18 @@ module _{scalar : Type l}{vector : Type l'}{{R : Ring scalar}}{{V : Module vecto
       ; ssSet = setProp }
 
   instance
-   SubmoduleSet : {X : vector → Type al}{{_ : Submodule X}} → Property X
+   SubmoduleSet : {X : member → Type al}{{_ : Submodule X}} → Property X
    SubmoduleSet = record { setProp = ssSet }
  
-   -- A subspace is a submonoid of the additive group of vectors
-   SubmoduleSM : {X : vector → Type al}{{_ : Submodule X}} → Submonoid X _<+>_
+   -- A subspace is a submonoid of the additive group of members
+   SubmoduleSM : {X : member → Type al}{{_ : Submodule X}} → Submonoid X _<+>_
    SubmoduleSM = record
      { id-closed = ssZero
      ; op-closed = ssAdd
      }
 
-   -- A subspace is a subgroup of the additive group of vectors
-   SubmoduleSG : {X : vector → Type al}{{_ : Submodule X}} → Subgroup X
+   -- A subspace is a subgroup of the additive group of members
+   SubmoduleSG : {X : member → Type al}{{_ : Submodule X}} → Subgroup X
    SubmoduleSG {X = X} = record
       { inv-closed = λ{x} x∈X →
         let H = neg 1r *> x ∈ X ≡⟨ cong X (scaleNegOneInv x)⟩
@@ -236,8 +236,8 @@ module _{scalar : Type l}{vector : Type l'}{{R : Ring scalar}}{{V : Module vecto
             transport H F
       }
 
-  -- The span of a set of vectors is a subspace
-  spanIsSubmodule : {X : vector → Type al} → Submodule (Span X)
+  -- The span of a set of members is a subspace
+  spanIsSubmodule : {X : member → Type al} → Submodule (Span X)
   spanIsSubmodule =
       record { ssZero = spanÔ
              ; ssAdd = λ {v} {u} x y → spanAdd2 v u x y
@@ -246,9 +246,9 @@ module _{scalar : Type l}{vector : Type l'}{{R : Ring scalar}}{{V : Module vecto
              }
 
   -- https://en.wikipedia.org/wiki/Linear_independence
-  record LinearlyIndependent (X : vector → Type al) : Type (lsuc (l ⊔ l' ⊔ al))
+  record LinearlyIndependent (X : member → Type al) : Type (lsuc (l ⊔ l' ⊔ al))
    where field
-     li : (Y : vector → Type al) → Span X ⊆ Span Y → Y ⊆ X → X ⊆ Y
+     li : (Y : member → Type al) → Span X ⊆ Span Y → Y ⊆ X → X ⊆ Y
      {{liProp}} : Property X
   open LinearlyIndependent {{...}} public
 
@@ -258,7 +258,7 @@ module _{scalar : Type l}{vector : Type l'}{{R : Ring scalar}}{{V : Module vecto
   Basis : Σ (LinearlyIndependent {al = al}) → Type(lsuc (l ⊔ l' ⊔ al))
   Basis X = (Y : Σ LinearlyIndependent) → X ⊆ Y → Y ⊆ X
 
-  completeSpan : (X : vector → Type(l ⊔ l')) {{LI : LinearlyIndependent X}} → (∀ v → v ∈ Span X) → Basis (X , LI)
+  completeSpan : (X : member → Type(l ⊔ l')) {{LI : LinearlyIndependent X}} → (∀ v → v ∈ Span X) → Basis (X , LI)
   completeSpan X {{LI}} f (Z , LI2) = λ (y : X ⊆ Z) x x∈Z →
        let H = span⊆preserve y in
        let T = LinearlyIndependent.liProp LI in
@@ -356,11 +356,11 @@ module _ {scalar : Type l}{{R : Ring scalar}}
      record { addT = record { preserve = λ u v → cong R (preserve u v) ⋆ preserve (T u) (T v) }
             ; multT = λ u c → cong R (multT u c) ⋆ multT (T u) c }
 
--- The set of eigenvectors with the zero vector for a module endomorphism 'T' and eigenvalue 'c' is a subspace
-eigenvectorSubmodule : {{CR : CRing A}} → {{V : Module B}}
+-- The set of eigenmembers with the zero member for a module endomorphism 'T' and eigenvalue 'c' is a subspace
+eigenmemberSubmodule : {{CR : CRing A}} → {{V : Module B}}
       → (T : B → B) → {{TLT : moduleHomomorphism T}}
       → (c : A) → Submodule (λ v → T v ≡ c *> v)
-eigenvectorSubmodule T c = record
+eigenmemberSubmodule T c = record
     { ssZero = T Ô ≡⟨ idToId T ⟩
                Ô   ≡⟨ sym (scaleVZ c)⟩
                c *> Ô ∎

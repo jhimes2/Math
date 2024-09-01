@@ -39,7 +39,7 @@ instance
       { _<+>_ = _+_
       ; _*>_ = _*_
       ; scalarDistribute = lDistribute
-      ; vectorDistribute = rDistribute
+      ; memberDistribute = rDistribute
       ; scalarAssoc = λ a b c → assoc b c a
       ; scaleId = lIdentity
       }
@@ -142,8 +142,8 @@ instance
                                  d *> (c *> T u) ∎}
        ; scalarDistribute = λ a (T , _) (R , _) →
                 ΣPathPProp modHomomorphismIsProp (funExt λ x → scalarDistribute a (T x) (R x))
-       ; vectorDistribute = λ (T , _) a b →
-                ΣPathPProp modHomomorphismIsProp (funExt λ x → vectorDistribute (T x) a b)
+       ; memberDistribute = λ (T , _) a b →
+                ΣPathPProp modHomomorphismIsProp (funExt λ x → memberDistribute (T x) a b)
        ; scalarAssoc = λ (T , _) a b →
                 ΣPathPProp modHomomorphismIsProp (funExt λ x → scalarAssoc (T x) a b)
        ; scaleId = λ (T , _) →

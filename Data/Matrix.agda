@@ -216,7 +216,7 @@ instance
             { _<+>_ = addv
             ; _*>_ = scaleV
             ; scalarDistribute = scalar-distributivity2
-            ; vectorDistribute = λ v a b → scalar-distributivity a b v
+            ; memberDistribute = λ v a b → scalar-distributivity a b v
             ; scalarAssoc = λ v c d → funExt λ x → assoc c d (v x)
             ; scaleId = λ v → funExt λ x → lIdentity (v x)
             }
