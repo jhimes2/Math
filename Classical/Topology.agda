@@ -7,7 +7,7 @@ open import Cubical.Foundations.Prelude
     renaming (Σ to Σ' ; I to Interval ; _∨_ to or ; congL to left
              ; congR to right) public
 open import Cubical.HITs.PropositionalTruncation renaming (map to truncMap)
-
+open import Data.Finite
 
 variable
   l l' al bl cl : Level
@@ -106,7 +106,6 @@ postulate
 LEM : (A : Prop) → A ＋ (¬ A)
 LEM A = lem squash
 
-
 postulate
  ∥_∥ : (A : Set l) → Prop
  intro : {A : Set l} → A → ∥ A ∥
@@ -139,7 +138,7 @@ Union∅ : ⋃ ∅ ≡ ∅ {A = A}
 Union∅ = funExt λ x → propExt (_>> λ(a , x∈a , a∈∅) → a∈∅) λ()
 
 Union⊆ : (X : ℙ(ℙ A))(Y : ℙ A) → (∀ x → x ∈ X → x ⊆ Y) → ⋃ X ⊆ Y
-Union⊆ X Y H a = _>> λ (Z , a∈Z , Z∈X) → H Z Z∈X a a∈Z
+Union⊆ X Y H a = _>> λ (Y , a∈Y , Y∈X) → H Y Y∈X a a∈Y
 
 _∘_ : (B → C) → (A → B) → (A → C)
 _∘_ f g x = f (g x) 
@@ -160,6 +159,17 @@ infix 7 _∩_
 _ᶜ : (A → Set l) → A → Set l
 X ᶜ = λ x → x ∉ X
 infix 25 _ᶜ
+
+UNREACHABLE : ⊥ → {A : Set l} → A
+UNREACHABLE ()
+
+DNElim : {A : Prop} → ¬(¬ A) → A
+DNElim {A} H with LEM A
+... | (inl x) = x
+... | (inr x) = UNREACHABLE (H x)
+
+DeMorgan : {P : ℙ A} → ¬ (∃ P) → ∀ x → ¬ (P x)
+DeMorgan {P} H x G = H (intro (x , G))
 
 -- Union
 _∪_ : (A → Set l) → (A → Set l') → A → Prop
@@ -284,7 +294,7 @@ instance
                 H >> λ(h , x∈h , h∈G) →
                      intro (h , x∈h , intro (G , h∈G , G∈X)))
            ; monadLemma2 =  funExt λ X → funExt λ x → propExt
-             (_>> λ(Y , x∈Y , S) → S >> λ Y≡X → substP x (sym Y≡X) x∈Y)
+             (_>> λ(Y , x∈Y , Q) → Q >> λ Y≡X → substP x (sym Y≡X) x∈Y)
              λ(x∈X) → intro (X , x∈X , intro refl)
            ; monadLemma3 =  funExt λ x → funExt λ y → propExt
              (_>> λ(Y , y∈Y , G) → G >> λ (h , h∈x , Y≡[h]) →
@@ -336,9 +346,6 @@ discrete  {A} = λ (_ : ℙ A) → ⊤
 
 indiscrete : ℙ(ℙ A)
 indiscrete = Pair 𝓤 ∅
-
-UNREACHABLE : ⊥ → {A : Set l} → A
-UNREACHABLE ()
 
 instance
  DiscreteTopology : topology (discrete {lsuc l} {A})
@@ -397,29 +404,35 @@ module _(τ₀ : ℙ(ℙ A)){{T0 : topology τ₀}}
 --               ; tintersection = λ{X Y} (p , P) (q , Q) → tintersection p q , tintersection P Q
 --               }
 
-closed : {τ : ℙ(ℙ A)}{{T : topology τ}} → ℙ(ℙ A)
-closed {τ = τ} s = s ᶜ ∈ τ
+module _{τ : ℙ(ℙ A)}{{T : topology τ}} where
 
-closure : {τ : ℙ(ℙ A)}{{T : topology τ}} → ℙ A → ℙ A
-closure {τ} X = ⋂ λ B → ∥ X ⊆ B × B ᶜ ∈ τ ∥
+ closed : ℙ(ℙ A)
+ closed s = s ᶜ ∈ τ
+ 
+ closure : ℙ A → ℙ A
+ closure  X = ⋂ λ B → ∥ X ⊆ B × B ᶜ ∈ τ ∥
+ 
+ interior : ℙ A → ℙ A
+ interior X = ⋃ λ C → ∥ C ⊆ X × C ∈ τ ∥
+ 
+ exterior : ℙ A → ℙ A
+ exterior X = ⋃ λ B → ∥ (Σ λ a → a ∈ X × a ∉ B) ＋ (B ᶜ ∉ τ) ∥
+ 
+ boundary : ℙ A → ℙ A
+ boundary X = λ p → p ∈ closure X × p ∉ interior X 
 
-interior : {τ : ℙ(ℙ A)}{{T : topology τ}} → ℙ A → ℙ A
-interior {τ} X = ⋃ λ C → ∥ C ⊆ X × C ∈ τ ∥
+ closureLemma1 : {X : ℙ A} → X ᶜ ∈ τ → closure X ≡ X
+ closureLemma1 {X} Xᶜ∈τ = funExt λ x → propExt (_>> (λ H → H X (intro ((λ _ z → z) , Xᶜ∈τ))))
+                                                λ x∈X → intro λ P → _>> λ(X⊆P , H) → X⊆P x x∈X
 
-exterior : {τ : ℙ(ℙ A)}{{T : topology τ}} → ℙ A → ℙ A
-exterior {τ} X = ⋃ λ B → ∥ (Σ λ a → a ∈ X × a ∉ B) ＋ (B ᶜ ∉ τ) ∥
+restrict : (f : A → B) → (Q : A → Set l) → Σ Q → B
+restrict f Q = λ(x : Σ Q) → f (fst x)
 
-boundary : {τ : ℙ(ℙ A)}{{T : topology τ}} → ℙ A → ℙ A
-boundary {τ}{{T}} X = λ p → p ∈ closure {{T}} X × p ∉ interior {{T}} X 
+relax : {X : ℙ A} → ℙ (Σ X) → ℙ A
+relax {X} P a = ∃ λ(p : a ∈ X) → P (a , p)
 
-restrict : (f : A → B) → (S : A → Set l) → Σ S → B
-restrict f S = λ(x : Σ S) → f (fst x)
-
-relax : {S : ℙ A} → ℙ (Σ S) → ℙ A
-relax {S} P a = ∃ λ(p : a ∈ S) → P (a , p)
-
-relax2 : {S : ℙ A} → ℙ(ℙ (Σ S)) → ℙ(ℙ A)
-relax2 {S} H x = H (λ y → x (fst y))
+relax2 : {X : ℙ A} → ℙ(ℙ (Σ X)) → ℙ(ℙ A)
+relax2 {X} H x = H (λ y → x (fst y))
 
 fix : (A → A) → ℙ A
 fix f a = ∥ (f a ≡ a) ∥
@@ -442,6 +455,8 @@ module _{A : set al}(τ : ℙ(ℙ A)){{T : topology τ}} where
  openCover : ℙ(ℙ A) → set al
  openCover X = (X ⊆ τ) × cover X
 
+ compact : set al
+ compact = ∀ {C} → openCover C → ∃ λ(sc : ℙ(ℙ A)) → sc ⊆ C × is-finite (Σ sc)
 
  continuous : {B : set bl}(τ₁ : ℙ(ℙ B)){{T1 : topology τ₁}} → (A → B) → set bl
  continuous {B} τ₁ f = (V : ℙ B) → V ∈ τ₁ → f ⁻¹[ V ] ∈ τ
@@ -487,18 +502,18 @@ module _{A : set al}(τ : ℙ(ℙ A)){{T : topology τ}} where
     open HousedOff {{...}}
 
 
- ssTopology2 : (S : ℙ A) → ℙ(ℙ A)
- ssTopology2 S = (λ(G : ℙ A) → ∃ λ(U : ℙ A) → (U ∈ τ) × (G ≡ (S ∩ U)))
+ ssTopology2 : (Q : ℙ A) → ℙ(ℙ A)
+ ssTopology2 Q = (λ(G : ℙ A) → ∃ λ(U : ℙ A) → (U ∈ τ) × (G ≡ (Q ∩ U)))
 
- ssTopology : (S : ℙ A) → ℙ(ℙ (Σ S))
- ssTopology S = (λ(G : ℙ (Σ S)) → ∃ λ(U : ℙ A) → (U ∈ τ) × (G ≡ (λ(x , _) → x ∈ U)))
+ ssTopology : (Q : ℙ A) → ℙ(ℙ (Σ Q))
+ ssTopology Q = (λ(G : ℙ (Σ Q)) → ∃ λ(U : ℙ A) → (U ∈ τ) × (G ≡ (λ(x , _) → x ∈ U)))
 
 module _{A : set al}
         (τ : ℙ(ℙ A)){{T : topology τ}} where
 
  instance
-  SubspaceTopology : {S : ℙ A} → topology (ssTopology τ S)
-  SubspaceTopology {S} = record
+  SubspaceTopology : {X : ℙ A} → topology (ssTopology τ X)
+  SubspaceTopology {X} = record
      { tfull = intro $ 𝓤 , tfull , refl
      ; tunion = λ{X} H → intro $ (⋃ λ U → (U ∈ τ) × (λ x → fst x ∈ U) ∈ X) , tunion
      (λ x (G , F) → G) , funExt λ Y → propExt (_>> λ(F , Y∈F , F∈X)
@@ -512,7 +527,7 @@ module _{A : set al}
  neighborhoodPoint p V = ∃ λ(U : ℙ A) → (U ∈ τ) × ((p ∈ U) × (U ⊆ V))
 
  neighborhoodSet : (ℙ A) → (V : ℙ A) → Prop
- neighborhoodSet S V = ∃ λ(U : ℙ A) → (U ∈ τ) × ((S ⊆ U) × (U ⊆ V))
+ neighborhoodSet Q V = ∃ λ(U : ℙ A) → (U ∈ τ) × ((Q ⊆ U) × (U ⊆ V))
 
  discreteDomainContinuous : (f : B → A) → continuous discrete τ f
  discreteDomainContinuous f = λ _ _ → tt
@@ -578,9 +593,9 @@ module _{A : set al}
 
   restrictDomainContinuous : {f : A → B}
                            → continuous τ τ₁ f
-                           → (S : ℙ A)
-                           → continuous (ssTopology τ S) τ₁ λ(x , _) → f x
-  restrictDomainContinuous {f = f} x S y V = let H = x y V in intro $ f ⁻¹[ y ] , H , refl
+                           → (Q : ℙ A)
+                           → continuous (ssTopology τ Q) τ₁ λ(x , _) → f x
+  restrictDomainContinuous {f = f} x Q y V = let H = x y V in intro $ f ⁻¹[ y ] , H , refl
  
   continuousComp : {τ₂ : ℙ(ℙ C)}{{T2 : topology τ₂}}
        → {f : A → B} → continuous τ τ₁ f
@@ -603,3 +618,7 @@ module _{A : set al}
      instance
       inst : HousedOff τ₁ (f x) (f y)
       inst = haus λ fx≡fy → x≢y (inject x y fx≡fy)
+
+-- https://en.wikipedia.org/wiki/Abstract_simplicial_complex
+ASC : {A : Type (lsuc al)} → ℙ(ℙ A) → Type (lsuc al)
+ASC {A} Δ = (X : ℙ A) → X ∈ Δ → (Y : ℙ A) → Y ≢ ∅ → Y ⊆ X → Y ∈ Δ
