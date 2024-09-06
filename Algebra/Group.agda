@@ -162,10 +162,11 @@ module grp {_∙_ : A → A → A}{{G : group _∙_}} where
       inv a ∙ (a ∙ b) ≡⟨ a'[ab]≡b a b ⟩
       b ∎
 
-  lemma3 : {a : A} → a ≡ a ∙ a → a ≡ e
-  lemma3 {a} = λ(p : a ≡ a ∙ a) →
-      a         ≡⟨ sym (lemma2 p)⟩
-      inv a ∙ a ≡⟨ lInverse a ⟩
+  lemma3 : {a b : A} → b ≡ a ∙ b → a ≡ e
+  lemma3 {a}{b} = λ(p : b ≡ a ∙ b) →
+      a               ≡⟨ sym([ab]b'≡a a b)⟩
+      (a ∙ b) ∙ inv b ≡⟨ left _∙_ (sym p)⟩
+      b ∙ inv b       ≡⟨ rInverse b ⟩
       e ∎
 
   lemma4 : inv e ≡ e
