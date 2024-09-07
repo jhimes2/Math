@@ -23,11 +23,11 @@ module _{{F : Field A}} where
  a / b = a * reciprocal b
  
  x⁻¹≢0 : (x : nonZero) → reciprocal x ≢ 0r 
- x⁻¹≢0 (a , p) x⁻¹≡0 =
-     1r                     ≡⟨ sym (recInv (a , p))⟩
-     a * reciprocal (a , p) ≡⟨ right _*_ x⁻¹≡0 ⟩
-     a * 0r                 ≡⟨ x*0≡0 a ⟩
-     0r                     ∎
+ x⁻¹≢0 (a , a≢0) x⁻¹≡0 =
+     1r                        ≡⟨ sym (recInv (a , a≢0))⟩
+     a * reciprocal (a , a≢0)  ≡⟨ right _*_ x⁻¹≡0 ⟩
+     a * 0r                    ≡⟨ x*0≡0 a ⟩
+     0r                        ∎
   ∴ ⊥ [ 1≢0 ]
  
  -- Multiplying two nonzero values gives a nonzero value
