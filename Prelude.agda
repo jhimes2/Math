@@ -66,12 +66,14 @@ _∘_ :  (B → C) → (A → B) → (A → C)
 f ∘ g = λ a → f (g a)
 
 -- Therefore
-_∴_⟨_⟩ : A → (B : Type l) → (A → B) → B
-a ∴ _ ⟨ f ⟩ = f a
+_∴_[_] : A → (B : Type l) → (A → B) → B
+a ∴ _ [ f ] = f a
+infixr 1 _∴_[_]
 
-∴-example : A → (A → B) → (B → C) → C
-∴-example {A}{B}{C} a f g = a ∴ B ⟨ f ⟩
-                              ∴ C ⟨ g ⟩
+∴-example : {D : Type al} → A → (A → B) → (B → C) → (C → D) → D
+∴-example {A}{B}{C}{D} a f g h = a ∴ B [ f ]
+                                   ∴ C [ g ]
+                                   ∴ D [ h ]
 -- Explicitly exists
 Σ : {A : Type l} → (P : A → Type l') → Type(l ⊔ l')
 Σ {A} = Σ' A

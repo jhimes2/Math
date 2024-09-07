@@ -45,35 +45,30 @@ module _{scalar : Type l}{member : Type l'}{{R : Ring scalar}}{{V : Module membe
   -- Member scaled by 0r is Ô
   scaleZ : (v : member) → 0r *> v ≡ Ô
   scaleZ v =
-    let H : (0r *> v) <+> (0r *> v) ≡ (0r *> v) <+> Ô
-                          → 0r *> v ≡ Ô
-        H = grp.cancel (0r *> v) in H $
     (0r *> v) <+> (0r *> v) ≡⟨ sym (memberDistribute v 0r 0r)⟩
     (0r + 0r) *> v          ≡⟨ left _*>_ (lIdentity 0r)⟩
     0r *> v                 ≡⟨ sym (rIdentity (_*>_ 0r v))⟩
     (0r *> v) <+> Ô ∎
+    ∴ (0r *> v) <+> (0r *> v) ≡ (0r *> v) <+> Ô           [ id ]
+    ∴ 0r *> v ≡ Ô           [ grp.cancel (0r *> v)]
 
   -- zero member scaled is 0r member
   scaleVZ : (c : scalar) → c *> Ô ≡ Ô
   scaleVZ c =
-    let H : (c *> Ô) <+> (c *> Ô) ≡ (c *> Ô) <+> Ô
-                         → c *> Ô ≡ Ô
-        H = grp.cancel (c *> Ô) in H $
     (c *> Ô) <+> (c *> Ô) ≡⟨ sym (scalarDistribute c Ô Ô)⟩
     c *> (Ô <+> Ô)        ≡⟨ right _*>_ (lIdentity Ô)⟩
     c *> Ô                ≡⟨ sym (rIdentity (c *> Ô))⟩
     (c *> Ô) <+> Ô ∎
+    ∴ c *> Ô ≡ Ô          [ grp.cancel (c *> Ô)]
 
   scaleInv : (v : member) → (c : scalar) → neg c *> v ≡ -< c *> v >
   scaleInv v c =
-    let H : (neg c *> v) <+> -< -< c *> v > > ≡ Ô
-                                 → neg c *> v ≡ -< c *> v >
-        H = grp.uniqueInv in H $
     (neg c *> v) <+> -< -< c *> v > > ≡⟨ right _<+>_ (grp.doubleInv (c *> v))⟩
     (neg c *> v) <+> (c *> v)         ≡⟨ sym (memberDistribute v (neg c) c)⟩
     (neg c + c) *> v                  ≡⟨ left _*>_ (lInverse c)⟩
     0r *> v                           ≡⟨ scaleZ v ⟩
     Ô ∎
+    ∴ neg c *> v ≡ -< c *> v >        [ grp.uniqueInv ]
 
   scaleNegOneInv : (v : member) → neg 1r *> v ≡ -< v >
   scaleNegOneInv v =

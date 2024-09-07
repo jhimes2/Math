@@ -191,7 +191,9 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
      [gn]g' : ∀ n → n ∈ N → ∀ g → (g ∙ n) ∙ inv g ∈ N
  open NormalSG {{...}} public
 
- SG-Criterion : {H : A → Type l} → {{Property H}} → Σ H → (∀ x y → x ∈ H → y ∈ H → x ∙ inv y ∈ H)
+ SG-Criterion : {H : A → Type l} → {{Property H}}
+              → Σ H
+              → (∀ x y → x ∈ H → y ∈ H → x ∙ inv y ∈ H)
               → Subgroup H
  SG-Criterion {H} (x , x') P =
    let Q : e ∈ H
@@ -239,7 +241,7 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
         transport ((f (x ∙ p))) (η (p , p∈N , refl)) >>= λ (q , q∈N , G) →
        η $ q , q∈N , H ⋆ grp.lcancel x (
            (p ∙ inv x) ∙ x ≡⟨ [ab']b≡a p x ⟩
-           p ≡⟨ sym (a'[ab]≡b x p) ⟩
+           p               ≡⟨ sym (a'[ab]≡b x p) ⟩
            inv x ∙ (x ∙ p) ≡⟨ right _∙_ G ⟩
            inv x ∙ (q ∙ x) ≡⟨ assoc (inv x) q x ⟩
            (inv x ∙ q) ∙ x ∎
@@ -258,13 +260,11 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
                   → {{SG : Subgroup H}}
                   → NormalSG H
   normalSGAbelian {H} = record { [gn]g' = λ n n∈H g →
-     let T1 : (n ∙ inv g) ∙ g ∈ H
-         T1 = subst H (sym ([ab']b≡a n g)) n∈H in
-     let T2 : g ∙ (n ∙ inv g) ∈ H
-         T2 = subst H (comm (n ∙ inv g) g) T1 in
-     let T3 : (g ∙ n) ∙ inv g ∈ H
-         T3 = subst H (assoc g n (inv g)) T2 in
-         T3 }
+     n∈H
+     ∴ (n ∙ inv g) ∙ g ∈ H    [ subst H (sym ([ab']b≡a n g))]
+     ∴ g ∙ (n ∙ inv g) ∈ H    [ subst H (comm (n ∙ inv g) g)]
+     ∴ (g ∙ n) ∙ inv g ∈ H    [ subst H (assoc g n (inv g))]
+   }
 
 module _{_∙_ : A → A → A}{{G : group _∙_}}
         {_*_ : B → B → B}{h : A → B}{{E : Epimorphism _∙_ _*_ h}} where
@@ -286,9 +286,9 @@ module _{_∙_ : A → A → A}{{G : group _∙_}}
           e * h (inv a')             ≡⟨ left _*_ (sym Q)⟩
           (y * a) * h (inv a')       ≡⟨ left _*_ (sym (cong₂ _*_ H3 H1))⟩
           (h y' * h a') * h (inv a') ≡⟨ sym (assoc (h y') (h a') (h (inv a')))⟩
-          h y' * (h a' * h (inv a')) ≡⟨ right _*_ (sym (preserve a' (inv a'))) ⟩
-          h y' * h (a' ∙ inv a')     ≡⟨ right _*_ (cong h (rInverse a')) ⟩
-          h y' * h e                 ≡⟨ rIdentity (h y') ⟩
+          h y' * (h a' * h (inv a')) ≡⟨ right _*_ (sym (preserve a' (inv a')))⟩
+          h y' * h (a' ∙ inv a')     ≡⟨ right _*_ (cong h (rInverse a'))⟩
+          h y' * h e                 ≡⟨ rIdentity (h y')⟩
           h y'                       ≡⟨ H3 ⟩
           y ∎
             ) (surject a) (surject x) (surject y))) (λ (a' , H) →
@@ -310,11 +310,10 @@ module _{_∙_ : A → A → A}{{G : monoid _∙_}}
 
   -- A group homomorphism maps identity elements to identity elements
   idToId : (h : A → B) → {{X : Homomorphism _∙_ _*_ h}} → h e ≡ e
-  idToId h = [wts h e ≡ e ] grp.lemma3
-           $ [wts h e ≡ h e * h e ]
-               h e       ≡⟨ cong h (sym (lIdentity e))⟩
-               h (e ∙ e) ≡⟨ preserve e e ⟩
-               h e * h e ∎
+  idToId h = h e       ≡⟨ cong h (sym (lIdentity e))⟩
+             h (e ∙ e) ≡⟨ preserve e e ⟩
+             h e * h e ∎
+          ∴ h e ≡ e   [ grp.lemma3 ]
 
   instance
    -- The image of a group homomorphism is a submonoid
@@ -434,13 +433,12 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
   -- A group homomorphism maps inverse elements to inverse elements
   invToInv : (h : A → B) → {{X : Homomorphism _∙_ _*_ h}} → ∀ a → h (inv a) ≡ inv (h a)
   invToInv = λ h a
-   → [wts h (inv a) ≡ inv (h a) ] grp.lcancel (h a)
-   $ [wts h (inv a) * h a ≡ inv (h a) * h a ]
-     h (inv a) * h a ≡⟨ sym (preserve (inv a) a)⟩
+   → h (inv a) * h a ≡⟨ sym (preserve (inv a) a)⟩
      h (inv a ∙ a)   ≡⟨ cong h (lInverse a)⟩
      h e             ≡⟨ idToId h ⟩
      e               ≡⟨ sym (lInverse (h a))⟩
      inv (h a) * h a ∎
+   ∴ h (inv a) ≡ inv (h a) [ grp.lcancel (h a)]
 
   module ker{h : A → B}{{X : Homomorphism _∙_ _*_ h}} where
 
@@ -451,13 +449,13 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
     { inject =
        λ x y
         (q : h x ≡ h y)
-       → let P = h (x ∙ inv y)   ≡⟨ preserve x (inv y)⟩
-                 h x * h (inv y) ≡⟨ right _*_ (invToInv h y)⟩
-                 h x * inv (h y) ≡⟨ right _*_ (cong inv (sym q))⟩
-                 h x * inv (h x) ≡⟨ rInverse (h x)⟩
-                 e ∎ in
-         let Q : x ∙ inv y ≡ e
-             Q = p (x ∙ inv y) P in grp.uniqueInv Q
+       → h (x ∙ inv y)   ≡⟨ preserve x (inv y)⟩
+         h x * h (inv y) ≡⟨ right _*_ (invToInv h y)⟩
+         h x * inv (h y) ≡⟨ right _*_ (cong inv (sym q))⟩
+         h x * inv (h x) ≡⟨ rInverse (h x)⟩
+         e ∎
+       ∴ x ∙ inv y ≡ e   [ p (x ∙ inv y)]
+       ∴ x ≡ y           [ grp.uniqueInv ]
     }
  
    instance
@@ -563,18 +561,18 @@ module _{_∙_ : A → A → A} {{G : group _∙_}} where
  a[b'a]'≡b a b = a ∙ inv(inv b ∙ a)       ≡⟨ right _∙_ (sym(grp.lemma1 (inv b) a))⟩
                  a ∙ (inv a ∙ inv(inv b)) ≡⟨ a[a'b]≡b a (inv(inv b))⟩
                  inv(inv b)               ≡⟨ grp.doubleInv b ⟩
-                 b ∎
+                 b                        ∎
 
  a[ba]'≡b' : ∀ a b → a ∙ inv (b ∙ a) ≡ inv b
  a[ba]'≡b' a b = a ∙ inv (b ∙ a)     ≡⟨ right _∙_ (sym (grp.lemma1 b a))⟩
                  a ∙ (inv a ∙ inv b) ≡⟨ a[a'b]≡b a (inv b)⟩
-                 inv b ∎
+                 inv b               ∎
 
  a[bc]'≡[ab']c' : {{Commutative _∙_}} → ∀ a b c → a ∙ inv(b ∙ c) ≡ (a ∙ inv b) ∙ inv c
  a[bc]'≡[ab']c' a b c = a ∙ inv(b ∙ c)      ≡⟨ right _∙_ (sym (grp.lemma1 b c))⟩
                         a ∙ (inv c ∙ inv b) ≡⟨ right _∙_ (comm (inv c) (inv b))⟩
                         a ∙ (inv b ∙ inv c) ≡⟨ assoc a (inv b) (inv c)⟩
-                       (a ∙ inv b) ∙ inv c ∎
+                       (a ∙ inv b) ∙ inv c  ∎
 
 -- Group with carrier and operator inside the structure
 record Group (l : Level) : Type(lsuc l) where
@@ -613,7 +611,8 @@ groupIsProp {A} _∙_ G1 G2 i =
   let E : G1 .e ≡ G2 .e
       E = G1 .e                 ≡⟨ idUnique {{grpIsMonoid {{G2}}}} (G1 .lIdentity)⟩
           grpIsMonoid {{G2}} .e ≡⟨ sym (idUnique {{grpIsMonoid {{G2}}}} (G2 .lIdentity))⟩
-          G2 .e ∎ in
+          G2 .e                 ∎
+  in
   record
    {
      e = E i
@@ -651,19 +650,16 @@ _G/_ {A} _∙_ H = A / λ x y → (x ∙ inv y) ∈ H
       → (H : A → Type l) → {{SG : NormalSG H}}
       → _∙_ G/ H → _∙_ G/ H → _∙_ G/ H
 ⋆[_/_] {A} _∙_ {{G}} H {{SG}} =
-   (setQuotBinOp (λ a → subst H (sym (rInverse a)) idClosed)
-  (λ a →  subst H (sym (rInverse a)) idClosed) _∙_ λ a a' b b' P Q →
+   setQuotBinOp (λ a → subst H (sym (rInverse a)) idClosed)
+  (λ a → subst H (sym (rInverse a)) idClosed) _∙_ λ a a' b b' P Q →
     let H1 : (a ∙ (b ∙ inv b')) ∙ inv a ∈ H
         H1 = [gn]g' (b ∙ inv b') Q a in
-    let H2 : ((a ∙ (b ∙ inv b')) ∙ inv a) ∙ (a ∙ inv a') ∈ H
-        H2 = opClosed H1 P in
-    let H3 : (a ∙ (b ∙ inv b')) ∙ inv a' ∈ H
-        H3 = subst H ([ab'][bc]≡ac ((a ∙ (b ∙ inv b'))) a (inv a')) H2 in
-    let H4 : (a ∙ b) ∙ (inv b' ∙ inv a') ∈ H
-        H4 = subst H (sym ([ab][cd]≡[a[bc]]d a b (inv b') (inv a'))) H3 in
-    let H5 : (a ∙ b) ∙ (inv( a' ∙ b')) ∈ H
-        H5 = subst H (right _∙_ (grp.lemma1 a' b')) H4 in
-        H5)
+    H1
+    ∴ ((a ∙ (b ∙ inv b')) ∙ inv a)∙(a ∙ inv a') ∈ H
+                                      [(λ x → opClosed x P)]
+    ∴ (a ∙ (b ∙ inv b')) ∙ inv a' ∈ H [ subst H ([ab'][bc]≡ac ((a ∙ (b ∙ inv b'))) a (inv a'))]
+    ∴ (a ∙ b) ∙ (inv b' ∙ inv a') ∈ H [ subst H (sym ([ab][cd]≡[a[bc]]d a b (inv b') (inv a')))]
+    ∴ (a ∙ b) ∙ (inv(a' ∙ b')) ∈ H    [ subst H (right _∙_ (grp.lemma1 a' b'))]
  where
   -- Restated for faster compilation (kludge)
   idClosed = Submonoid.id-closed (Subgroup.SGSM (NormalSG.NisSG SG))
@@ -690,21 +686,20 @@ module _ {A : Type al}
  effectQG : {x y : A} → [ x ] ≡ [ y ] → (x ∙ inv y) ∈ N
  effectQG {x} {y} =
     effective (λ x y → SetProp (x ∙ inv y))
-              (BinaryRelation.equivRel (λ a → subst N (sym (rInverse a)) idClosed)
-                                       (λ a b x →
-                                          let T1 : inv (a ∙ inv b) ∈ N
-                                              T1 = invClosed x in
-                                          let T2 : inv (inv b) ∙ inv a ∈ N
-                                              T2 = subst N ( sym(grp.lemma1 a (inv b))) T1 in
-                                          let T3 : b ∙ inv a ∈ N
-                                              T3 = subst N (left _∙_ (grp.doubleInv b)) T2 in
-                                              T3)
-                                        λ a b c P Q →
-                                          let T1 : (a ∙ inv b) ∙ (b ∙ inv c) ∈ N
-                                              T1 = opClosed P Q in
-                                          let T2 : a ∙ inv c ∈ N
-                                              T2 = subst N ([ab'][bc]≡ac a b (inv c)) T1 in
-                                              T2) x y
+              (BinaryRelation.equivRel
+                 (λ a → subst N (sym (rInverse a)) idClosed)
+                 (λ a b ab'∈N →
+                     ab'∈N
+                  ∴ inv (a ∙ inv b) ∈ N [ invClosed ]
+                  ∴ inv (inv b) ∙ inv a ∈ N [ subst N (sym(grp.lemma1 a (inv b)))]
+                  ∴ b ∙ inv a ∈ N [ subst N (left _∙_ (grp.doubleInv b))]
+                 )
+                  λ a b c ab'∈N bc'∈N →
+                       bc'∈N
+                    ∴ (a ∙ inv b) ∙ (b ∙ inv c) ∈ N [ opClosed ab'∈N ]
+                    ∴ a ∙ inv c ∈ N [ subst N ([ab'][bc]≡ac a b (inv c))]
+
+              ) x y
   where
    open import Cubical.Relation.Binary
 
@@ -718,22 +713,22 @@ module _ {A : Type al}
   ψ : _∙_ G/ Kernel f → Σ (image f)
   ψ = rec/ (isSetΣ IsSet (λ x → isProp→isSet squash₁))
                  (λ a → f a , η (a , refl)) λ a b ab'∈Ker[f] → ΣPathPProp (λ _ → squash₁)
-                 (f a ≡⟨ sym (rIdentity (f a))⟩
-                  f a * e ≡⟨ right _*_ (sym(idToId f))⟩
-                  f a * f e ≡⟨ right _*_ (cong f (sym (lInverse b)))⟩
-                  f a * f (inv b ∙ b) ≡⟨ right _*_ (preserve (inv b) b)⟩
+                 (f a                     ≡⟨ sym (rIdentity (f a))⟩
+                  f a * e                 ≡⟨ right _*_ (sym(idToId f))⟩
+                  f a * f e               ≡⟨ right _*_ (cong f (sym (lInverse b)))⟩
+                  f a * f (inv b ∙ b)     ≡⟨ right _*_ (preserve (inv b) b)⟩
                   f a * (f (inv b) * f b) ≡⟨ assoc (f a) (f (inv b)) (f b)⟩
                   (f a * f (inv b)) * f b ≡⟨ left _*_ (sym (preserve a (inv b)))⟩
-                  (f (a ∙ inv b)) * f b ≡⟨ left _*_ ab'∈Ker[f] ⟩
-                  e * f b ≡⟨ lIdentity (f b)⟩
-                  f b ∎)
+                  (f (a ∙ inv b)) * f b   ≡⟨ left _*_ ab'∈Ker[f] ⟩
+                  e * f b                 ≡⟨ lIdentity (f b)⟩
+                  f b                     ∎)
 
   instance
    FToH-lemma1 : Homomorphism ⋆[ _∙_ / Kernel f ] _⪀_ ψ
    FToH-lemma1 = record { preserve =
       elimProp2 (λ u v → [wts isProp((ψ (⋆[ _∙_ / Kernel f ] u v)) ≡ (ψ u ⪀ ψ v)) ]
          isSetΣSndProp IsSet (λ _ → squash₁) (ψ (⋆[ _∙_ / Kernel f ] u v)) (ψ u ⪀ ψ v))
-             λ a b → [wts (ψ (⋆[ _∙_ / Kernel f ] [ a ] [ b ])) ≡ (ψ [ a ] ⪀ ψ [ b ]) ]
+             λ a b → [wts (ψ (⋆[ _∙_ / Kernel f ] [ a ] [ b ])) ≡ (ψ [ a ] ⪀ ψ [ b ])]
                    ΣPathPProp (λ _ → squash₁) (preserve a b) 
      }
  

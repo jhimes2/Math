@@ -23,13 +23,12 @@ module _{{F : Field A}} where
  a / b = a * reciprocal b
  
  x⁻¹≢0 : (x : nonZero) → reciprocal x ≢ 0r 
- x⁻¹≢0 (a , p) contra =
-   let H : a * reciprocal (a , p) ≡ a * 0r 
-       H = right _*_ contra in
-   let G : 1r ≡ a * 0r 
-       G = sym (recInv (a , p)) ⋆ H in
-   let F : 1r ≡ 0r 
-       F = G ⋆ (x*0≡0 a) in 1≢0 F
+ x⁻¹≢0 (a , p) x⁻¹≡0 =
+     1r                     ≡⟨ sym (recInv (a , p))⟩
+     a * reciprocal (a , p) ≡⟨ right _*_ x⁻¹≡0 ⟩
+     a * 0r                 ≡⟨ x*0≡0 a ⟩
+     0r                     ∎
+  ∴ ⊥ [ 1≢0 ]
  
  -- Multiplying two nonzero values gives a nonzero value
  nonZeroMult : (a b : nonZero) → (fst a * fst b) ≢ 0r 
@@ -55,8 +54,8 @@ module _{{F : Field A}} where
    λ(contra : neg 1r ≡ 0r ) → 1≢0 $
                           grp.invInjective $
                               neg 1r ≡⟨ contra ⟩
-                              0r     ≡⟨ sym (grp.lemma4) ⟩
-                              neg 0r  ∎
+                              0r     ≡⟨ sym (grp.lemma4)⟩
+                              neg 0r ∎
 instance
   NZMultComm : {{F : Field A}} → Commutative NZMult
   NZMultComm = record { comm = λ a b → ΣPathPProp (λ w x y → funExt λ p → y p |> UNREACHABLE)
