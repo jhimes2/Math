@@ -1,4 +1,4 @@
-{-# OPTIONS --cubical --safe --overlapping-instances #-}
+{-# OPTIONS --cubical --safe --backtracking-instance-search #-}
 
 open import Prelude
 open import Cubical.Foundations.HLevels

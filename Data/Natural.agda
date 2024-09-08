@@ -1,4 +1,4 @@
-{-# OPTIONS --cubical --safe --overlapping-instances --termination-depth=3 #-}
+{-# OPTIONS --cubical --safe --backtracking-instance-search --termination-depth=3 #-}
 
 module Data.Natural where
 

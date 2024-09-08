@@ -1,4 +1,5 @@
-{-# OPTIONS --cubical --safe --hidden-argument-pun --overlapping-instances #-}
+{-# OPTIONS --cubical --safe --hidden-argument-pun --backtracking-instance-search #-}
+
 
 module Algebra.Group where
 
@@ -521,7 +522,7 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
 
 -- https://en.wikipedia.org/wiki/Symmetric_group
 {- Instantiating this symmetric group publicly may cause severely long compile
-   times for files using the '--overlapping-instances' flag. -}
+   times for files using the '--backtracking-instance-search' flag. -}
 private instance
  symmetricGroup : {{_ : is-set A}} → group (≅transitive {A = A})
  symmetricGroup =

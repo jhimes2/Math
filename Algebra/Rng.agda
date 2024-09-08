@@ -1,4 +1,4 @@
-{-# OPTIONS --cubical --safe --overlapping-instances #-}
+{-# OPTIONS --cubical --safe --backtracking-instance-search #-}
 
 module Algebra.Rng where
 

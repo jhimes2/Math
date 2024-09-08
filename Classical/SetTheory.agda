@@ -1,4 +1,4 @@
-{-# OPTIONS --cubical --safe --overlapping-instances --hidden-argument-pun --prop #-}
+{-# OPTIONS --cubical --safe --backtracking-instance-search --hidden-argument-pun --prop #-}
 
 open import Prelude
 open import Relations

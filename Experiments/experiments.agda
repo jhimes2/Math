@@ -1,4 +1,4 @@
-{-# OPTIONS --allow-unsolved-metas --cubical --overlapping-instances --hidden-argument-pun #-}
+{-# OPTIONS --allow-unsolved-metas --cubical --backtracking-instance-search --hidden-argument-pun #-}
 
 module Experiments.experiments where
 

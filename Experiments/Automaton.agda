@@ -1,4 +1,4 @@
-{-# OPTIONS --cubical --overlapping-instances --hidden-argument-pun --prop #-}
+{-# OPTIONS --cubical --backtracking-instance-search --hidden-argument-pun --prop #-}
 
 module Experiments.Automaton where
 

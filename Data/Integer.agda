@@ -1,4 +1,4 @@
-{-# OPTIONS --safe --cubical --overlapping-instances #-}
+{-# OPTIONS --safe --cubical --backtracking-instance-search #-}
 
 module Data.Integer where
 

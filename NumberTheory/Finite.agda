@@ -1,4 +1,4 @@
-{-# OPTIONS --cubical --overlapping-instances #-}
+{-# OPTIONS --cubical --backtracking-instance-search #-}
 
 module NumberTheory.Finite where
 
