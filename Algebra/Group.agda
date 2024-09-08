@@ -536,7 +536,8 @@ private instance
     , ΣPathPProp bijectiveProp (funExt λ x →
        let y = fst (gSurj (g x)) in
        let H : g y ≡ g x
-           H = snd (gSurj (g x)) in gInj y x H)
+           H = snd (gSurj (g x)) in
+             gInj y x H)
    ; lIdentity = λ a → ΣPathPProp bijectiveProp refl
    }
 

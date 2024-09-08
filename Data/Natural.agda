@@ -336,9 +336,9 @@ open import Cubical.Foundations.Pointed.Homogeneous
 NatHomogeneous : isHomogeneous (ℕ , Z)
 NatHomogeneous = isHomogeneousDiscrete natDiscrete
 
-notAnySIsZ : ∀ a → (∀ b → a ≢ S b) → a ≡ Z
-notAnySIsZ Z _ = refl
-notAnySIsZ (S a) p = p a refl |> UNREACHABLE
+noSIsZ : ∀ a → (∀ b → a ≢ S b) → a ≡ Z
+noSIsZ Z _ = refl
+noSIsZ (S a) p = p a refl |> UNREACHABLE
 
 max : ℕ → ℕ → ℕ
 max Z b = b

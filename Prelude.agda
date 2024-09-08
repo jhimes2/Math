@@ -25,6 +25,9 @@ variable
 id : A → A
 id x = x
 
+id2 : A → A
+id2 x using y ← x = y
+
 _≢_ : {A : Type l} → A → A → Type l 
 a ≢ b = ¬(a ≡ b)
 
@@ -74,6 +77,7 @@ infixr 1 _∴_[_]
 ∴-example {A}{B}{C}{D} a f g h = a ∴ B [ f ]
                                    ∴ C [ g ]
                                    ∴ D [ h ]
+
 -- Explicitly exists
 Σ : {A : Type l} → (P : A → Type l') → Type(l ⊔ l')
 Σ {A} = Σ' A

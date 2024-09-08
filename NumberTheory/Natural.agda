@@ -298,7 +298,7 @@ pasteAdd2 a b = cong (λ x → paste (S x) b) (comm a b) ⋆ pasteAdd a b
 
 ZCut : ∀ a → cut Z a ≡ Z
 ZCut a = let H = cutLemma Z a in
-   notAnySIsZ (cut Z a) λ b contra
+   noSIsZ (cut Z a) λ b contra
      → transport (λ i → Z ≡ copy a (contra i) + paste Z a) H |> λ G → ZNotS G
 
 ZPaste : ∀ a → paste Z a ≡ Z
