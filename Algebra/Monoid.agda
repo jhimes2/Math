@@ -81,7 +81,7 @@ module _{_∙_ : A → A → A} {{M : monoid _∙_}} where
 
 
   -- Normalizing any subset of a monoid is a submonoid
-  normalizerSM : {N : A → Type l} → {{Property N}} → Submonoid (normalizer _∙_ N) _∙_
+  normalizerSM : {N : A → Type l} → Submonoid (normalizer _∙_ N) _∙_
   normalizerSM {N} = record
      { id-closed = funExt λ
      x → propExt squash₁ squash₁ (map λ(y , y∈N , H) → y , y∈N , H ⋆ lIdentity y ⋆ sym (rIdentity y))

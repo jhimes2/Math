@@ -106,7 +106,7 @@ module _{_∙_ : A → A → A} {{G : group _∙_}}(a b : A) where
                  (a ∙ (b ∙ inv b)) ∙ c ≡⟨ left _∙_ a[bb']≡a ⟩
                  a ∙ c ∎
 
-module grp {_∙_ : A → A → A}{{G : group _∙_}} where
+module grp {A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
 
   cancel : (a : A) → {x y : A} → a ∙ x ≡ a ∙ y → x ≡ y
   cancel a {x}{y} = λ(p : a ∙ x ≡ a ∙ y) →
@@ -176,7 +176,43 @@ module grp {_∙_ : A → A → A}{{G : group _∙_}} where
     e ∙ inv e ≡⟨ rInverse e ⟩
     e ∎
 
+  -- https://en.wikipedia.org/wiki/Product_of_group_subsets
+  * : (A → Type l) → (A → Type l') → A → Type (al ⊔ l ⊔ l')
+  * S T = λ x → ∃ λ t → (t ∈ T) × (x ∙ inv t ∈ S)
+
+  instance
+   *Set : {S : A → Type l} → {T : A → Type l'} → Property (* S T)
+   *Set {S}{T} = record { setProp = λ x → squash₁ }
+
+
 module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
+
+ a[b'a]'≡b : ∀ a b → a ∙ inv (inv b ∙ a) ≡ b
+ a[b'a]'≡b a b = a ∙ inv(inv b ∙ a)       ≡⟨ right _∙_ (sym(grp.lemma1 (inv b) a))⟩
+                 a ∙ (inv a ∙ inv(inv b)) ≡⟨ a[a'b]≡b a (inv(inv b))⟩
+                 inv(inv b)               ≡⟨ grp.doubleInv b ⟩
+                 b                        ∎
+
+ a[ba]'≡b' : ∀ a b → a ∙ inv (b ∙ a) ≡ inv b
+ a[ba]'≡b' a b = a ∙ inv (b ∙ a)     ≡⟨ right _∙_ (sym (grp.lemma1 b a))⟩
+                 a ∙ (inv a ∙ inv b) ≡⟨ a[a'b]≡b a (inv b)⟩
+                 inv b               ∎
+
+ a[bc]'≡[ab']c' : {{Commutative _∙_}} → ∀ a b c → a ∙ inv(b ∙ c) ≡ (a ∙ inv b) ∙ inv c
+ a[bc]'≡[ab']c' a b c = a ∙ inv(b ∙ c)      ≡⟨ right _∙_ (sym (grp.lemma1 b c))⟩
+                        a ∙ (inv c ∙ inv b) ≡⟨ right _∙_ (comm (inv c) (inv b))⟩
+                        a ∙ (inv b ∙ inv c) ≡⟨ assoc a (inv b) (inv c)⟩
+                       (a ∙ inv b) ∙ inv c  ∎
+
+ ab'≡[ba']' : (a b : A) → a ∙ inv b ≡ inv (b ∙ inv a)
+ ab'≡[ba']' a b = a ∙ inv b           ≡⟨ left _∙_ (sym (grp.doubleInv a))⟩
+                  inv (inv a) ∙ inv b ≡⟨ grp.lemma1 b (inv a)⟩
+                  inv (b ∙ inv a)     ∎
+
+ a'b≡[b'a]' : (a b : A) → inv a ∙ b ≡ inv (inv b ∙ a)
+ a'b≡[b'a]' a b = inv a ∙ b           ≡⟨ right _∙_ (sym (grp.doubleInv b))⟩
+                  inv a ∙ inv (inv b) ≡⟨ grp.lemma1 (inv b) a ⟩
+                  inv (inv b ∙ a)     ∎
 
  -- https://en.wikipedia.org/wiki/Subgroup
  record Subgroup(H : A → Type bl) : Type (al ⊔ bl) where
@@ -227,7 +263,7 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
     }
 
  -- Normalizing any subset of a group is a subgroup
- normalizerSG : {N : A → Type l} → {{Property N}} → Subgroup (normalizer _∙_ N)
+ normalizerSG : {N : A → Type l} → Subgroup (normalizer _∙_ N)
  normalizerSG {N} = record { inv-closed = λ{x} x∈norm →
      let f = funRed x∈norm in funExt λ y → propExt squash₁ squash₁ (_>>= λ (p , p∈N , H) →
         transport (sym(f (p ∙ x))) (η (p , p∈N , refl)) >>= λ (q , q∈N , G) →
@@ -266,6 +302,42 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
      ∴ g ∙ (n ∙ inv g) ∈ H    [ subst H (comm (n ∙ inv g) g)]
      ∴ (g ∙ n) ∙ inv g ∈ H    [ subst H (assoc g n (inv g))]
    }
+
+module _{_∙_ : A → A → A}{{G : group _∙_}}
+        {N : A → Type al}{{NSG : NormalSG N}} where
+
+ [g'n]g : ∀ n → n ∈ N → ∀ g → (inv g ∙ n) ∙ g ∈ N
+ [g'n]g n n∈N g = subst N (right _∙_ (grp.doubleInv g)) ([gn]g' n n∈N (inv g))
+
+ private
+  -- Restated for faster compilation (kludge)
+  idClosed = Submonoid.id-closed (Subgroup.SGSM (NormalSG.NisSG NSG))
+  opClosed = Submonoid.op-closed (Subgroup.SGSM (NormalSG.NisSG NSG))
+
+
+ module _{S : A → Type bl}{{SSM : Submonoid S _∙_}} where
+  instance
+  {- If G is a group, N is a normal subgroup, and S is a submonoid,
+     then the product SN is a submonoid of G. -}
+   SNsubmonoid : Submonoid (grp.* S N) _∙_
+   SNsubmonoid = record
+    { id-closed = η $ e , idClosed
+                        , subst S (sym (rInverse e)) id-closed
+    ; op-closed = λ{x}{y} a b → a >>= λ(t , t∈N , xt'∈S)
+                              → b >>= λ(u , u∈N , yu'∈S)
+                              → η $ ( u ∙ ((inv y ∙ t) ∙ y)) ,  opClosed u∈N ([g'n]g t t∈N y) , (
+           yu'∈S
+        ∴ (x ∙ inv t) ∙ (y ∙ inv u) ∈ S  [ op-closed xt'∈S ]
+        ∴ (((x ∙ y) ∙ inv y) ∙ inv t) ∙ (y ∙ inv u) ∈ S [ subst S (left _∙_ (left _∙_ (sym ([ab]b'≡a x y))))]
+        ∴ ((x ∙ y) ∙ (inv y ∙ inv t)) ∙ (y ∙ inv u) ∈ S [ subst S (left _∙_ (sym (assoc (x ∙ y) (inv y) (inv t))))]
+        ∴ ((x ∙ y) ∙ inv(t ∙ y)) ∙ (y ∙ inv u) ∈ S [ subst S (left _∙_ (right _∙_ (sym (sym(grp.lemma1 t y)))))]
+        ∴ (x ∙ y) ∙ (inv(t ∙ y) ∙ (y ∙ inv u)) ∈ S [ subst S (sym (assoc (x ∙ y) (inv (t ∙ y)) (y ∙ inv u)))]
+        ∴ (x ∙ y) ∙ inv (inv(y ∙ inv u) ∙ (t ∙ y)) ∈ S [ subst S (right _∙_ (a'b≡[b'a]' (t ∙ y) (y ∙ inv u)))]
+        ∴ (x ∙ y) ∙ inv ((u ∙ inv y) ∙ (t ∙ y)) ∈ S [ subst S (right _∙_ (cong inv (left _∙_ (sym (ab'≡[ba']' u y)))))]
+        ∴ (x ∙ y) ∙ inv (u ∙ (inv y ∙ (t ∙ y))) ∈ S [ subst S (right _∙_ (cong inv (sym (assoc u (inv y) (t ∙ y)))))]
+        ∴ (x ∙ y) ∙ inv (u ∙ ((inv y ∙ t) ∙ y)) ∈ S [ subst S (right _∙_ (cong inv (right _∙_ (assoc (inv y) t y))))])
+    ; submonoid-set = grp.*Set {S = S}
+    }
 
 module _{_∙_ : A → A → A}{{G : group _∙_}}
         {_*_ : B → B → B}{h : A → B}{{E : Epimorphism _∙_ _*_ h}} where
@@ -344,11 +416,6 @@ module _{_∙_ : A → A → A}{{G : monoid _∙_}}
        }
 
 module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
- module _{N : A → Type l}{{SG : NormalSG N}} where
-
-  [g'n]g : ∀ n → n ∈ N → ∀ g → (inv g ∙ n) ∙ g ∈ N
-  [g'n]g n n∈N g = subst N (right _∙_ (grp.doubleInv g)) ([gn]g' n n∈N (inv g))
-
  module _{H : A → Type l}{{SG : Subgroup H}} where
 
   -- The intersection of two subgroups are subgroups
@@ -558,23 +625,6 @@ module _{_∙_ : A → A → A} {{G : group _∙_}} where
      {preserve = λ u v → ΣPathPProp bijectiveProp
                                     (funExt λ x → sym (act-compatibility x u v))
      }
-
- a[b'a]'≡b : ∀ a b → a ∙ inv (inv b ∙ a) ≡ b
- a[b'a]'≡b a b = a ∙ inv(inv b ∙ a)       ≡⟨ right _∙_ (sym(grp.lemma1 (inv b) a))⟩
-                 a ∙ (inv a ∙ inv(inv b)) ≡⟨ a[a'b]≡b a (inv(inv b))⟩
-                 inv(inv b)               ≡⟨ grp.doubleInv b ⟩
-                 b                        ∎
-
- a[ba]'≡b' : ∀ a b → a ∙ inv (b ∙ a) ≡ inv b
- a[ba]'≡b' a b = a ∙ inv (b ∙ a)     ≡⟨ right _∙_ (sym (grp.lemma1 b a))⟩
-                 a ∙ (inv a ∙ inv b) ≡⟨ a[a'b]≡b a (inv b)⟩
-                 inv b               ∎
-
- a[bc]'≡[ab']c' : {{Commutative _∙_}} → ∀ a b c → a ∙ inv(b ∙ c) ≡ (a ∙ inv b) ∙ inv c
- a[bc]'≡[ab']c' a b c = a ∙ inv(b ∙ c)      ≡⟨ right _∙_ (sym (grp.lemma1 b c))⟩
-                        a ∙ (inv c ∙ inv b) ≡⟨ right _∙_ (comm (inv c) (inv b))⟩
-                        a ∙ (inv b ∙ inv c) ≡⟨ assoc a (inv b) (inv c)⟩
-                       (a ∙ inv b) ∙ inv c  ∎
 
 -- Group with carrier and operator inside the structure
 record Group (l : Level) : Type(lsuc l) where
