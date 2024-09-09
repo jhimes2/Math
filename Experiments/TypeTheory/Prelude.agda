@@ -118,3 +118,16 @@ trichotomy (S a) (S b) with trichotomy a b
 ... | inl x = inl x
 ... | inr (inl x) = inr (inl (cong S x))
 ... | inr (inr x) = inr (inr x)
+
+
+_≡⟨_⟩_ : (x : A) → ∀{y z} → x ≡ y → y ≡ z → x ≡ z
+_≡⟨_⟩_ _ refl refl = refl
+infixr 3 _≡⟨_⟩_
+
+_≡⟨⟩_ : (x : A) → ∀{y} → x ≡ y → x ≡ y
+_ ≡⟨⟩ x≡y = x≡y
+infixr 3 _≡⟨⟩_
+
+_∎ : (x : A) → x ≡ x
+_ ∎ = refl
+infixr 4 _∎
