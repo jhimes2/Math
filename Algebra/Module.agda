@@ -213,14 +213,14 @@ module _{scalar : Type l}{member : Type l'}{{R : Ring scalar}}{{V : Module membe
    SubmoduleSet : {X : member → Type al}{{_ : Submodule X}} → Property X
    SubmoduleSet = record { setProp = ssSet }
  
-   -- A subspace is a submonoid of the additive group of members
+   -- A submodule is a submonoid of the additive group of members
    SubmoduleSM : {X : member → Type al}{{_ : Submodule X}} → Submonoid X _<+>_
    SubmoduleSM = record
      { id-closed = ssZero
      ; op-closed = ssAdd
      }
 
-   -- A subspace is a subgroup of the additive group of members
+   -- A submodule is a subgroup of the additive group of members
    SubmoduleSG : {X : member → Type al}{{_ : Submodule X}} → Subgroup X
    SubmoduleSG {X = X} = record
       { inv-closed = λ{x} x∈X →
@@ -231,7 +231,7 @@ module _{scalar : Type l}{member : Type l'}{{R : Ring scalar}}{{V : Module membe
             transport H F
       }
 
-  -- The span of a set of members is a subspace
+  -- The span of a set of members is a submodule
   spanIsSubmodule : {X : member → Type al} → Submodule (Span X)
   spanIsSubmodule =
       record { ssZero = spanÔ
@@ -300,7 +300,7 @@ module _ {scalar : Type l}{{R : Ring scalar}}
   Null : A → Type bl
   Null = Kernel T
 
-  -- The null space is a subspace
+  -- The null space is a submodule
   nullSubmodule : Submodule Null
   nullSubmodule = record
     { ssZero = idToId T
@@ -322,7 +322,7 @@ module _ {scalar : Type l}{{R : Ring scalar}}
   Col : B → Type (al ⊔ bl)
   Col = image T
 
-  -- The column space is a subspace
+  -- The column space is a submodule
   colSubmodule : Submodule Col
   colSubmodule = record
     { ssZero = ∣ Ô , idToId T ∣₁
@@ -351,7 +351,7 @@ module _ {scalar : Type l}{{R : Ring scalar}}
      record { addT = record { preserve = λ u v → cong R (preserve u v) ⋆ preserve (T u) (T v) }
             ; multT = λ u c → cong R (multT u c) ⋆ multT (T u) c }
 
--- The set of eigenmembers with the zero member for a module endomorphism 'T' and eigenvalue 'c' is a subspace
+-- The set of eigenmembers with the zero member for a module endomorphism 'T' and eigenvalue 'c' is a submodule
 eigenmemberSubmodule : {{CR : CRing A}} → {{V : Module B}}
       → (T : B → B) → {{TLT : moduleHomomorphism T}}
       → (c : A) → Submodule (λ v → T v ≡ c *> v)
