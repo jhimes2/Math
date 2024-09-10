@@ -113,9 +113,9 @@ data Support{A : Type al}(X : A → Type l) : A → Type(al ⊔ l) where
   supportProp : ∀ x → isProp (x ∈ Support X)
 
 supportRec : {X : A → Type al} → isProp B → ∀ x → (x ∈ X → B) → x ∈ Support X → B
-supportRec BProp x f (supportIntro .x z) = f z
-supportRec BProp x f (supportProp .x z y i) = BProp (supportRec BProp x f z)
-                                                    (supportRec BProp x f y) i
+supportRec {X} BProp x f (supportIntro .x x∈X) = f x∈X
+supportRec {X} BProp x f (supportProp .x z y i) = BProp (supportRec BProp x f z)
+                                                        (supportRec BProp x f y) i
 
 instance
  -- The support of a multitype 'X' is an underlying property
