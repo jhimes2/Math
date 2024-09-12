@@ -348,8 +348,11 @@ module _{C : Type cl} {{R : Ring C}} where
        c * (v ∙ u)   ≡⟨ right _*_ (x u uW)⟩
        c * 0r        ≡⟨ x*0≡0 c ⟩
        0r ∎
-    ; ssSet = λ v (p q : ∀ u → W u → v ∙ u ≡ 0r)
-       → funExt λ u → funExt λ uW → IsSet (v ∙ u) 0r (p u uW) (q u uW)
+    ; ssSet = record
+            { setProp = λ v (p q : ∀ u → W u → v ∙ u ≡ 0r) → funExt λ u
+                                                           → funExt λ uW
+                                                           → IsSet (v ∙ u) 0r (p u uW) (q u uW)
+            }
     }
 
  mMultAssoc : (M : ℕ< n → A → C)

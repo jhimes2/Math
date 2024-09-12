@@ -179,7 +179,7 @@ module _{scalar : Type l}{member : Type l'}{{R : Ring scalar}}{{V : Module membe
         ssZero : Ô ∈ X 
         ssAdd : {v u : member} → v ∈ X → u ∈ X → v <+> u ∈ X
         ss*> : {v : member} → v ∈ X → (c : scalar) →  c *> v ∈ X
-        ssSet : (v : member) → isProp (v ∈ X)
+        {{ssSet}} : Property X
   open Submodule {{...}} public
 
   SS2ToSS : (X : member → Type al)
@@ -207,12 +207,9 @@ module _{scalar : Type l}{member : Type l'}{{R : Ring scalar}}{{V : Module membe
           let H1 : ∥ c *> v ∈ X ∥₁
               H1 = H (c *> v) (span*> v v∈X c) in
           truncRec (setProp (c *> v)) id H1
-      ; ssSet = setProp }
+      }
 
   instance
-   SubmoduleSet : {X : member → Type al}{{_ : Submodule X}} → Property X
-   SubmoduleSet = record { setProp = ssSet }
- 
    -- A submodule is a submonoid of the additive group of members
    SubmoduleSM : {X : member → Type al}{{_ : Submodule X}} → Submonoid X _<+>_
    SubmoduleSM = record
@@ -237,7 +234,6 @@ module _{scalar : Type l}{member : Type l'}{{R : Ring scalar}}{{V : Module membe
       record { ssZero = spanÔ
              ; ssAdd = λ {v} {u} x y → spanAdd2 v u x y
              ; ss*> = λ {v} x c → spanScale2 v x c
-             ; ssSet = λ _ → spanSet
              }
 
   -- https://en.wikipedia.org/wiki/Linear_independence
@@ -315,7 +311,6 @@ module _ {scalar : Type l}{{R : Ring scalar}}
         c *> (T v) ≡⟨ right _*>_ vNull ⟩
         c *> Ô     ≡⟨ scaleVZ c ⟩
         Ô ∎
-    ; ssSet = λ v p q → IsSet (T v) Ô p q
     }
 
   -- Actually a generalization of a column space
@@ -338,7 +333,6 @@ module _ {scalar : Type l}{{R : Ring scalar}}
        (T (c *> v') ≡⟨ multT v' c ⟩
         c *> (T v') ≡⟨ right _*>_ vCol ⟩
         c *> v ∎)
-    ; ssSet = λ(_ : B) → squash₁
     }
 
   -- If 'T' and 'R' are module homomorphisms and are composable, then 'R ∘ T' is
@@ -371,7 +365,7 @@ eigenmemberSubmodule T c = record
                    (d * c) *> v  ≡⟨ left _*>_ (comm d c)⟩
                    (c * d) *> v  ≡⟨ sym (scalarAssoc v c d)⟩
                    c *> (d *> v) ∎
-    ; ssSet = λ v → IsSet (T v) (c *> v)
+    ; ssSet = record { setProp = λ v → IsSet (T v) (c *> v) }
     }
 
 module _ {A : Type l}  {{CR : CRing A}}
