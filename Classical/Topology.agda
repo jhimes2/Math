@@ -317,6 +317,14 @@ instance
    (_>> λ(Y , z∈Y , Q) → Q >> λ(h , h∈X , Y≡f⁻¹[h]) → intro (h , ([wts z ∈ f ⁻¹[ h ] ]
      substP z (sym Y≡f⁻¹[h]) z∈Y) , h∈X))
 
+<*>∅≡∅ : {A B : Set (lsuc l)}
+        → (P : ℙ (A → B))
+        → P <*> ∅ ≡ ∅
+<*>∅≡∅ P = funExt λ x → propExt (_>> λ(p , q , r)
+                               → r >> λ(s , t , u)
+                               → substP x (sym u) q >> λ(v , w , x) → w)
+                         λ()
+
 record topology {A : set al} (T : ℙ(ℙ A)) : set al where
   field
    tfull : 𝓤 ∈ T
@@ -378,19 +386,39 @@ instance
                              →  intro $ inr ((left _∩_ x) ∙ comm ∅ Y ∙ (X∩∅≡∅ Y))}
      }
 
+-- contravariant map
 mapContra : (A → B) → ℙ(ℙ A) → ℙ(ℙ B)
 mapContra f H = λ z → H (λ z₁ → z (f z₁))
 
-module _(τ₀ : ℙ(ℙ A)){{T0 : topology τ₀}}
+module _{A B : Type (lsuc al)}
+        (τ₀ : ℙ(ℙ A)){{T0 : topology τ₀}}
         (τ₁ : ℙ(ℙ B)){{T1 : topology τ₁}} where
  _⊎_  : ℙ(ℙ (A ＋ B))
  _⊎_ P = (λ a → P (inl a)) ∈ τ₀ × (λ b → P (inr b)) ∈ τ₁
+ ProductSpace : ℙ(ℙ (A × B))
+ ProductSpace P = ∥ (∀ a → (λ b → P (a , b)) ∈ τ₁) × (∀ b → (λ a → P (a , b)) ∈ τ₀) ∥
  ⊎left : ℙ(ℙ (A ＋ B)) → ℙ(ℙ A)
  ⊎left P h = P (λ{ (inl x) → h x ; (inr x) → ⊥})
  left⊎ :  ℙ(ℙ A) → ℙ(ℙ (A ＋ B))
  left⊎ P h = P λ x → h (inl x)
  ⊎lemma : (X : ℙ (A ＋ B)) → X ∈ _⊎_ → X ∩ (λ{(inl x) → ⊤ ;(inr x) → ⊥}) ∈ _⊎_
  ⊎lemma X X∈⊎ = (tintersection (fst X∈⊎) tfull) , tintersection (snd X∈⊎) tempty
+ PSInst : topology ProductSpace
+ PSInst = record
+     { tfull = intro ((λ a → tfull) , (λ b → tfull))
+     ; tunion = λ{X} H → intro ((λ a → [wts (λ b → (a , b)) ⁻¹[ ⋃ X ] ∈ τ₁ ]
+      subst τ₁ (sym (∪preimage X (λ b → a , b)))
+        (tunion (λ z → _>> λ (P , P∈X , G) → subst τ₁ (sym G) $
+          H P P∈X >> λ(t , u) → t a))) ,
+      λ b →
+      subst τ₀ (sym (∪preimage X (λ a → a , b)))
+        (tunion (λ z → _>> λ (P , P∈X , G) → subst τ₀ (sym G) $
+          H P P∈X >> λ(t , u) → u b )))
+     ; tintersection = λ{X}{Y} H G → H >> λ(t , u)
+                                   → G >> λ(p , q) → intro ((λ a → tintersection (t a) (p a))
+                                                           , λ b → tintersection (u b) (q b))
+     }
+
 -- disjointUnion : topology _⊎_
 -- disjointUnion = record
 --               { tfull = (tfull , tfull)
@@ -550,7 +578,6 @@ module _{A : set al}
     BaseAxiom2 : {S : ℙ A} → S ∈ τ
                → ∃ λ(X : ℙ(ℙ A)) → X ⊆ ℬ × (S ≡ ⋃ X)
  open Base {{...}} public
-
 
  module _{ℬ : ℙ(ℙ A)}{{_ : Base ℬ}} where
 

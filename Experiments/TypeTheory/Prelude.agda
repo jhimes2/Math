@@ -9,6 +9,7 @@ data ℕ : Set where
 _+_ : ℕ → ℕ → ℕ
 Z + b = b
 S a + b = S (a + b)
+infixl 6 _+_
 
 data 𝔹 : Set where
  false : 𝔹
@@ -38,6 +39,10 @@ _|>_ : A → (A → B) → B
 a |> f = f a
 infixl 0 _|>_
 
+_$_ : (A → B) → A → B
+f $ a = f a
+infixl 0 _$_
+
 _∈_ : A → (A → Set l) → Set l
 _∈_ = _|>_
 infixr 5 _∈_
@@ -64,6 +69,7 @@ snd (_ , p) = p
 
 _×_ : Set l → Set l' → Set (l ⊔ l')
 A × B = Σ λ (_ : A) → B
+infixr 6 _×_
 
 data _＋_ (A : Set l) (B : Set l') : Set (l ⊔ l') where
  inl : A → A ＋ B

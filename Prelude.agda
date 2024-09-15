@@ -68,6 +68,10 @@ infixr 0 _$_
 _∘_ :  (B → C) → (A → B) → (A → C)
 f ∘ g = λ a → f (g a)
 
+_⟦_⟧ : (A : Type l) → A → A
+_ ⟦ x ⟧ = x
+infixr 2 _⟦_⟧
+
 -- Therefore
 _∴_[_] : A → (B : Type l) → (A → B) → B
 a ∴ _ [ f ] = f a
