@@ -403,21 +403,6 @@ module _{A B : Type (lsuc al)}
  left⊎ P h = P λ x → h (inl x)
  ⊎lemma : (X : ℙ (A ＋ B)) → X ∈ _⊎_ → X ∩ (λ{(inl x) → ⊤ ;(inr x) → ⊥}) ∈ _⊎_
  ⊎lemma X X∈⊎ = (tintersection (fst X∈⊎) tfull) , tintersection (snd X∈⊎) tempty
- PSInst : topology ProductSpace
- PSInst = record
-     { tfull = intro ((λ a → tfull) , (λ b → tfull))
-     ; tunion = λ{X} H → intro ((λ a → [wts (λ b → (a , b)) ⁻¹[ ⋃ X ] ∈ τ₁ ]
-      subst τ₁ (sym (∪preimage X (λ b → a , b)))
-        (tunion (λ z → _>> λ (P , P∈X , G) → subst τ₁ (sym G) $
-          H P P∈X >> λ(t , u) → t a))) ,
-      λ b →
-      subst τ₀ (sym (∪preimage X (λ a → a , b)))
-        (tunion (λ z → _>> λ (P , P∈X , G) → subst τ₀ (sym G) $
-          H P P∈X >> λ(t , u) → u b )))
-     ; tintersection = λ{X}{Y} H G → H >> λ(t , u)
-                                   → G >> λ(p , q) → intro ((λ a → tintersection (t a) (p a))
-                                                           , λ b → tintersection (u b) (q b))
-     }
 
 -- disjointUnion : topology _⊎_
 -- disjointUnion = record
@@ -535,6 +520,38 @@ module _{A : set al}(τ : ℙ(ℙ A)){{T : topology τ}} where
 
  ssTopology : (Q : ℙ A) → ℙ(ℙ (Σ Q))
  ssTopology Q = (λ(G : ℙ (Σ Q)) → ∃ λ(U : ℙ A) → (U ∈ τ) × (G ≡ (λ(x , _) → x ∈ U)))
+
+module _{A : set al}        {B : set al}        
+        {τ₀ : ℙ(ℙ A)}       {τ₁ : ℙ(ℙ B)}       
+        {{T0 : topology τ₀}}{{T1 : topology τ₁}} where
+
+ instance
+  PSInst : topology (ProductSpace τ₀ τ₁)
+  PSInst = record
+     { tfull = intro ((λ a → tfull) , (λ b → tfull))
+     ; tunion = λ{X} H → intro ((λ a → [wts (λ b → (a , b)) ⁻¹[ ⋃ X ] ∈ τ₁ ]
+      subst τ₁ (sym (∪preimage X (λ b → a , b)))
+        (tunion (λ z → _>> λ (P , P∈X , G) → subst τ₁ (sym G) $
+          H P P∈X >> λ(t , u) → t a))) ,
+      λ b →
+      subst τ₀ (sym (∪preimage X (λ a → a , b)))
+        (tunion (λ z → _>> λ (P , P∈X , G) → subst τ₀ (sym G) $
+          H P P∈X >> λ(t , u) → u b )))
+     ; tintersection = λ{X}{Y} H G → H >> λ(t , u)
+                                   → G >> λ(p , q) → intro ((λ a → tintersection (t a) (p a))
+                                                           , λ b → tintersection (u b) (q b))
+     }
+
+ {- Partially applying a continuous function whose domain is a product space
+    will result in a continuous function. This implies that requiring two
+    functions of a homotopy to be continuous is superfluous. -} 
+ partialAppContinuous : {C : set cl}
+                      → {τ₂ : ℙ(ℙ C)}
+                      → {{T2 : topology τ₂}}
+                      → {f : (A × B) → C}
+                      → continuous (ProductSpace τ₀ τ₁) τ₂ f
+                      → ∀ a → continuous τ₁ τ₂ λ b → f (a , b) 
+ partialAppContinuous H a V V∈τ₂ = H V V∈τ₂ >> λ(u , t) → u a
 
 module _{A : set al}
         (τ : ℙ(ℙ A)){{T : topology τ}} where
