@@ -52,7 +52,13 @@ data _＋_ (A : Set l)(B : Set l') : Set (l ⊔ l' ⊔ (lsuc lzero)) where
 data ⊤ : Set where
  tt : ⊤
 
+isProp⊤ : isProp ⊤
+isProp⊤ tt tt = refl 
+
 data ⊥ : Set where
+
+isProp⊥ : isProp ⊥
+isProp⊥ ()
 
 ¬ : Set l → Set l
 ¬ X = X → ⊥
@@ -100,16 +106,26 @@ propExt' pA pB ab ba = isoToPath (iso ab ba (λ b → pB (ab (ba b)) b) λ a →
 -- Don't use types of Set₀ that are not propositions. --
 --------------------------------------------------------
 postulate
- lem : {A : Set l} → isProp A → A ＋ (¬ A)
+ lem : (A : Set l) → isProp A → A ＋ (¬ A)
  squash : {X : Prop} → isProp X
 
-LEM : (A : Prop) → A ＋ (¬ A)
-LEM A = lem squash
+∥_∥ : (A : Set l) → Prop
+∥ A ∥ with lem ∥ A ∥₁ squash₁
+... | inl x = ⊤
+... | inr x = ⊥
 
-postulate
- ∥_∥ : (A : Set l) → Prop
- intro : {A : Set l} → A → ∥ A ∥
- _>>_ : {B : Prop} → ∥ A ∥ → (A → B) → B
+intro : {A : Set l} → A → ∥ A ∥
+intro {A} a with lem ∥ A ∥₁ squash₁
+... | inl x = tt 
+... | inr x = x ∣ a ∣₁
+
+_>>_ : {B : Prop} → ∥ A ∥ → (A → B) → B
+_>>_ {A} {B} X f with lem ∥ A ∥₁ squash₁
+... | inl x = rec squash f x
+
+LEM : (A : Prop) → A ＋ (¬ A)
+LEM A = lem A squash
+
 propExt : {A B : Prop} → (A → B) → (B → A) → A ≡ B
 propExt = propExt' squash squash
 
@@ -146,9 +162,25 @@ _∘_ f g x = f (g x)
 ∥map : (A → B) → ∥ A ∥ → ∥ B ∥
 ∥map f X = X >> λ a → intro (f a)
 
-postulate
- mapComp : (f : B → C) (g : A → B) → ∥map (f ∘ g) ≡ (∥map f ∘ ∥map g)
- mapId : ∥map {A = A} id ≡ id
+UNREACHABLE : ⊥ → {A : Set l} → A
+UNREACHABLE ()
+
+mapComp : (f : B → C) (g : A → B) → ∥map (f ∘ g) ≡ (∥map f ∘ ∥map g)
+mapComp {B}{C}{A} f g = funExt aux
+ where
+  aux : (x : ∥ A ∥) → x >> (λ a → intro (f (g a))) ≡ (∥map f ∘ ∥map g) x
+  aux x with lem ∥ A ∥₁ squash₁ | lem ∥ B ∥₁ squash₁ | lem ∥ C ∥₁ squash₁
+  ... | inl p | inl q | inl r = isProp⊤ (rec squash (λ a → tt) p) (rec squash (λ a → tt) q)
+  ... | inl p | inl q | inr r = UNREACHABLE $ r $ truncMap f (truncMap g p)
+  ... | inl p | inr q | inl r = UNREACHABLE $ q $ truncMap g p
+  ... | inl p | inr q | inr r = UNREACHABLE $ q $ truncMap g p
+
+mapId : ∥map {A = A} id ≡ id
+mapId {A} = funExt aux
+ where
+  aux : (x : ∥ A ∥) → ∥map id x ≡ x
+  aux x with lem ∥ A ∥₁ squash₁
+  ... | inl p = isProp⊤ (rec squash (λ a → tt) p) x
 
 -- Intersection
 _∩_ : (A → Set l) → (A → Set l') → A → Set (l ⊔ l')
@@ -159,9 +191,6 @@ infix 7 _∩_
 _ᶜ : (A → Set l) → A → Set l
 X ᶜ = λ x → x ∉ X
 infix 25 _ᶜ
-
-UNREACHABLE : ⊥ → {A : Set l} → A
-UNREACHABLE ()
 
 DNElim : {A : Prop} → ¬(¬ A) → A
 DNElim {A} H with LEM A
