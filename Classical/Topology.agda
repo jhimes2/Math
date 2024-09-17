@@ -390,17 +390,22 @@ instance
 mapContra : (A → B) → ℙ(ℙ A) → ℙ(ℙ B)
 mapContra f H = λ z → H (λ z₁ → z (f z₁))
 
-module _{A B : Type (lsuc al)}
+module _{A : set al}
+        {B : set bl}
         (τ₀ : ℙ(ℙ A)){{T0 : topology τ₀}}
         (τ₁ : ℙ(ℙ B)){{T1 : topology τ₁}} where
  _⊎_  : ℙ(ℙ (A ＋ B))
  _⊎_ P = (λ a → P (inl a)) ∈ τ₀ × (λ b → P (inr b)) ∈ τ₁
+
  ProductSpace : ℙ(ℙ (A × B))
  ProductSpace P = ∥ (∀ a → (λ b → P (a , b)) ∈ τ₁) × (∀ b → (λ a → P (a , b)) ∈ τ₀) ∥
+
  ⊎left : ℙ(ℙ (A ＋ B)) → ℙ(ℙ A)
  ⊎left P h = P (λ{ (inl x) → h x ; (inr x) → ⊥})
+
  left⊎ :  ℙ(ℙ A) → ℙ(ℙ (A ＋ B))
  left⊎ P h = P λ x → h (inl x)
+
  ⊎lemma : (X : ℙ (A ＋ B)) → X ∈ _⊎_ → X ∩ (λ{(inl x) → ⊤ ;(inr x) → ⊥}) ∈ _⊎_
  ⊎lemma X X∈⊎ = (tintersection (fst X∈⊎) tfull) , tintersection (snd X∈⊎) tempty
 
@@ -416,6 +421,9 @@ module _{A B : Type (lsuc al)}
 --                  subst τ₀ H (tunion {!!}) , {!!}
 --               ; tintersection = λ{X Y} (p , P) (q , Q) → tintersection p q , tintersection P Q
 --               }
+
+ continuous : (A → B) → set bl
+ continuous f = (V : ℙ B) → V ∈ τ₁ → f ⁻¹[ V ] ∈ τ₀
 
 module _{τ : ℙ(ℙ A)}{{T : topology τ}} where
 
@@ -471,13 +479,10 @@ module _{A : set al}(τ : ℙ(ℙ A)){{T : topology τ}} where
  compact : set al
  compact = ∀ {C} → openCover C → ∃ λ(sc : ℙ(ℙ A)) → sc ⊆ C × is-finite (Σ sc)
 
- continuous : {B : set bl}(τ₁ : ℙ(ℙ B)){{T1 : topology τ₁}} → (A → B) → set bl
- continuous {B} τ₁ f = (V : ℙ B) → V ∈ τ₁ → f ⁻¹[ V ] ∈ τ
-
  {- Proposition 4.33 in book ISBN 1852337826. -}
  {- If A is a Hausdorff space and f : A → A is a continuous map, then the fixed-
     point set of f is closed subset of A. -}
- p4-33 : (f : A → A) → Hausdorff → continuous τ f → (fix f) ᶜ ∈ τ
+ p4-33 : (f : A → A) → Hausdorff → continuous τ τ f → (fix f) ᶜ ∈ τ
  p4-33 f haus cont =
   let S : ℙ(ℙ A)
       S = λ(X : ℙ A) → ∃ λ(y : A) → Σ λ(fy≢y : f y ≢ y) →
@@ -562,10 +567,11 @@ module _{A : set al}
      { tfull = intro $ 𝓤 , tfull , refl
      ; tunion = λ{X} H → intro $ (⋃ λ U → (U ∈ τ) × (λ x → fst x ∈ U) ∈ X) , tunion
      (λ x (G , F) → G) , funExt λ Y → propExt (_>> λ(F , Y∈F , F∈X)
-       → H F F∈X >> λ(U , U∈τ , R ) → intro $ U , (substP Y (sym R) Y∈F) , (U∈τ , (subst X R F∈X))
+       → H F F∈X >> λ(U , U∈τ , R ) → intro $ U , (substP Y (sym R) Y∈F) , U∈τ , subst X R F∈X
        ) λ a → ∥map (λ(U , e , (U∈τ , d)) → (λ x → fst x ∈ U) , (e , d)) a
-     ; tintersection = λ{X}{Y} H1 G1 → H1 >> λ (U , U∈τ , Y≡U) → G1 >> λ (V , V∈τ , Y≡V) → intro ((U ∩ V) , ((tintersection U∈τ V∈τ)
-      , ( right _∩_ Y≡V ∙ left _∩_ Y≡U ∙ refl)))
+     ; tintersection = λ{X}{Y} H1 G1 → H1 >> λ (U , U∈τ , Y≡U) → G1 >> λ (V , V∈τ , Y≡V) → intro $ (U ∩ V)
+                               , tintersection U∈τ V∈τ
+                               , right _∩_ Y≡V ∙ left _∩_ Y≡U ∙ refl
    }
 
  neighborhoodPoint : A → (V : ℙ A) → Prop
