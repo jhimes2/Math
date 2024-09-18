@@ -256,7 +256,7 @@ instance
                                                                λ ((a , b) , c) → (a , (b , c)) }
 
 -- https://en.wikipedia.org/wiki/Image_(mathematics)
-image : {A : Set al}{B : Set bl} → (A → B) → B → Prop
+image : (A → B) → B → Prop
 image f b = ∃ λ a → f a ≡ b
 
 X∩∅≡∅ : {A : Set l} (X : ℙ A) → X ∩ ∅ ≡ ∅
@@ -495,6 +495,19 @@ module _{A : set al}        {B : set al}
                       → ∀ a → continuous τ₁ τ₂ λ b → f (a , b) 
  partialAppContinuous H a V V∈τ₂ = H V V∈τ₂ >> λ(u , t) → u a
 
+ -- Given a product space (A × B), the function
+ --     fst : (A × B) → A
+ --     fst(a, b) = a
+ -- is continuous
+ fstContinuous : continuous (ProductSpace τ₀ τ₁) τ₀ fst
+ fstContinuous = λ V V∈τ₀ → intro $ (λ a →
+   LEM (a ∈ V) |> λ{ (inl a∈V) → let H : 𝓤 ≡ (λ(_ : B) → a ∈ V)
+                                     H = funExt λ _ → propExt (λ t → a∈V) λ z → tt in
+                                  subst τ₁ H tfull
+                    ; (inr a∉V) → let H : ∅ ≡ λ(_ : B) → a ∈ V
+                                      H = funExt λ p → propExt (λ()) λ x → a∉V x in
+                                  subst τ₁ H tempty}) , λ b → V∈τ₀
+ 
 module _{τ : ℙ(ℙ A)}{{T : topology τ}} where
 
  closed : ℙ(ℙ A)
