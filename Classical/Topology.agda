@@ -1,5 +1,6 @@
 {-# OPTIONS --hidden-argument-pun --cubical #-}
 
+
 module Classical.Topology where
 
 open import Agda.Primitive hiding (Prop) public
@@ -14,6 +15,48 @@ variable
   A : Set al
   B : Set bl
   C : Set cl
+
+data ⊤ : Set where
+ tt : ⊤
+
+data ⊥ : Set where
+
+¬ : Set l → Set l
+¬ X = X → ⊥
+
+Prop : Set₁
+Prop = Set₀
+
+data _＋_ (A : Set l)(B : Set l') : Set (l ⊔ l' ⊔ (lsuc lzero)) where
+ inl : A → A ＋ B
+ inr : B → A ＋ B
+
+--------------------------------------------------------
+-- Don't use types of Set₀ that are not propositions. --
+--------------------------------------------------------
+{- Note that these two postulates -}
+postulate
+ lem : (A : Set l) → isProp A → A ＋ (¬ A)
+ squash : {X : Prop} → isProp X
+isProp⊤ : isProp ⊤
+isProp⊤ tt tt = refl 
+
+isProp⊥ : isProp ⊥
+isProp⊥ ()
+
+∥_∥ : (A : Set l) → Prop
+∥ A ∥ with lem ∥ A ∥₁ squash₁
+... | inl x = ⊤
+... | inr x = ⊥
+
+intro : {A : Set l} → A → ∥ A ∥
+intro {A} a with lem ∥ A ∥₁ squash₁
+... | inl x = tt 
+... | inr x = x ∣ a ∣₁
+
+_>>_ : {B : Prop} → ∥ A ∥ → (A → B) → B
+_>>_ {A} {B} X f with lem ∥ A ∥₁ squash₁
+... | inl x = rec squash f x
 
 id : A → A
 id x = x
@@ -44,27 +87,6 @@ embedding f = ∀ y → isProp (Σ(fiber f y))
 
 substP : (x : A) → {P Q : A → Set l} → P ≡ Q → Q x → P x
 substP x P≡Q y = transport (λ i → P≡Q (~ i) x) y
-
-data _＋_ (A : Set l)(B : Set l') : Set (l ⊔ l' ⊔ (lsuc lzero)) where
- inl : A → A ＋ B
- inr : B → A ＋ B
-
-data ⊤ : Set where
- tt : ⊤
-
-isProp⊤ : isProp ⊤
-isProp⊤ tt tt = refl 
-
-data ⊥ : Set where
-
-isProp⊥ : isProp ⊥
-isProp⊥ ()
-
-¬ : Set l → Set l
-¬ X = X → ⊥
-
-Prop : Set₁
-Prop = Set₀
 
 -- Modus ponens operator
 -- Equivalent to the pipe operator `|>` in F#
@@ -102,27 +124,6 @@ propExt' : isProp A → isProp B → (A → B) → (B → A) → A ≡ B
 propExt' pA pB ab ba = isoToPath (iso ab ba (λ b → pB (ab (ba b)) b) λ a → pA (ba (ab a)) a)
   where open import Cubical.Foundations.Isomorphism
 
---------------------------------------------------------
--- Don't use types of Set₀ that are not propositions. --
---------------------------------------------------------
-postulate
- lem : (A : Set l) → isProp A → A ＋ (¬ A)
- squash : {X : Prop} → isProp X
-
-∥_∥ : (A : Set l) → Prop
-∥ A ∥ with lem ∥ A ∥₁ squash₁
-... | inl x = ⊤
-... | inr x = ⊥
-
-intro : {A : Set l} → A → ∥ A ∥
-intro {A} a with lem ∥ A ∥₁ squash₁
-... | inl x = tt 
-... | inr x = x ∣ a ∣₁
-
-_>>_ : {B : Prop} → ∥ A ∥ → (A → B) → B
-_>>_ {A} {B} X f with lem ∥ A ∥₁ squash₁
-... | inl x = rec squash f x
-
 LEM : (A : Prop) → A ＋ (¬ A)
 LEM A = lem A squash
 
@@ -132,7 +133,7 @@ propExt = propExt' squash squash
 ∃ : {A : Set l} → (A → Set l') → Prop
 ∃ P = ∥ Σ P ∥
 
-ℙ : Set l → Set (l ⊔ lsuc lzero)
+ℙ : Set l → Set (l ⊔ (lsuc lzero))
 ℙ X = X → Prop
 
 _≢_ : {A : Set l} → A → A → Set l
@@ -268,7 +269,7 @@ cover : {A : Set al} (X : ℙ (ℙ A)) → Set al
 cover X = ∀ x → x ∈ ⋃ X
 
 -- https://en.wikipedia.org/wiki/Functor_(functional_programming)
-record Functor (F : Set al → Set bl) : Set (lsuc (al ⊔ bl))  where
+record Functor {ρ : Level → Level}(F : ∀{l} → Set l → Set (ρ l)) : Setω  where
   field
     map : (A → B) → F A → F B
     compPreserve : (f : B → C) → (g : A → B) → map (f ∘ g) ≡ (map f ∘ map g)
@@ -276,31 +277,30 @@ record Functor (F : Set al → Set bl) : Set (lsuc (al ⊔ bl))  where
 open Functor {{...}} public
 
 -- https://en.wikipedia.org/wiki/Monad_(functional_programming)
-record Monad (m : Set l → Set l) : Set (lsuc l) where
+record Monad {ρ : Level → Level}(m : ∀{l} → Set l → Set (ρ l)) : Setω where
   field
       {{mApp}} : Functor m
       μ : m (m A) → m A -- join
       η  : A → m A      -- return
-      monadLemma1 : μ ∘ μ ≡ λ(a : m(m(m A))) → μ (map μ a)
+      monadLemma1 : {A : Type al} → μ ∘ μ ≡ λ(a : m(m(m A))) → μ (map μ a)
       monadLemma2 : μ ∘ η ≡ λ(a : m A) → a
-      monadLemma3 : μ ∘ map η ≡ λ(a : m A) → a
+      monadLemma3 : {A : Type al} → μ ∘ map η ≡ λ(a : m A) → a
 open Monad {{...}} public
 
 -- bind
-_>>=_ : {m : Type l → Type l} → {{Monad m}}
+_>>=_ : {ρ : Level → Level}{m : ∀{l} → Type l → Type (ρ l)} → {{Monad m}}
       → m A → (A → m B) → m B
 _>>=_ {m} mA p = μ (map p mA)
 
 -- apply
-_<*>_ : {m : Type l → Type l} → {{Monad m}}
+_<*>_ : {ρ : Level → Level}{m : ∀{l} → Type l → Type (ρ l)} → {{Monad m}}
       → m (A → B) → m A → m B
 _<*>_ {m} mf mA = mf >>= λ f → map f mA
 
 instance
- -- Covariant powerset endofunctor
- ℙFunctor : Functor (ℙ {l})
+ ℙFunctor : Functor {ρ = λ l → l ⊔ lsuc lzero} ℙ
  ℙFunctor =  record {
-    map = λ{A}{B}(f : A → B)(X : ℙ A)(b : B) → ∃ λ(a : A) →
+    map = λ f X b → ∃ λ a →
       a ∈ X × (b ≡ f a)
    ; compPreserve = λ f g → funExt λ X
                           → funExt λ y → propExt (_>> λ(b , H , G)
@@ -309,37 +309,40 @@ instance
    ; idPreserve = funExt λ X → funExt λ b → propExt (_>> λ(x , x∈X , b≡x) → subst X (sym b≡x) x∈X)
          λ b∈X → intro (b , b∈X , refl) }
 
- ℙMonad : Monad (ℙ {lsuc l})
+ ℙMonad : Monad {ρ = λ l → l ⊔ lsuc lzero} ℙ
  ℙMonad = record
            { μ = ⋃ 
            ; η = λ a x → ∥ x ≡ a ∥
            ; monadLemma1 = funExt λ X → funExt λ x → propExt
-             (_>> λ(P , x∈P , G) →
-             G >> λ(G , P∈G , G∈X)
-                → intro (⋃ G , intro (P , x∈P , P∈G) , intro (G , G∈X , refl)))
-             (_>> λ(P , x∈P , G) → G >> λ(G , G∈X , P≡∪G) →
-             let H : x ∈ ⋃ G
-                 H = subst (x ∈_) P≡∪G x∈P in
-                H >> λ(h , x∈h , h∈G) →
-                     intro (h , x∈h , intro (G , h∈G , G∈X)))
+             (_>> (λ(P , x∈P , G) →
+             G >> λ(G , P∈G , G∈X) →
+                 intro ( (⋃ G , intro (P , x∈P , P∈G) , intro (G , G∈X , refl)))))
+                 ( (_>> λ(P , x∈P , G) → G >> λ(G , G∈X , P≡∪G) →
+                let H : x ∈ ⋃ G
+                    H = subst (x ∈_) P≡∪G x∈P in
+                  H >> λ(h , x∈h , h∈G) →
+                     intro (h , x∈h , intro (G , h∈G , G∈X))))
            ; monadLemma2 =  funExt λ X → funExt λ x → propExt
-             (_>> λ(Y , x∈Y , Q) → Q >> λ Y≡X → substP x (sym Y≡X) x∈Y)
-             λ(x∈X) → intro (X , x∈X , intro refl)
+              (_>> λ(Y , x∈Y , Q) → Q >> λ Y≡X → substP x (sym Y≡X) x∈Y)
+               λ(x∈X) → intro (X , x∈X , intro refl)
            ; monadLemma3 =  funExt λ x → funExt λ y → propExt
-             (_>> λ(Y , y∈Y , G) → G >> λ (h , h∈x , Y≡[h]) →
-              let y∈[h] : y ∈ (λ z → ∥ z ≡ h ∥)
-                  y∈[h] = subst (y ∈_) Y≡[h] y∈Y in
-             y∈[h] >> λ y≡h → subst x (sym y≡h) h∈x)
-             λ y∈x → intro ((λ z → ∥ z ≡ y ∥) , intro refl , intro (y , y∈x , refl))
+            (_>> λ(Y , y∈Y , G) → G >> λ (h , h∈x , Y≡[h]) →
+                let y∈[h] : y ∈ (λ z → ∥ z ≡ h ∥)
+                    y∈[h] = subst (y ∈_) Y≡[h] y∈Y in
+               y∈[h] >> λ y≡h → subst x (sym y≡h) h∈x)
+               λ y∈x → intro ((λ z → ∥ z ≡ y ∥) , intro refl , intro (y , y∈x , refl))
            }
 
- ∥map∥ : Functor (∥_∥ {l})
+ ∥map∥ : Functor ∥_∥
  ∥map∥ = record { map = ∥map
                 ; compPreserve = mapComp
                 ; idPreserve = mapId 
                 }
 
-∪preimage : {A B : set l} (X : ℙ(ℙ B)) → (f : A → B)
+test : {A : Type al}{B : Type al} → (A → B) → ℙ A → ℙ B
+test f a = map f a
+
+∪preimage : {A : Set l}{B : Set l'} (X : ℙ(ℙ B)) → (f : A → B)
           → f ⁻¹[ ⋃ X ] ≡ ⋃ (map (f ⁻¹[_]) X)
 ∪preimage X f = funExt λ z → propExt (_>> λ(G , (fz∈G) , X∈G)
    → intro ((f ⁻¹[ G ]) , fz∈G , intro (G , X∈G , refl)))
@@ -429,30 +432,68 @@ module _{A : set al}
  ProductSpace : ℙ(ℙ (A × B))
  ProductSpace P = ∥ (∀ a → (λ b → P (a , b)) ∈ τ₁) × (∀ b → (λ a → P (a , b)) ∈ τ₀) ∥
 
- ⊎left : ℙ(ℙ (A ＋ B)) → ℙ(ℙ A)
- ⊎left P h = P (λ{ (inl x) → h x ; (inr x) → ⊥})
-
- left⊎ :  ℙ(ℙ A) → ℙ(ℙ (A ＋ B))
- left⊎ P h = P λ x → h (inl x)
-
- ⊎lemma : (X : ℙ (A ＋ B)) → X ∈ _⊎_ → X ∩ (λ{(inl x) → ⊤ ;(inr x) → ⊥}) ∈ _⊎_
- ⊎lemma X X∈⊎ = (tintersection (fst X∈⊎) tfull) , tintersection (snd X∈⊎) tempty
-
--- disjointUnion : topology _⊎_
--- disjointUnion = record
---               { tfull = (tfull , tfull)
---               ; tunion = λ{Z}
---                           (Z⊆⊎ : (∀ x → x ∈ Z → (λ p → x (inl p)) ∈ τ₀
---                                                × (λ p → x (inr p)) ∈ τ₁)) →
---                 let H : ⋃ (⊎left Z) ≡ λ a → ⋃ Z (inl a)
---                     H = funExt λ x → propExt (_>> λ (Y , x∈Y , R) → intro ((λ{(inl x) → Y x ; (inr _) → ⊥}) , x∈Y ,
---                       {!R!})) (_>> λ(Y , Q , Y∈Z) → intro ((λ x → Y(inl x)) , (Q , {!Y∈Z!}))) in 
---                  subst τ₀ H (tunion {!!}) , {!!}
---               ; tintersection = λ{X Y} (p , P) (q , Q) → tintersection p q , tintersection P Q
---               }
-
  continuous : (A → B) → set bl
  continuous f = (V : ℙ B) → V ∈ τ₁ → f ⁻¹[ V ] ∈ τ₀
+
+module _{A : set al}        {B : set al}        
+        {τ₀ : ℙ(ℙ A)}       {τ₁ : ℙ(ℙ B)}       
+        {{T0 : topology τ₀}}{{T1 : topology τ₁}} where
+
+ instance
+  PSInst : topology (ProductSpace τ₀ τ₁)
+  PSInst = record
+     { tfull = intro ((λ a → tfull) , (λ b → tfull))
+     ; tunion = λ{X} H → intro ((λ a → [wts (λ b → (a , b)) ⁻¹[ ⋃ X ] ∈ τ₁ ]
+      subst τ₁ (sym (∪preimage X (λ b → a , b)))
+        (tunion (λ z → _>> λ (P , P∈X , G) → subst τ₁ (sym G) $
+          H P P∈X >> λ(t , u) → t a))) ,
+      λ b →
+      subst τ₀ (sym (∪preimage X (λ a → a , b)))
+        (tunion (λ z → _>> λ (P , P∈X , G) → subst τ₀ (sym G) $
+          H P P∈X >> λ(t , u) → u b )))
+     ; tintersection = λ{X}{Y} H G → H >> λ(t , u)
+                                   → G >> λ(p , q) → intro ((λ a → tintersection (t a) (p a))
+                                                           , λ b → tintersection (u b) (q b))
+     }
+
+  disjointUnion : topology (τ₀ ⊎ τ₁)
+  disjointUnion = record
+                { tfull = (tfull , tfull)
+                ; tunion = λ{Z}
+                            (Z⊆⊎ : (∀ x → x ∈ Z → (λ p → x (inl p)) ∈ τ₀
+                                                 × (λ p → x (inr p)) ∈ τ₁)) →
+                  let H : ⋃ (map (λ H a → H (inl a)) Z) ≡ λ a → ⋃ Z (inl a)
+                      H = funExt λ x → propExt (_>> λ(a , x∈a , c)
+                        → c >> λ(d , d∈Z , f) → intro $
+                         d , let G : x ∈ (λ a → d (inl a))
+                                 G = substP x (sym f) x∈a in
+                         G , d∈Z) (_>> λ(a , b , a∈Z) → intro $ (λ y → a (inl y)) , b ,
+                           intro (a , a∈Z , funExt λ d → propExt (λ e → e) (λ f → f)))
+                      in
+                   subst τ₀ H (tunion λ F → _>> λ(a , a∈Z , c) → subst τ₀ (sym c)
+                    (fst(Z⊆⊎ a a∈Z))) ,
+                  let H : ⋃ (map (λ H a → H (inr a)) Z) ≡ λ a → ⋃ Z (inr a)
+                      H = funExt λ x → propExt (_>> λ(a , x∈a , c)
+                        → c >> λ(d , d∈Z , f) → intro $
+                         d , let G : x ∈ (λ a → d (inr a))
+                                 G = substP x (sym f) x∈a in
+                         G , d∈Z) (_>> λ(a , b , a∈Z) → intro $ (λ y → a (inr y)) , b ,
+                           intro (a , a∈Z , funExt λ d → propExt (λ e → e) (λ f → f)))
+                      in subst τ₁ H (tunion  λ F → _>> λ(a , a∈Z , c) → subst τ₁ (sym c)
+                                                  (snd(Z⊆⊎ a a∈Z)))
+                ; tintersection = λ{X Y} (p , P) (q , Q) → tintersection p q , tintersection P Q
+                }
+
+ {- Partially applying a continuous function whose domain is a product space
+    will result in a continuous function. This implies that requiring two
+    functions of a homotopy to be continuous is superfluous. -} 
+ partialAppContinuous : {C : set cl}
+                      → {τ₂ : ℙ(ℙ C)}
+                      → {{T2 : topology τ₂}}
+                      → {f : (A × B) → C}
+                      → continuous (ProductSpace τ₀ τ₁) τ₂ f
+                      → ∀ a → continuous τ₁ τ₂ λ b → f (a , b) 
+ partialAppContinuous H a V V∈τ₂ = H V V∈τ₂ >> λ(u , t) → u a
 
 module _{τ : ℙ(ℙ A)}{{T : topology τ}} where
 
@@ -510,7 +551,7 @@ module _{A : set al}(τ : ℙ(ℙ A)){{T : topology τ}} where
 
  {- Proposition 4.33 in book ISBN 1852337826. -}
  {- If A is a Hausdorff space and f : A → A is a continuous map, then the fixed-
-    point set of f is closed subset of A. -}
+    point set of f is a closed subset of A. -}
  p4-33 : (f : A → A) → Hausdorff → continuous τ τ f → (fix f) ᶜ ∈ τ
  p4-33 f haus cont =
   let S : ℙ(ℙ A)
@@ -554,39 +595,6 @@ module _{A : set al}(τ : ℙ(ℙ A)){{T : topology τ}} where
 
  ssTopology : (Q : ℙ A) → ℙ(ℙ (Σ Q))
  ssTopology Q = (λ(G : ℙ (Σ Q)) → ∃ λ(U : ℙ A) → (U ∈ τ) × (G ≡ (λ(x , _) → x ∈ U)))
-
-module _{A : set al}        {B : set al}        
-        {τ₀ : ℙ(ℙ A)}       {τ₁ : ℙ(ℙ B)}       
-        {{T0 : topology τ₀}}{{T1 : topology τ₁}} where
-
- instance
-  PSInst : topology (ProductSpace τ₀ τ₁)
-  PSInst = record
-     { tfull = intro ((λ a → tfull) , (λ b → tfull))
-     ; tunion = λ{X} H → intro ((λ a → [wts (λ b → (a , b)) ⁻¹[ ⋃ X ] ∈ τ₁ ]
-      subst τ₁ (sym (∪preimage X (λ b → a , b)))
-        (tunion (λ z → _>> λ (P , P∈X , G) → subst τ₁ (sym G) $
-          H P P∈X >> λ(t , u) → t a))) ,
-      λ b →
-      subst τ₀ (sym (∪preimage X (λ a → a , b)))
-        (tunion (λ z → _>> λ (P , P∈X , G) → subst τ₀ (sym G) $
-          H P P∈X >> λ(t , u) → u b )))
-     ; tintersection = λ{X}{Y} H G → H >> λ(t , u)
-                                   → G >> λ(p , q) → intro ((λ a → tintersection (t a) (p a))
-                                                           , λ b → tintersection (u b) (q b))
-     }
-
- {- Partially applying a continuous function whose domain is a product space
-    will result in a continuous function. This implies that requiring two
-    functions of a homotopy to be continuous is superfluous. -} 
- partialAppContinuous : {C : set cl}
-                      → {τ₂ : ℙ(ℙ C)}
-                      → {{T2 : topology τ₂}}
-                      → {f : (A × B) → C}
-                      → continuous (ProductSpace τ₀ τ₁) τ₂ f
-                      → ∀ a → continuous τ₁ τ₂ λ b → f (a , b) 
- partialAppContinuous H a V V∈τ₂ = H V V∈τ₂ >> λ(u , t) → u a
-
 module _{A : set al}
         (τ : ℙ(ℙ A)){{T : topology τ}} where
 
