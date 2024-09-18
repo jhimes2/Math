@@ -551,7 +551,7 @@ module _{τ : ℙ(ℙ A)}{{T : topology τ}} where
  interior X = ⋃ λ C → ∥ C ⊆ X × C ∈ τ ∥
  
  exterior : ℙ A → ℙ A
- exterior X = ⋃ λ B → ∥ (Σ λ a → a ∈ X × a ∉ B) ＋ (B ᶜ ∉ τ) ∥
+ exterior X = ⋃ λ B → ∥ B ∈ τ × (∀ x → x ∈ B → x ∉ X) ∥
  
  boundary : ℙ A → ℙ A
  boundary X = λ p → p ∈ closure X × p ∉ interior X 
