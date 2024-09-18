@@ -560,6 +560,10 @@ module _{τ : ℙ(ℙ A)}{{T : topology τ}} where
  closureLemma1 {X} Xᶜ∈τ = funExt λ x → propExt (_>> (λ H → H X (intro ((λ _ z → z) , Xᶜ∈τ))))
                                                 λ x∈X → intro λ P → _>> λ(X⊆P , H) → X⊆P x x∈X
 
+ interiorLemma1 : {X : ℙ A} → X ∈ τ → interior X ≡ X
+ interiorLemma1 {X} X∈τ = funExt λ x → propExt (_>> λ(a , x∈a , c) → c >> λ(d , e) → d x x∈a)
+                                                λ x∈X → intro (X , x∈X , intro ((λ y z → z) , X∈τ))
+
 restrict : (f : A → B) → (Q : A → Set l) → Σ Q → B
 restrict f Q = λ(x : Σ Q) → f (fst x)
 
