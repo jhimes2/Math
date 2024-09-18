@@ -1,6 +1,5 @@
 {-# OPTIONS --hidden-argument-pun --cubical #-}
 
-
 module Classical.Topology where
 
 open import Agda.Primitive hiding (Prop) public
@@ -151,8 +150,11 @@ setExt X⊆Y Y⊆X = funExt λ x → propExt (X⊆Y x) (Y⊆X x)
 ⋂ : ℙ(ℙ A) → ℙ A
 ⋂ X = λ x → ∥ (∀ P → P ∈ X → x ∈ P) ∥
 
-Union∅ : ⋃ ∅ ≡ ∅ {A = A}
-Union∅ = funExt λ x → propExt (_>> λ(a , x∈a , a∈∅) → a∈∅) λ()
+⋃∅≡∅ : ⋃ ∅ ≡ ∅ {A = A}
+⋃∅≡∅ = funExt λ x → propExt (_>> λ(a , x∈a , a∈∅) → a∈∅) λ()
+
+∅⊆X : {X : ℙ A} → ∅ ⊆ X
+∅⊆X {X} = λ x ()
 
 Union⊆ : (X : ℙ(ℙ A))(Y : ℙ A) → (∀ x → x ∈ X → x ⊆ Y) → ⋃ X ⊆ Y
 Union⊆ X Y H a = _>> λ (Y , a∈Y , Y∈X) → H Y Y∈X a a∈Y
@@ -366,11 +368,9 @@ open topology {{...}}
 
 tempty : {τ : ℙ(ℙ A)}{{T : topology τ}} → ∅ ∈ τ
 tempty {τ} =
-  let H : ∅ ⊆ τ
-      H = (λ x ()) in
   let G : ⋃ ∅ ∈ τ
-      G = tunion H in
-    subst τ Union∅ G
+      G = tunion ∅⊆X in
+    subst τ ⋃∅≡∅ G
 
 record disconnectedTopology {A : set al} (T : ℙ(ℙ A)) : set al where
  field
@@ -508,6 +508,37 @@ module _{A : set al}        {B : set al}
                                       H = funExt λ p → propExt (λ()) λ x → a∉V x in
                                   subst τ₁ H tempty}) , λ b → V∈τ₀
  
+ -- The set of all topological spaces on a set contains the universal set.
+ 𝓤∈setOfTop : 𝓤 ∈ λ(τ : ℙ(ℙ A)) → ∥ topology τ ∥
+ 𝓤∈setOfTop = intro $
+     record { tfull = tt
+            ; tunion = λ {X} z → tt
+            ; tintersection = λ {X} {Y} z _ → z
+            }
+
+ -- The set of all topological spaces on a set is closed by finite intersections.
+ setOfTopClosed∩ : {X Y : ℙ(ℙ A)}
+                 → ∥ topology X ∥ → ∥ topology Y ∥ → ∥ topology (X ∩ Y) ∥
+ setOfTopClosed∩ {X}{Y} = _>> λ τ₀ → _>> λ τ₁ → intro $
+     record { tfull = τ₀ .tfull , τ₁ .tfull
+            ; tunion = λ{P} P⊆X∩Y →
+                      let P⊆X : P ⊆ X
+                          P⊆X = λ x x∈P → fst(P⊆X∩Y x x∈P) in
+                      let P⊆Y : P ⊆ Y
+                          P⊆Y = λ x x∈P → snd(P⊆X∩Y x x∈P) in
+                          τ₀ .tunion P⊆X , τ₁ .tunion P⊆Y
+            ; tintersection = λ{P}{Q} P∈X∩Y Q∈X∩Y → τ₀ .tintersection (fst P∈X∩Y) (fst Q∈X∩Y)
+                                                   , τ₁ .tintersection (snd P∈X∩Y) (snd Q∈X∩Y)
+            }
+
+ -- The set of all topological spaces on a set is NOT closed by arbitrary unions.
+ -- This implies that the set of all topological spaces do not form a topological space.
+ setOfTopNotTop : topology (λ(τ : ℙ(ℙ A)) → ∥ topology τ ∥) → ⊥
+ setOfTopNotTop H = let instance τ = H in
+                    τ .tunion ∅⊆X >> λ τ₁ →
+                    let τ₂ : topology ∅
+                        τ₂ = subst topology ⋃∅≡∅ τ₁ in τ₂ .tfull
+
 module _{τ : ℙ(ℙ A)}{{T : topology τ}} where
 
  closed : ℙ(ℙ A)
