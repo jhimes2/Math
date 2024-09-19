@@ -251,13 +251,22 @@ record is-prop (A : Type l) : Type l
 open is-prop {{...}} public
 
 instance
- ∩CommProp : Commutative (_∩_ {A = A} {l = lzero})
- ∩CommProp = record { comm = λ P Q → funExt (λ x → propExt (λ(x , y) → (y , x)) (λ(x , y) → (y , x))) }
+ -- Intersections are commutative
+ ∩Comm : Commutative (_∩_ {A = A} {l = lzero})
+ ∩Comm = record { comm = λ P Q → funExt (λ x → propExt (λ(x , y) → (y , x)) (λ(x , y) → (y , x))) }
+
+ -- Intersections are associative
+ ∩assoc : Associative (_∩_ {A = A} {l = lzero})
+ ∩assoc = record { assoc = λ a b c → funExt λ x → propExt (λ (a , b , c) → ((a , b) , c))
+                                                           λ ((a , b) , c) → (a , b , c) }
+
+ -- Unions are commutative
  ∪Comm : Commutative (_∪_ {A = A} {l})
  ∪Comm = record { comm = λ a b → funExt λ x → propExt (λ X → X >> λ{ (inl p) → intro (inr p)
                                                                     ; (inr p) → intro (inl p)})
                             λ{p → ∥map (λ{ (inl x) → inr x ; (inr x) → inl x}) p} }
 
+ -- Unions are associative
  ∪assoc : Associative (_∪_ {A = A})
  ∪assoc = record { assoc = λ X Y Z → funExt λ x →
     let H : x ∈ X ∪ (Y ∪ Z) → x ∈ (X ∪ Y) ∪ Z
@@ -269,11 +278,7 @@ instance
         G = λ p → p >> λ{ (inl y) → y >> λ{ (inl q) → intro $ inl q
                                            ; (inr q) → intro $ inr (intro (inl q))}
                                      ; (inr y) → intro (inr (intro (inr y)))}
-    in
-       propExt H G }
- ∩assocProp : Associative (_∩_ {A = A} {l = lzero})
- ∩assocProp = record { assoc = λ a b c → funExt λ x → propExt (λ (a , b , c) → ((a , b) , c))
-                                                               λ ((a , b) , c) → (a , b , c) }
+    in propExt H G }
 
 -- https://en.wikipedia.org/wiki/Image_(mathematics)
 image : (A → B) → B → Prop
@@ -306,6 +311,14 @@ Pair A B X = ∥ (X ≡ A) ＋ (X ≡ B) ∥
 ⋃𝓤≡𝓤 : (⋃ 𝓤) ≡ 𝓤 {A = A}
 ⋃𝓤≡𝓤 = funExt λ x → propExt (λ y → tt) λ t → intro (𝓤 , t , t)
 
+-- Expressing DeMorgan's Law on arbitrary unions and intersections often results in 
+-- an abuse of notation. The following statement is not true when taken literally:
+--
+--     (⋂ X)ᶜ ≡ ⋃ Xᶜ
+-- 
+-- What we really mean is this
+--
+--     (⋂ X)ᶜ ≡ ⋃ {a | aᶜ ∈ X}
 [⋂X]ᶜ≡⋃Xᶜ : (X : ℙ(ℙ A)) → (⋂ X)ᶜ ≡ ⋃ λ a → a ᶜ ∈ X
 [⋂X]ᶜ≡⋃Xᶜ X = funExt λ x → propExt (λ a →
       ⋂lemma a >> λ(Y , Y∈X , x∉Y) → intro $ (Y ᶜ) , x∉Y , ([wts (Y ᶜ)ᶜ ∈ X ] subst X (sym dblCompl) Y∈X))
