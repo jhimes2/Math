@@ -31,7 +31,7 @@ Data/Matrix.agdai: Data/Matrix.agda Algebra/Linear.agdai Data/Finite.agdai
 Data/Finite.agdai: Data/Finite.agda Data/Natural.agdai
 	agda $<
 
-Data/Natural.agdai: Data/Natural.agda Algebra/Monoid.agdai Algebra/MultAdd.agdai Relations.agdai
+Data/Natural.agdai: Data/Natural.agda Algebra/Monoid.agdai Algebra/MultAdd.agdai
 	agda $<
 
 Algebra/Linear.agdai: Algebra/Linear.agda Algebra/Field.agdai Algebra/Module.agdai
