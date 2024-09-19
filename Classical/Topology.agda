@@ -409,6 +409,7 @@ record topology {A : set al} (T : ℙ(ℙ A)) : set al where
    tintersection : {X Y : ℙ A} → X ∈ T → Y ∈ T → X ∩ Y ∈ T
 open topology {{...}}
 
+-- Being closed under arbitrary unions implies that the empty set is a member
 tempty : {τ : ℙ(ℙ A)}{{T : topology τ}} → ∅ ∈ τ
 tempty {τ} =
   let G : ⋃ ∅ ∈ τ
