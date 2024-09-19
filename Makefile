@@ -16,7 +16,10 @@ NumberTheory/Overloads.agdai: NumberTheory/Overloads.agda Data/Natural.agdai
 Classical/Trigonometry.agdai: Classical/Trigonometry.agda Algebra/Field.agdai
 	agda $<
 
-Classical/Topology.agdai: Classical/Topology.agda
+Classical/Topology.agdai: Classical/Topology.agda Classical/Classical.agdai
+	agda $<
+
+Classical/Classical.agdai: Classical/Classical.agda
 	agda $<
 
 Data/Bool.agdai: Data/Bool.agda Algebra/Field.agdai
