@@ -1,5 +1,10 @@
 {-# OPTIONS --hidden-argument-pun --cubical #-}
 
+---------------------------------------------------------
+-- Point-Set Topology using the law of excluded middle --
+-- and treating Type₀ as a universe of propositions.   --
+---------------------------------------------------------
+
 module Classical.Topology where
 
 open import Agda.Primitive hiding (Prop) public
@@ -10,43 +15,44 @@ open import Cubical.HITs.PropositionalTruncation renaming (map to truncMap)
 
 variable
   l l' al bl cl : Level
-  A : Set al
-  B : Set bl
-  C : Set cl
+  A : Type al
+  B : Type bl
+  C : Type cl
 
-data ⊤ : Set where
+data ⊤ : Type where
  tt : ⊤
 
-data ⊥ : Set where
+data ⊥ : Type where
 
-¬ : Set l → Set l
+¬ : Type l → Type l
 ¬ X = X → ⊥
 
-Prop : Set₁
-Prop = Set₀
+Prop : Type₁
+Prop = Type₀
 
-data _＋_ (A : Set l)(B : Set l') : Set (l ⊔ l' ⊔ (lsuc lzero)) where
+data _＋_ (A : Type l)(B : Type l') : Type (l ⊔ l' ⊔ (lsuc lzero)) where
  inl : A → A ＋ B
  inr : B → A ＋ B
 
 --------------------------------------------------------
--- Don't use types of Set₀ that are not propositions. --
+-- Don't use types of Type₀ that are not propositions --
 --------------------------------------------------------
 postulate
- lem : (A : Set l) → isProp A → A ＋ (¬ A)
+ lem : (A : Type l) → isProp A → A ＋ (¬ A)
  squash : {X : Prop} → isProp X
+
 isProp⊤ : isProp ⊤
 isProp⊤ tt tt = refl 
 
 isProp⊥ : isProp ⊥
 isProp⊥ ()
 
-∥_∥ : (A : Set l) → Prop
+∥_∥ : (A : Type l) → Prop
 ∥ A ∥ with lem ∥ A ∥₁ squash₁
 ... | inl x = ⊤
 ... | inr x = ⊥
 
-intro : {A : Set l} → A → ∥ A ∥
+intro : {A : Type l} → A → ∥ A ∥
 intro {A} a with lem ∥ A ∥₁ squash₁
 ... | inl x = tt 
 ... | inr x = x ∣ a ∣₁
@@ -61,28 +67,28 @@ id x = x
 Σ : {A : Type l} → (P : A → Type l') → Type(l ⊔ l')
 Σ {A} = Σ' A
 
-injective : {A : Set l}{B : Set l'} → (A → B) → Set (l ⊔ l')
+injective : {A : Type l}{B : Type l'} → (A → B) → Type (l ⊔ l')
 injective f = ∀ x y → f x ≡ f y → x ≡ y
 
-surjective : {A : Set l}{B : Set l'} → (A → B) → Set (l ⊔ l')
+surjective : {A : Type l}{B : Type l'} → (A → B) → Type (l ⊔ l')
 surjective f = ∀ b → Σ λ a → f a ≡ b
 
-[wts_]_ : (A : Set l) → A → A
+[wts_]_ : (A : Type l) → A → A
 [wts _ ] a = a
 infixr 0 [wts_]_
 
-_×_ : Set l → Set l' → Set (l ⊔ l')
+_×_ : Type l → Type l' → Type (l ⊔ l')
 A × B = Σ λ(_ : A) → B
 infixr 5 _×_
 
 -- https://en.wikipedia.org/wiki/Fiber_(mathematics)
-fiber : {B : Set bl} → (A → B) → B → A → Set bl
+fiber : {B : Type bl} → (A → B) → B → A → Type bl
 fiber f y = λ x → f x ≡ y
 
-embedding : {A : Set al}{B : Set bl} → (A → B) → Set(al ⊔ bl)
+embedding : {A : Type al}{B : Type bl} → (A → B) → Type(al ⊔ bl)
 embedding f = ∀ y → isProp (Σ(fiber f y))
 
-substP : (x : A) → {P Q : A → Set l} → P ≡ Q → Q x → P x
+substP : (x : A) → {P Q : A → Type l} → P ≡ Q → Q x → P x
 substP x P≡Q y = transport (λ i → P≡Q (~ i) x) y
 
 -- Modus ponens operator
@@ -97,14 +103,14 @@ _$_ : (A → B) → A → B
 f $ a = f a
 infixr 0 _$_
 
-set : (l : Level) → Set (lsuc(lsuc l))
-set l = Set (lsuc l)
+set : (l : Level) → Type (lsuc(lsuc l))
+set l = Type (lsuc l)
 
-_∈_ : A → (A → Set l) → Set l
+_∈_ : A → (A → Type l) → Type l
 _∈_ = _|>_
 infixr 6 _∈_
 
-_∉_ :  A → (A → Set l) → Set l
+_∉_ :  A → (A → Type l) → Type l
 _∉_ a X = ¬(a ∈ X)
 infixr 5 _∉_
 
@@ -127,16 +133,16 @@ LEM A = lem A squash
 propExt : {A B : Prop} → (A → B) → (B → A) → A ≡ B
 propExt = propExt' squash squash
 
-∃ : {A : Set l} → (A → Set l') → Prop
+∃ : {A : Type l} → (A → Type l') → Prop
 ∃ P = ∥ Σ P ∥
 
-ℙ : Set l → Set (l ⊔ (lsuc lzero))
+ℙ : Type l → Type (l ⊔ (lsuc lzero))
 ℙ X = X → Prop
 
-_≢_ : {A : Set l} → A → A → Set l
+_≢_ : {A : Type l} → A → A → Type l
 a ≢ b = ¬(a ≡ b)
 
-_⊆_ : {A : Set al} → (A → Set l) → (A → Set l') → Set (l ⊔ l' ⊔ al)
+_⊆_ : {A : Type al} → (A → Type l) → (A → Type l') → Type (l ⊔ l' ⊔ al)
 A ⊆ B = ∀ x → x ∈ A → x ∈ B
 
 setExt : {X Y : ℙ A} → X ⊆ Y → Y ⊆ X → X ≡ Y
@@ -163,7 +169,7 @@ _∘_ f g x = f (g x)
 ∥map : (A → B) → ∥ A ∥ → ∥ B ∥
 ∥map f X = X >> λ a → intro (f a)
 
-UNREACHABLE : ⊥ → {A : Set l} → A
+UNREACHABLE : ⊥ → {A : Type l} → A
 UNREACHABLE ()
 
 mapComp : (f : B → C) (g : A → B) → ∥map (f ∘ g) ≡ (∥map f ∘ ∥map g)
@@ -184,12 +190,12 @@ mapId {A} = funExt aux
   ... | inl p = isProp⊤ (rec squash (λ a → tt) p) x
 
 -- Intersection
-_∩_ : (A → Set l) → (A → Set l') → A → Set (l ⊔ l')
+_∩_ : (A → Type l) → (A → Type l') → A → Type (l ⊔ l')
 X ∩ Y = λ x → (x ∈ X) × (x ∈ Y)
 infix 7 _∩_
 
 -- Complement
-_ᶜ : (A → Set l) → A → Set l
+_ᶜ : (A → Type l) → A → Type l
 X ᶜ = λ x → x ∉ X
 infix 25 _ᶜ
 
@@ -216,7 +222,7 @@ DeMorgan3 : {A : Type al} {P : ℙ A} → ¬(∀ x → P x) → ∃ λ x → ¬ 
 DeMorgan3 H = DNElim λ X → H λ x → DNElim (DeMorgan X x)
 
 -- Union
-_∪_ : (A → Set l) → (A → Set l') → A → Prop
+_∪_ : (A → Type l) → (A → Type l') → A → Prop
 X ∪ Y = λ x → ∥ (x ∈ X) ＋ (x ∈ Y) ∥
 infix 7 _∪_
 
@@ -224,22 +230,22 @@ infix 7 _∪_
 ∪Complement X = funExt λ x → propExt
     (λ _ → tt) λ _ → LEM (x ∈ X) |> λ{ (inl p) → intro (inl p)
                                      ; (inr p) → intro (inr p)}
-record Associative {A : Set l}(_∙_ : A → A → A) : Set(lsuc l) where
+record Associative {A : Type l}(_∙_ : A → A → A) : Type(lsuc l) where
   field
       assoc : (a b c : A) → a ∙ (b ∙ c) ≡ (a ∙ b) ∙ c
 open Associative {{...}} public
 
 -- preimage
-_⁻¹[_] : (f : A → B) → (B → Set l) → (A → Set l)
+_⁻¹[_] : (f : A → B) → (B → Type l) → (A → Type l)
 f ⁻¹[ g ] = g ∘ f
 
-record Commutative {A : Set l}{B : Set l'}(_∙_ : A → A → B) : Set(lsuc (l ⊔ l')) where
+record Commutative {A : Type l}{B : Type l'}(_∙_ : A → A → B) : Type(lsuc (l ⊔ l')) where
   field
     comm : (a b : A) → a ∙ b ≡ b ∙ a
 open Commutative {{...}} public
 
 -- Is proposition
-record is-prop (A : Set l) : Set l
+record is-prop (A : Type l) : Type l
   where field
    IsProp : isProp A
 open is-prop {{...}} public
@@ -273,7 +279,7 @@ instance
 image : (A → B) → B → Prop
 image f b = ∃ λ a → f a ≡ b
 
-X∩∅≡∅ : {A : Set l} (X : ℙ A) → X ∩ ∅ ≡ ∅
+X∩∅≡∅ : {A : Type l} (X : ℙ A) → X ∩ ∅ ≡ ∅
 X∩∅≡∅ X = funExt λ x → propExt (λ()) λ()
 
 Pair : A → A → ℙ A
@@ -294,7 +300,7 @@ Pair A B X = ∥ (X ≡ A) ＋ (X ≡ B) ∥
 ⋂lemma3 : (⋂ 𝓤) ≡ ∅ {A = A}
 ⋂lemma3 = funExt λ x → propExt (_>> λ y → y ∅ tt) λ()
 
-⋂lemma4 : {A : Set al} → (⋂ 𝓤) ᶜ ≡ 𝓤 {A = A}
+⋂lemma4 : {A : Type al} → (⋂ 𝓤) ᶜ ≡ 𝓤 {A = A}
 ⋂lemma4 = funExt λ x → propExt (λ y → tt) λ w → _>> λ y → y ∅ tt
 
 ⋃𝓤≡𝓤 : (⋃ 𝓤) ≡ 𝓤 {A = A}
@@ -306,11 +312,11 @@ Pair A B X = ∥ (X ≡ A) ＋ (X ≡ B) ∥
       (_>> λ(Y , x∈Y , Yᶜ∈X) → _>> λ x∈⋂X →
       let x∈Yᶜ = x∈⋂X (Y ᶜ) Yᶜ∈X in x∈⋂X (Y ᶜ) Yᶜ∈X x∈Y)
 
-cover : {A : Set al} (X : ℙ (ℙ A)) → Set al
+cover : {A : Type al} (X : ℙ (ℙ A)) → Type al
 cover X = ∀ x → x ∈ ⋃ X
 
 -- https://en.wikipedia.org/wiki/Functor_(functional_programming)
-record Functor {ρ : Level → Level}(F : ∀{l} → Set l → Set (ρ l)) : Setω  where
+record Functor {ρ : Level → Level}(F : ∀{l} → Type l → Type (ρ l)) : Typeω  where
   field
     map : (A → B) → F A → F B
     compPreserve : (f : B → C) → (g : A → B) → map (f ∘ g) ≡ (map f ∘ map g)
@@ -318,7 +324,7 @@ record Functor {ρ : Level → Level}(F : ∀{l} → Set l → Set (ρ l)) : Set
 open Functor {{...}} public
 
 -- https://en.wikipedia.org/wiki/Monad_(functional_programming)
-record Monad {ρ : Level → Level}(m : ∀{l} → Set l → Set (ρ l)) : Setω where
+record Monad {ρ : Level → Level}(m : ∀{l} → Type l → Type (ρ l)) : Typeω where
   field
       {{mApp}} : Functor m
       μ : m (m A) → m A -- join
@@ -383,14 +389,14 @@ instance
 test : {A : Type al}{B : Type al} → (A → B) → ℙ A → ℙ B
 test f a = map f a
 
-∪preimage : {A : Set l}{B : Set l'} (X : ℙ(ℙ B)) → (f : A → B)
+∪preimage : {A : Type l}{B : Type l'} (X : ℙ(ℙ B)) → (f : A → B)
           → f ⁻¹[ ⋃ X ] ≡ ⋃ (map (f ⁻¹[_]) X)
 ∪preimage X f = funExt λ z → propExt (_>> λ(G , (fz∈G) , X∈G)
    → intro ((f ⁻¹[ G ]) , fz∈G , intro (G , X∈G , refl)))
    (_>> λ(Y , z∈Y , Q) → Q >> λ(h , h∈X , Y≡f⁻¹[h]) → intro (h , ([wts z ∈ f ⁻¹[ h ] ]
      substP z (sym Y≡f⁻¹[h]) z∈Y) , h∈X))
 
-<*>∅≡∅ : {A B : Set (lsuc l)}
+<*>∅≡∅ : {A B : Type (lsuc l)}
         → (P : ℙ (A → B))
         → P <*> ∅ ≡ ∅
 <*>∅≡∅ P = funExt λ x → propExt (_>> λ(p , q , r)
@@ -616,7 +622,7 @@ module _{τ : ℙ(ℙ A)}{{T : topology τ}} where
        λ x∈clos[X]ᶜ → intro ((closure X)ᶜ , x∈clos[X]ᶜ , intro (closureClosed ,
        λ z P z∈X → P $ intro $ λ Q → _>> λ(X⊆Q , Qᶜ∈τ) → X⊆Q z z∈X))
 
-restrict : (f : A → B) → (Q : A → Set l) → Σ Q → B
+restrict : (f : A → B) → (Q : A → Type l) → Σ Q → B
 restrict f Q = λ(x : Σ Q) → f (fst x)
 
 relax : {X : ℙ A} → ℙ (Σ X) → ℙ A
@@ -711,8 +717,8 @@ module _{A : set al}
  neighborhoodPoint : A → (V : ℙ A) → Prop
  neighborhoodPoint p V = ∃ λ(U : ℙ A) → (U ∈ τ) × ((p ∈ U) × (U ⊆ V))
 
- neighborhoodSet : (ℙ A) → (V : ℙ A) → Prop
- neighborhoodSet Q V = ∃ λ(U : ℙ A) → (U ∈ τ) × ((Q ⊆ U) × (U ⊆ V))
+ neighborhood : (ℙ A) → (V : ℙ A) → Prop
+ neighborhood Q V = ∃ λ(U : ℙ A) → (U ∈ τ) × ((Q ⊆ U) × (U ⊆ V))
 
  discreteDomainContinuous : (f : B → A) → continuous discrete τ f
  discreteDomainContinuous f = λ _ _ → tt
