@@ -7,7 +7,6 @@ open import Cubical.Foundations.Prelude
     renaming (Σ to Σ' ; I to Interval ; _∨_ to or ; congL to left
              ; congR to right) public
 open import Cubical.HITs.PropositionalTruncation renaming (map to truncMap)
-open import Data.Finite
 
 variable
   l l' al bl cl : Level
@@ -647,9 +646,6 @@ module _{A : set al}(τ : ℙ(ℙ A)){{T : topology τ}} where
  openCover : ℙ(ℙ A) → set al
  openCover X = (X ⊆ τ) × cover X
 
- compact : set al
- compact = ∀ {C} → openCover C → ∃ λ(sc : ℙ(ℙ A)) → sc ⊆ C × is-finite (Σ sc)
-
  {- Proposition 4.33 in book ISBN 1852337826. -}
  {- If A is a Hausdorff space and f : A → A is a continuous map, then the fixed-
     point set of f is a closed subset of A. -}
@@ -810,3 +806,9 @@ module _{A : set al}
 -- https://en.wikipedia.org/wiki/Abstract_simplicial_complex
 ASC : {A : Type (lsuc al)} → ℙ(ℙ A) → Type (lsuc al)
 ASC {A} Δ = (X : ℙ A) → X ∈ Δ → (Y : ℙ A) → Y ≢ ∅ → Y ⊆ X → Y ∈ Δ
+
+--open import Data.Finite
+--module _{A : set al}(τ : ℙ(ℙ A)){{T : topology τ}} where
+--
+-- compact : set al
+-- compact = ∀ {C} → openCover τ C → ∃ λ(sc : ℙ(ℙ A)) → sc ⊆ C × is-finite (Σ sc)
