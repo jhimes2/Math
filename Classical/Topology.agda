@@ -386,9 +386,6 @@ instance
                 ; idPreserve = mapId 
                 }
 
-test : {A : Type al}{B : Type al} → (A → B) → ℙ A → ℙ B
-test f a = map f a
-
 ∪preimage : {A : Type l}{B : Type l'} (X : ℙ(ℙ B)) → (f : A → B)
           → f ⁻¹[ ⋃ X ] ≡ ⋃ (map (f ⁻¹[_]) X)
 ∪preimage X f = funExt λ z → propExt (_>> λ(G , (fz∈G) , X∈G)
@@ -404,6 +401,7 @@ test f a = map f a
                                → substP x (sym u) q >> λ(v , w , x) → w)
                          λ()
 
+-- https://en.wikipedia.org/wiki/Topological_space
 record topology {A : set al} (T : ℙ(ℙ A)) : set al where
   field
    tfull : 𝓤 ∈ T
@@ -471,9 +469,12 @@ module _{A : set al}
         {B : set bl}
         (τ₀ : ℙ(ℙ A)){{T0 : topology τ₀}}
         (τ₁ : ℙ(ℙ B)){{T1 : topology τ₁}} where
+
+ -- https://en.wikipedia.org/wiki/Disjoint_union_(topology)
  _⊎_  : ℙ(ℙ (A ＋ B))
  _⊎_ P = (λ a → P (inl a)) ∈ τ₀ × (λ b → P (inr b)) ∈ τ₁
 
+ -- https://en.wikipedia.org/wiki/Product_topology
  ProductSpace : ℙ(ℙ (A × B))
  ProductSpace P = ∥ (∀ a → (λ b → P (a , b)) ∈ τ₁) × (∀ b → (λ a → P (a , b)) ∈ τ₀) ∥
 
@@ -485,6 +486,7 @@ module _{A : set al}        {B : set al}
         {{T0 : topology τ₀}}{{T1 : topology τ₁}} where
 
  instance
+  -- Proving that the product space is a topological space
   PSInst : topology (ProductSpace τ₀ τ₁)
   PSInst = record
      { tfull = intro ((λ a → tfull) , (λ b → tfull))
@@ -501,6 +503,7 @@ module _{A : set al}        {B : set al}
                                                            , λ b → tintersection (u b) (q b))
      }
 
+  -- Proving that the disjoint union space is a topological space
   disjointUnion : topology (τ₀ ⊎ τ₁)
   disjointUnion = record
                 { tfull = (tfull , tfull)
@@ -781,18 +784,20 @@ module _{A : set al}
 
  module _(τ₁ : ℙ(ℙ B)){{T1 : topology τ₁}} where
 
+  -- The restriction of a continuous function is continuous
   restrictDomainContinuous : {f : A → B}
                            → continuous τ τ₁ f
                            → (Q : ℙ A)
                            → continuous (ssTopology τ Q) τ₁ λ(x , _) → f x
   restrictDomainContinuous {f = f} x Q y V = let H = x y V in intro $ f ⁻¹[ y ] , H , refl
  
+  -- If f and g are continuous, then (g ∘ f) is continuous
   continuousComp : {τ₂ : ℙ(ℙ C)}{{T2 : topology τ₂}}
        → {f : A → B} → continuous τ τ₁ f
        → {g : B → C} → continuous τ₁ τ₂ g → continuous τ τ₂ (g ∘ f)
   continuousComp {f = f} H {g = g} x y = λ z → H (λ z₁ → y (g z₁)) (x y z)
 
-  -- If f : A → B is continuous and injective and B is Hausdorﬀ, then A is Hausdorﬀ.
+  -- If f : A → B is continuous and injective and B is Hausdorff, then A is Hausdorff.
   p4-35 : (f : A → B) → Hausdorff τ₁ → continuous τ τ₁ f → injective f → Hausdorff τ
   p4-35 f haus cont inject {x}{y} x≢y = record
                                       { U = f ⁻¹[ U ]
