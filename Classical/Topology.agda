@@ -33,7 +33,6 @@ data _＋_ (A : Set l)(B : Set l') : Set (l ⊔ l' ⊔ (lsuc lzero)) where
 --------------------------------------------------------
 -- Don't use types of Set₀ that are not propositions. --
 --------------------------------------------------------
-{- Note that these two postulates -}
 postulate
  lem : (A : Set l) → isProp A → A ＋ (¬ A)
  squash : {X : Prop} → isProp X
@@ -200,8 +199,22 @@ DNElim {A} H with LEM A
 ... | (inl x) = x
 ... | (inr x) = UNREACHABLE (H x)
 
-DeMorgan : {P : ℙ A} → ¬ (∃ P) → ∀ x → ¬ (P x)
-DeMorgan {P} H x G = H (intro (x , G))
+DNRule : {A : Prop} → ¬(¬ A) ≡ A
+DNRule {A} = propExt DNElim λ z z₁ → z₁ z
+
+dblCompl : {X : ℙ A} → (X ᶜ)ᶜ ≡ X
+dblCompl {X} = funExt λ x → propExt (λ y → DNElim y) λ z z₁ → z₁ z
+
+DeMorgan : {P : A → Type l} → ¬ (∃ P) → ∀ x → ¬ (P x)
+DeMorgan {P} H x G = H (intro(x , G))
+
+DeMorgan2 : {A B : Prop} → ¬(A × B) → ¬ A ＋ ¬ B
+DeMorgan2 {A}{B} x with LEM A
+... | inl a = inr λ b → x (a , b)
+... | inr ¬a = inl λ a → UNREACHABLE $ ¬a a
+
+DeMorgan3 : {A : Type al} {P : ℙ A} → ¬(∀ x → P x) → ∃ λ x → ¬ (P x)
+DeMorgan3 H = DNElim λ X → H λ x → DNElim (DeMorgan X x)
 
 -- Union
 _∪_ : (A → Set l) → (A → Set l') → A → Prop
@@ -254,8 +267,8 @@ instance
     in
        propExt H G }
  ∩assocProp : Associative (_∩_ {A = A} {l = lzero})
- ∩assocProp = record { assoc = λ a b c → funExt λ x → propExt (λ (a , (b , c)) → ((a , b) , c))
-                                                               λ ((a , b) , c) → (a , (b , c)) }
+ ∩assocProp = record { assoc = λ a b c → funExt λ x → propExt (λ (a , b , c) → ((a , b) , c))
+                                                               λ ((a , b) , c) → (a , b , c) }
 
 -- https://en.wikipedia.org/wiki/Image_(mathematics)
 image : (A → B) → B → Prop
@@ -266,6 +279,33 @@ X∩∅≡∅ X = funExt λ x → propExt (λ()) λ()
 
 Pair : A → A → ℙ A
 Pair A B X = ∥ (X ≡ A) ＋ (X ≡ B) ∥
+
+⋂lemma : {X : ℙ(ℙ A)} → {x : A}
+       → x ∉ ⋂ X → ∃ λ Y → Y ∈ X × x ∉ Y
+⋂lemma {X}{x} x∉⋂X = DNElim λ p →
+     let G = DeMorgan p in x∉⋂X (intro λ P P∈X
+   →    DeMorgan2 (G P) |> λ{ (inl P∉X) → UNREACHABLE (P∉X P∈X)
+                            ; (inr ¬x∉P) → DNElim ¬x∉P})
+
+⋂lemma2 : {X : ℙ(ℙ A)}
+        → (⋂ X) ᶜ ∈ X → ⋂ X ⊆ ∅
+⋂lemma2 {X} H = λ y → _>> λ (y∈⋂X) →
+   y∈⋂X ((⋂ X) ᶜ) H |> λ(y∉⋂X) → y∉⋂X (intro y∈⋂X)
+
+⋂lemma3 : (⋂ 𝓤) ≡ ∅ {A = A}
+⋂lemma3 = funExt λ x → propExt (_>> λ y → y ∅ tt) λ()
+
+⋂lemma4 : {A : Set al} → (⋂ 𝓤) ᶜ ≡ 𝓤 {A = A}
+⋂lemma4 = funExt λ x → propExt (λ y → tt) λ w → _>> λ y → y ∅ tt
+
+⋃𝓤≡𝓤 : (⋃ 𝓤) ≡ 𝓤 {A = A}
+⋃𝓤≡𝓤 = funExt λ x → propExt (λ y → tt) λ t → intro (𝓤 , t , t)
+
+[⋂X]ᶜ≡⋃Xᶜ : (X : ℙ(ℙ A)) → (⋂ X)ᶜ ≡ ⋃ λ a → a ᶜ ∈ X
+[⋂X]ᶜ≡⋃Xᶜ X = funExt λ x → propExt (λ a →
+      ⋂lemma a >> λ(Y , Y∈X , x∉Y) → intro $ (Y ᶜ) , x∉Y , ([wts (Y ᶜ)ᶜ ∈ X ] subst X (sym dblCompl) Y∈X))
+      (_>> λ(Y , x∈Y , Yᶜ∈X) → _>> λ x∈⋂X →
+      let x∈Yᶜ = x∈⋂X (Y ᶜ) Yᶜ∈X in x∈⋂X (Y ᶜ) Yᶜ∈X x∈Y)
 
 cover : {A : Set al} (X : ℙ (ℙ A)) → Set al
 cover X = ∀ x → x ∈ ⋃ X
@@ -560,9 +600,22 @@ module _{τ : ℙ(ℙ A)}{{T : topology τ}} where
  closureLemma1 {X} Xᶜ∈τ = funExt λ x → propExt (_>> (λ H → H X (intro ((λ _ z → z) , Xᶜ∈τ))))
                                                 λ x∈X → intro λ P → _>> λ(X⊆P , H) → X⊆P x x∈X
 
+ closureClosed : {X : ℙ A} → (closure X)ᶜ ∈ τ
+ closureClosed {X} = subst τ (sym ([⋂X]ᶜ≡⋃Xᶜ λ z → ∥ (X ⊆ z) × z ᶜ ∈ τ ∥))
+   $ tunion λ Z → _>> λ(X⊆Zᶜ , [zᶜ]ᶜ∈τ) → subst τ dblCompl [zᶜ]ᶜ∈τ
+
  interiorLemma1 : {X : ℙ A} → X ∈ τ → interior X ≡ X
  interiorLemma1 {X} X∈τ = funExt λ x → propExt (_>> λ(a , x∈a , c) → c >> λ(d , e) → d x x∈a)
                                                 λ x∈X → intro (X , x∈X , intro ((λ y z → z) , X∈τ))
+
+ ext≡closᶜ : {X : ℙ A} → exterior X ≡ (closure X)ᶜ
+ ext≡closᶜ {X} = funExt λ x → propExt (_>> λ(Y , x∈Y , c) → c >> λ(Y∈τ , e) →
+      _>> λ(f) →
+       let F : Y ≡ (Y ᶜ)ᶜ
+           F = funExt λ z → propExt (λ r → λ z₁ → z₁ r) DNElim in
+       let x∈Yᶜ = f (Y ᶜ) (intro ((λ z z∈X z∈Y → e z z∈Y z∈X) , subst τ F Y∈τ)) in x∈Yᶜ x∈Y)
+       λ x∈clos[X]ᶜ → intro ((closure X)ᶜ , x∈clos[X]ᶜ , intro (closureClosed ,
+       λ z P z∈X → P $ intro $ λ Q → _>> λ(X⊆Q , Qᶜ∈τ) → X⊆Q z z∈X))
 
 restrict : (f : A → B) → (Q : A → Set l) → Σ Q → B
 restrict f Q = λ(x : Σ Q) → f (fst x)
@@ -571,7 +624,7 @@ relax : {X : ℙ A} → ℙ (Σ X) → ℙ A
 relax {X} P a = ∃ λ(p : a ∈ X) → P (a , p)
 
 relax2 : {X : ℙ A} → ℙ(ℙ (Σ X)) → ℙ(ℙ A)
-relax2 {X} H x = H (λ y → x (fst y))
+relax2 {X} H x = H λ y → x (fst y)
 
 fix : (A → A) → ℙ A
 fix f a = ∥ (f a ≡ a) ∥
