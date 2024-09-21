@@ -1,50 +1,27 @@
 {-# OPTIONS --cubical --safe --backtracking-instance-search --hidden-argument-pun --prop #-}
 
+module Classical.SetTheory where
+
 open import Prelude
 open import Relations
 open import Cubical.Foundations.HLevels
 
-module Classical.SetTheory where
-
 record PreSetTheory : Typeω where field
     _∈_ : Type → Type → Type
     Extensionality : ∀ a b → (∀ x → (x ∈ a ↔ x ∈ b)) → a ≡ b
-    PairingAxiom : ∀ a b → Σ λ c → ∀ x → x ∈ c ↔ (x ≡ a) ＋ (x ≡ b)
-    SeparationAxiom : (P : Type → Type l) → ∀ X → Σ λ Y → ∀ u → u ∈ Y ↔ (u ∈ X × P u)
-    UnionAxiom : ∀ X → Σ λ Y → ∀ u → u ∈ Y ↔ Σ λ z → u ∈ z × z ∈ X
+    Pair : Type → Type → Type
+    Pair1 : ∀ a b → a ∈ Pair a b
+    Pair2 : ∀ a b → a ∈ Pair b a
+    Pair3 : ∀{a b x} → x ∈ Pair a b → (x ≡ a) ＋ (x ≡ b)
+    Sep : (Type → Type l) → Type → Type
+    Separate1 : {P : Type → Type l} → ∀{X u} → u ∈ Sep P X → (u ∈ X × P u)
+    Separate2 : {P : Type → Type l} → ∀{X u} → (u ∈ X × P u) → u ∈ Sep P X 
+    ⋃ : Type → Type
+    Union1 : {X u : Type} → u ∈ ⋃ X → Σ λ z → u ∈ z × z ∈ X
+    Union2 : {u z : Type} → u ∈ z → ∀{X} → z ∈ X → u ∈ ⋃ X
 open PreSetTheory {{...}} public
 
 module _{{PST : PreSetTheory}} where
-
- Pair : Type → Type → Type
- Pair a b = fst (PairingAxiom a b)
-
- Pair1 : ∀ a b → a ∈ Pair a b
- Pair1 a b = snd (snd (PairingAxiom a b) a) (inl refl)
-
- Pair2 : ∀ a b → a ∈ Pair b a
- Pair2 a b = snd (snd (PairingAxiom b a) a) (inr refl)
-
- Pair3 : ∀{a b x} → x ∈ Pair a b → (x ≡ a) ＋ (x ≡ b)
- Pair3 {a} {b} {x} = fst (snd (PairingAxiom a b) x)
-
- Sep : (Type → Type l) → Type → Type
- Sep P X = fst (SeparationAxiom P X)
-
- Separate1 : {P : Type → Type l} → ∀{X u} → u ∈ Sep P X → (u ∈ X × P u)
- Separate1 {P} {X} {u} = fst (snd (SeparationAxiom P X) u)
-
- Separate2 : {P : Type → Type l} → ∀{X u} → (u ∈ X × P u) → u ∈ Sep P X 
- Separate2 {P} {X} {u} = snd (snd (SeparationAxiom P X) u)
-
- ⋃ : Type → Type
- ⋃ X = fst (UnionAxiom X)
-
- Union1 : {X u : Type} → u ∈ ⋃ X → Σ λ z → u ∈ z × z ∈ X
- Union1 {X} {u} = fst (snd (UnionAxiom X) u)
-
- Union2 : {u z : Type} → u ∈ z → ∀{X} → z ∈ X → u ∈ ⋃ X
- Union2 {u}{z} u∈z {X} z∈X = snd (snd (UnionAxiom X) u) (z , u∈z , z∈X)
 
  ⋂ : Type → Type
  ⋂ X = Sep (λ a → (Z : Type) → Z ∈ X → a ∈ Z) (⋃ X)
@@ -231,15 +208,20 @@ module _{{PST : PreSetTheory}} where
 -- _⁻¹[_] : {Dom : Type} → (∀{X} → X ∈ Dom → Type) → Type → set
 -- f ⁻¹[ X ] = Sep {!!} {!!}
 
-record SetTheory : Typeω where field
+record SetTheory : Typeω
+record SetTheory where 
+ field
     {{PST}} : PreSetTheory
     ∈Relation : (x y : Type) → is-prop (x ∈ y)
     ω : Type
     ℙ : Type → Type
-    PowerAxiom : (X u : Type) → u ∈ ℙ X ↔ u ⊆ X
+    Power1 : {X u : Type} → u ∈ ℙ X → u ⊆ X
+    Power2 : {X u : Type} → u ⊆ X → u ∈ ℙ X
     ωbase : Sep (λ _ → ⊥) ω ∈ ω
     ωstep : ((x : Type) → x ∈ ω → Suc x ∈ ω)
-    RegulationAxiom : (X : Type) → X ≢ Sep (λ _ → ⊥) ω → Σ λ(Y : Type) → Y ∈ X × ((x : Type) → x ∈ Y → x ∉ X)
+    Regulate : {X : Type} → X ≢ Sep (λ _ → ⊥) ω → Type
+    Regulate1 : {X : Type} → (p : X ≢ Sep (λ _ → ⊥) ω) → Regulate p ∈ X
+    Regulate2 : {X : Type} → (p : X ≢ Sep (λ _ → ⊥) ω) → {x : Type}→ x ∈ Regulate p → x ∉ X
     Collect : (Type → Type) → Type → Type
     Collection : (f : Type → Type) → (X : Type) → (x : Type) → x ∈ X → f x ∈ Collect f X
 open SetTheory {{...}} public
@@ -275,12 +257,6 @@ module _{{ST : SetTheory}} where
    NatElimAux : (x : Type) → isNat x → P x
    NatElimAux .∅ Natbase = base
    NatElimAux .(Suc x) (Natstep x isNatx) = step x (isNat→Nat x isNatx) (NatElimAux x isNatx)
-
- Power1 : {X u : Type} → u ∈ ℙ X → u ⊆ X
- Power1 {X} {u} = fst (PowerAxiom X u)
-
- Power2 : {X u : Type} → u ⊆ X → u ∈ ℙ X
- Power2 {X} {u} = snd (PowerAxiom X u)
 
  x∈ℙx : (x : Type) → x ∈ ℙ x
  x∈ℙx x = Power2 (x⊆x x)
@@ -344,24 +320,18 @@ module _{{ST : SetTheory}} where
  [x]≢∅ : (x : Type) → singleton x ≢ ∅
  [x]≢∅ x p = x∉∅ $ transport (λ i → x ∈ p i) (x∈[x] x)
 
- Regulate : {X : Type} → X ≢ ∅ → Type
- Regulate {X} p = fst (RegulationAxiom X p)
-
- Regulate1 : {X : Type} → (p : X ≢ ∅) → Regulate p ∈ X
- Regulate1 {X} p = fst $ snd (RegulationAxiom X p)
-
- Regulate2 : {X : Type} → (p : X ≢ ∅) → {x : Type}→ x ∈ Regulate p → x ∉ X
- Regulate2 {X} p {x} = (snd $ snd (RegulationAxiom X p)) x
-
  Regulate3 : {X : Type} → (p : X ≢ ∅) → {x : Type} → x ∈ X → x ∉ Regulate p
  Regulate3 {X} H G q = Regulate2 H q G
 
  x∉x : {x : Type} → x ∉ x
- x∉x {x} p = RegulationAxiom (singleton x) ([x]≢∅ x)
-        |> λ((y , H , G) : Σ λ y → y ∈ singleton x × ∀ z → z ∈ y → z ∉ singleton x)
-                         → let F : x ≡ y
-                               F = singletonLemma2 (x∈[x] x) H
-                           in G x (transport (λ i → x ∈ F i) p) (x∈[x] x)
+ x∉x {x} p = let y = Regulate ([x]≢∅ x) in
+             let H : y ∈ singleton x
+                 H = Regulate1 ([x]≢∅ x) in
+             let G : ∀ z → z ∈ y → z ∉ singleton x
+                 G = λ z → Regulate2 ([x]≢∅ x) in
+             let F : x ≡ y
+                 F = singletonLemma2 (x∈[x] x) H in
+             G x (transport (λ i → x ∈ F i) p) (x∈[x] x)
 
  T-finite : Type → Type₁
  T-finite = λ S → ∀ X → X ≢ ∅ → X ⊆ ℙ S → Σ λ(u : Type) → (u ∈ X) × ((v : Type) → v ∈ X → u ⊆ v → v ⊆ u)
