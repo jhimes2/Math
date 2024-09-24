@@ -100,6 +100,9 @@ instance
                   ; (No , x) → x refl |> UNREACHABLE }
       }
 
+{-# DISPLAY xor a b = a + b #-}
+{-# DISPLAY and a b = a * b #-}
+
 private
  le : 𝔹 → 𝔹 → Type
  le No _ = ⊤

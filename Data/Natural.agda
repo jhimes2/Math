@@ -165,6 +165,8 @@ instance
              ; _*_ = mult
              ; lDistribute = λ a b c → NatMultDist2 b c a
              ; rDistribute = λ a b c → sym (NatMultDist b c a) }
+{-# DISPLAY add a b = a + b #-}
+{-# DISPLAY mult a b = a * b #-}
 
 natRCancel : {a b : ℕ} → (c : ℕ) → a + c ≡ b + c → a ≡ b
 natRCancel {a} {b} c p = natLCancel c (comm c a ⋆ p ⋆ comm b c)

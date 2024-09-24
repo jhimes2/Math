@@ -175,6 +175,9 @@ instance
  ℤCRing : CRing ℤ
  ℤCRing = record {}
 
+{-# DISPLAY addℤ a b = a + b #-}
+{-# DISPLAY multℤ a b = a * b #-}
+
 private
  -- `le'` is private because it's a helper function for `le`
  le' : ℤ → ℤ → hProp lzero
