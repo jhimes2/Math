@@ -1,4 +1,4 @@
-{-# OPTIONS --cubical --backtracking-instance-search --hidden-argument-pun --prop #-}
+{-# OPTIONS --cubical --hidden-argument-pun --prop #-}
 
 module Experiments.Automaton where
 
@@ -33,6 +33,14 @@ record Automaton (𝐀 Q : Type) : Type₁ where
   δ :  𝐀 → Q → Q        -- transition function
   accepts : Q → Type
 open Automaton {{...}} public
+
+-- empty language of any alphabet 𝐀
+emptyAuto : {𝐀 : Type} → Automaton 𝐀 𝔹
+emptyAuto = record
+  { q₀ = Yes
+  ; δ = λ a b → No
+  ; accepts = λ x → x ≡ Yes
+  }
 
 module _{𝐀 Q₁ : Type}{{M₁ : Automaton 𝐀 Q₁}} where
 
@@ -81,11 +89,12 @@ module _{𝐀 Q₁ : Type}{{M₁ : Automaton 𝐀 Q₁}} where
   accepts (δ* (z ++ y))              ≡⟨⟩
   L (z ++ y) ∎
 
- module _{Q₂ : Type}{{M₂ : Automaton 𝐀 Q₂}} where
-  AutomatonProduct : (Q₁ × Q₂ → Type) → Automaton 𝐀 (Q₁ × Q₂)
-  AutomatonProduct f = record
-    {
-      q₀ = q₀ , q₀
-    ; δ = λ x (p , q) → δ x p , δ x q
-    ; accepts = f
-    }
+module _{Q₁ Q₂ 𝐀 : Type}
+        {{M₁ : Automaton 𝐀 Q₁}}
+        {{M₂ : Automaton 𝐀 Q₂}} where
+ Automaton× : (Q₁ × Q₂ → Type) → Automaton 𝐀 (Q₁ × Q₂)
+ Automaton× f = record
+   { q₀ = q₀ , q₀
+   ; δ = λ x (p , q) → δ x p , δ x q
+   ; accepts = f
+   }
