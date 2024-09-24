@@ -153,8 +153,8 @@ natRId : (n : ℕ) → mult n (S Z) ≡ n
 natRId n = comm n (S Z) ⋆ addZ n
 
 NatMultDist2 : (a b c : ℕ) → mult c (add a b) ≡ add (mult c a) (mult c b)
-NatMultDist2 a b c = mult c (add a b) ≡⟨ comm c (add a b)⟩
-                     mult (add a b) c ≡⟨ sym (NatMultDist a b c)⟩
+NatMultDist2 a b c = mult c (add a b)          ≡⟨ comm c (add a b)⟩
+                     mult (add a b) c          ≡⟨ sym (NatMultDist a b c)⟩
                      add (mult a c) (mult b c) ≡⟨ cong₂ add (comm a c) (comm b c)⟩
                      add (mult c a) (mult c b) ∎
 
@@ -164,9 +164,19 @@ instance
       record { _+_ = add
              ; _*_ = mult
              ; lDistribute = λ a b c → NatMultDist2 b c a
-             ; rDistribute = λ a b c → sym (NatMultDist b c a) }
+             ; rDistribute = λ a b c → sym (NatMultDist b c a)
+             }
 {-# DISPLAY add a b = a + b #-}
 {-# DISPLAY mult a b = a * b #-}
+
+noChoice : ∀ x y → choose x (S x + y) ≡ Z
+noChoice Z y = refl
+noChoice (S x) y = choose x (S x + y)
+                 + choose x (S(S x) + y) ≡⟨ left _+_ (noChoice x y)⟩
+                   choose x (S(S x) + y) ≡⟨⟩
+                   choose x (S(S x + y)) ≡⟨ cong (λ z → choose x z) (sym (Sout (S x) y))⟩
+                   choose x (S x + S y)  ≡⟨ noChoice x (S y)⟩
+                   Z ∎
 
 natRCancel : {a b : ℕ} → (c : ℕ) → a + c ≡ b + c → a ≡ b
 natRCancel {a} {b} c p = natLCancel c (comm c a ⋆ p ⋆ comm b c)
@@ -190,7 +200,8 @@ instance
   preorderNat = record
                  { transitive = λ {a b c} → leTrans a b c
                  ; reflexive = λ a → leRefl a
-                 ; isRelation = ≤isProp }
+                 ; isRelation = ≤isProp
+                 }
     where
       leTrans : (a b c : ℕ) → le a b → le b c → le a c
       leTrans Z _ _ _ _ = tt
@@ -211,7 +222,8 @@ instance
     leAntiSymmetric (S a) (S b) p q = cong S (leAntiSymmetric a b p q)
   totalOrderNat : TotalOrder _ ℕ
   totalOrderNat = record { _≤_ = le
-                         ; stronglyConnected = leStronglyConnected }
+                         ; stronglyConnected = leStronglyConnected
+                         }
    where
     leStronglyConnected : (a b : ℕ) → le a b ＋ le b a
     leStronglyConnected Z _ = inl tt
