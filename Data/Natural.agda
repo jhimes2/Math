@@ -30,6 +30,11 @@ choose _ Z = S Z
 choose Z (S _) = Z
 choose (S n) (S k) = add (choose n k) (choose n (S k))
 
+-- split n k ≡ choose (n + k) n
+split : ℕ → ℕ → ℕ
+split (S n) (S k) = add (split n (S k)) (split (S n) k)
+split _ _ = S Z
+
 Sout : (n m : ℕ) → add n (S m) ≡ S (add n m)
 Sout Z m = refl
 Sout (S n) m = cong S (Sout n m)
