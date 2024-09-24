@@ -40,11 +40,11 @@ module _{𝐀 Q₁ : Type}{{M₁ : Automaton 𝐀 Q₁}} where
  δ* : < 𝐀 ^ n > → Q₁
  δ* x = foldr δ q₀ x
 
------------------------------------------------------------------------------------------------------------------
--- Note that since I find it easier to prove with 'foldr' instead of 'foldl', the extended transition function --
--- is defined using 'foldr'. This causes the automaton starting from the highest index down to the lowest.     --
--- This means that the use of the concatenation operator '++' is transposed from standard definitions.         --
------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------
+-- Note that since I find it easier to prove with 'foldr' instead of 'foldl', which is why the transition function --
+-- is defined using the former. This causes the automaton to from the highest index, means that the use of the use --
+-- of the concatenation operator '++' is transposed from standard definitions.                                     --
+---------------------------------------------------------------------------------------------------------------------
 
  -- Acceptance by an Automaton
  L : < 𝐀 ^ n > → Type
@@ -68,6 +68,7 @@ module _{𝐀 Q₁ : Type}{{M₁ : Automaton 𝐀 Q₁}} where
              → L-indistinguishable y x
  L-ind-sym (_ , x) (_ , y) H a = sym (H a)
 
+ -- Strings that land on the same state are indistinguishable to the language.
  autoLemma1 : (x : < 𝐀 ^ n >) → (y : < 𝐀 ^ m >) → δ* x ≡ δ* y → L-indistinguishable (n , x) (m , y)
  autoLemma1 x y = λ (p : foldr δ q₀ x ≡ foldr δ q₀ y) →
                   λ z →
