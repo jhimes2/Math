@@ -229,46 +229,47 @@ multCancel (S a) (S b) m p = cong S
       let p = SInjective p in
       multCancel a b m (natRCancel m (comm (a * S m) m ⋆ p ⋆ comm m (b * S m)))
 
-private
-    le : ℕ → ℕ → Type
-    le Z _ = ⊤
-    le (S x) (S y) = le x y
-    le _ Z = ⊥
+leℕ : ℕ → ℕ → Type
+leℕ Z _ = ⊤
+leℕ (S x) (S y) = leℕ x y
+leℕ _ Z = ⊥
 
 instance
-  preorderNat : Preorder le
+  preorderNat : Preorder leℕ
   preorderNat = record
                  { transitive = λ {a b c} → leTrans a b c
                  ; reflexive = λ a → leRefl a
                  ; isRelation = ≤isProp
                  }
     where
-      leTrans : (a b c : ℕ) → le a b → le b c → le a c
+      leTrans : (a b c : ℕ) → leℕ a b → leℕ b c → leℕ a c
       leTrans Z _ _ _ _ = tt
       leTrans (S a) (S b) (S c) = leTrans a b c
-      leRefl : (a : ℕ) → le a a
+      leRefl : (a : ℕ) → leℕ a a
       leRefl Z = tt
       leRefl (S a) = leRefl a
-      ≤isProp : (a b : ℕ) → isProp (le a b)
+      ≤isProp : (a b : ℕ) → isProp (leℕ a b)
       ≤isProp Z _ = isPropUnit
       ≤isProp (S a) Z = isProp⊥
       ≤isProp (S a) (S b) = ≤isProp a b
 
-  posetNat : Poset le
+  posetNat : Poset leℕ
   posetNat = record { antiSymmetric = λ {a b} → leAntiSymmetric a b }
    where
-    leAntiSymmetric : (a b : ℕ) → le a b → le b a → a ≡ b
+    leAntiSymmetric : (a b : ℕ) → leℕ a b → leℕ b a → a ≡ b
     leAntiSymmetric Z Z p q = refl
     leAntiSymmetric (S a) (S b) p q = cong S (leAntiSymmetric a b p q)
   totalOrderNat : TotalOrder _ ℕ
-  totalOrderNat = record { _≤_ = le
+  totalOrderNat = record { _≤_ = leℕ
                          ; stronglyConnected = leStronglyConnected
                          }
    where
-    leStronglyConnected : (a b : ℕ) → le a b ＋ le b a
+    leStronglyConnected : (a b : ℕ) → leℕ a b ＋ leℕ b a
     leStronglyConnected Z _ = inl tt
     leStronglyConnected (S a) Z =  inr tt
     leStronglyConnected (S a) (S b) = leStronglyConnected a b
+
+{-# DISPLAY leℕ a b = a ≤ b #-}
 
 leS : {n m : ℕ} → S n ≤ m → n ≤ m
 leS {Z} {S m} p = tt
@@ -468,6 +469,7 @@ trichotomy (S a) (S b) with trichotomy a b
 ≤＋> Z b = inl tt
 ≤＋> (S a) Z = inr tt
 ≤＋> (S a) (S b) = ≤＋> a b
+
 
 completeInduction : (P : ℕ → Type l)
                 → (a : ℕ)
