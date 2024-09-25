@@ -30,8 +30,10 @@ choose _ Z = S Z
 choose Z (S _) = Z
 choose (S n) (S k) = add (choose n k) (choose n (S k))
 
+-- Number of ways to split (n + k) elements into sets of size n and k.
+--
 -- split n k ≡ choose (n + k) n
--- As shown in the proof 'splitChoose'
+-- As shown in the proof 'splitChoose'.
 split : ℕ → ℕ → ℕ
 split (S n) (S k) = add (split n (S k)) (split (S n) k)
 split _ _ = S Z
@@ -202,6 +204,19 @@ splitChoose (S n) (S k) =
  choose (n + S k) n + split (S n) k          ≡⟨ right _+_ (splitChoose (S n) k) ⟩
  choose (n + S k) n + choose (S n + k) (S n) ≡⟨ right _+_ (cong (λ z → choose z (S n)) (sym (Sout n k)))⟩
  choose (n + S k) n + choose (n + S k) (S n) ∎
+
+instance
+ splitComm : Commutative split
+ splitComm = record { comm = aux }
+  where
+   aux : ∀ x y → split x y ≡ split y x
+   aux Z Z = refl
+   aux Z (S y) = refl
+   aux (S x) Z = refl
+   aux (S x) (S y) =
+    split x (S y) + split (S x) y ≡⟨ comm (split x (S y)) (split (S x) y)⟩
+    split (S x) y + split x (S y) ≡⟨ cong₂ _+_ (aux (S x) y) (aux x (S y))⟩
+    split y (S x) + split (S y) x ∎
 
 natRCancel : {a b : ℕ} → (c : ℕ) → a + c ≡ b + c → a ≡ b
 natRCancel {a} {b} c p = natLCancel c (comm c a ⋆ p ⋆ comm b c)
