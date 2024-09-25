@@ -1,4 +1,4 @@
-{-# OPTIONS --cubical --safe --backtracking-instance-search --termination-depth=3 #-}
+{-# OPTIONS --cubical --safe --backtracking-instance-search --inversion-max-depth=100 #-}
 
 module Data.Natural where
 
@@ -169,14 +169,24 @@ instance
 {-# DISPLAY add a b = a + b #-}
 {-# DISPLAY mult a b = a * b #-}
 
-noChoice : ∀ x y → choose x (S x + y) ≡ Z
+-- There are zero ways you can choose more than n elements from n elements
+noChoice : ∀ x y → choose x (S y + x) ≡ Z
 noChoice Z y = refl
-noChoice (S x) y = choose x (S x + y)
-                 + choose x (S(S x) + y) ≡⟨ left _+_ (noChoice x y)⟩
-                   choose x (S(S x) + y) ≡⟨⟩
-                   choose x (S(S x + y)) ≡⟨ cong (λ z → choose x z) (sym (Sout (S x) y))⟩
-                   choose x (S x + S y)  ≡⟨ noChoice x (S y)⟩
+noChoice (S x) y = choose x (y + S x)
+                 + choose x (S(y + S x)) ≡⟨ cong₂ _+_ (right choose (Sout y x))
+                                                      (cong (λ z → choose x (S z)) (Sout y x))⟩
+                   choose x (S y + x)
+                 + choose x (S(S y + x)) ≡⟨ cong₂ _+_ (noChoice x y) (noChoice x (S y))⟩
                    Z ∎
+
+-- There is only one way you can choose all elements
+chooseAll : ∀ x → choose x x ≡ S Z
+chooseAll Z = refl
+chooseAll (S x) = choose (S x) (S x)          ≡⟨⟩
+                  choose x x + choose x (S x) ≡⟨ left _+_ (chooseAll x)⟩
+                  S Z + choose x (S x)        ≡⟨⟩
+                  S (choose x (S x))          ≡⟨ cong S (noChoice x Z)⟩
+                  S Z ∎
 
 natRCancel : {a b : ℕ} → (c : ℕ) → a + c ≡ b + c → a ≡ b
 natRCancel {a} {b} c p = natLCancel c (comm c a ⋆ p ⋆ comm b c)
