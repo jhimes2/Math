@@ -31,6 +31,7 @@ choose Z (S _) = Z
 choose (S n) (S k) = add (choose n k) (choose n (S k))
 
 -- split n k ≡ choose (n + k) n
+-- As shown in the proof 'splitChoose'
 split : ℕ → ℕ → ℕ
 split (S n) (S k) = add (split n (S k)) (split (S n) k)
 split _ _ = S Z
@@ -172,12 +173,12 @@ instance
 -- There are zero ways you can choose more than n elements from n elements
 noChoice : ∀ x y → choose x (S y + x) ≡ Z
 noChoice Z y = refl
-noChoice (S x) y = choose x (y + S x)
-                 + choose x (S(y + S x)) ≡⟨ cong₂ _+_ (right choose (Sout y x))
-                                                      (cong (λ z → choose x (S z)) (Sout y x))⟩
-                   choose x (S y + x)
-                 + choose x (S(S y + x)) ≡⟨ cong₂ _+_ (noChoice x y) (noChoice x (S y))⟩
-                   Z ∎
+noChoice (S x) y =
+  choose x (y + S x) + choose x (S(y + S x)) ≡⟨ cong₂ _+_ (right choose (Sout y x))
+                                                          (cong (choose x) (Sout (S y) x))⟩
+  choose x (S y + x) + choose x (S(S y + x)) ≡⟨ cong₂ _+_ (noChoice x y)
+                                                          (noChoice x (S y))⟩
+  Z ∎
 
 -- There is only one way you can choose all elements
 chooseAll : ∀ x → choose x x ≡ S Z
@@ -187,6 +188,20 @@ chooseAll (S x) = choose (S x) (S x)          ≡⟨⟩
                   S Z + choose x (S x)        ≡⟨⟩
                   S (choose x (S x))          ≡⟨ cong S (noChoice x Z)⟩
                   S Z ∎
+
+splitChoose : ∀ n k → split n k ≡ choose (n + k) n
+splitChoose Z k = refl
+splitChoose (S n) Z =
+ choose (n + Z) n + choose (n + Z) (S n) ≡⟨ cong₂ _+_ (cong (λ z → choose z n) (addZ n))
+                                                      (cong (λ z → choose z (S n)) (addZ n))⟩
+ choose n n + choose n (S n) ≡⟨ left _+_ (chooseAll n)⟩
+ S (choose n (S n)) ≡⟨ cong S (noChoice n Z)⟩
+ S Z ∎ |> sym
+splitChoose (S n) (S k) =
+ split n (S k) + split (S n) k               ≡⟨ left _+_ (splitChoose n (S k))⟩
+ choose (n + S k) n + split (S n) k          ≡⟨ right _+_ (splitChoose (S n) k) ⟩
+ choose (n + S k) n + choose (S n + k) (S n) ≡⟨ right _+_ (cong (λ z → choose z (S n)) (sym (Sout n k)))⟩
+ choose (n + S k) n + choose (n + S k) (S n) ∎
 
 natRCancel : {a b : ℕ} → (c : ℕ) → a + c ≡ b + c → a ≡ b
 natRCancel {a} {b} c p = natLCancel c (comm c a ⋆ p ⋆ comm b c)
