@@ -401,11 +401,20 @@ instance
                λ y∈x → intro ((λ z → ∥ z ≡ y ∥) , intro refl , intro (y , y∈x , refl))
            }
 
- ∥map∥ : Functor ∥_∥
- ∥map∥ = record { map = ∥map
-                ; compPreserve = mapComp
-                ; idPreserve = mapId 
-                }
+ ∥Functor∥ : Functor ∥_∥
+ ∥Functor∥ = record { map = ∥map
+                    ; compPreserve = mapComp
+                    ; idPreserve = mapId 
+                    }
+
+ ∥Monad∥ : Monad ∥_∥
+ ∥Monad∥ = record
+            { μ = _>> id
+            ; η = intro
+            ; monadLemma1 = funExt λ x → squash (((_>> id) ∘ (_>> id)) x) (map (_>> id) x >> id)
+            ; monadLemma2 = funExt λ x → squash (((_>> id) ∘ intro) x) x
+            ; monadLemma3 = funExt λ x → squash (((_>> id) ∘ map intro) x) x
+            }
 
 ∪preimage : {A : Type l}{B : Type l'} (X : ℙ(ℙ B)) → (f : A → B)
           → f ⁻¹[ ⋃ X ] ≡ ⋃ (map (f ⁻¹[_]) X)
