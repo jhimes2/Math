@@ -50,24 +50,24 @@ instance
  IndiscreteTopology : topology (indiscrete {A = A})
  IndiscreteTopology =
     record
-     { tfull = intro $ inl refl
+     { tfull = η $ inl refl
      ; tunion = λ {X} H →
       LEM (𝓤 ∈ X)
-        |> λ{ (inl p) → intro (inl (funExt λ x → propExt 
-           (λ G → tt) λ G → intro (𝓤 , tt , p))) 
-            ; (inr p) → intro $ inr (funExt λ x → propExt (_>> λ(Y , F , G)
+        |> λ{ (inl p) → η (inl (funExt λ x → propExt 
+           (λ G → tt) λ G → η (𝓤 , tt , p))) 
+            ; (inr p) → η $ inr (funExt λ x → propExt (_>> λ(Y , F , G)
              → H Y G >> λ{ (inl q) → p (subst X q G) ; (inr q) → substP x (sym q) F }) λ x∈∅ → UNREACHABLE $ x∈∅)}
      ; tintersection = λ{X}{Y} ∥X∈ind∥ ∥Y∈ind∥ →
                                ∥X∈ind∥ >> λ{(inl x)
                              → ∥Y∈ind∥ >> λ{(inl y)
-                             → intro $ inl $ funExt λ z →
+                             → η $ inl $ funExt λ z →
                              (X ∩ Y) z ≡⟨ cong (λ w → (w ∩ Y) z) x ⟩
                              (𝓤 ∩ Y) z ≡⟨ cong (λ w → (𝓤 ∩ w) z) y ⟩
                              (𝓤 ∩ 𝓤) z ≡⟨ propExt (λ (T , U) → U)
                               (λ _ → tt , tt) ⟩
                              𝓤 z ∎
-                             ; (inr y) → intro $ inr $ right _∩_ y ∙ X∩∅≡∅ X  }; (inr x)
-                             →  intro $ inr ((left _∩_ x) ∙ comm ∅ Y ∙ (X∩∅≡∅ Y))}
+                             ; (inr y) → η $ inr $ right _∩_ y ∙ X∩∅≡∅ X  }; (inr x)
+                             →  η $ inr ((left _∩_ x) ∙ comm ∅ Y ∙ (X∩∅≡∅ Y))}
      }
 
 -- contravariant map
@@ -98,8 +98,8 @@ module _{A : set al}        {B : set al}
   -- Proving that the product space is a topological space
   PSInst : topology (ProductSpace τ₀ τ₁)
   PSInst = record
-     { tfull = intro ((λ a → tfull) , (λ b → tfull))
-     ; tunion = λ{X} H → intro ((λ a → [wts (λ b → (a , b)) ⁻¹[ ⋃ X ] ∈ τ₁ ]
+     { tfull = η ((λ a → tfull) , (λ b → tfull))
+     ; tunion = λ{X} H → η ((λ a → [wts (λ b → (a , b)) ⁻¹[ ⋃ X ] ∈ τ₁ ]
       subst τ₁ (sym (∪preimage X (λ b → a , b)))
         (tunion (λ z → _>> λ (P , P∈X , G) → subst τ₁ (sym G) $
           H P P∈X >> λ(t , u) → t a))) ,
@@ -108,7 +108,7 @@ module _{A : set al}        {B : set al}
         (tunion (λ z → _>> λ (P , P∈X , G) → subst τ₀ (sym G) $
           H P P∈X >> λ(t , u) → u b )))
      ; tintersection = λ{X}{Y} H G → H >> λ(t , u)
-                                   → G >> λ(p , q) → intro ((λ a → tintersection (t a) (p a))
+                                   → G >> λ(p , q) → η ((λ a → tintersection (t a) (p a))
                                                            , λ b → tintersection (u b) (q b))
      }
 
@@ -121,21 +121,21 @@ module _{A : set al}        {B : set al}
                                                  × (λ p → x (inr p)) ∈ τ₁)) →
                   let H : ⋃ (map (λ H a → H (inl a)) Z) ≡ λ a → ⋃ Z (inl a)
                       H = funExt λ x → propExt (_>> λ(a , x∈a , c)
-                        → c >> λ(d , d∈Z , f) → intro $
+                        → c >> λ(d , d∈Z , f) → η $
                          d , let G : x ∈ (λ a → d (inl a))
                                  G = substP x (sym f) x∈a in
-                         G , d∈Z) (_>> λ(a , b , a∈Z) → intro $ (λ y → a (inl y)) , b ,
-                           intro (a , a∈Z , funExt λ d → propExt (λ e → e) (λ f → f)))
+                         G , d∈Z) (_>> λ(a , b , a∈Z) → η $ (λ y → a (inl y)) , b ,
+                           η (a , a∈Z , funExt λ d → propExt (λ e → e) (λ f → f)))
                       in
                    subst τ₀ H (tunion λ F → _>> λ(a , a∈Z , c) → subst τ₀ (sym c)
                     (fst(Z⊆⊎ a a∈Z))) ,
                   let H : ⋃ (map (λ H a → H (inr a)) Z) ≡ λ a → ⋃ Z (inr a)
                       H = funExt λ x → propExt (_>> λ(a , x∈a , c)
-                        → c >> λ(d , d∈Z , f) → intro $
+                        → c >> λ(d , d∈Z , f) → η $
                          d , let G : x ∈ (λ a → d (inr a))
                                  G = substP x (sym f) x∈a in
-                         G , d∈Z) (_>> λ(a , b , a∈Z) → intro $ (λ y → a (inr y)) , b ,
-                           intro (a , a∈Z , funExt λ d → propExt (λ e → e) (λ f → f)))
+                         G , d∈Z) (_>> λ(a , b , a∈Z) → η $ (λ y → a (inr y)) , b ,
+                           η (a , a∈Z , funExt λ d → propExt (λ e → e) (λ f → f)))
                       in subst τ₁ H (tunion  λ F → _>> λ(a , a∈Z , c) → subst τ₁ (sym c)
                                                   (snd(Z⊆⊎ a a∈Z)))
                 ; tintersection = λ{X Y} (p , P) (q , Q) → tintersection p q , tintersection P Q
@@ -157,7 +157,7 @@ module _{A : set al}        {B : set al}
  --     fst(a, b) = a
  -- is continuous
  fstContinuous : continuous (ProductSpace τ₀ τ₁) τ₀ fst
- fstContinuous = λ V V∈τ₀ → intro $ (λ a →
+ fstContinuous = λ V V∈τ₀ → η $ (λ a →
    LEM (a ∈ V) |> λ{ (inl a∈V) → let H : 𝓤 ≡ (λ(_ : B) → a ∈ V)
                                      H = funExt λ _ → propExt (λ t → a∈V) λ z → tt in
                                   subst τ₁ H tfull
@@ -167,7 +167,7 @@ module _{A : set al}        {B : set al}
  
  -- The set of all topological spaces on a set contains the universal set.
  𝓤∈setOfTop : 𝓤 ∈ λ(τ : ℙ(ℙ A)) → ∥ topology τ ∥
- 𝓤∈setOfTop = intro $
+ 𝓤∈setOfTop = η $
      record { tfull = tt
             ; tunion = λ {X} z → tt
             ; tintersection = λ {X} {Y} z _ → z
@@ -176,7 +176,7 @@ module _{A : set al}        {B : set al}
  -- The set of all topological spaces on a set is closed by finite intersections.
  setOfTopClosed∩ : {X Y : ℙ(ℙ A)}
                  → ∥ topology X ∥ → ∥ topology Y ∥ → ∥ topology (X ∩ Y) ∥
- setOfTopClosed∩ {X}{Y} = _>> λ τ₀ → _>> λ τ₁ → intro $
+ setOfTopClosed∩ {X}{Y} = _>> λ τ₀ → _>> λ τ₁ → η $
      record { tfull = τ₀ .tfull , τ₁ .tfull
             ; tunion = λ{P} P⊆X∩Y →
                       let P⊆X : P ⊆ X
@@ -214,8 +214,8 @@ module _{τ : ℙ(ℙ A)}{{T : topology τ}} where
  boundary X = λ p → p ∈ closure X × p ∉ interior X 
 
  closureLemma1 : {X : ℙ A} → X ᶜ ∈ τ → closure X ≡ X
- closureLemma1 {X} Xᶜ∈τ = funExt λ x → propExt (_>> (λ H → H X (intro ((λ _ z → z) , Xᶜ∈τ))))
-                                                λ x∈X → intro λ P → _>> λ(X⊆P , H) → X⊆P x x∈X
+ closureLemma1 {X} Xᶜ∈τ = funExt λ x → propExt (_>> (λ H → H X (η ((λ _ z → z) , Xᶜ∈τ))))
+                                                λ x∈X → η λ P → _>> λ(X⊆P , H) → X⊆P x x∈X
 
  closureClosed : {X : ℙ A} → (closure X)ᶜ ∈ τ
  closureClosed {X} = subst τ (sym ([⋂X]ᶜ≡⋃Xᶜ λ z → ∥ (X ⊆ z) × z ᶜ ∈ τ ∥))
@@ -223,16 +223,16 @@ module _{τ : ℙ(ℙ A)}{{T : topology τ}} where
 
  interiorLemma1 : {X : ℙ A} → X ∈ τ → interior X ≡ X
  interiorLemma1 {X} X∈τ = funExt λ x → propExt (_>> λ(a , x∈a , c) → c >> λ(d , e) → d x x∈a)
-                                                λ x∈X → intro (X , x∈X , intro ((λ y z → z) , X∈τ))
+                                                λ x∈X → η (X , x∈X , η ((λ y z → z) , X∈τ))
 
  ext≡closᶜ : {X : ℙ A} → exterior X ≡ (closure X)ᶜ
  ext≡closᶜ {X} = funExt λ x → propExt (_>> λ(Y , x∈Y , c) → c >> λ(Y∈τ , e) →
       _>> λ(f) →
        let F : Y ≡ (Y ᶜ)ᶜ
            F = funExt λ z → propExt (λ r → λ z₁ → z₁ r) DNElim in
-       let x∈Yᶜ = f (Y ᶜ) (intro ((λ z z∈X z∈Y → e z z∈Y z∈X) , subst τ F Y∈τ)) in x∈Yᶜ x∈Y)
-       λ x∈clos[X]ᶜ → intro ((closure X)ᶜ , x∈clos[X]ᶜ , intro (closureClosed ,
-       λ z P z∈X → P $ intro $ λ Q → _>> λ(X⊆Q , Qᶜ∈τ) → X⊆Q z z∈X))
+       let x∈Yᶜ = f (Y ᶜ) (η ((λ z z∈X z∈Y → e z z∈Y z∈X) , subst τ F Y∈τ)) in x∈Yᶜ x∈Y)
+       λ x∈clos[X]ᶜ → η ((closure X)ᶜ , x∈clos[X]ᶜ , η (closureClosed ,
+       λ z P z∈X → P $ η $ λ Q → _>> λ(X⊆Q , Qᶜ∈τ) → X⊆Q z z∈X))
 
 restrict : (f : A → B) → (Q : A → Type l) → Σ Q → B
 restrict f Q = λ(x : Σ Q) → f (fst x)
@@ -288,11 +288,11 @@ module _{A : set al}(τ : ℙ(ℙ A)){{T : topology τ}} where
   let Q1 : ⋃ S ⊆ (fix f)ᶜ
       Q1 = Union⊆ S ((fix f)ᶜ) P in
   let Q2 :  (fix f)ᶜ ⊆ ⋃ S
-      Q2 = λ x D → intro $
+      Q2 = λ x D → η $
          let instance
                H : HousedOff (f x) x
-               H = haus (λ p → D (intro p)) in
-        V ∩ f ⁻¹[ U ] , (∈V , ∈U) , (intro $ x , (λ p → D (intro p)) , refl) in
+               H = haus (λ p → D (η p)) in
+        V ∩ f ⁻¹[ U ] , (∈V , ∈U) , (η $ x , (λ p → D (η p)) , refl) in
   let S⊆τ : S ⊆ τ
       S⊆τ = λ x → _>> λ (y , fy≢y , X)
           → let instance
@@ -316,12 +316,12 @@ module _{A : set al}
  instance
   SubspaceTopology : {X : ℙ A} → topology (ssTopology τ X)
   SubspaceTopology {X} = record
-     { tfull = intro $ 𝓤 , tfull , refl
-     ; tunion = λ{X} H → intro $ (⋃ λ U → (U ∈ τ) × (λ x → fst x ∈ U) ∈ X) , tunion
+     { tfull = η $ 𝓤 , tfull , refl
+     ; tunion = λ{X} H → η $ (⋃ λ U → (U ∈ τ) × (λ x → fst x ∈ U) ∈ X) , tunion
      (λ x (G , F) → G) , funExt λ Y → propExt (_>> λ(F , Y∈F , F∈X)
-       → H F F∈X >> λ(U , U∈τ , R ) → intro $ U , (substP Y (sym R) Y∈F) , U∈τ , subst X R F∈X
+       → H F F∈X >> λ(U , U∈τ , R ) → η $ U , (substP Y (sym R) Y∈F) , U∈τ , subst X R F∈X
        ) λ a → ∥map (λ(U , e , (U∈τ , d)) → (λ x → fst x ∈ U) , (e , d)) a
-     ; tintersection = λ{X}{Y} H1 G1 → H1 >> λ (U , U∈τ , Y≡U) → G1 >> λ (V , V∈τ , Y≡V) → intro $ (U ∩ V)
+     ; tintersection = λ{X}{Y} H1 G1 → H1 >> λ (U , U∈τ , Y≡U) → G1 >> λ (V , V∈τ , Y≡V) → η $ (U ∩ V)
                                , tintersection U∈τ V∈τ
                                , right _∩_ Y≡V ∙ left _∩_ Y≡U ∙ refl
    }
@@ -362,7 +362,7 @@ module _{A : set al}
      let H : x ∈ ⋃ X
          H = substP x (sym 𝓤≡∪X) tt in 
         H >> λ(U , x∈U , U∈X) →
-    intro $ U , x∈U , X⊆ℬ U U∈X
+    η $ U , x∈U , X⊆ℬ U U∈X
 
   base∩ : ∀{x B₀ B₁} → x ∈ (B₀ ∩ B₁)
                      → B₀ ∈ ℬ
@@ -377,7 +377,7 @@ module _{A : set al}
    let H : x ∈ ⋃ X
        H = substP x (sym B₀∩B₁≡∪X) x∈B₀∩B₁ in
    H >> λ(U , x∈U , U∈X)
-         → intro $ U , x∈U , X⊆B U U∈X , subst (λ a → U ⊆ a) (sym B₀∩B₁≡∪X) λ y y∈U → intro $ U , y∈U , U∈X
+         → η $ U , x∈U , X⊆B U U∈X , subst (λ a → U ⊆ a) (sym B₀∩B₁≡∪X) λ y y∈U → η $ U , y∈U , U∈X
 
   {- If f : B → A is a function between two topological spaces B and A, and A has
      basis ℬ, then f is continuous if f⁻¹(A) is open for every set A in the basis ℬ. -}
@@ -398,7 +398,7 @@ module _{A : set al}
                            → continuous τ τ₁ f
                            → (Q : ℙ A)
                            → continuous (ssTopology τ Q) τ₁ λ(x , _) → f x
-  restrictDomainContinuous {f = f} x Q y V = let H = x y V in intro $ f ⁻¹[ y ] , H , refl
+  restrictDomainContinuous {f = f} x Q y V = let H = x y V in η $ f ⁻¹[ y ] , H , refl
  
   -- If f and g are continuous, then (g ∘ f) is continuous
   continuousComp : {τ₂ : ℙ(ℙ C)}{{T2 : topology τ₂}}
