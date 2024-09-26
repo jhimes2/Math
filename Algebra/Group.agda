@@ -268,13 +268,13 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
      let f = funRed x∈norm in funExt λ y → propExt squash₁ squash₁ (_>>= λ (p , p∈N , H) →
         transport (sym(f (p ∙ x))) (η (p , p∈N , refl)) >>= λ (q , q∈N , G) →
        η $ q , q∈N ,
-       (H ⋆ grp.cancel x (
+       H ⋆ grp.cancel x (
           x ∙ (inv x ∙ p) ≡⟨ a[a'b]≡b x p ⟩
           p               ≡⟨  sym ([ab]b'≡a p x)⟩
           (p ∙ x) ∙ inv x ≡⟨ left _∙_ G ⟩
           (x ∙ q) ∙ inv x ≡⟨ sym (assoc x q (inv x)) ⟩
           x ∙ (q ∙ inv x) ∎
-       ))) ( (_>>= λ (p , p∈N , H) →
+       )) (_>>= λ (p , p∈N , H) →
         transport ((f (x ∙ p))) (η (p , p∈N , refl)) >>= λ (q , q∈N , G) →
        η $ q , q∈N , H ⋆ grp.lcancel x (
            (p ∙ inv x) ∙ x ≡⟨ [ab']b≡a p x ⟩
@@ -282,7 +282,7 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
            inv x ∙ (x ∙ p) ≡⟨ right _∙_ G ⟩
            inv x ∙ (q ∙ x) ≡⟨ assoc (inv x) q x ⟩
            (inv x ∙ q) ∙ x ∎
-       )))
+       ))
      ; SGSM = normalizerSM {N = N} }
 
  centralizeAbelian : {{Commutative _∙_}}
@@ -600,7 +600,7 @@ private instance
        x ≡⟨ sym (snd (gSurj x))⟩
        g (fst (gSurj x)) ≡⟨ cong g z ⟩
        g (fst (gSurj y)) ≡⟨ snd (gSurj y)⟩
-       y ∎) , λ b → g b , (gInj (fst (gSurj (g b))) b (snd (gSurj (g b)))))
+       y ∎) , λ b → g b , gInj (fst (gSurj (g b))) b (snd (gSurj (g b))))
     , ΣPathPProp bijectiveProp (funExt λ x →
        let y = fst (gSurj (g x)) in
        let H : g y ≡ g x
@@ -806,7 +806,8 @@ module _ {A : Type al}
 
   -- https://en.wikipedia.org/wiki/Fundamental_theorem_on_homomorphisms
   fundamentalTheoremOnHomomorphisms : N ⊆ Kernel f
-                                    → ∃! λ(h : _∙_ G/ N → B) → Homomorphism ⋆[ _∙_ / N ] _*_ h × (f ≡ h ∘ [_])
+                                    → ∃! λ(h : _∙_ G/ N → B) → Homomorphism ⋆[ _∙_ / N ] _*_ h
+                                                             × (f ≡ h ∘ [_])
   fundamentalTheoremOnHomomorphisms N⊆Ker[f] = ϕ ,
       (record { preserve = elimProp2 (λ a b → IsSet (ϕ (⋆[ _∙_ / N ] a b)) (ϕ a * ϕ b))
            λ a b → preserve a b } , refl) , λ y (P , Q) → funExt $ elimProp (λ x → IsSet (ϕ x) (y x))
