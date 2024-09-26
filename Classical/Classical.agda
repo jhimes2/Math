@@ -293,14 +293,14 @@ Pair A B X = ∥ (X ≡ A) ＋ (X ≡ B) ∥
                             ; (inr ¬x∉P) → DNElim ¬x∉P})
 
 ⋂lemma2 : {X : ℙ(ℙ A)}
-        → (⋂ X) ᶜ ∈ X → ⋂ X ⊆ ∅
+        → (⋂ X)ᶜ ∈ X → ⋂ X ⊆ ∅
 ⋂lemma2 {X} H = λ y → _>> λ (y∈⋂X) →
-   y∈⋂X ((⋂ X) ᶜ) H |> λ(y∉⋂X) → y∉⋂X (intro y∈⋂X)
+   y∈⋂X ((⋂ X)ᶜ) H |> λ(y∉⋂X) → y∉⋂X (intro y∈⋂X)
 
 ⋂lemma3 : (⋂ 𝓤) ≡ ∅ {A = A}
 ⋂lemma3 = funExt λ x → propExt (_>> λ y → y ∅ tt) λ()
 
-⋂lemma4 : {A : Type al} → (⋂ 𝓤) ᶜ ≡ 𝓤 {A = A}
+⋂lemma4 : {A : Type al} → (⋂ 𝓤)ᶜ ≡ 𝓤 {A = A}
 ⋂lemma4 = funExt λ x → propExt (λ y → tt) λ w → _>> λ y → y ∅ tt
 
 ⋃𝓤≡𝓤 : (⋃ 𝓤) ≡ 𝓤 {A = A}
@@ -316,19 +316,25 @@ Pair A B X = ∥ (X ≡ A) ＋ (X ≡ B) ∥
 --     (⋂ X)ᶜ ≡ ⋃ {a | aᶜ ∈ X}
 [⋂X]ᶜ≡⋃Xᶜ : (X : ℙ(ℙ A)) → (⋂ X)ᶜ ≡ ⋃ λ a → a ᶜ ∈ X
 [⋂X]ᶜ≡⋃Xᶜ X = funExt λ x → propExt (λ a →
-      ⋂lemma a >> λ(Y , Y∈X , x∉Y) → intro $ (Y ᶜ) , x∉Y , ([wts (Y ᶜ)ᶜ ∈ X ] subst X (sym dblCompl) Y∈X))
-      (_>> λ(Y , x∈Y , Yᶜ∈X) → _>> λ x∈⋂X →
-      let x∈Yᶜ = x∈⋂X (Y ᶜ) Yᶜ∈X in x∈⋂X (Y ᶜ) Yᶜ∈X x∈Y)
+      ⋂lemma a >> λ(Y , Y∈X , x∉Y) → intro $ Y ᶜ , x∉Y , ([wts (Y ᶜ)ᶜ ∈ X ] subst X (sym dblCompl) Y∈X))
+      (_>> λ(Y , x∈Y , Yᶜ∈X) → _>> λ x∈⋂X → x∈⋂X (Y ᶜ) Yᶜ∈X x∈Y)
 
 cover : {A : Type al} (X : ℙ (ℙ A)) → Type al
 cover X = ∀ x → x ∈ ⋃ X
 
 [X∩Y]ᶜ≡Xᶜ∪Yᶜ : (X Y : ℙ A) → (X ∩ Y)ᶜ ≡ X ᶜ ∪ Y ᶜ
 [X∩Y]ᶜ≡Xᶜ∪Yᶜ X Y = funExt
- λ x → propExt (λ x∈[X∩Y]ᶜ → LEM (x ∈ Y) |> λ{ (inl p) → intro (inl (λ x∈X → x∈[X∩Y]ᶜ (x∈X , p)))
-                                              ; (inr p) → intro (inr (λ x∈Y → p x∈Y)) })
-               (_>> λ{ (inl p) → λ (x∈X , x∈Y) → p x∈X
-                     ; (inr p) → λ (x∈X , x∈Y) → p x∈Y })
+ λ x → propExt (λ x∉X∩Y → LEM (x ∈ Y) |> λ{ (inl x∈Y) → intro (inl (λ x∈X → x∉X∩Y (x∈X , x∈Y)))
+                                          ; (inr x∉Y) → intro (inr (λ x∈Y →  x∉Y x∈Y)) })
+               (_>> λ{ (inl x∉X) → λ (x∈X , x∈Y) → x∉X x∈X
+                     ; (inr x∉Y) → λ (x∈X , x∈Y) → x∉Y x∈Y })
+
+[X∪Y]ᶜ≡Xᶜ∩Yᶜ : (X Y : ℙ A) → (X ∪ Y)ᶜ ≡ X ᶜ ∩ Y ᶜ
+[X∪Y]ᶜ≡Xᶜ∩Yᶜ X Y = funExt
+ λ x → propExt (λ x∉X∪Y → (λ x∈X → x∉X∪Y (intro (inl x∈X)))
+                         , λ x∈Y → x∉X∪Y (intro (inr x∈Y)))
+                λ (x∉X , x∉Y) → _>> λ{ (inl x∈X) → x∉X x∈X
+                                     ; (inr x∈Y) → x∉Y x∈Y}
 
 -- https://en.wikipedia.org/wiki/Functor_(functional_programming)
 record Functor {ρ : Level → Level}(F : ∀{l} → Type l → Type (ρ l)) : Typeω  where
@@ -447,7 +453,7 @@ module _{X : set l}(ℬ : ℙ(ℙ X)){{filter : Filter ℬ}} where
    let H : 𝓤 ≡ ∅
        H = funExt λ(x : X) → UNREACHABLE (p ∣ x ∣₁) in
         UNREACHABLE (fnot∅ (subst ℬ H ffull))
- 
+
 trivialFilter : {X : set l}
               → ∥ X ∥₁
               → Filter λ(Y : ℙ X) → ∥ 𝓤 ⊆ Y ∥
@@ -468,7 +474,7 @@ principalFilter {X} A ∃A = record
   { ffull = intro (λ x z → tt)
   ; fnot∅ = _>> λ H → ∃A >> λ (x , x∈A) → H x x∈A
   ; finteresect = λ{B}{C} → _>> λ A⊆B
-                → _>> λ A⊆C → intro λ a a∈A → A⊆B a a∈A , A⊆C a a∈A
+                          → _>> λ A⊆C → intro λ a a∈A → A⊆B a a∈A , A⊆C a a∈A
   ; fax = λ{B}{C} B⊆C → _>> λ A⊆B → intro λ x z → B⊆C x (A⊆B x z)
   }
 
