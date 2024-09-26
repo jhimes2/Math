@@ -462,6 +462,7 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
 
   -- https://en.wikipedia.org/wiki/Generating_set_of_a_group
  data generating (X : A → Type l) : A → Type (al ⊔ l) where
+  gen-e : e ∈ generating X
   gen-intro : ∀ {x} → x ∈ X → x ∈ generating X
   gen-inv : ∀{y} → y ∈ generating X → inv y ∈ generating X
   gen-op : ∀{y z} → y ∈ generating X → z ∈ generating X → y ∙ z ∈ generating X
@@ -478,22 +479,15 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
   cyclicOverload : Generating A al
   cyclicOverload = record { ⟨_⟩ = λ x → ⟨ (λ y → y ≡ x) ⟩ }
 
- -- Non-empty generating set is a subgroup
- generatingIsSubgroup : (X : A → Type l) → Σ X → Subgroup ⟨ X ⟩
- generatingIsSubgroup X (x , H) = record
+ -- Generating set is a subgroup
+ generatingIsSubgroup : (X : A → Type l) → Subgroup ⟨ X ⟩
+ generatingIsSubgroup X = record
    { SGSM = record
-     { id-closed = [wts e ∈ ⟨ X ⟩ ] subst ⟨ X ⟩ (lInverse x)
-                 $ [wts inv x ∙ x ∈ ⟨ X ⟩ ] gen-op
-                   (  [wts inv x ∈ ⟨ X ⟩ ] gen-inv
-                    $ [wts x ∈ ⟨ X ⟩ ] gen-intro H)
-                   (  [wts x ∈ ⟨ X ⟩ ] gen-intro H)
+     { id-closed = gen-e
      ; op-closed = gen-op
      }
    ; inv-closed = gen-inv
    }
-
- cyclicIsSubGroup : (x : A) → Subgroup ⟨ x ⟩
- cyclicIsSubGroup x = generatingIsSubgroup (λ z → z ≡ x) (x , refl)
 
  module _{B : Type bl}{_*_ : B → B → B}{{H : group _*_}} where
 
