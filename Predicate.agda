@@ -47,11 +47,6 @@ DeMorgan5 f x p = f (x , p)
 DeMorgan6 : {P : A → Type l} → (∀ a → a ∉ P) → ¬ Σ P
 DeMorgan6 f (a , p) = f a p
 
--- Implicit membership
-_∊_ : A → (A → Type l) → Type l
-x ∊ X = implicit (x ∈ X)
-infixr 5 _∊_
-
 -- Full predicate
 𝓤 : A → Type l
 𝓤 = λ _ → Lift ⊤
