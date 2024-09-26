@@ -409,3 +409,21 @@ instance
                                → substP x (sym u) q >> λ(v , w , x) → w)
                          λ()
 
+
+record Filter{X : set l}(ℬ : ℙ(ℙ X)) : set l where
+ field
+  ffull : 𝓤 ∈ ℬ
+  fnot∅ : ∅ ∉ ℬ
+  finteresect : ∀{A B} → A ∈ ℬ → B ∈ ℬ → (A ∩ B) ∈ ℬ
+  fax : ∀{A B} → A ⊆ B → A ∈ ℬ → B ∈ ℬ
+open Filter {{...}} public
+
+module _{X : set l}(ℬ : ℙ(ℙ X)){{filter : Filter ℬ}} where
+ fNonEmpty : ∥ X ∥₁
+ fNonEmpty with lem ∥ X ∥₁ squash₁
+ ... | inl p = p
+ ... | inr p =
+   let H : 𝓤 ≡ ∅
+       H = funExt λ(x : X) → UNREACHABLE (p ∣ x ∣₁) in
+        UNREACHABLE (fnot∅ (subst ℬ H ffull))
+ 
