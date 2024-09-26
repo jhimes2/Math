@@ -428,6 +428,18 @@ module _{X : set l}(ℬ : ℙ(ℙ X)){{filter : Filter ℬ}} where
        H = funExt λ(x : X) → UNREACHABLE (p ∣ x ∣₁) in
         UNREACHABLE (fnot∅ (subst ℬ H ffull))
  
+trivialFilter : {X : set l}
+              → ∥ X ∥₁
+              → Filter λ(Y : ℙ X) → ∥ 𝓤 ⊆ Y ∥
+trivialFilter {X} ∥X∥₁ = record
+  { ffull = intro (λ x z → z)
+  ; fnot∅ = _>> λ H → rec squash (λ z → H z tt) ∥X∥₁
+  ; finteresect = λ{B}{C} → _>> λ 𝓤⊆B
+                          → _>> λ 𝓤⊆C
+                          → intro λ x z → 𝓤⊆B x z , 𝓤⊆C x z
+  ; fax = λ{B}{C} A⊆B → _>> λ 𝓤⊆B → intro λ x z → A⊆B x (𝓤⊆B x z)
+  }
+
 principalFilter : {X : set l}
                 → (A : ℙ X)
                 → ∃ A
