@@ -408,7 +408,8 @@ instance
                                → r >> λ(s , t , u)
                                → substP x (sym u) q >> λ(v , w , x) → w)
                          λ()
-
+X⊆∅→X≡∅ : {X : ℙ A} → X ⊆ ∅ → X ≡ ∅
+X⊆∅→X≡∅ {X} H = funExt λ x → propExt (λ x∈X → H x x∈X) λ ()
 
 record Filter{X : set l}(ℬ : ℙ(ℙ X)) : set l where
  field
@@ -427,3 +428,15 @@ module _{X : set l}(ℬ : ℙ(ℙ X)){{filter : Filter ℬ}} where
        H = funExt λ(x : X) → UNREACHABLE (p ∣ x ∣₁) in
         UNREACHABLE (fnot∅ (subst ℬ H ffull))
  
+principalFilter : {X : set l}
+                → (A : ℙ X)
+                → ∃ A
+                → Filter λ(Y : ℙ X) → ∥ A ⊆ Y ∥
+principalFilter {X} A ∃A = record
+  { ffull = intro (λ x z → tt)
+  ; fnot∅ = _>> λ H → ∃A >> λ (x , x∈A) → H x x∈A
+  ; finteresect = λ{B}{C} → _>> λ A⊆B
+                → _>> λ A⊆C → intro λ a a∈A → A⊆B a a∈A , A⊆C a a∈A
+  ; fax = λ{B}{C} B⊆C → _>> λ A⊆B → intro λ x z → B⊆C x (A⊆B x z)
+  }
+
