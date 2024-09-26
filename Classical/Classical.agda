@@ -65,21 +65,6 @@ id x = x
 _∘_ : (B → C) → (A → B) → (A → C)
 _∘_ f g x = f (g x) 
 
--- Propositional Extensionality
-propExt' : isProp A → isProp B → (A → B) → (B → A) → A ≡ B
-propExt' pA pB ab ba = isoToPath (iso ab ba (λ b → pB (ab (ba b)) b) λ a → pA (ba (ab a)) a)
-  where open import Cubical.Foundations.Isomorphism
-
-LEM : (A : Prop) → A ＋ (¬ A)
-LEM A = lem A squash
-
-propExt : {A B : Prop} → (A → B) → (B → A) → A ≡ B
-propExt = propExt' squash squash
-
-_×_ : Type l → Type l' → Type (l ⊔ l')
-A × B = Σ λ(_ : A) → B
-infixr 5 _×_
-
 -- Modus ponens operator
 -- Equivalent to the pipe operator `|>` in F#
 _|>_ : A → (A → B) → B
@@ -91,6 +76,22 @@ infixl 0 _|>_
 _$_ : (A → B) → A → B
 f $ a = f a
 infixr 0 _$_
+
+-- Propositional Extensionality
+propExt' : isProp A → isProp B → (A → B) → (B → A) → A ≡ B
+propExt' pA pB ab ba = isoToPath $ iso ab ba (λ b → pB (ab (ba b)) b)
+                                              λ a → pA (ba (ab a)) a
+  where open import Cubical.Foundations.Isomorphism
+
+LEM : (A : Prop) → A ＋ (¬ A)
+LEM A = lem A squash
+
+propExt : {A B : Prop} → (A → B) → (B → A) → A ≡ B
+propExt = propExt' squash squash
+
+_×_ : Type l → Type l' → Type (l ⊔ l')
+A × B = Σ λ(_ : A) → B
+infixr 5 _×_
 
 ∃ : {A : Type l} → (A → Type l') → Prop
 ∃ P = ∥ Σ P ∥
@@ -383,33 +384,35 @@ Pair A B X = ∥ (X ≡ A) ＋ (X ≡ B) ∥
 --
 --     (⋂ X)ᶜ ≡ ⋃ {a | aᶜ ∈ X}
 [⋂X]ᶜ≡⋃Xᶜ : (X : ℙ(ℙ A)) → (⋂ X)ᶜ ≡ ⋃ λ a → a ᶜ ∈ X
-[⋂X]ᶜ≡⋃Xᶜ X = funExt λ x → propExt (λ a →
-      ⋂lemma a >> λ(Y , Y∈X , x∉Y) → η $ Y ᶜ , x∉Y , ([wts (Y ᶜ)ᶜ ∈ X ] subst X (sym dblCompl) Y∈X))
-      (_>> λ(Y , x∈Y , Yᶜ∈X) → _>> λ x∈⋂X → x∈⋂X (Y ᶜ) Yᶜ∈X x∈Y)
+[⋂X]ᶜ≡⋃Xᶜ X = funExt λ x
+            → propExt (λ a → ⋂lemma a >> λ(Y , Y∈X , x∉Y) → η $ Y ᶜ
+                                                          , x∉Y
+                                                          , subst X (sym dblCompl) Y∈X)
+                      (_>> λ(Y , x∈Y , Yᶜ∈X) → _>> λ x∈⋂X → x∈⋂X (Y ᶜ) Yᶜ∈X x∈Y)
 
 cover : {A : Type al} (X : ℙ (ℙ A)) → Type al
 cover X = ∀ x → x ∈ ⋃ X
 
 [X∩Y]ᶜ≡Xᶜ∪Yᶜ : (X Y : ℙ A) → (X ∩ Y)ᶜ ≡ X ᶜ ∪ Y ᶜ
 [X∩Y]ᶜ≡Xᶜ∪Yᶜ X Y = funExt
- λ x → propExt (λ x∉X∩Y → LEM (x ∈ Y) |> λ{ (inl x∈Y) → η (inl (λ x∈X → x∉X∩Y (x∈X , x∈Y)))
-                                          ; (inr x∉Y) → η (inr (λ x∈Y →  x∉Y x∈Y)) })
+ λ x → propExt (λ x∉X∩Y → LEM (x ∈ Y) |> λ{ (inl x∈Y) → η $ inl λ x∈X → x∉X∩Y (x∈X , x∈Y)
+                                          ; (inr x∉Y) → η $ inr λ x∈Y →  x∉Y x∈Y })
                (_>> λ{ (inl x∉X) → λ (x∈X , x∈Y) → x∉X x∈X
                      ; (inr x∉Y) → λ (x∈X , x∈Y) → x∉Y x∈Y })
 
 [X∪Y]ᶜ≡Xᶜ∩Yᶜ : (X Y : ℙ A) → (X ∪ Y)ᶜ ≡ X ᶜ ∩ Y ᶜ
 [X∪Y]ᶜ≡Xᶜ∩Yᶜ X Y = funExt
- λ x → propExt (λ x∉X∪Y → (λ x∈X → x∉X∪Y (η (inl x∈X)))
-                         , λ x∈Y → x∉X∪Y (η (inr x∈Y)))
+ λ x → propExt (λ x∉X∪Y → (λ x∈X → x∉X∪Y $ η $ inl x∈X)
+                         , λ x∈Y → x∉X∪Y $ η $ inr x∈Y)
                 λ (x∉X , x∉Y) → _>> λ{ (inl x∈X) → x∉X x∈X
                                      ; (inr x∈Y) → x∉Y x∈Y }
 
 ∪preimage : {A : Type l}{B : Type l'} (X : ℙ(ℙ B)) → (f : A → B)
           → f ⁻¹[ ⋃ X ] ≡ ⋃ (map (f ⁻¹[_]) X)
 ∪preimage X f = funExt λ z → propExt (_>> λ(G , (fz∈G) , X∈G)
-   → η ((f ⁻¹[ G ]) , fz∈G , η (G , X∈G , refl)))
-   (_>> λ(Y , z∈Y , Q) → Q >> λ(h , h∈X , Y≡f⁻¹[h]) → η (h , ([wts z ∈ f ⁻¹[ h ] ]
-     substP z (sym Y≡f⁻¹[h]) z∈Y) , h∈X))
+   → η $ f ⁻¹[ G ] , fz∈G , η (G , X∈G , refl))
+   $ _>> λ(Y , z∈Y , Q) → Q >> λ(h , h∈X , Y≡f⁻¹[h])
+                               → η $ h , (substP z (sym Y≡f⁻¹[h]) z∈Y) , h∈X
 
 <*>∅≡∅ : {A B : Type (lsuc l)}
         → (P : ℙ (A → B))
