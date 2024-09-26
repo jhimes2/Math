@@ -420,6 +420,7 @@ record Filter{X : set l}(ℬ : ℙ(ℙ X)) : set l where
 open Filter {{...}} public
 
 module _{X : set l}(ℬ : ℙ(ℙ X)){{filter : Filter ℬ}} where
+ -- Underlying set for a filter is never empty
  fNonEmpty : ∥ X ∥₁
  fNonEmpty with lem ∥ X ∥₁ squash₁
  ... | inl p = p
@@ -455,9 +456,17 @@ principalFilter {X} A ∃A = record
 record Ideal{X : set l}(ℬ : ℙ(ℙ X)) : set l where
  field
   iempty : ∅ ∈ ℬ
-  inotfill : 𝓤 ∉ ℬ
+  inotfull : 𝓤 ∉ ℬ
   iuniont : ∀{A B} → A ∈ ℬ → B ∈ ℬ → (A ∪ B) ∈ ℬ
   iax : ∀{A B} → A ⊆ B → B ∈ ℬ → A ∈ ℬ
 open Ideal {{...}} public
 
-
+module _{X : set l}(ℬ : ℙ(ℙ X)){{ideal : Ideal ℬ}} where
+ -- Underlying set for an ideal is never empty
+ iNonEmpty : ∥ X ∥₁
+ iNonEmpty with lem ∥ X ∥₁ squash₁
+ ... | inl p = p
+ ... | inr p =
+   let H : 𝓤 ≡ ∅
+       H = funExt λ(x : X) → UNREACHABLE (p ∣ x ∣₁) in
+        UNREACHABLE (inotfull (subst ℬ (sym H) iempty))
