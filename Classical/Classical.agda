@@ -323,6 +323,13 @@ Pair A B X = ∥ (X ≡ A) ＋ (X ≡ B) ∥
 cover : {A : Type al} (X : ℙ (ℙ A)) → Type al
 cover X = ∀ x → x ∈ ⋃ X
 
+[X∩Y]ᶜ≡Xᶜ∪Yᶜ : (X Y : ℙ A) → (X ∩ Y)ᶜ ≡ X ᶜ ∪ Y ᶜ
+[X∩Y]ᶜ≡Xᶜ∪Yᶜ X Y = funExt
+ λ x → propExt (λ x∈[X∩Y]ᶜ → LEM (x ∈ Y) |> λ{ (inl p) → intro (inl (λ x∈X → x∈[X∩Y]ᶜ (x∈X , p)))
+                                              ; (inr p) → intro (inr (λ x∈Y → p x∈Y)) })
+               (_>> λ{ (inl p) → λ (x∈X , x∈Y) → p x∈X
+                     ; (inr p) → λ (x∈X , x∈Y) → p x∈Y })
+
 -- https://en.wikipedia.org/wiki/Functor_(functional_programming)
 record Functor {ρ : Level → Level}(F : ∀{l} → Type l → Type (ρ l)) : Typeω  where
   field
@@ -408,8 +415,12 @@ instance
                                → r >> λ(s , t , u)
                                → substP x (sym u) q >> λ(v , w , x) → w)
                          λ()
+
 X⊆∅→X≡∅ : {X : ℙ A} → X ⊆ ∅ → X ≡ ∅
 X⊆∅→X≡∅ {X} H = funExt λ x → propExt (λ x∈X → H x x∈X) λ ()
+
+∅ᶜ≡𝓤 : ∅ ᶜ ≡ 𝓤 {A = A}
+∅ᶜ≡𝓤 = funExt λ x → propExt (λ z → tt) λ z → id
 
 record Filter{X : set l}(ℬ : ℙ(ℙ X)) : set l where
  field
