@@ -430,6 +430,14 @@ record Filter{X : set l}(ℬ : ℙ(ℙ X)) : set l where
   fax : ∀{A B} → A ⊆ B → A ∈ ℬ → B ∈ ℬ
 open Filter {{...}} public
 
+record Ideal{X : set l}(ℬ : ℙ(ℙ X)) : set l where
+ field
+  iempty : ∅ ∈ ℬ
+  inotfull : 𝓤 ∉ ℬ
+  iunion : ∀{A B} → A ∈ ℬ → B ∈ ℬ → (A ∪ B) ∈ ℬ
+  iax : ∀{A B} → A ⊆ B → B ∈ ℬ → A ∈ ℬ
+open Ideal {{...}} public
+
 module _{X : set l}(ℬ : ℙ(ℙ X)){{filter : Filter ℬ}} where
  -- Underlying set for a filter is never empty
  fNonEmpty : ∥ X ∥₁
@@ -463,14 +471,6 @@ principalFilter {X} A ∃A = record
                 → _>> λ A⊆C → intro λ a a∈A → A⊆B a a∈A , A⊆C a a∈A
   ; fax = λ{B}{C} B⊆C → _>> λ A⊆B → intro λ x z → B⊆C x (A⊆B x z)
   }
-
-record Ideal{X : set l}(ℬ : ℙ(ℙ X)) : set l where
- field
-  iempty : ∅ ∈ ℬ
-  inotfull : 𝓤 ∉ ℬ
-  iunion : ∀{A B} → A ∈ ℬ → B ∈ ℬ → (A ∪ B) ∈ ℬ
-  iax : ∀{A B} → A ⊆ B → B ∈ ℬ → A ∈ ℬ
-open Ideal {{...}} public
 
 module _{X : set l}(ℬ : ℙ(ℙ X)){{ideal : Ideal ℬ}} where
  -- Underlying set for an ideal is never empty
