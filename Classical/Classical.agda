@@ -482,6 +482,14 @@ module _{X : set l}(ℬ : ℙ(ℙ X)){{ideal : Ideal ℬ}} where
        H = funExt λ(x : X) → UNREACHABLE (p ∣ x ∣₁) in
         UNREACHABLE (inotfull (subst ℬ (sym H) iempty))
 
+ IdealᶜIsFilter : Filter λ Y → Y ᶜ ∈ ℬ
+ IdealᶜIsFilter = record
+  { ffull = iax (λ x z → z tt) iempty
+  ; fnot∅ = λ x → inotfull (subst ℬ ∅ᶜ≡𝓤 x)
+  ; finteresect = λ{A}{B} Aᶜ∈ℬ Bᶜ∈ℬ → subst ℬ (sym ([X∩Y]ᶜ≡Xᶜ∪Yᶜ A B)) (iunion Aᶜ∈ℬ Bᶜ∈ℬ)
+  ; fax = λ{A}{B} A⊆B Aᶜ∈ℬ → iax (λ x x∈Bᶜ x∈A → x∈Bᶜ (A⊆B x x∈A)) Aᶜ∈ℬ
+  }
+
 principalIdeal : {X : set l}
                → (A : ℙ X)
                → ∃ (λ x → x ∉ A)
