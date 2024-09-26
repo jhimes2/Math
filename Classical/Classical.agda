@@ -453,6 +453,14 @@ module _{X : set l}(ℬ : ℙ(ℙ X)){{filter : Filter ℬ}} where
    let H : 𝓤 ≡ ∅
        H = funExt λ(x : X) → UNREACHABLE (p ∣ x ∣₁) in
         UNREACHABLE (fnot∅ (subst ℬ H ffull))
+ 
+ FilterᶜIsIdeal : Ideal λ Y → Y ᶜ ∈ ℬ
+ FilterᶜIsIdeal = record
+  { iempty = subst ℬ (sym ∅ᶜ≡𝓤) ffull
+  ; inotfull = λ x → fnot∅ (fax (λ y y∈𝓤ᶜ → y∈𝓤ᶜ tt) x)
+  ; iunion = λ{A}{B} Aᶜ∈ℬ Bᶜ∈ℬ → subst ℬ (sym ([X∪Y]ᶜ≡Xᶜ∩Yᶜ A B)) (finteresect Aᶜ∈ℬ Bᶜ∈ℬ)
+  ; iax = λ {A} {B} A⊆B → fax λ x x∉B x∈A → x∉B (A⊆B x x∈A)
+  }
 
 trivialFilter : {X : set l}
               → ∥ X ∥₁
@@ -462,7 +470,7 @@ trivialFilter {X} ∥X∥₁ = record
   ; fnot∅ = _>> λ H → rec squash (λ z → H z tt) ∥X∥₁
   ; finteresect = λ{B}{C} → _>> λ 𝓤⊆B
                           → _>> λ 𝓤⊆C
-                          → intro λ x z → 𝓤⊆B x z , 𝓤⊆C x z
+                          → intro λ x x∈𝓤 → 𝓤⊆B x x∈𝓤 , 𝓤⊆C x x∈𝓤
   ; fax = λ{B}{C} A⊆B → _>> λ 𝓤⊆B → intro λ x z → A⊆B x (𝓤⊆B x z)
   }
 
@@ -471,11 +479,11 @@ principalFilter : {X : set l}
                 → ∃ A
                 → Filter λ(Y : ℙ X) → ∥ A ⊆ Y ∥
 principalFilter {X} A ∃A = record
-  { ffull = intro (λ x z → tt)
+  { ffull = intro (λ _ _ → tt)
   ; fnot∅ = _>> λ H → ∃A >> λ (x , x∈A) → H x x∈A
   ; finteresect = λ{B}{C} → _>> λ A⊆B
                           → _>> λ A⊆C → intro λ a a∈A → A⊆B a a∈A , A⊆C a a∈A
-  ; fax = λ{B}{C} B⊆C → _>> λ A⊆B → intro λ x z → B⊆C x (A⊆B x z)
+  ; fax = λ{B}{C} B⊆C → _>> λ A⊆B → intro λ x x∈A → B⊆C x (A⊆B x x∈A)
   }
 
 module _{X : set l}(ℬ : ℙ(ℙ X)){{ideal : Ideal ℬ}} where
@@ -507,5 +515,5 @@ principalIdeal {X} A ∃¬A = record
                     → _>> λ C⊆A
                     → intro (λ x → _>> λ{ (inl x∈B) → B⊆A x x∈B
                                         ; (inr x∈C) → C⊆A x x∈C}) 
- ; iax = λ{B}{C} B⊆C → _>> λ C⊆A → intro λ x z → C⊆A x (B⊆C x z)
+ ; iax = λ{B}{C} B⊆C → _>> λ C⊆A → intro λ x x∈B → C⊆A x (B⊆C x x∈B)
  }
