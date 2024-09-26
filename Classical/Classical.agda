@@ -452,3 +452,12 @@ principalFilter {X} A ∃A = record
   ; fax = λ{B}{C} B⊆C → _>> λ A⊆B → intro λ x z → B⊆C x (A⊆B x z)
   }
 
+record Ideal{X : set l}(ℬ : ℙ(ℙ X)) : set l where
+ field
+  iempty : ∅ ∈ ℬ
+  inotfill : 𝓤 ∉ ℬ
+  iuniont : ∀{A B} → A ∈ ℬ → B ∈ ℬ → (A ∪ B) ∈ ℬ
+  iax : ∀{A B} → A ⊆ B → B ∈ ℬ → A ∈ ℬ
+open Ideal {{...}} public
+
+
