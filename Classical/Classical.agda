@@ -457,7 +457,7 @@ record Ideal{X : set l}(ℬ : ℙ(ℙ X)) : set l where
  field
   iempty : ∅ ∈ ℬ
   inotfull : 𝓤 ∉ ℬ
-  iuniont : ∀{A B} → A ∈ ℬ → B ∈ ℬ → (A ∪ B) ∈ ℬ
+  iunion : ∀{A B} → A ∈ ℬ → B ∈ ℬ → (A ∪ B) ∈ ℬ
   iax : ∀{A B} → A ⊆ B → B ∈ ℬ → A ∈ ℬ
 open Ideal {{...}} public
 
@@ -470,3 +470,17 @@ module _{X : set l}(ℬ : ℙ(ℙ X)){{ideal : Ideal ℬ}} where
    let H : 𝓤 ≡ ∅
        H = funExt λ(x : X) → UNREACHABLE (p ∣ x ∣₁) in
         UNREACHABLE (inotfull (subst ℬ (sym H) iempty))
+
+principalIdeal : {X : set l}
+               → (A : ℙ X)
+               → ∃ (λ x → x ∉ A)
+               → Ideal λ(Y : ℙ X) → ∥ Y ⊆ A ∥
+principalIdeal {X} A ∃¬A = record
+ { iempty = intro λ x → λ ()
+ ; inotfull = _>> λ 𝓤⊆A → ∃¬A >> λ(x , x∉A) → x∉A (𝓤⊆A x tt)
+ ; iunion = λ{B}{C} → _>> λ B⊆A
+                    → _>> λ C⊆A
+                    → intro (λ x → _>> λ{ (inl x∈B) → B⊆A x x∈B
+                                        ; (inr x∈C) → C⊆A x x∈C}) 
+ ; iax = λ{B}{C} B⊆C → _>> λ C⊆A → intro λ x z → C⊆A x (B⊆C x z)
+ }
