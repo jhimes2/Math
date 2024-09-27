@@ -83,20 +83,21 @@ module _{_∙_ : A → A → A}{{_ : Commutative _∙_}}
 
 instance
  -- Bijective composition is associative if the underlying type is a set
- bijectiveCompAssoc : {{_ : is-set A}} → Semigroup (≅transitive {A = A})
+ bijectiveCompAssoc : {{is-set A}} → Semigroup (≅transitive {A = A})
  bijectiveCompAssoc = record { assoc =
    λ{(f , Finj , Fsurj) (g , Ginj , Gsurj) (h , Hinj , Hsurj)
    → ΣPathPProp bijectiveProp refl} }
 
-module _{_∙_ : A → A → A}
-        {_*_ : B → B → B}
-        {h : A → B} where
+module _{_∙_ : A → A → A}{{sg : Semigroup _∙_}} where
+
  {- If `h` is a surjective function such that
        (∀ x y, h (x ∙ y) ≡ h x * h y),
     and if _∙_ is associative, then _*_ is associative. -}
- EpimorphismCodomainAssoc :{{H : Semigroup _∙_}}{{E : Epimorphism _∙_ _*_ h}}
+ EpimorphismCodomainAssoc : {_*_ : B → B → B}
+                          → {h : A → B}
+                          → {{E : Epimorphism _∙_ _*_ h}}
                           → Semigroup _*_
- EpimorphismCodomainAssoc = record
+ EpimorphismCodomainAssoc {_*_} {h} = record
       { assoc = λ a b c → rec3 (IsSet (a * (b * c)) ((a * b) * c))
                                (λ(a' , H)
                                  (b' , G)
@@ -115,6 +116,11 @@ module _{_∙_ : A → A → A}
                                (surject c)
       }
 
+ instance
+  -- If (A, _∙_) is a curried semigroup, then _∙_ is a homomorphism from (A, _∙_) to ((A → A), _∘_)
+  curryHomo : Homomorphism _∙_ _∘_ _∙_
+  curryHomo = record { preserve = λ u v → funExt λ x → sym (assoc u v x) }
+
 instance
  ∪assoc : Semigroup (_∪_ {A = A} {l})
  ∪assoc = record { assoc = λ X Y Z → funExt λ x →
@@ -132,3 +138,4 @@ instance
                                                             (λ((a , b), c) → a , b , c)
                                                             (λ b → refl)
                                                              λ b → refl) }
+     
