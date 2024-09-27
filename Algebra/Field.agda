@@ -6,7 +6,7 @@ open import Prelude
 open import Algebra.CRing public
 
 -- https://en.wikipedia.org/wiki/Field_(mathematics)
-record Field (A : Type l) : Type (lsuc l) where
+record Field (A : Type l) : Type l where
   field
     {{fring}} : CRing A
     1≢0 : 1r ≢ 0r

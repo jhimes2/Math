@@ -8,7 +8,7 @@ open import Cubical.Foundations.HLevels
 open import Cubical.HITs.PropositionalTruncation renaming (rec to recTrunc ; map to mapTrunc)
 
 -- https://en.wikipedia.org/wiki/Monoid
-record monoid {A : Type l}(_∙_ : A → A → A) : Type(lsuc l) where
+record monoid {A : Type l}(_∙_ : A → A → A) : Type l where
   field
       e : A
       lIdentity : (a : A) → e ∙ a ≡ a
@@ -159,7 +159,6 @@ module _{A : Type al}{_∙_ : A → A → A}{{M : monoid _∙_}} where
                 ; act-compatibility = λ x y z → assoc y z x
                 }
 
-
    EpimorphismCodomainMonoid : {h : A → B}
                              → {_*_ : B → B → B}
                              → {{is-set B}}
@@ -189,22 +188,21 @@ module _{A : Type al}{_∙_ : A → A → A}{{M : monoid _∙_}} where
     curryMono : Monomorphism _∙_ _∘_ _∙_
     curryMono = record { inject = λ x y H → let G : ∀ a → x ∙ a ≡ y ∙ a
                                                 G = funRed H in
-                                            x ≡⟨ sym (rIdentity x) ⟩
+                                            x     ≡⟨ sym (rIdentity x) ⟩
                                             x ∙ e ≡⟨ G e ⟩
                                             y ∙ e ≡⟨ rIdentity y ⟩
                                             y ∎
                        }
 
-
 module _{A : Type al}{_∙_ : A → A → A}
         {B : Type bl}{_*_ : B → B → B}{{H : monoid _*_}} where
+
   Kernel : (h : A → B) → {{_ : Homomorphism _∙_ _*_ h}} → A → Type bl
   Kernel h u = h u ≡ e
 
   instance
     property : {h : A → B} → {{_ : Homomorphism _∙_ _*_ h}} → Property (Kernel h)
     property {h} = record { setProp = λ x → IsSet (h x) e }
-
 
 ∘monoid : {{is-set A}} → monoid (_∘_ {A = A})
 ∘monoid = record { e = id ; lIdentity = λ x → refl ; rIdentity = λ x → refl }

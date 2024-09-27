@@ -11,7 +11,7 @@ open import Cubical.HITs.SetQuotients renaming (rec to rec/)
 open import Cubical.HITs.PropositionalTruncation renaming (rec to recTrunc ; map to mapTrunc)
 
 -- https://en.wikipedia.org/wiki/Group_(mathematics)
-record group {A : Type l}(_∙_ : A → A → A) : Type(lsuc l) where
+record group {A : Type l}(_∙_ : A → A → A) : Type l where
   field
       e : A
       inverse : (a : A) → Σ λ(b : A) → b ∙ a ≡ e

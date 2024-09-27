@@ -11,7 +11,7 @@ open import Cubical.Foundations.HLevels
 open import Cubical.HITs.PropositionalTruncation renaming (rec to truncRec)
 
 -- https://en.wikipedia.org/wiki/Vector_space
-VectorSpace : {scalar : Type l} → {{F : Field scalar}} → (vector : Type l') → Type (lsuc (l ⊔ l'))
+VectorSpace : {scalar : Type l} → {{F : Field scalar}} → (vector : Type l') → Type (l ⊔ l')
 VectorSpace vector = Module vector
 
 module _{scalar : Type l}{{F : Field scalar}}{vector : Type l'}{{V : VectorSpace vector}} where
@@ -20,7 +20,7 @@ module _{scalar : Type l}{{F : Field scalar}}{vector : Type l'}{{V : VectorSpace
 
     -- https://en.wikipedia.org/wiki/Linear_map
     -- A linear map is a module homomorphism whose underlying module is a vector space.
-    LinearMap : (T : vector' → vector) → Type (l ⊔ lsuc(l' ⊔ al))
+    LinearMap : (T : vector' → vector) → Type (l ⊔ l' ⊔ lsuc al)
     LinearMap T = moduleHomomorphism T
 
 instance
@@ -34,7 +34,7 @@ instance
       ; scaleId = lIdentity
       }
 
-linearForm : {A : Type l}{vector : Type l'}{{F : Field A}}(VS : VectorSpace vector) → Type (lsuc(l ⊔ l'))
+linearForm : {A : Type l}{vector : Type l'}{{F : Field A}}(VS : VectorSpace vector) → Type (l ⊔ lsuc l')
 linearForm {A = A} {vector} {{F}} VS = Σ λ(T : vector → A) → LinearMap T
   where
    instance

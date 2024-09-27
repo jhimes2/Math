@@ -6,7 +6,7 @@ open import Prelude
 open import Algebra.Rng public
 
 -- https://en.wikipedia.org/wiki/Ring_(mathematics)
-record Ring (A : Type l) : Type (lsuc l) where
+record Ring (A : Type l) : Type l where
   field
     {{rngring}} : Rng A
     {{multStr}} : monoid _*_
@@ -15,7 +15,7 @@ open Ring {{...}} public
 module _{A : Type l}{{R : Ring A}} where
 
  -- https://en.wikipedia.org/wiki/Subring
- record Subring(H : A → Type l') : Type(lsuc (l ⊔ l')) where
+ record Subring(H : A → Type l') : Type (l ⊔ l') where
   field
    {{ringSG}} : Subgroup H
    {{ringSM}} : Submonoid H _*_
@@ -23,7 +23,7 @@ module _{A : Type l}{{R : Ring A}} where
  
 
  -- https://en.wikipedia.org/wiki/Ideal_(ring_theory)
- record Ideal(I : A → Type l') : Type(lsuc (l ⊔ l')) where
+ record Ideal(I : A → Type l') : Type (l ⊔ l') where
   field
    {{subgrpIdeal}} : Subgroup I
    *-in : (r x : A) → I x → I (r * x)

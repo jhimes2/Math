@@ -14,7 +14,7 @@ open import Cubical.HITs.PropositionalTruncation renaming (rec to truncRec)
 
 -- https://en.wikipedia.org/wiki/Module_(mathematics)
 -- Try not to confuse 'Module' with Agda's built-in 'module' keyword.
-record Module {scalar : Type l} {{R : Ring scalar}} (member : Type l') : Type (lsuc (l ⊔ l')) where
+record Module {scalar : Type l} {{R : Ring scalar}} (member : Type l') : Type (l ⊔ l') where
   field
     _<+>_ : member → member → member
     {{addvStr}} : group _<+>_
@@ -181,7 +181,7 @@ module _{scalar : Type l}{member : Type l'}{{R : Ring scalar}}{{V : Module membe
   SpanX-Ô→SpanX _ (spanStep {u} {v} x y c) = spanStep (fst x) (SpanX-Ô→SpanX v y) c
   SpanX-Ô→SpanX v (spanSet x y i) = spanSet (SpanX-Ô→SpanX v x) (SpanX-Ô→SpanX v y) i
 
-  record Submodule (X : member → Type al) : Type (lsuc (al ⊔ l ⊔ l'))
+  record Submodule (X : member → Type al) : Type (al ⊔ l ⊔ l')
     where field
         ssZero : Ô ∈ X 
         ssAdd : {v u : member} → v ∈ X → u ∈ X → v <+> u ∈ X
@@ -244,7 +244,7 @@ module _{scalar : Type l}{member : Type l'}{{R : Ring scalar}}{{V : Module membe
              }
 
   -- https://en.wikipedia.org/wiki/Linear_independence
-  record LinearlyIndependent (X : member → Type al) : Type (lsuc (l ⊔ l' ⊔ al))
+  record LinearlyIndependent (X : member → Type al) : Type (l ⊔ l' ⊔ lsuc al)
    where field
      li : (Y : member → Type al) → Span X ⊆ Span Y → Y ⊆ X → X ⊆ Y
      {{liProp}} : Property X
@@ -253,7 +253,7 @@ module _{scalar : Type l}{member : Type l'}{{R : Ring scalar}}{{V : Module membe
   -- https://en.wikipedia.org/wiki/Basis_(linear_algebra)
   -- In this program, a basis is defined as a maximal element of the family of linearly independent sets
   -- by the order of set inclusion.
-  Basis : Σ (LinearlyIndependent {al = al}) → Type(lsuc (l ⊔ l' ⊔ al))
+  Basis : Σ (LinearlyIndependent {al = al}) → Type(l ⊔ l' ⊔ lsuc al)
   Basis X = (Y : Σ LinearlyIndependent) → X ⊆ Y → Y ⊆ X
 
   completeSpan : (X : member → Type(l ⊔ l')) {{LI : LinearlyIndependent X}} → (∀ v → v ∈ Span X) → Basis (X , LI)
@@ -270,7 +270,7 @@ record moduleHomomorphism {A : Type l}
                           {<U> : Type al}
                          {{V : Module <V>}}
                          {{U : Module <U>}}
-                          (T : <U> → <V>) : Type (l ⊔ lsuc(l' ⊔ al))
+                          (T : <U> → <V>) : Type (l ⊔ l' ⊔ lsuc al)
   where field
   {{addT}} : Homomorphism _<+>_ _<+>_ T
   multT : ∀ u → (c : A) → T (c *> u) ≡ c *> T u
@@ -381,7 +381,7 @@ module _ {A : Type l}  {{CR : CRing A}}
          {X : Type cl} {{X' : Module X}} where
 
  -- https://en.wikipedia.org/wiki/Bilinear_map
- record Bilinear (B : V → W → X) : Type (l ⊔ lsuc (al ⊔ bl ⊔ cl)) where
+ record Bilinear (B : V → W → X) : Type (l ⊔ lsuc (al ⊔ bl) ⊔ cl) where
   field      
    lLinear : (v : V) → moduleHomomorphism (B v)
    rLinear : (w : W) → moduleHomomorphism (λ x → B x w)

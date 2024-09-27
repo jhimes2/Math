@@ -7,7 +7,7 @@ open import Algebra.Group public
 open import Algebra.MultAdd public
 
 -- https://en.wikipedia.org/wiki/Rng_(algebra)
-record Rng (A : Type l) : Type (lsuc l) where
+record Rng (A : Type l) : Type l where
   field
     {{rng*+}} : *+ A
     {{raddStr}} : group _+_

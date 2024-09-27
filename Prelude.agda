@@ -281,7 +281,7 @@ propTruncExt ab ba = propExt squash₁ squash₁ (map ab) (map ba)
 funRed : {f g : A → B} → f ≡ g → (x : A) → f x ≡ g x
 funRed p x i = p i x
 
-record Commutative {A : Type l}{B : Type l'}(_∙_ : A → A → B) : Type(lsuc (l ⊔ l')) where
+record Commutative {A : Type l}{B : Type l'}(_∙_ : A → A → B) : Type(l ⊔ l') where
   field
     comm : (a b : A) → a ∙ b ≡ b ∙ a
 open Commutative {{...}} public
@@ -354,20 +354,20 @@ module _{A : Type al}(_∙_ : A → A → A)
    preserve : (u v : A) → h (u ∙ v) ≡ h u * h v
  open Homomorphism {{...}} public
 
- record Monomorphism : Type (lsuc(al ⊔ bl))
+ record Monomorphism : Type (al ⊔ bl)
   where field
    {{mono-preserve}} : Homomorphism
    inject : injective h
  open Monomorphism {{...}} public
 
- record Epimorphism : Type (lsuc(al ⊔ bl))
+ record Epimorphism : Type (al ⊔ bl)
   where field
    {{epi-preserve}} : Homomorphism
    surject : ∀ x → ∃ λ a → h a ≡ x
 --   overlap {{epi-set}} : is-set B -- TODO: Get rid of this requirement
  open Epimorphism {{...}} public
 
- record Isomorphism : Type (lsuc(al ⊔ bl))
+ record Isomorphism : Type (al ⊔ bl)
   where field
    {{iso-mono}} : Monomorphism
    {{iso-epi}} : Epimorphism

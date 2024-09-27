@@ -8,7 +8,7 @@ open import Cubical.Foundations.HLevels
 open import Cubical.HITs.PropositionalTruncation renaming (rec to recTrunc ; map to mapTrunc)
 open import Cubical.Foundations.Isomorphism
 
-record Semigroup {A : Type l}(_∙_ : A → A → A) : Type(lsuc l) where
+record Semigroup {A : Type l}(_∙_ : A → A → A) : Type l where
   field
       assoc : (a b c : A) → a ∙ (b ∙ c) ≡ (a ∙ b) ∙ c
 open Semigroup {{...}} public

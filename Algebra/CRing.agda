@@ -6,7 +6,7 @@ open import Prelude
 open import Algebra.Ring public
 
 -- https://en.wikipedia.org/wiki/Comm_ring
-record CRing (A : Type l) : Type (lsuc l) where
+record CRing (A : Type l) : Type l where
   field
     {{crring}} : Ring A
     {{ringCom}} : Commutative _*_

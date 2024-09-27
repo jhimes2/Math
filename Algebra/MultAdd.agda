@@ -5,7 +5,7 @@ module Algebra.MultAdd where
 open import Prelude
 
 -- This is mainly used to overload '+' and '*'
-record *+ (A : Type l) : Type (lsuc l) where
+record *+ (A : Type l) : Type l where
   field
     _+_ : A → A → A
     _*_ : A → A → A
