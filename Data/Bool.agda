@@ -174,7 +174,7 @@ module _{_∙_ : A → A → A}{{_ : Commutative _∙_}}{{G : group _∙_}} wher
 
 open import Data.Natural
 
-ℕ→𝔹notSurjℕ : ¬(Σ λ(f : ℕ → (ℕ → 𝔹)) → surjective f)
+ℕ→𝔹notSurjℕ : ¬(Σ λ(f : ℕ → (ℕ → 𝔹)) → rightInverse f)
 ℕ→𝔹notSurjℕ (f , surj) =
    let g : ℕ → 𝔹
        g = λ n → not (f n n) in

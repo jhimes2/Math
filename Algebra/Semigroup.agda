@@ -99,6 +99,7 @@ module _{_∙_ : A → A → A}{{sg : Semigroup _∙_}} where
     and if _∙_ is associative, then _*_ is associative. -}
  EpimorphismCodomainAssoc : {_*_ : B → B → B}
                           → {h : A → B}
+                          → {{is-set B}}
                           → {{E : Epimorphism _∙_ _*_ h}}
                           → Semigroup _*_
  EpimorphismCodomainAssoc {_*_} {h} = record

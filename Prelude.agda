@@ -232,11 +232,16 @@ injective {A} f = (x y : A) → f x ≡ f y → x ≡ y
 
 -- https://en.wikipedia.org/wiki/Surjective_function
 surjective : {A : Type l}{B : Type l'} → (A → B) → Type(l ⊔ l')
-surjective {A}{B} f = (b : B) → Σ λ(a : A) → f a ≡ b
+surjective {A}{B} f = (b : B) → ∃ λ(a : A) → f a ≡ b
+
+-- Equivalent to having a right inverse
+rightInverse : {A : Type l}{B : Type l'} → (A → B) → Type(l ⊔ l')
+rightInverse {A}{B} f = (b : B) → Σ λ(a : A) → f a ≡ b
+
 
 -- https://en.wikipedia.org/wiki/Bijection
 bijective : {A : Type l}{B : Type l'} → (A → B) → Type(l ⊔ l')
-bijective f = injective f × surjective f
+bijective f = injective f × rightInverse f
 
 _≅_ : (A : Type l)(B : Type l') → Type (l ⊔ l')
 A ≅ B = Σ λ (f : B → A) → bijective f
@@ -246,9 +251,9 @@ injectiveComp : {f : A → B} → injective f
                             → injective (g ∘ f)
 injectiveComp {f} fInj {g} gInj = λ x y z → fInj x y (gInj (f x) (f y) z)
 
-surjectiveComp : {f : A → B} → surjective f
-               → {g : B → C} → surjective g
-                             → surjective (g ∘ f)
+surjectiveComp : {f : A → B} → rightInverse f
+               → {g : B → C} → rightInverse g
+                             → rightInverse (g ∘ f)
 surjectiveComp {f} fSurj {g} gSurj =
   λ b → gSurj b |> λ(x , x') → fSurj x |> λ(y , y') → y , (cong g y' ⋆ x')
 
@@ -256,21 +261,13 @@ surjectiveComp {f} fSurj {g} gSurj =
 ≅transitive (g , Ginj , Gsurj) (f , Finj , Fsurj) =
   g ∘ f , (λ x y z → Finj x y (Ginj (f x) (f y) z)) , surjectiveComp Fsurj Gsurj
 
--- https://en.wikipedia.org/wiki/Inverse_function#Left_and_right_inverses
-
 leftInverse : {A : Type l}{B : Type l'} → (A → B) → Type(l ⊔ l')
 leftInverse {A}{B} f = Σ λ (g : B → A) → (x : A) → g (f x) ≡ x
-
-rightInverse : {A : Type l}{B : Type l'} → (A → B) → Type(l ⊔ l')
-rightInverse {A}{B} f = Σ λ (h : B → A) → (x : B) → f (h x) ≡ x
 
 -- If a function has a left inverse, then it is injective
 lInvToInjective : {f : A → B} → leftInverse f → injective f
 lInvToInjective (g , g') x y p = sym (g' x) ⋆ (cong g p) ⋆ (g' y)
   
--- If a function has a right inverse, then it is surjective
-rInvToSurjective : {f : A → B} → rightInverse f → surjective f
-rInvToSurjective (rInv , r') = λ b → rInv b , r' b
 
 -- Propositional Extensionality
 propExt : isProp A → isProp B → (A → B) → (B → A) → A ≡ B
@@ -367,7 +364,7 @@ module _{A : Type al}(_∙_ : A → A → A)
   where field
    {{epi-preserve}} : Homomorphism
    surject : ∀ x → ∃ λ a → h a ≡ x
-   overlap {{epi-set}} : is-set B -- TODO: Get rid of this requirement
+--   overlap {{epi-set}} : is-set B -- TODO: Get rid of this requirement
  open Epimorphism {{...}} public
 
  record Isomorphism : Type (lsuc(al ⊔ bl))
@@ -376,12 +373,42 @@ module _{A : Type al}(_∙_ : A → A → A)
    {{iso-epi}} : Epimorphism
  open Isomorphism {{...}} public
 
+-- https://en.wikipedia.org/wiki/Image_(mathematics)
+image : {A : Type al}{B : Type bl} → (A → B) → B → Type (al ⊔ bl)
+image f b = ∃ λ a → f a ≡ b
+
+-- preimage
+_⁻¹[_] : (f : A → B) → (B → Type l) → (A → Type l)
+f ⁻¹[ g ] = g ∘ f
+
+-- https://en.wikipedia.org/wiki/Fiber_(mathematics)
+fiber : {B : Type bl} → (A → B) → B → A → Type bl
+fiber f y = λ x → f x ≡ y
+
+embedding : {A : Type al}{B : Type bl} → (A → B) → Type(al ⊔ bl)
+embedding f = ∀ y → isProp (Σ(fiber f y))
+
+-- codomain restriction to make it surjective
+corestrict : (f : A → B) → A → Σ (image f)
+corestrict f a = (f a) , η (a , refl)
+
+corestrictSurj : (f : A → B) → surjective (corestrict f)
+corestrictSurj f (b , H) = H >>= λ (a , G) → η (a , ΣPathPProp (λ x → squash₁) G)
+
 module _{_∙_ : A → A → A}
         {_*_ : B → B → B}
         {h : A → B} where
- {- If `h` is a surjective function such that
-       (∀ x y, h (x ∙ y) ≡ h x * h y),
-    and if _∙_ is associative, then _*_ is associative. -}
+        
+ _&_ : {{Homomorphism _∙_ _*_ h}} → Σ (image h) → Σ (image h) → Σ (image h)
+ _&_ = λ (x , H) (y , G) → (x * y) , H >>= λ(a , P)
+                                   → G >>= λ(b , Q)
+                                   → η $ a ∙ b , preserve a b ⋆ cong₂ _*_ P Q
+
+ imageHomo : {{hm : Homomorphism _∙_ _*_ h}} → Homomorphism  _∙_ _&_ (corestrict h)
+ imageHomo = record { preserve = λ u v → ΣPathPProp (λ x → squash₁) (preserve u v) }
+
+ imageEpi : {{hm : Homomorphism _∙_ _*_ h}} → Epimorphism  _∙_ _&_ (corestrict h)
+ imageEpi = record { surject = corestrictSurj h ; epi-preserve = imageHomo }
 
  instance
   isHomomorphismIsProp : {{is-set B}} → is-prop (Homomorphism _∙_ _*_ h)

@@ -338,7 +338,8 @@ module _{_∙_ : A → A → A}{{G : group _∙_}}
     }
 
 module _{_∙_ : A → A → A}{{G : group _∙_}}
-        {_*_ : B → B → B}{h : A → B}{{E : Epimorphism _∙_ _*_ h}} where
+        {_*_ : B → B → B}{h : A → B}{{E : Epimorphism _∙_ _*_ h}}
+        {{isset : is-set B}} where
    EpimorphismCodomainGroup : group _*_
    EpimorphismCodomainGroup = record
      { e = e                  -- From EpimorphismCodomainMonoid

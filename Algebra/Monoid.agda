@@ -145,6 +145,7 @@ module _{_∙_ : A → A → A}{{M : monoid _∙_}} where
 
    EpimorphismCodomainMonoid : {h : A → B}
                              → {_*_ : B → B → B}
+                             → {{is-set B}}
                              → {{E : Epimorphism _∙_ _*_ h}}
                              → monoid _*_
    EpimorphismCodomainMonoid {h} {_*_} = record

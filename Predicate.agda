@@ -72,21 +72,6 @@ DeMorgan6 f (a , p) = f a p
 chain : {A : Type al} {_≤_ : A → A → Type} → {{_ : Poset _≤_}} → (A → Type al) → Type al
 chain {_≤_ = _≤_} C = ∀ a b → a ∈ C → b ∈ C → ¬(a ≤ b) → b ≤ a
 
--- https://en.wikipedia.org/wiki/Image_(mathematics)
-image : {A : Type al}{B : Type bl} → (A → B) → B → Type (al ⊔ bl)
-image f b = ∃ λ a → f a ≡ b
-
--- preimage
-_⁻¹[_] : (f : A → B) → (B → Type l) → (A → Type l)
-f ⁻¹[ g ] = g ∘ f
-
--- https://en.wikipedia.org/wiki/Fiber_(mathematics)
-fiber : {B : Type bl} → (A → B) → B → A → Type bl
-fiber f y = λ x → f x ≡ y
-
-embedding : {A : Type al}{B : Type bl} → (A → B) → Type(al ⊔ bl)
-embedding f = ∀ y → isProp (Σ(fiber f y))
-
 instance
 
  ΣSet : {{is-set A}} → {X : A → Type l} → {{Multiproperty X}} → is-set (Σ X)
