@@ -141,11 +141,13 @@ monoidIsProp {A} _∙_ M1 M2 i =
                                                     {M2 .mAssoc .assoc a b c} i }
           }
 
-module _{_∙_ : A → A → A}{{M : monoid _∙_}}
-        {_*_ : B → B → B}
-        {h : A → B}{{E : Epimorphism _∙_ _*_ h}} where
-   EpimorphismCodomainMonoid : monoid _*_
-   EpimorphismCodomainMonoid = record
+module _{_∙_ : A → A → A}{{M : monoid _∙_}} where
+
+   EpimorphismCodomainMonoid : {h : A → B}
+                             → {_*_ : B → B → B}
+                             → {{E : Epimorphism _∙_ _*_ h}}
+                             → monoid _*_
+   EpimorphismCodomainMonoid {h} {_*_} = record
      { e = h e
      ; lIdentity = λ a → recTrunc (IsSet (h e * a) a) (λ(a' , H) →
                h e * a    ≡⟨ right _*_ (sym H)⟩
@@ -163,6 +165,18 @@ module _{_∙_ : A → A → A}{{M : monoid _∙_}}
          ) (surject a)
      ; mAssoc = EpimorphismCodomainAssoc
      }
+
+   instance
+    -- If (A, _∙_) is a curried monoid, then _∙_ is a monomorphism from (A, _∙_) to ((A → A), _∘_)
+    curryMono : Monomorphism _∙_ _∘_ _∙_
+    curryMono = record { inject = λ x y H → let G : ∀ a → x ∙ a ≡ y ∙ a
+                                                G = funRed H in
+                                            x ≡⟨ sym (rIdentity x) ⟩
+                                            x ∙ e ≡⟨ G e ⟩
+                                            y ∙ e ≡⟨ rIdentity y ⟩
+                                            y ∎
+                       }
+
 
 module _{A : Type al}{_∙_ : A → A → A}
         {B : Type bl}{_*_ : B → B → B}{{H : monoid _*_}} where
