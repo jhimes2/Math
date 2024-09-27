@@ -16,7 +16,7 @@ record group {A : Type l}(_∙_ : A → A → A) : Type(lsuc l) where
       e : A
       inverse : (a : A) → Σ λ(b : A) → b ∙ a ≡ e
       lIdentity : (a : A) → e ∙ a ≡ a
-      {{gAssoc}} : Associative _∙_
+      {{gAssoc}} : Semigroup _∙_
       overlap {{IsSetGrp}} : is-set A
 
 module _{_∙_ : A → A → A} {{G : group _∙_}} where
@@ -371,7 +371,7 @@ module _{_∙_ : A → A → A}{{G : group _∙_}}
               ) (surject a)
      }
       where instance
-        GAssoc : Associative _*_
+        GAssoc : Semigroup _*_
         GAssoc = EpimorphismCodomainAssoc {{E = E}}
         GMonoid : monoid _*_
         GMonoid = EpimorphismCodomainMonoid {{E = E}}
@@ -433,7 +433,7 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
   IdClosed = Submonoid.id-closed (G .SGSM)
 
   instance
-   ⪀assoc : Associative _⪀_
+   ⪀assoc : Semigroup _⪀_
    ⪀assoc = record { assoc = λ (a , a') (b , b') (c , c') → ΣPathPProp setProp (assoc a b c) }
  
    -- Group structure of a subgroup

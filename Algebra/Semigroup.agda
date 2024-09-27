@@ -8,19 +8,19 @@ open import Cubical.Foundations.HLevels
 open import Cubical.HITs.PropositionalTruncation renaming (rec to recTrunc ; map to mapTrunc)
 open import Cubical.Foundations.Isomorphism
 
-record Associative {A : Type l}(_∙_ : A → A → A) : Type(lsuc l) where
+record Semigroup {A : Type l}(_∙_ : A → A → A) : Type(lsuc l) where
   field
       assoc : (a b c : A) → a ∙ (b ∙ c) ≡ (a ∙ b) ∙ c
-open Associative {{...}} public
+open Semigroup {{...}} public
 
-[ab][cd]≡a[[bc]d] : {_∙_ : A → A → A} → {{Associative _∙_}} →
+[ab][cd]≡a[[bc]d] : {_∙_ : A → A → A} → {{Semigroup _∙_}} →
                     (a b c d : A) → (a ∙ b) ∙ (c ∙ d) ≡ a ∙ ((b ∙ c) ∙ d)
 [ab][cd]≡a[[bc]d] {_∙_} a b c d =
                     (a ∙ b) ∙ (c ∙ d) ≡⟨ sym (assoc a b (c ∙ d))⟩
                     a ∙ (b ∙ (c ∙ d)) ≡⟨ right _∙_ (assoc b c d)⟩
                     a ∙ ((b ∙ c) ∙ d) ∎
 
-[ab][cd]≡[a[bc]]d : {_∙_ : A → A → A} → {{Associative _∙_}} →
+[ab][cd]≡[a[bc]]d : {_∙_ : A → A → A} → {{Semigroup _∙_}} →
                     (a b c d : A) → (a ∙ b) ∙ (c ∙ d) ≡ (a ∙ (b ∙ c)) ∙ d
 [ab][cd]≡[a[bc]]d {_∙_} a b c d =
                     (a ∙ b) ∙ (c ∙ d) ≡⟨ assoc (a ∙ b) c d ⟩
@@ -28,7 +28,7 @@ open Associative {{...}} public
                     (a ∙ (b ∙ c)) ∙ d ∎
 
 module _{_∙_ : A → A → A}{{_ : Commutative _∙_}}
-                         {{_ : Associative _∙_}}
+                         {{_ : Semigroup _∙_}}
         (a b c : A) where
  
  a[bc]≡[ba]c = a ∙ (b ∙ c) ≡⟨ assoc a b c ⟩
@@ -83,7 +83,7 @@ module _{_∙_ : A → A → A}{{_ : Commutative _∙_}}
 
 instance
  -- Bijective composition is associative if the underlying type is a set
- bijectiveCompAssoc : {{_ : is-set A}} → Associative (≅transitive {A = A})
+ bijectiveCompAssoc : {{_ : is-set A}} → Semigroup (≅transitive {A = A})
  bijectiveCompAssoc = record { assoc =
    λ{(f , Finj , Fsurj) (g , Ginj , Gsurj) (h , Hinj , Hsurj)
    → ΣPathPProp bijectiveProp refl} }
@@ -94,8 +94,8 @@ module _{_∙_ : A → A → A}
  {- If `h` is a surjective function such that
        (∀ x y, h (x ∙ y) ≡ h x * h y),
     and if _∙_ is associative, then _*_ is associative. -}
- EpimorphismCodomainAssoc :{{H : Associative _∙_}}{{E : Epimorphism _∙_ _*_ h}}
-                          → Associative _*_
+ EpimorphismCodomainAssoc :{{H : Semigroup _∙_}}{{E : Epimorphism _∙_ _*_ h}}
+                          → Semigroup _*_
  EpimorphismCodomainAssoc = record
       { assoc = λ a b c → rec3 (IsSet (a * (b * c)) ((a * b) * c))
                                (λ(a' , H)
@@ -116,7 +116,7 @@ module _{_∙_ : A → A → A}
       }
 
 instance
- ∪assoc : Associative (_∪_ {A = A} {l})
+ ∪assoc : Semigroup (_∪_ {A = A} {l})
  ∪assoc = record { assoc = λ X Y Z → funExt λ x →
     let H : x ∈ X ∪ (Y ∪ Z) → x ∈ (X ∪ Y) ∪ Z
         H = λ p → p >>= λ{(inl p) → η $ inl $ (η (inl p))
@@ -127,7 +127,7 @@ instance
                                            ;(inr p) → η (inr (η (inl p)))}
                         ; (inr p) → η $ inr (η (inr p)) } in
        propExt (isProp¬ _) (isProp¬ _) H G }
- ∩assoc : Associative (_∩_ {A = A} {l})
+ ∩assoc : Semigroup (_∩_ {A = A} {l})
  ∩assoc = record { assoc = λ X Y Z → funExt λ x → isoToPath (iso (λ(a , b , c) → (a , b) , c)
                                                             (λ((a , b), c) → a , b , c)
                                                             (λ b → refl)

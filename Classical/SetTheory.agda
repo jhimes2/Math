@@ -153,7 +153,7 @@ module _{{PST : PreSetTheory}} where
                              }
   ∪Comm : Commutative _∪_
   ∪Comm = record { comm = λ a b → cong ⋃ (comm a b) }
-  ∪Assoc : Associative _∪_
+  ∪Assoc : Semigroup _∪_
   ∪Assoc = record { assoc = λ a b c → Extensionality (a ∪ (b ∪ c)) ((a ∪ b) ∪ c)
            λ x → (λ p → union1 (union2 p |> λ{ (inl q) → inl (union1 (inl q))
                                              ; (inr q) → union2 q |> λ{ (inl r) → inl (union1 (inr r))
@@ -166,7 +166,7 @@ module _{{PST : PreSetTheory}} where
   ∩Comm = record { comm = λ a b → Extensionality (a ∩ b) (b ∩ a)
      (λ x → (λ p → intersection3 (intersection2 p) (intersection1 p))
           ,  λ p → intersection3 (intersection2 p) (intersection1 p)) }
-  ∩Assoc : Associative _∩_
+  ∩Assoc : Semigroup _∩_
   ∩Assoc = record { assoc = λ a b c → Extensionality (a ∩ (b ∩ c)) ((a ∩ b) ∩ c)
      (λ x → (λ p → intersection3 (intersection3 (intersection1 p)
                                                 (intersection1 (intersection2 p)))

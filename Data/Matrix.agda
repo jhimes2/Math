@@ -193,7 +193,7 @@ instance
  comf : {_∗_ : A → A → A} → {{Commutative _∗_}} → Commutative (zip _∗_ {B})
  comf = record { comm = λ u v → funExt λ x → comm (u x) (v x) }
 
- assocf : {_∗_ : A → A → A} → {{Associative _∗_}} → Associative (zip _∗_ {B})
+ assocf : {_∗_ : A → A → A} → {{Semigroup _∗_}} → Semigroup (zip _∗_ {B})
  assocf = record { assoc = λ u v w → funExt λ x → assoc (u x) (v x) (w x) }
 
  IsSet→ : {{_ : is-set B}} → is-set (A → B)
@@ -478,9 +478,9 @@ module _{C : Type cl} {{R : Ring C}} where
  
  -- Square matrix Ring
  instance
-  mAddAssoc : Associative (mAdd {A = A} {B = B})
+  mAddAssoc : Semigroup (mAdd {A = A} {B = B})
   mAddAssoc = record { assoc = λ a b c → funExt λ x → funExt λ y → assoc (a x y) (b x y) (c x y) }
-  sqrMMultAssoc : Associative (mMult {A = ℕ< n})
+  sqrMMultAssoc : Semigroup (mMult {A = ℕ< n})
   sqrMMultAssoc = record { assoc = mMultAssoc }
   sqrMMultMonoid : monoid (mMult {A = ℕ< n})
   sqrMMultMonoid = record

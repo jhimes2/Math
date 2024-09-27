@@ -105,7 +105,7 @@ instance
 
   AddCom : Commutative add
   AddCom = record { comm = addCom }
-  AddAssoc : Associative add
+  AddAssoc : Semigroup add
   AddAssoc = record { assoc = addAssoc }
   ℕAddMonoid : monoid add
   ℕAddMonoid = record { e = Z
@@ -139,7 +139,7 @@ instance
     multComAux : (a b : ℕ) → mult a b ≡ mult b a
     multComAux a Z = multZ a
     multComAux a (S b) = addOut a b ⋆ cong (add a) (multComAux a b)
-  multAssoc : Associative mult
+  multAssoc : Semigroup mult
   multAssoc = record { assoc = multAssocAux }
    where
     multAssocAux : (a b c : ℕ) → mult a (mult b c) ≡ mult (mult a b) c
@@ -406,7 +406,7 @@ max (S a) Z = S a
 max (S a) (S b) = S (max a b)
 
 instance
- maxAssoc : Associative max
+ maxAssoc : Semigroup max
  maxAssoc = record { assoc = aux }
   where
    aux : ∀ a b c → max a (max b c) ≡ max (max a b) c
@@ -435,7 +435,7 @@ maxIdempotent Z = refl
 maxIdempotent (S a) = cong S (maxIdempotent a)
 
 instance
- minAssoc : Associative min
+ minAssoc : Semigroup min
  minAssoc = record { assoc = aux }
   where
    aux : ∀ a b c → min a (min b c) ≡ min (min a b) c

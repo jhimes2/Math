@@ -14,7 +14,7 @@ record monoid {A : Type l}(_∙_ : A → A → A) : Type(lsuc l) where
       lIdentity : (a : A) → e ∙ a ≡ a
       rIdentity : (a : A) → a ∙ e ≡ a
       overlap {{IsSetm}} : is-set A
-      {{mAssoc}} : Associative _∙_
+      {{mAssoc}} : Semigroup _∙_
 open monoid {{...}}
 
 module _{_∙_ : A → A → A} {{M : monoid _∙_}} where

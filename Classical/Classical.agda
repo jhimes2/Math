@@ -291,10 +291,10 @@ infix 7 _∪_
 ∪Complement X = funExt λ x → propExt
     (λ _ → tt) λ _ → LEM (x ∈ X) |> λ{ (inl p) → η (inl p)
                                      ; (inr p) → η (inr p)}
-record Associative {A : Type l}(_∙_ : A → A → A) : Type(lsuc l) where
+record Semigroup {A : Type l}(_∙_ : A → A → A) : Type(lsuc l) where
   field
       assoc : (a b c : A) → a ∙ (b ∙ c) ≡ (a ∙ b) ∙ c
-open Associative {{...}} public
+open Semigroup {{...}} public
 
 -- preimage
 _⁻¹[_] : (f : A → B) → (B → Type l) → (A → Type l)
@@ -318,7 +318,7 @@ instance
                                                        λ(x , y) → (y , x) }
 
  -- Intersections are associative
- ∩assoc : Associative (_∩_ {A = A} {l = lzero})
+ ∩assoc : Semigroup (_∩_ {A = A} {l = lzero})
  ∩assoc = record { assoc = λ a b c → funExt λ x → propExt (λ (a , b , c) → ((a , b) , c))
                                                            λ ((a , b) , c) → (a , b , c) }
 
@@ -330,7 +330,7 @@ instance
                                                              ; (inr x) → inl x})) }
 
  -- Unions are associative
- ∪assoc : Associative (_∪_ {A = A})
+ ∪assoc : Semigroup (_∪_ {A = A})
  ∪assoc = record { assoc = λ X Y Z → funExt λ x →
     let H : x ∈ X ∪ (Y ∪ Z) → x ∈ (X ∪ Y) ∪ Z
         H = λ p → p >> λ{ (inl y) → η (inl (η (inl y)))

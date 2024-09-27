@@ -89,7 +89,7 @@ instance
  ℤComm = record { comm = elimProp2 (λ x y → IsSet (addℤ x y) (addℤ y x))
        λ (p1 , n1) (p2 , n2) → cong [_] ( (≡-× (comm p1 p2) (comm n1 n2))) }
 
- ℤAssoc : Associative addℤ
+ ℤAssoc : Semigroup addℤ
  ℤAssoc = record { assoc = elimProp3 (λ x y z → IsSet (addℤ x (addℤ y z))(addℤ (addℤ x y) z))
           λ (p1 , n1) (p2 , n2) (p3 , n3) → cong [_] (≡-× (assoc p1 p2 p3) (assoc n1 n2 n3)) }
 
@@ -98,7 +98,7 @@ instance
     λ (p1 , n1) (p2 , n2) → cong [_] (≡-× (cong₂ _+_ (comm p1 p2) (comm n1 n2))
        ( comm (p1 * n2) (n1 * p2) ⋆ cong₂ _+_ (comm n1 p2) (comm p1 n2))) }
 
- ℤMultAssoc : Associative multℤ
+ ℤMultAssoc : Semigroup multℤ
  ℤMultAssoc = record { assoc = elimProp3 (λ x y z → IsSet (multℤ x (multℤ y z)) (multℤ (multℤ x y) z))
    λ (p1 , n1)(p2 , n2)(p3 , n3) → cong [_] (≡-× (aux p1 p2 p3 n1 n2 n3) (aux p1 p2 n3 n1 n2 p3))}
   where

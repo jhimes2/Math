@@ -92,7 +92,7 @@ instance
                        (R , record {addT = addTR ; multT = multTR})
                           → ΣPathPProp modHomomorphismIsProp
                                       (funExt λ x → comm (T x) (R x))}}
-  DualSumAssoc : {{F : Field A}}{{VS : VectorSpace B}} → Associative (dualSum VS)
+  DualSumAssoc : {{F : Field A}}{{VS : VectorSpace B}} → Semigroup (dualSum VS)
   DualSumAssoc =
     record { assoc = λ {(T , record {addT = addTT ; multT = multTT})
                         (R , record {addT = addTR ; multT = multTR})

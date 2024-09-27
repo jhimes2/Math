@@ -48,7 +48,7 @@ instance
   𝔹IsSet : is-set 𝔹
   𝔹IsSet = record { IsSet = Discrete→isSet boolDiscrete }
 
-  andAssoc : Associative and
+  andAssoc : Semigroup and
   andAssoc = record { assoc = λ{ Yes _ _ → refl
                                ; No _ _ → refl} }
   andCom : Commutative and
@@ -61,7 +61,7 @@ instance
                      ; lIdentity = λ _ → refl
                      ; rIdentity = λ{ Yes → refl
                                     ; No → refl} }
-  xorAssoc : Associative xor
+  xorAssoc : Semigroup xor
   xorAssoc = record { assoc = λ{ Yes Yes Yes → refl
                                ; Yes Yes No → refl
                                ; Yes No _ → refl
@@ -151,7 +151,7 @@ module _{_∙_ : A → A → A}{{_ : Commutative _∙_}}{{G : group _∙_}} wher
  (r , Yes) ● (r' , s) = (r ∙ inv r') , not s
 
  instance
-  dihedralAssoc : Associative _●_
+  dihedralAssoc : Semigroup _●_
   dihedralAssoc = record { assoc = aux }
    where
     aux : (a b c : (A × 𝔹)) → a ● (b ● c) ≡ (a ● b) ● c

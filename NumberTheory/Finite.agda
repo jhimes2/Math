@@ -62,11 +62,11 @@ instance
                  paste ((a * b) + (a * c)) n ≡⟨ sym (pasteAddBoth (a * b) (a * c) n)⟩
                  paste (paste (a * b) n + paste (a * c) n) n ∎
 
-  FinAddAssoc : Associative (FinAdd {n = n})
+  FinAddAssoc : Semigroup (FinAdd {n = n})
   FinAddAssoc {n} = record { assoc = elimProp3 (λ x y z → IsSet (x + (y + z)) ((x + y) + z))
      λ a b c → cong [_] (assoc a b c) }
 
-  FinMultAssoc : Associative (FinMult {n = n})
+  FinMultAssoc : Semigroup (FinMult {n = n})
   FinMultAssoc {n} = record { assoc = elimProp3 (λ x y z → IsSet (x * (y * z)) ((x * y) * z))
      λ a b c → cong [_] (assoc a b c) }
 

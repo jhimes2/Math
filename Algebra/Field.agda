@@ -60,7 +60,7 @@ instance
   NZMultComm : {{F : Field A}} → Commutative NZMult
   NZMultComm = record { comm = λ a b → ΣPathPProp (λ w x y → funExt λ p → y p |> UNREACHABLE)
                                                   (comm (fst a) (fst b)) }
-  NZMultAssoc : {{F : Field A}} → Associative NZMult
+  NZMultAssoc : {{F : Field A}} → Semigroup NZMult
   NZMultAssoc = record { assoc = λ a b c → ΣPathPProp (λ w x y → funExt λ p → y p |> UNREACHABLE)
                                                       (assoc (fst a) (fst b) (fst c)) }
 
