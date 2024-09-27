@@ -173,3 +173,6 @@ module _{A : Type al}{_∙_ : A → A → A}
     property : {h : A → B} → {{_ : Homomorphism _∙_ _*_ h}} → Property (Kernel h)
     property {h} = record { setProp = λ x → IsSet (h x) e }
 
+
+∘monoid : {{is-set A}} → monoid (_∘_ {A = A})
+∘monoid = record { e = id ; lIdentity = λ x → refl ; rIdentity = λ x → refl }
