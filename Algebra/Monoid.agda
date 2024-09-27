@@ -141,7 +141,24 @@ monoidIsProp {A} _∙_ M1 M2 i =
                                                     {M2 .mAssoc .assoc a b c} i }
           }
 
-module _{_∙_ : A → A → A}{{M : monoid _∙_}} where
+module _{A : Type al}{_∙_ : A → A → A}{{M : monoid _∙_}} where
+
+   -- Left monoid action
+   record Action {B : Type bl}(act : A → B → B) : Type (al ⊔ bl) where
+    field
+     act-identity : ∀ x → act e x ≡ x
+     act-compatibility : ∀ x g h → act g (act h x) ≡ act (g ∙ h) x
+     {{act-set}} : is-set B
+   open Action {{...}} public
+
+   -- Monoid operator is monoid action
+   instance
+    ActionMndOp : Action _∙_
+    ActionMndOp = record
+                { act-identity = λ x → lIdentity x
+                ; act-compatibility = λ x y z → assoc y z x
+                }
+
 
    EpimorphismCodomainMonoid : {h : A → B}
                              → {_*_ : B → B → B}

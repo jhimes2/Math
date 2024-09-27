@@ -554,23 +554,6 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
                     inv x ∎)
       }
 
- -- https://en.wikipedia.org/wiki/Group_action
- -- Left group action
- record Action {B : Type bl}(act : A → B → B) : Type (al ⊔ bl) where
-  field
-   act-identity : ∀ x → act e x ≡ x
-   act-compatibility : ∀ x g h → act g (act h x) ≡ act (g ∙ h) x
-   {{act-set}} : is-set B
- open Action {{...}} public
-
- -- Group operator is group action
- instance
-  ActionGrpOp : Action _∙_
-  ActionGrpOp = record
-              { act-identity = λ x → lIdentity x
-              ; act-compatibility = λ x y z → assoc y z x
-              }
-
  -- Partially applied group action is bijective
  ActionBijective : (act : A → B → B){{_ : Action act}} → ∀ x → bijective (act x)
  ActionBijective act z = (λ a b (p : act z a ≡ act z b) →
