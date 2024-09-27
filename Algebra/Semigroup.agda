@@ -88,6 +88,10 @@ instance
    λ{(f , Finj , Fsurj) (g , Ginj , Gsurj) (h , Hinj , Hsurj)
    → ΣPathPProp bijectiveProp refl} }
 
+ compAssoc : Semigroup (_∘_ {A = A})
+ compAssoc = record { assoc = λ f g h → funExt λ x → refl }
+
+
 module _{_∙_ : A → A → A}{{sg : Semigroup _∙_}} where
 
  {- If `h` is a surjective function such that

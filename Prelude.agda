@@ -320,11 +320,6 @@ instance
  →IsSet : {{is-set B}} → is-set (A → B)
  →IsSet = record { IsSet = isSet→ IsSet }
 
--- ∃!isProp : {{is-set A}} → {p : A → Type}
-
-compAssoc : (f g h : A → A) → f ∘ (g ∘ h) ≡ (f ∘ g) ∘ h
-compAssoc f g h = funExt λ x → refl
-
 bijectiveProp : {{_ : is-set A}}{{_ : is-set B}} → (f : A → B) → isProp (bijective f)
 bijectiveProp f = λ (Finj1 , Fsurj1) (Finj2 , Fsurj2)
   → let H : Finj1 ≡ Finj2
