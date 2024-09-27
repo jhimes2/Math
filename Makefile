@@ -67,7 +67,10 @@ Algebra/MultAdd.agdai: Algebra/MultAdd.agda Prelude.agdai
 Algebra/Group.agdai: Algebra/Group.agda Algebra/Monoid.agdai
 	agda $<
 
-Algebra/Monoid.agdai: Algebra/Monoid.agda Predicate.agdai
+Algebra/Monoid.agdai: Algebra/Monoid.agda Algebra/Semigroup.agdai
+	agda $<
+
+Algebra/Semigroup.agdai: Algebra/Semigroup.agda Predicate.agdai
 	agda $<
 
 Predicate.agdai: Predicate.agda Relations.agdai

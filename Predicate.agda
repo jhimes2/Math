@@ -2,16 +2,18 @@
 
 module Predicate where
 
-open import Prelude
+open import Prelude public
 open import Relations
 open import Cubical.Foundations.HLevels
 open import Cubical.HITs.PropositionalTruncation renaming (rec to recTrunc ; map to mapTrunc)
 open import Cubical.Foundations.Isomorphism
 
-------------------------------------------------------------------------------------------------------
--- This code disguises predicates as sets. I'm planning on replacing this file with SetTheory.agda. --
--- Also note that several names in this file are not standard in math.                              --
-------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+-- This file disguises properties as sets and multisets as dependent types. --
+-- In my experience, if a set theory has a universe in context (often used  --
+-- for set complements and arbitrary intersections (consider ∅ᶜ and ⋂∅)),   --
+-- then the sets can be replaced with properties.                           --
+------------------------------------------------------------------------------
 
 _∈_ : A → (A → Type l) → Type l
 _∈_ = _|>_
@@ -20,6 +22,18 @@ infixr 5 _∈_
 _∉_ :  A → (A → Type l) → Type l
 _∉_ a X = ¬(a ∈ X)
 infixr 5 _∉_
+
+-- We define a property as a function that maps elements to propositions.
+record Property {A : Type al} (P : A → Type l) : Type(al ⊔ l) where
+ field
+  setProp : ∀ x → isProp (x ∈ P)
+open Property {{...}} public
+
+-- Not a standard name in math. However, this corresponds to multisets
+record Multiproperty {A : Type al} (M : A → Type l) : Type(al ⊔ l) where
+ field
+  multiproperty : ∀ x → isSet (x ∈ M)
+open Multiproperty {{...}} public
 
 module _{A : Type l}(_∙_ : A → A → A) where
 
@@ -73,24 +87,13 @@ fiber f y = λ x → f x ≡ y
 embedding : {A : Type al}{B : Type bl} → (A → B) → Type(al ⊔ bl)
 embedding f = ∀ y → isProp (Σ(fiber f y))
 
--- A property is defined as a function that maps elements to propositions
-record Property {A : Type al} (P : A → Type l) : Type(al ⊔ l) where
- field
-  setProp : ∀ x → isProp (x ∈ P)
-open Property {{...}} public
-
-record Multipredicate {A : Type al} (M : A → Type l) : Type(al ⊔ l) where
- field
-  multipredicate : ∀ x → isSet (x ∈ M)
-open Multipredicate {{...}} public
-
 instance
 
- ΣSet : {{is-set A}} → {X : A → Type l} → {{Multipredicate X}} → is-set (Σ X)
- ΣSet = record { IsSet = isSetΣ IsSet λ x → multipredicate x }
+ ΣSet : {{is-set A}} → {X : A → Type l} → {{Multiproperty X}} → is-set (Σ X)
+ ΣSet = record { IsSet = isSetΣ IsSet λ x → multiproperty x }
 
- propertyIsMultipredicate : {X : A → Type l} → {{Property X}} → Multipredicate X
- propertyIsMultipredicate = record { multipredicate = λ x → isProp→isSet (setProp x) }
+ propertyIsMultipredicate : {X : A → Type l} → {{Property X}} → Multiproperty X
+ propertyIsMultipredicate = record { multiproperty = λ x → isProp→isSet (setProp x) }
 
  fullProp : Property $ 𝓤 {A = A} {l}
  fullProp = record { setProp = λ x tt tt → refl }
@@ -191,22 +194,6 @@ instance
 
 -- Union and intersection operations are associative and commutative
 instance
- ∪assoc : Associative (_∪_ {A = A} {l})
- ∪assoc = record { assoc = λ X Y Z → funExt λ x →
-    let H : x ∈ X ∪ (Y ∪ Z) → x ∈ (X ∪ Y) ∪ Z
-        H = λ p → p >>= λ{(inl p) → η $ inl $ (η (inl p))
-                 ; (inr p) → p >>= λ{(inl p) → η $ inl (η (inr p))
-                                    ;(inr p) → η (inr p)}} in
-    let G : x ∈ (X ∪ Y) ∪ Z → x ∈ X ∪ (Y ∪ Z)
-        G = λ p → p >>= λ{(inl p) → p >>= λ{(inl p) → η (inl p)
-                                           ;(inr p) → η (inr (η (inl p)))}
-                        ; (inr p) → η $ inr (η (inr p)) } in
-       propExt (isProp¬ _) (isProp¬ _) H G }
- ∩assoc : Associative (_∩_ {A = A} {l})
- ∩assoc = record { assoc = λ X Y Z → funExt λ x → isoToPath (iso (λ(a , b , c) → (a , b) , c)
-                                                            (λ((a , b), c) → a , b , c)
-                                                            (λ b → refl)
-                                                             λ b → refl) }
  ∪comm : Commutative (_∪_ {A = A} {l})
  ∪comm = record { comm = λ X Y → funExt λ x →
     let H : ∀ X Y → x ∈ X ∪ Y → x ∈ Y ∪ X

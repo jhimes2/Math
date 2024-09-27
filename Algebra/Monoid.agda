@@ -2,8 +2,8 @@
 
 module Algebra.Monoid where
 
-open import Prelude
 open import Predicate
+open import Algebra.Semigroup public
 open import Cubical.Foundations.HLevels
 open import Cubical.HITs.PropositionalTruncation renaming (rec to recTrunc ; map to mapTrunc)
 

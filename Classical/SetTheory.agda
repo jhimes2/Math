@@ -2,8 +2,8 @@
 
 module Classical.SetTheory where
 
-open import Prelude
 open import Relations
+open import Algebra.Semigroup
 open import Cubical.Foundations.HLevels
 
 record PreSetTheory : Typeω where field

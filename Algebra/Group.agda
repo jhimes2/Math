@@ -3,7 +3,6 @@
 
 module Algebra.Group where
 
-open import Prelude
 open import Relations
 open import Predicate
 open import Algebra.Monoid public
