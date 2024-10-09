@@ -20,17 +20,10 @@ open monoid {{...}}
 module _{_∙_ : A → A → A} {{M : monoid _∙_}} where
 
  -- Identity element of a monoid is unique
- idUnique : {a : A} → ((x : A) → a ∙ x ≡ x) → a ≡ e
+ idUnique : {a : A} → a ∙ e ≡ e → a ≡ e
  idUnique {a} =
-   λ(p : (x : A) → a ∙ x ≡ x) →
-     a     ≡⟨ sym (rIdentity a) ⟩
-     a ∙ e ≡⟨ p e ⟩
-     e ∎
- 
- idUnique2 : {a : A} → a ∙ e ≡ e → a ≡ e
- idUnique2 {a} =
    λ(p : a ∙ e ≡ e) →
-     a     ≡⟨ sym (rIdentity a) ⟩
+     a     ≡⟨ sym (rIdentity a)⟩
      a ∙ e ≡⟨ p ⟩
      e ∎
  
@@ -125,7 +118,7 @@ module _{_∙_ : A → A → A} {{M : monoid _∙_}} where
 monoidIsProp : (_∙_ : A → A → A) → isProp (monoid _∙_)
 monoidIsProp {A} _∙_ M1 M2 i =
        let set = λ{a b : A}{p q : a ≡ b} → M1 .IsSetm .IsSet a b p q in
-       let E = idUnique ⦃ M2 ⦄ (M1 .lIdentity) in
+       let E = idUnique ⦃ M2 ⦄ (M1 .lIdentity (M2 .e)) in
   record {
        e = E i
      ; IsSetm = record { IsSet = isPropIsSet (M1 .IsSetm .IsSet) (M2 .IsSetm .IsSet) i }

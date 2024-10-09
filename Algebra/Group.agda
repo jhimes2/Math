@@ -1,6 +1,5 @@
 {-# OPTIONS --cubical --safe --hidden-argument-pun --backtracking-instance-search #-}
 
-
 module Algebra.Group where
 
 open import Relations
@@ -645,8 +644,9 @@ groupIsProp : (_∙_ : A → A → A) → isProp (group _∙_)
 groupIsProp {A} _∙_ G1 G2 i =
   let set = λ{a b : A}{p q : a ≡ b} → IsSet a b p q in
   let E : G1 .e ≡ G2 .e
-      E = G1 .e                 ≡⟨ idUnique {{grpIsMonoid {{G2}}}} (G1 .lIdentity)⟩
-          grpIsMonoid {{G2}} .e ≡⟨ sym (idUnique {{grpIsMonoid {{G2}}}} (G2 .lIdentity))⟩
+      E = G1 .e                 ≡⟨ idUnique {{grpIsMonoid {{G2}}}} (G1 .lIdentity (grpIsMonoid {{G2}} .e))⟩
+          grpIsMonoid {{G2}} .e ≡⟨ sym (idUnique {{grpIsMonoid {{G2}}}}
+                                                 (G2 .lIdentity (grpIsMonoid {{G2}} .e)))⟩
           G2 .e                 ∎
   in
   record
@@ -782,7 +782,7 @@ module _ {A : Type al}
     }
 
    FToH-lemma3 : Epimorphism ⋆[ _∙_ / Kernel f ] _⪀_ ψ
-   FToH-lemma3 = record { surject = λ (x , P) → P >>= λ(r , R) → η ([ r ] , ΣPathPProp (λ _ → squash₁) R) }
+   FToH-lemma3 = record { surject = λ (x , P) → P >>= λ(r , R) → η $ [ r ] , ΣPathPProp (λ _ → squash₁) R }
 
    FToH-lemma : Isomorphism ⋆[ _∙_ / Kernel f ] _⪀_ ψ
    FToH-lemma = record {}
