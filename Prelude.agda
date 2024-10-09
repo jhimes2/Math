@@ -364,7 +364,6 @@ module _{A : Type al}(_∙_ : A → A → A)
   where field
    {{epi-preserve}} : Homomorphism
    surject : ∀ x → ∃ λ a → h a ≡ x
---   overlap {{epi-set}} : is-set B -- TODO: Get rid of this requirement
  open Epimorphism {{...}} public
 
  record Isomorphism : Type (al ⊔ bl)
