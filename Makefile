@@ -70,13 +70,13 @@ Algebra/Group.agdai: Algebra/Group.agda Algebra/Monoid.agdai
 Algebra/Monoid.agdai: Algebra/Monoid.agda Algebra/Semigroup.agdai
 	agda $<
 
+Classical/SetTheory.agdai: Classical/SetTheory.agda Algebra/Semigroup.agdai
+	agda $<
+
 Algebra/Semigroup.agdai: Algebra/Semigroup.agda Predicate.agdai
 	agda $<
 
 Predicate.agdai: Predicate.agda Relations.agdai
-	agda $<
-
-Classical/SetTheory.agdai: Classical/SetTheory.agda Relations.agdai
 	agda $<
 
 Relations.agdai: Relations.agda Prelude.agdai
