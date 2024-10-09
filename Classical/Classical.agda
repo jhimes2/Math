@@ -47,10 +47,32 @@ isProp⊥ ()
 ... | inl x = ⊤
 ... | inr x = ⊥
 
+-- Is proposition
+record is-prop (A : Type l) : Type l
+  where field
+   IsProp : isProp A
+open is-prop {{...}} public
+
+lowest : (A : Type l) → {{is-prop A}} → Prop
+lowest A with lem A IsProp
+... | inl x = ⊤
+... | inr x = ⊥
+
 intro : {A : Type l} → A → ∥ A ∥
 intro {A} a with lem ∥ A ∥₁ squash₁
 ... | inl x = tt 
 ... | inr x = x ∣ a ∣₁
+
+data minEquiv{A : Type al}(R : A → A → Type l) : A → A → Type(al ⊔ l) where
+   ME-intro : ∀{a b} → R a b → minEquiv R a b
+   ME-intro2 : ∀{a b} → R a b → minEquiv R b a
+   ME-refl : ∀ a → minEquiv R a a
+   ME-trans : ∀{a b c} → minEquiv R a b → minEquiv R b c → minEquiv R a c
+--   ME-relation : ∀ a b → isProp (minEquiv R a b)
+
+-- 'MinEquiv R' is the smallest equivalence relation containing 'R'.
+MinEquiv : (R : A → A → Type l) → A → A → Prop
+MinEquiv R a b = ∥ minEquiv R a b ∥
 
 _>>_ : {B : Prop} → ∥ A ∥ → (A → B) → B
 _>>_ {A} {B} X f with lem ∥ A ∥₁ squash₁
@@ -304,12 +326,6 @@ record Commutative {A : Type l}{B : Type l'}(_∙_ : A → A → B) : Type(lsuc 
   field
     comm : (a b : A) → a ∙ b ≡ b ∙ a
 open Commutative {{...}} public
-
--- Is proposition
-record is-prop (A : Type l) : Type l
-  where field
-   IsProp : isProp A
-open is-prop {{...}} public
 
 instance
  -- Intersections are commutative
