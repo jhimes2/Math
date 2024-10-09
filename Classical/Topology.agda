@@ -8,6 +8,7 @@
 module Classical.Topology where
 
 open import Classical.Classical public
+open import Cubical.HITs.SetQuotients
 
 -- https://en.wikipedia.org/wiki/Topological_space
 record topology {A : set al} (T : ℙ(ℙ A)) : set al where
@@ -248,6 +249,25 @@ fix f a = ∥ (f a ≡ a) ∥
 
 module _{A : set al}(τ : ℙ(ℙ A)){{T : topology τ}} where
 
+ -- https://en.wikipedia.org/wiki/Quotient_space_(topology)
+ quotientTopology : (_~_ : A → A → Type l) → ℙ(ℙ (A / _~_))
+ quotientTopology _~_ U = [_] ⁻¹[ U ] ∈ τ
+
+ qTopInst : {_~_ : A → A → Prop}
+          → topology (quotientTopology _~_)
+ qTopInst = record
+  { tfull = tfull
+  ; tunion = λ{X} X⊆τ/~
+           → [wts [_] ⁻¹[ ⋃ X ] ∈ τ ]
+             [wts (⋃ X ∘ [_]) ∈ τ ]
+             [wts (λ(x : A) → [ x ] ∈ ⋃ X) ∈ τ ]
+       (map ([_] ⁻¹[_]) X) ⊆ τ   ⟦ (λ z → _>> λ(a , a∈X , H)
+                                        → subst τ (sym H) (X⊆τ/~ a a∈X))⟧
+     ∴ ⋃ (map ([_] ⁻¹[_]) X) ∈ τ [ tunion ]
+     ∴ [_] ⁻¹[ ⋃ X ] ∈ τ         [ subst τ (sym (∪preimage X [_]))]
+  ; tintersection = tintersection
+  }
+
  record HousedOff(x y : A) : set al where
   field
      U : ℙ A
@@ -306,10 +326,11 @@ module _{A : set al}(τ : ℙ(ℙ A)){{T : topology τ}} where
 
 
  ssTopology2 : (Q : ℙ A) → ℙ(ℙ A)
- ssTopology2 Q = (λ(G : ℙ A) → ∃ λ(U : ℙ A) → (U ∈ τ) × (G ≡ (Q ∩ U)))
+ ssTopology2 Q = λ(G : ℙ A) → ∃ λ(U : ℙ A) → (U ∈ τ) × (G ≡ (Q ∩ U))
 
  ssTopology : (Q : ℙ A) → ℙ(ℙ (Σ Q))
- ssTopology Q = (λ(G : ℙ (Σ Q)) → ∃ λ(U : ℙ A) → (U ∈ τ) × (G ≡ (λ(x , _) → x ∈ U)))
+ ssTopology Q = λ(G : ℙ (Σ Q)) → ∃ λ(U : ℙ A) → (U ∈ τ) × (G ≡ (λ(x , _) → x ∈ U))
+
 module _{A : set al}
         (τ : ℙ(ℙ A)){{T : topology τ}} where
 

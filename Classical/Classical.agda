@@ -517,3 +517,12 @@ principalIdeal {X} A ∃¬A = record
                                    ; (inr x∈C) → C⊆A x x∈C}
  ; iax = λ{B}{C} B⊆C → _>> λ C⊆A → η λ x x∈B → C⊆A x (B⊆C x x∈B)
  }
+
+_⟦_⟧ : (A : Type l) → A → A
+_ ⟦ x ⟧ = x
+infixr 2 _⟦_⟧
+
+-- Therefore
+_∴_[_] : A → (B : Type l) → (A → B) → B
+a ∴ _ [ f ] = f a
+infixr 1 _∴_[_]
