@@ -141,7 +141,7 @@ module _{A : set al}        {B : set al}
                                                   (snd(Z⊆⊎ a a∈Z)))
                 ; tintersection = λ{X Y} (p , P) (q , Q) → tintersection p q , tintersection P Q
                 }
-
+          
  {- Partially applying a continuous function whose domain is a product space
     will result in a continuous function. This implies that requiring two
     functions of a homotopy to be continuous is superfluous. -} 
@@ -207,7 +207,7 @@ module _{τ : ℙ(ℙ A)}{{T : topology τ}} where
  
  interior : ℙ A → ℙ A
  interior X = ⋃ λ C → ∥ C ⊆ X × C ∈ τ ∥
- 
+
  exterior : ℙ A → ℙ A
  exterior X = ⋃ λ B → ∥ B ∈ τ × (∀ x → x ∈ B → x ∉ X) ∥
  
@@ -324,7 +324,6 @@ module _{A : set al}(τ : ℙ(ℙ A)){{T : topology τ}} where
    where
     open HousedOff {{...}}
 
-
  ssTopology2 : (Q : ℙ A) → ℙ(ℙ A)
  ssTopology2 Q = λ(G : ℙ A) → ∃ λ(U : ℙ A) → (U ∈ τ) × (G ≡ (Q ∩ U))
 
@@ -374,6 +373,17 @@ module _{A : set al}
     BaseAxiom2 : {S : ℙ A} → S ∈ τ
                → ∃ λ(X : ℙ(ℙ A)) → X ⊆ ℬ × (S ≡ ⋃ X)
  open Base {{...}} public
+
+ instance
+  -- A topological space is its own base
+  BaseSelf : Base τ
+  BaseSelf = record
+   { BaseAxiom1 = λ x z → z
+   ; BaseAxiom2 = λ{S} S∈τ → η ((λ x → ∥ x ≡ S ∥)
+                            , (λ x → _>> λ Y → subst τ (sym Y) S∈τ)
+                            , funExt λ x → propExt (λ x∈S → η $ S , x∈S , η refl)
+                              (_>> λ (Y , x∈Y , G) → G >> λ Y≡S → transport (λ i → Y≡S i x) x∈Y))
+   }
 
  module _{ℬ : ℙ(ℙ A)}{{_ : Base ℬ}} where
 
