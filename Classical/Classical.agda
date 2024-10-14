@@ -156,11 +156,11 @@ set : (l : Level) → Type (lsuc(lsuc l))
 set l = Type (lsuc l)
 
 -- Full predicate
-𝓤 : A → Prop
+𝓤 : ℙ A
 𝓤 = λ _ → ⊤
 
 -- Empty predicate
-∅ : A → Prop
+∅ : ℙ A
 ∅ = λ _ → ⊥
 
 _≢_ : {A : Type l} → A → A → Type l
@@ -170,7 +170,7 @@ a ≢ b = ¬(a ≡ b)
 UNREACHABLE : ⊥ → {A : Type l} → A
 UNREACHABLE ()
 
-_⊆_ : {A : Type al} → (A → Type l) → (A → Type l') → Type (l ⊔ l' ⊔ al)
+_⊆_ : {A : set al} → ℙ A → ℙ A → set al
 A ⊆ B = ∀ x → x ∈ A → x ∈ B
 
 substP : (x : A) → {P Q : A → Type l} → P ≡ Q → Q x → P x
@@ -194,6 +194,22 @@ record Monad {ρ : Level → Level}(m : ∀{l} → Type l → Type (ρ l)) : Typ
       monadLemma2 : μ ∘ η ≡ λ(a : m A) → a
       monadLemma3 : {A : Type al} → μ ∘ map η ≡ λ(a : m A) → a
 open Monad {{...}} public
+
+-- Natural Transformation
+record NatTrans {ρ : Level → Level}
+                {F G : ∀{l} → Type l → Type (ρ l)}
+                (component : {X : Type l} → F X → G X) : Typeω where
+ field
+   overlap {{F'}} : Functor F
+   overlap {{G'}} : Functor G
+   componentAx : {A B : Type l}
+               → (f : A → B) → component ∘ map f ≡ map f ∘ component
+open NatTrans {{...}} public
+
+natTransId : {F : ∀{l} → Type l → Type l'}
+           → {{Functor F}}
+           → NatTrans λ{X : Type l} (p : F X) → p
+natTransId = record { componentAx = λ f → funExt λ x → refl }
 
 -- bind
 _>>=_ : {ρ : Level → Level}{m : ∀{l} → Type l → Type (ρ l)} → {{Monad m}}
