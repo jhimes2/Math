@@ -6,7 +6,7 @@ open import Agda.Primitive hiding (Prop) public
 open import Cubical.Foundations.Prelude
     renaming (Σ to Σ' ; I to Interval ; _∨_ to or ; congL to left
              ; congR to right) public
-open import Cubical.HITs.PropositionalTruncation renaming (map to truncMap) public
+open import Cubical.HITs.PropositionalTruncation renaming (map to truncMap ; map2 to truncMap2) public
 
 variable
   l l' al bl cl : Level
@@ -221,15 +221,15 @@ _<*>_ : {ρ : Level → Level}{m : ∀{l} → Type l → Type (ρ l)} → {{Mona
       → m (A → B) → m A → m B
 _<*>_ {m} mf mA = mf >>= λ f → map f mA
 
-∥map : (A → B) → ∥ A ∥ → ∥ B ∥
-∥map f X = X >> λ a → intro (f a)
+∥map∥ : (A → B) → ∥ A ∥ → ∥ B ∥
+∥map∥ f X = X >> λ a → intro (f a)
 
 instance
-
  ∥Functor∥ : Functor ∥_∥
- ∥Functor∥ = record { map = ∥map
-                    ; compPreserve = λ f g → funExt λ x → squash (∥map (f ∘ g) x) ((∥map f ∘ ∥map g) x)
-                    ; idPreserve = squash (∥map id) id
+ ∥Functor∥ = record { map = ∥map∥
+                    ; compPreserve = λ f g → funExt λ x → squash (∥map∥ (f ∘ g) x)
+                                                                 ((∥map∥ f ∘ ∥map∥ g) x)
+                    ; idPreserve = squash (∥map∥ id) id
                     }
 
  ∥Monad∥ : Monad ∥_∥
@@ -359,7 +359,7 @@ instance
  ∪Comm = record { comm = λ a b → funExt λ x → propExt (_>> λ{ (inl p) → η (inr p)
                                                             ; (inr p) → η (inl p)})
                                                       (map (λ{ (inl x) → inr x
-                                                             ; (inr x) → inl x})) }
+                                                            ; (inr x) → inl x})) }
 
  -- Unions are associative
  ∪assoc : Semigroup (_∪_ {A = A})
@@ -391,7 +391,7 @@ Pair A B X = ∥ (X ≡ A) ＋ (X ≡ B) ∥
 ⋂lemma {X}{x} x∉⋂X = DNElim λ p →
      let G = DeMorgan p in x∉⋂X $
       η λ P P∈X → DeMorgan2 (G P) |> λ{ (inl P∉X) → UNREACHABLE (P∉X P∈X)
-                                      ; (inr ¬x∉P) → DNElim ¬x∉P}
+                                       ; (inr ¬x∉P) → DNElim ¬x∉P}
 
 ⋂lemma2 : {X : ℙ(ℙ A)}
         → (⋂ X)ᶜ ∈ X
@@ -558,3 +558,94 @@ infixr 2 _⟦_⟧
 _∴_[_] : A → (B : Type l) → (A → B) → B
 a ∴ _ [ f ] = f a
 infixr 1 _∴_[_]
+
+-- Contravariant functor
+record Functor2 {ρ : Level → Level}(F : ∀{l} → Type l → Type (ρ l)) : Typeω  where
+  field
+    map2 : (A → B) → F B → F A
+    compPreserve2 : (f : B → C) → (g : A → B) → map2 (f ∘ g) ≡ (map2 g ∘ map2 f)
+    idPreserve2 : map2 {A = A} id ≡ id
+open Functor2 {{...}} public
+
+-- Natural transformation between two contravariant functors
+record NatTrans2 {ρ : Level → Level}
+                {F G : ∀{l} → Type l → Type (ρ l)}
+                (component : {X : Type l} → F X → G X) : Typeω where
+ field
+   overlap {{F'2}} : Functor2 F
+   overlap {{G'2}} : Functor2 G
+   componentAx2 : {A B : Type l}
+                → (f : A → B) → component ∘ map2 f ≡ map2 f ∘ component
+open NatTrans2 {{...}} public
+
+-- Double covariant functor is covariant
+covarComp : {ρ : Level → Level}{F : ∀{l} → Type l → Type (ρ l)}
+          → {{FF : Functor F}}
+          → Functor (F ∘ F)
+covarComp = record
+  { map = λ f → (map ∘ map) f
+  ; compPreserve = λ f g →
+              (map ∘ map) (f ∘ g)       ≡⟨⟩
+              map (map (f ∘ g))         ≡⟨ cong map (compPreserve f g)⟩
+              map (map f ∘ map g)       ≡⟨ compPreserve (map f) (map g) ⟩
+              map (map f) ∘ map (map g) ≡⟨⟩
+              (map ∘ map) f ∘ (map ∘ map) g ∎
+  ; idPreserve = (map ∘ map) id ≡⟨⟩
+                 map (map id)   ≡⟨ cong map idPreserve ⟩
+                 map id         ≡⟨ idPreserve ⟩
+                 id ∎
+  }
+
+-- Double contravariant functor is covariant
+contraComp : {ρ : Level → Level}
+           → {F : ∀{l} → Type l → Type (ρ l)}
+           → {{Functor2 F}}
+           → Functor (F ∘ F)
+contraComp = record
+           { map = map2 ∘ map2
+           ; compPreserve = λ f g →
+                 (map2 ∘ map2) (f ∘ g)          ≡⟨⟩
+                  map2 (map2 (f ∘ g))           ≡⟨ cong map2 (compPreserve2 f g)⟩
+                  map2 (map2 g ∘ map2 f)        ≡⟨ compPreserve2 (map2 g) (map2 f)⟩
+                  map2 (map2 f) ∘ map2 (map2 g) ≡⟨⟩
+                  (map2 ∘ map2) f ∘ (map2 ∘ map2) g ∎
+           ; idPreserve = (map2 ∘ map2) id ≡⟨⟩
+                          map2 (map2 id)   ≡⟨ cong map2 idPreserve2 ⟩
+                          map2 id          ≡⟨ idPreserve2 ⟩
+                          id ∎
+           }
+
+instance
+ -- Contravariant powerset functor
+ ℙFun2 : Functor2 ℙ
+ ℙFun2 = record
+  { map2 = λ f X a → f a ∈ X
+  ; compPreserve2 = λ f g → refl
+  ; idPreserve2 = refl
+  }
+
+-- Alternative definition of the subset relation that makes for a nice instance of a natural transformation
+_⊆'_ : {A : set al} → ℙ A → ℙ (ℙ A)
+A ⊆' B = ∥ (∀ x → x ∈ A → x ∈ B) ∥
+
+-- The subset relation is a natural transformation from the covariant powerset functor
+-- to the double contravariant power set functor.
+NT⊆' : NatTrans {lsuc l} {F = ℙ}{G = (ℙ ∘ ℙ)} _⊆'_
+NT⊆' = record
+ { G' = contraComp
+ ; componentAx = λ{A}{B} f → funExt λ x → funExt λ y → propExt (_>> λ H → η (λ a a∈x → H (f a) (η (a , a∈x , refl))))
+    (_>> λ W → η λ b H → H >> λ(z , z∈x , b≡fa) → subst y (sym b≡fa) (W z z∈x))
+ }
+
+-- Contravariant double powerset functor
+ℙℙContra : Functor2 (ℙ ∘ ℙ)
+ℙℙContra = record
+ { map2 = λ f a b → map f b ∈ a
+ ; compPreserve2 = λ f g → funExt λ x
+                         → funExt λ y
+                         → map (f ∘ g) y ∈ x    ≡⟨ cong (λ i → i y ∈ x) (compPreserve f g)⟩
+                          (map f ∘ map g) y ∈ x ≡⟨⟩
+                         map g y ∈ (λ b → map f b ∈ x) ∎
+  
+ ; idPreserve2 = funExt λ a → funExt λ b → cong (λ x → x b ∈ a) idPreserve
+ }

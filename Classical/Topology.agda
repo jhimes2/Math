@@ -340,7 +340,7 @@ module _{A : set al}
      ; tunion = λ{X} H → η $ (⋃ λ U → (U ∈ τ) × (λ x → fst x ∈ U) ∈ X) , tunion
      (λ x (G , F) → G) , funExt λ Y → propExt (_>> λ(F , Y∈F , F∈X)
        → H F F∈X >> λ(U , U∈τ , R ) → η $ U , (substP Y (sym R) Y∈F) , U∈τ , subst X R F∈X
-       ) λ a → ∥map (λ(U , e , (U∈τ , d)) → (λ x → fst x ∈ U) , (e , d)) a
+       ) λ a → map (λ(U , e , (U∈τ , d)) → (λ x → fst x ∈ U) , (e , d)) a
      ; tintersection = λ{X}{Y} H1 G1 → H1 >> λ (U , U∈τ , Y≡U) → G1 >> λ (V , V∈τ , Y≡V) → η $ (U ∩ V)
                                , tintersection U∈τ V∈τ
                                , right _∩_ Y≡V ∙ left _∩_ Y≡U ∙ refl
