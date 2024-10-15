@@ -628,7 +628,7 @@ instance
 _⊆'_ : {A : set al} → ℙ A → ℙ (ℙ A)
 A ⊆' B = ∥ (∀ x → x ∈ A → x ∈ B) ∥
 
--- The subset relation is a natural transformation from the covariant powerset functor
+-- The (curried) subset relation is a natural transformation from the covariant powerset functor
 -- to the double contravariant power set functor.
 NT⊆' : NatTrans {lsuc l} {F = ℙ}{G = (ℙ ∘ ℙ)} _⊆'_
 NT⊆' = record
