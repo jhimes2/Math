@@ -5,13 +5,13 @@ module NumberTheory.Overloads where
 open import Prelude
 open import Data.Natural
 open import Relations
-open import Algebra.MultAdd
+open import Algebra.Semiring
 open import Cubical.HITs.PropositionalTruncation
 
 -- Number theory operators
 record NTOperators (A : Type l) : Type (lsuc l) where
  field
-  {{MA}} : *+ A 
+  {{MA}} : Semiring A 
   _∣_ : ℕ → A → Type l
   copy : ℕ → A → A
 open NTOperators {{...}} hiding (MA) public

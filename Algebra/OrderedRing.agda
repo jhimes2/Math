@@ -1,30 +1,25 @@
-{-# OPTIONS --safe --cubical #-}
+{-# OPTIONS --safe --cubical --backtracking-instance-search #-}
 
-module Algebra.OrderedRng where
+module Algebra.OrderedRing where
 
 open import Prelude
 open import Relations
 open import Algebra.Field
 open import Cubical.Foundations.HLevels
 
-record OrderedRng (l' : Level) (A : Type l) {{ordrng : Rng A}} : Type (lsuc (l' ⊔ l)) where
+record OrderedRing (l' : Level) (A : Type l) {{ordring : Ring A}} : Type (lsuc (l' ⊔ l)) where
   field
     {{totalOrd}} : TotalOrder l' A
     addLe : {a b : A} → a ≤ b → (c : A) → (a + c) ≤ (b + c) 
     multLt : {a b : A} → 0r < a → 0r < b → 0r < (a * b)
-open OrderedRng {{...}} public
+open OrderedRing {{...}} public
 
-module ordered{{_ : Rng A}}{{_ : OrderedRng l A}} where
+module ordered{{ordring : Ring A}}{{OR : OrderedRing l A}} where
 
   subLe : {a b : A} → (c : A) → (a + c) ≤ (b + c) → a ≤ b
   subLe {a} {b} c p =
-    addLe p (neg c)
-    |> λ(H : ((a + c) + neg c) ≤ ((b + c) + neg c))
-     → transport (λ i → (assoc a c (neg c) (~ i)) ≤ (assoc b c (neg c) (~ i))) H
-    |> λ(H : (a + (c + neg c)) ≤ (b + (c + neg c)))
-     → transport (λ i → (a + rInverse c i) ≤ (b + rInverse c i)) H
-    |>  λ(H : (a + 0r) ≤ (b + 0r))
-     → transport (λ i → rIdentity a i ≤ rIdentity b i) H
+       addLe p (neg c) 
+    ∴ a ≤ b [ transport (λ i → [ab]b'≡a a c i ≤ [ab]b'≡a b c i) ]
 
   lemma1 : {a b : A} → a ≤ b → {c d : A} → c ≤ d → (a + c) ≤ (b + d)
   lemma1 {a = a} {b} p {c} {d} q =
@@ -38,33 +33,33 @@ module ordered{{_ : Rng A}}{{_ : OrderedRng l A}} where
               |> transport (λ i → (c - d) ≤ rInverse d i)
               |> λ(p : (c - d) ≤ 0r) → p
         in
-    transitive G H |> λ(p : (c - d) ≤ (b - a)) → addLe p a
-                  |> transport (λ i → ((c - d) + a) ≤ assoc b (neg a) a (~ i))
-                  |> transport (λ i → ((c - d) + a) ≤ (b + lInverse a i))
-                  |> transport (λ i → ((c - d) + a) ≤ rIdentity b i)
-                  |> transport (λ i → (comm (c - d) a i) ≤ b)
-                  |> transport (λ i → assoc a c (neg d) i ≤ b)
-                  |> λ(p : ((a + c) - d) ≤ b) → addLe p d
-                  |> transport (λ i → assoc (a + c) (neg d) d (~ i) ≤ (b + d))
-                  |> transport (λ i → ((a + c) + lInverse d i) ≤ (b + d))
-                  |> transport (λ i → rIdentity (a + c) i ≤ (b + d))
-                  |> λ(p : ((a + c)) ≤ (b + d)) → p
+    transitive G H |> λ(r : (c - d) ≤ (b - a)) →
+          let H = (c + a) ≤ (d + a) ⟦ addLe q a ⟧
+                 ∴ (a + c) ≤ (d + a) [ transport (λ i → comm c a i ≤ (d + a)) ]
+          in
+          let G : (d + a) ≤ (b + d)
+              G = transport (λ i → comm a d i ≤ (b + d)) (addLe p d)
+          in
+          transitive H G
 
   lemma2 : {a b : A} → a ≤ b → neg b ≤ neg a
-  lemma2 {a = a} {b} =
-      λ(p : a ≤ b) → addLe p (neg a)
-   |>  transport (λ i → rInverse a i ≤ (b + neg a))
-   |> λ(p : 0r ≤ (b + neg a)) → addLe p (neg b)
-   |> transport (λ i → lIdentity (neg b) i ≤ ((b + neg a) + neg b))
-   |> transport (λ i → neg b ≤ comm (b + neg a) (neg b) i)
-   |> transport (λ i → neg b ≤ assoc (neg b) b (neg a) i)
-   |> transport (λ i → neg b ≤ (lInverse b i + neg a))
-   |> transport (λ i → neg b ≤ lIdentity (neg a) i)
+  lemma2 {a = a} {b} a≤b =
+        let H : 0r - b ≡ neg b
+            H = lIdentity (neg b) in 
+          a≤b 
+       ∴ (a - a) ≤ (b - a) [ (λ x → addLe x (neg a)) ]
+       ∴ 0r ≤ (b - a) [ transport (λ i → rInverse a i ≤ (b - a)) ]
+       ∴ 0r ≤ (neg a + b) [ transport (λ i → 0r ≤ comm b (neg a) i) ]
+       ∴ (0r - b) ≤ ((neg a + b) - b) [ (λ x → addLe x (neg b)) ]
+       ∴ (0r - b) ≤ neg a [  transport (λ i → (0r - b) ≤ [ab]b'≡a (neg a) b i) ]
+       ∴ neg b ≤ neg a [ transport (λ i → H i ≤ neg a) ]
 
   lemma3 : {a b : A} → a ≤ b → {c : A} → 0r ≤ c → a ≤ (b + c)
   lemma3 {a = a} {b} p {c} q =
+    let G : a + 0r ≡ a
+        G = rIdentity a in
     let H : (a + 0r) ≤ (b + c)
-        H = lemma1 p q in transport (λ i → rIdentity a i ≤ (b + c)) H
+        H = lemma1 p q in transport (λ i → G i ≤ (b + c)) H
 
   lemma4 : {a : A} → neg a ≡ a → a ≡ 0r
   lemma4 {a = a} = λ(p : neg a ≡ a) →
@@ -78,11 +73,11 @@ module ordered{{_ : Rng A}}{{_ : OrderedRng l A}} where
                                                  transport (λ i → grp.lemma4 i ≤ p i) y)}
 
   lemma5 : {a : A} → 0r ≡ a + a → a ≡ 0r
-  lemma5 {a = a} p = lemma4 $ neg a ≡⟨ sym (rIdentity (neg a))⟩
-                              neg a + 0r ≡⟨ right _+_ p ⟩
+  lemma5 {a = a} p = lemma4 $ neg a           ≡⟨ sym (rIdentity (neg a))⟩
+                              neg a + 0r      ≡⟨ right _+_ p ⟩
                               neg a + (a + a) ≡⟨ assoc (neg a) a a ⟩
                               (neg a + a) + a ≡⟨ left _+_ (lInverse a)⟩
-                              0r + a ≡⟨ lIdentity a ⟩
+                              0r + a          ≡⟨ lIdentity a ⟩
                               a ∎
 
   lemma6 : {a b : A} → neg a ≤ neg b → b ≤ a
@@ -95,20 +90,20 @@ module ordered{{_ : Rng A}}{{_ : OrderedRng l A}} where
   Negative = Σ λ (x : A) → 0r <  x
 
 instance
-  NZPreorder : {{G : Rng A}} → {{OR : OrderedRng l A}} → Preorder λ ((a , _) (b , _) : nonZero) → a ≤ b
+  NZPreorder : {{G : Ring A}} → {{OR : OrderedRing l A}} → Preorder λ ((a , _) (b , _) : nonZero) → a ≤ b
   NZPreorder {A = A} = record
                 { transitive = transitive {A = A}
                 ; reflexive = λ(a , _) → reflexive a
                 ; isRelation = λ (a , _) (b , _) → isRelation a b }
-  NZPoset : {{G : Rng A}} → {{OR : OrderedRng l A}} → Poset λ ((a , _) (b , _) : nonZero) → a ≤ b
+  NZPoset : {{G : Ring A}} → {{OR : OrderedRing l A}} → Poset λ ((a , _) (b , _) : nonZero) → a ≤ b
   NZPoset {A = A} =
      record { antiSymmetric = λ x y → Σ≡Prop (λ a b p → funExt λ x → b x |> UNREACHABLE)
                                              (antiSymmetric x y)}
-  NZTotal : {{G : Rng A}} → {{OR : OrderedRng l A}} → TotalOrder l nonZero
+  NZTotal : {{G : Ring A}} → {{OR : OrderedRing l A}} → TotalOrder l nonZero
   NZTotal {A = A} = record { _≤_ = λ (a , _) (b , _) → a ≤ b
                            ; stronglyConnected = λ (a , _) (b , _) → stronglyConnected a b }
 
-module _{{_ : Field A}}{{OF : OrderedRng l A}} where
+module _{{_ : Field A}}{{OF : OrderedRing l A}} where
 
   1≰0 : ¬(1r ≤ 0r)
   1≰0 contra =
@@ -123,8 +118,11 @@ module _{{_ : Field A}}{{OF : OrderedRng l A}} where
       in 1≢0 $ antiSymmetric contra $ G
 
   0≰-1 : ¬(0r ≤ neg 1r)
-  0≰-1 contra = addLe contra 1r |>
-    λ H → transport (λ i → grpIsMonoid .lIdentity 1r i ≤ lInverse 1r i) H |> 1≰0
+  0≰-1 contra =
+    let G : 0r + 1r ≡ 1r
+        G = lIdentity 1r in
+    addLe contra 1r |>
+    λ H → transport (λ i → G i ≤ lInverse 1r i) H |> 1≰0
 
   zeroLtOne : 0r < 1r
   zeroLtOne = let H : ¬(1r ≤ 0r) → 0r < 1r
@@ -140,7 +138,7 @@ module _{{_ : Field A}}{{OF : OrderedRng l A}} where
     (a + a) * reciprocal 2f  ≡⟨ left _*_ (x+x≡x2 a)⟩
     (a * 2r) * reciprocal 2f ≡⟨ sym (assoc a 2r (reciprocal 2f))⟩
     a * (2r * reciprocal 2f) ≡⟨ right _*_ (recInv 2f)⟩
-    a * 1r ≡⟨ multStr .rIdentity a ⟩
+    a * 1r ≡⟨ srmultStr .rIdentity a ⟩
     a ∎
 
   0<2 : 0r < 2r
@@ -171,7 +169,7 @@ module _{{_ : Field A}}{{OF : OrderedRng l A}} where
     let H : 0r < ((a + a) * reciprocal 2f)
         H = multLt p (reciprocalLt 0<2) in transport (λ i → 0r < [a+a]/2≡a a i) H
 
-module _{{_ : Rng A}}{{_ : OrderedRng l A}} where
+module _{{_ : Ring A}}{{_ : OrderedRing l A}} where
 
  private
   ABS : (a : A) → Σ λ b → (a ≤ 0r → neg a ≡ b) × (0r ≤ a → a ≡ b)

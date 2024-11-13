@@ -76,8 +76,9 @@ instance
                                    ; Yes No → refl
                                    ; No Yes → refl
                                    ; No No → refl}}
-  bool*+ : *+ 𝔹
-  bool*+ = record { _+_ = xor
+
+  boolRing : Ring 𝔹
+  boolRing = record { _+_ = xor
                   ; _*_ = and
                   ; lDistribute = λ{ Yes _ _ → refl
                                    ; No _ _ → refl}
@@ -86,10 +87,6 @@ instance
                                    ; No Yes Yes → refl
                                    ; No Yes No → refl
                                    ; _ No _ → refl}}
-  boolRng : Rng 𝔹
-  boolRng = record {}
-  boolRing : Ring 𝔹
-  boolRing = record {}
   boolCRing : CRing 𝔹
   boolCRing = record {}
   boolField : Field 𝔹

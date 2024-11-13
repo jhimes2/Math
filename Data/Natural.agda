@@ -4,8 +4,7 @@ module Data.Natural where
 
 open import Relations
 open import Prelude
-open import Algebra.Monoid
-open import Algebra.MultAdd public
+open import Algebra.Semiring
 
 data ℕ : Type where
   Z : ℕ
@@ -162,7 +161,7 @@ NatMultDist2 a b c = mult c (add a b)          ≡⟨ comm c (add a b)⟩
                      add (mult c a) (mult c b) ∎
 
 instance
-  natSemiRng : *+ ℕ
+  natSemiRng : Semiring ℕ
   natSemiRng =
       record { _+_ = add
              ; _*_ = mult

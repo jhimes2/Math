@@ -5,7 +5,7 @@ module Data.Finite where
 open import Prelude
 open import Relations
 open import Data.Natural public
-open import Algebra.MultAdd
+open import Algebra.Semiring
 open import Algebra.Monoid
 open import Cubical.Foundations.HLevels
 

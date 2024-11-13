@@ -147,8 +147,8 @@ instance
        λ (p , n) → cong [_] $ ≡-× (addZ (p + Z) ⋆ addZ p)
                                   (addZ (n + Z) ⋆ addZ n)
 
- ℤ*+ : *+ ℤ
- ℤ*+ = record { _+_ = addℤ
+ ℤRing : Ring ℤ
+ ℤRing = record { _+_ = addℤ
               ; _*_ = multℤ
               ; lDistribute = aux2
               ; rDistribute = λ a b c → comm (addℤ b c) a
@@ -168,10 +168,6 @@ instance
                      λ(p1 , n1) (p2 , n2) (p3 , n3) → cong [_] $ ≡-×
                         (aux p1 p2 p3 n1 n2 n3)
                         (aux p1 n2 n3 n1 p2 p3)
- ℤRng : Rng ℤ
- ℤRng = record {}
- ℤRing : Ring ℤ
- ℤRing = record {}
  ℤCRing : CRing ℤ
  ℤCRing = record {}
 
@@ -266,13 +262,11 @@ instance
     aux = elimProp2 (λ x y → squash₁)
                    λ (a , b) (c , d) → ∣ stronglyConnected (a + d) (c + b) ∣₁
 
-instance
- -- Constructing an integer from two natural numbers
- natSub : Subtract ℕ ℤ
- natSub = record { _-_ = λ a b → [ a , b ] }
+_-ℕ_ : ℕ → ℕ → ℤ
+a -ℕ b = [ a , b ]
 
-ℤℕMultNeg : (a b : ℕ) → (a - Z) * (Z - b) ≡ Z - (a * b)
-ℤℕMultNeg a b = (a - Z) * (Z - b) ≡⟨⟩
-               ((a * Z) + Z) - ((a * b) + Z) ≡⟨ cong (λ x → (x + Z) - ((a * b) + Z)) (multZ a)⟩
-               Z - ((a * b) + Z) ≡⟨ cong (λ x → Z - x ) (rIdentity (a * b))⟩
-               Z - (a * b) ∎
+ℤℕMultNeg : (a b : ℕ) → (a -ℕ Z) * (Z -ℕ b) ≡ Z -ℕ (a * b)
+ℤℕMultNeg a b = (a -ℕ Z) * (Z -ℕ b) ≡⟨⟩
+               ((a * Z) + Z) -ℕ ((a * b) + Z) ≡⟨ cong (λ x → (x + Z) -ℕ ((a * b) + Z)) (multZ a)⟩
+               Z -ℕ ((a * b) + Z) ≡⟨ cong (λ x → Z -ℕ x ) (rIdentity (a * b))⟩
+               Z -ℕ (a * b) ∎

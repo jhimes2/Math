@@ -34,7 +34,7 @@ Data/Matrix.agdai: Data/Matrix.agda Algebra/Linear.agdai Data/Finite.agdai
 Data/Finite.agdai: Data/Finite.agda Data/Natural.agdai
 	agda $<
 
-Data/Natural.agdai: Data/Natural.agda Algebra/Monoid.agdai Algebra/MultAdd.agdai
+Data/Natural.agdai: Data/Natural.agda Algebra/Monoid.agdai Algebra/Semiring.agdai
 	agda $<
 
 Algebra/Linear.agdai: Algebra/Linear.agda Algebra/Field.agdai Algebra/Module.agdai
@@ -43,10 +43,10 @@ Algebra/Linear.agdai: Algebra/Linear.agda Algebra/Field.agdai Algebra/Module.agd
 Algebra/Module.agdai: Algebra/Module.agda Algebra/CRing.agdai
 	agda $<
 
-Algebra/Metric.agdai: Algebra/Metric.agda Algebra/OrderedRng.agdai
+Algebra/Metric.agdai: Algebra/Metric.agda Algebra/OrderedRing.agdai
 	agda $<
 
-Algebra/OrderedRng.agdai: Algebra/OrderedRng.agda Algebra/Field.agdai
+Algebra/OrderedRing.agdai: Algebra/OrderedRing.agda Algebra/Field.agdai
 	agda $<
 
 Algebra/Field.agdai: Algebra/Field.agda Algebra/CRing.agdai
@@ -55,13 +55,10 @@ Algebra/Field.agdai: Algebra/Field.agda Algebra/CRing.agdai
 Algebra/CRing.agdai: Algebra/CRing.agda Algebra/Ring.agdai
 	agda $<
 
-Algebra/Ring.agdai: Algebra/Ring.agda Algebra/Rng.agdai
+Algebra/Ring.agdai: Algebra/Ring.agda Algebra/Semiring.agdai
 	agda $<
 
-Algebra/Rng.agdai: Algebra/Rng.agda Algebra/Group.agdai Algebra/MultAdd.agdai
-	agda $<
-
-Algebra/MultAdd.agdai: Algebra/MultAdd.agda Prelude.agdai
+Algebra/Semiring.agdai: Algebra/Semiring.agda Algebra/Monoid.agdai
 	agda $<
 
 Algebra/Group.agdai: Algebra/Group.agda Algebra/Monoid.agdai

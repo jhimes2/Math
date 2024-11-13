@@ -132,7 +132,7 @@ foldl++ {n = S n} f q x y =
  foldl f (f (head x) q) (tail x ++ y)   ≡⟨ foldl++ f (f (head x) q) (tail x) y ⟩
  foldl f (foldl f (f (head x) q) (tail x)) y ∎
 
-module _{C : Type cl}{{R : Rng C}} where
+module _{C : Type cl}{{R : Ring C}} where
 
  addv : (A → C) → (A → C) → (A → C)
  addv = zip _+_
@@ -488,8 +488,8 @@ module _{C : Type cl} {{R : Ring C}} where
                  ; lIdentity = IL-ID
                  ; rIdentity = IR-ID
                  }
-  sqrMatrix*+ : *+ (Matrix C n n)
-  sqrMatrix*+ {n = n} = record
+  sqrMatrixRing : Ring (Matrix C n n)
+  sqrMatrixRing {n = n} = record
     { _+_ = mAdd
     ; _*_ = mMult
      -- 'lMatrixDistr' and 'rMatrixDistr' are more general than 'lDistribution'
@@ -503,10 +503,6 @@ module _{C : Type cl} {{R : Ring C}} where
      ; inverse = λ a → (λ x y → neg(a x y)) , funExt λ x → funExt λ y → lInverse (a x y)
      ; lIdentity = λ a → funExt λ x → funExt λ y → lIdentity (a x y)
      }
-  sqrMatrixRng : Rng (Matrix C n n)
-  sqrMatrixRng = record {}
-  sqrMatrixRing : Ring (Matrix C n n)
-  sqrMatrixRing = record {}
 
 {-# DISPLAY mAdd a b = a + b #-}
 {-# DISPLAY mMult a b = a * b #-}

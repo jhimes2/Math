@@ -43,7 +43,7 @@ module _{scalar : Type l}{member : Type l'}{{R : Ring scalar}}{{V : Module membe
   a <-> b = a <+> -< b >
 
   instance
-   scaleAction : Action {{R .multStr}} _*>_
+   scaleAction : Action {{R .Ring.rmultStr}} _*>_
    scaleAction = record
      { act-identity = scaleId
      ; act-compatibility = λ v a b → scalarAssoc v a b

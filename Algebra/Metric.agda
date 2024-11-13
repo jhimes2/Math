@@ -4,13 +4,13 @@ module Algebra.Metric where
 
 open import Prelude
 open import Relations
-open import Algebra.OrderedRng
+open import Algebra.OrderedRing
 open import Algebra.Field
 
 -- https://en.wikipedia.org/wiki/Metric_space
 record Metric {A : Type al}{B : Type bl}
               {{F : Field A}}
-              {{OR : OrderedRng l A}}
+              {{OR : OrderedRing l A}}
               (d : B → B → A) : Type (lsuc (al ⊔ bl ⊔ l))
  where field
    dxy≡0→x≡y : ∀ {x} {y} → d x y ≡ 0r → x ≡ y
@@ -20,7 +20,7 @@ record Metric {A : Type al}{B : Type bl}
 open Metric {{...}}
 
 module _{{F : Field A}}
-        {{OR : OrderedRng l A}}
+        {{OR : OrderedRing l A}}
         (d : B → B → A)
         {{M : Metric d}}
         where
@@ -36,7 +36,7 @@ module _{{F : Field A}}
 instance
  -- absolute difference is a metric
  -- I now realize that this proof would be less convoluted had I used Agda's 'with abstraction'.
- standardMetric : {{_ : Field A}}{{_ : OrderedRng l A}} → Metric λ a b → abs (a - b)
+ standardMetric : {{_ : Field A}}{{_ : OrderedRing l A}} → Metric λ a b → abs (a - b)
  standardMetric =
   record
     { dxy≡0→x≡y = λ{x y} p →
