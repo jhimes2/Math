@@ -40,6 +40,9 @@ Data/Natural.agdai: Data/Natural.agda Algebra/Monoid.agdai Algebra/Semiring.agda
 Algebra/Linear.agdai: Algebra/Linear.agda Algebra/Field.agdai Algebra/Module.agdai
 	agda $<
 
+Algebra/Lie.agdai: Algebra/Lie.agda Algebra/Module.agdai
+	agda $<
+
 Algebra/Module.agdai: Algebra/Module.agda Algebra/CRing.agdai
 	agda $<
 

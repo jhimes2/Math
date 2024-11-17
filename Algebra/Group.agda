@@ -185,6 +185,13 @@ module grp {A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
 
 module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
 
+ ab≡e→a≡b' : {a b : A} → a ∙ b ≡ e → a ≡ inv b
+ ab≡e→a≡b' {a}{b} ab≡e =
+     (a ∙ inv(inv b)) ≡⟨ right _∙_ (grp.doubleInv b)⟩
+     a ∙ b            ≡⟨ ab≡e ⟩
+     e ∎
+  ∴ a ≡ inv b [ grp.uniqueInv ]
+
  a[b'a]'≡b : ∀ a b → a ∙ inv (inv b ∙ a) ≡ b
  a[b'a]'≡b a b = a ∙ inv(inv b ∙ a)       ≡⟨ right _∙_ (sym(grp.lemma1 (inv b) a))⟩
                  a ∙ (inv a ∙ inv(inv b)) ≡⟨ a[a'b]≡b a (inv(inv b))⟩
