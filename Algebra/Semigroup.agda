@@ -137,7 +137,7 @@ instance
         G = λ p → p >>= λ{(inl p) → p >>= λ{(inl p) → η (inl p)
                                            ;(inr p) → η (inr (η (inl p)))}
                         ; (inr p) → η $ inr (η (inr p)) } in
-       propExt (isProp¬ _) (isProp¬ _) H G }
+       propExt squash₁ squash₁ H G }
  ∩assoc : Semigroup (_∩_ {A = A} {l})
  ∩assoc = record { assoc = λ X Y Z → funExt λ x → isoToPath (iso (λ(a , b , c) → (a , b) , c)
                                                             (λ((a , b), c) → a , b , c)

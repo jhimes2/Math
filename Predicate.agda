@@ -112,7 +112,7 @@ infix 6 _⊎_
 
 -- Union
 _∪_ : (A → Type l) → (A → Type l') → A → Type (l ⊔ l')
-X ∪ Y = λ x → (x ∈ X) ∨ (x ∈ Y)
+X ∪ Y = λ x → ∥ (x ∈ X) ＋ (x ∈ Y) ∥₁
 infix 6 _∪_
 
 -- Intersection
@@ -173,17 +173,14 @@ instance
 ∩Complement X = funExt λ x → isoToPath (iso (λ(a , b) → b a |> UNREACHABLE)
                                             (λ()) (λ()) λ(a , b) → b a |> UNREACHABLE)
 
-∪Complement : (X : A → Type l) → X ∪ X ᶜ ≡ 𝓤
-∪Complement X = funExt λ x → propExt (isProp¬ _) (λ{(lift tt) (lift tt) → refl})
-    (λ _ → (lift tt)) λ _ → λ p → p (inr (λ q → p (inl q)))
-
 -- Union and intersection operations are associative and commutative
 instance
  ∪comm : Commutative (_∪_ {A = A} {l})
- ∪comm = record { comm = λ X Y → funExt λ x →
-    let H : ∀ X Y → x ∈ X ∪ Y → x ∈ Y ∪ X
+ ∪comm {A} {l} = record { comm = λ X Y → funExt λ x →
+    let H : (X Y : A → Type l) → x ∈ X ∪ Y → x ∈ Y ∪ X
         H X Y = map (λ{ (inl p) → inr p ; (inr p) → inl p}) in
-            propExt (isProp¬ _) (isProp¬ _) (H X Y) (H Y X) }
+            propExt squash₁ squash₁ (map λ{ (inl x∈X) → inr x∈X ; (inr x∈Y) → inl x∈Y})
+                                   $ map λ{ (inl x∈Y) → inr x∈Y ; (inr x∈X) → inl x∈X} }
  ∩comm : Commutative (_∩_ {A = A} {l})
  ∩comm = record { comm = λ X Y → funExt λ x → isoToPath (iso (λ(a , b) → b , a)
                                                              (λ(a , b) → b , a)

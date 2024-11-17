@@ -2,7 +2,7 @@
 
 open import Agda.Primitive public
 open import Cubical.Foundations.Prelude
-    renaming (Σ to Σ' ; I to Interval ; _∨_ to or ; congL to left
+    renaming (Σ to Σ' ; I to Interval ; congL to left
              ; congR to right ; _∙_ to _⋆_) public
 open import Cubical.Relation.Nullary public
 open import Cubical.Data.Unit renaming (Unit to ⊤) public
@@ -39,18 +39,6 @@ infixr 2 _＋_
 data Maybe (A : Type l) : Type l where
  Just : A → Maybe A
  Nothing : Maybe A
-
-implicit : Type l → Type l
-implicit A = ¬ ¬ A
-
--- Logical or
-_∨_ : (A : Type al)(B : Type bl) → Type (al ⊔ bl)
-A ∨ B = implicit (A ＋ B)
-infix 2 _∨_
-
--- All types are implicitly decidable (Law of Excluded Middle)
-LEM : (A : Type l) → A ∨ ¬ A
-LEM A f = f (inr λ x → f (inl x))
 
 -- Modus ponens operator
 -- Equivalent to the pipe operator `|>` in F#
@@ -133,9 +121,6 @@ DeMorgan2 (a , b) (inr x) = b x
 DeMorgan3 : ¬(A ＋ B) → (¬ A) × (¬ B)
 DeMorgan3 z = (λ x → z (inl x)) , λ x → z (inr x)
 
-DeMorgan4 : ¬(A × B) → ¬ A ∨ ¬ B
-DeMorgan4 = λ f g → g (inl λ x → g (inr λ y → f (x , y)))
-
 -- https://en.wikipedia.org/wiki/Functor_(functional_programmingj)
 record Functor {ρ : Level → Level} (F : ∀{l} → Type l → Type (ρ l)) : Typeω  where
   field
@@ -168,13 +153,13 @@ _<*>_ {m} mf mA = mf >>= λ f → map f mA
 
 instance
   -- Double-negation is a functor and monad
-  dnFunctor : Functor implicit
+  dnFunctor : Functor λ x → ¬ ¬ x
   dnFunctor = record { map = λ f y z → y (λ a → z (f a))
                      ; compPreserve = λ f g → funExt λ x → refl
                      ; idPreserve = funExt λ x → refl
                      }
 
-  dnMonad : Monad implicit
+  dnMonad : Monad λ x → ¬ ¬ x
   dnMonad = record { μ = λ x y → x (λ z → z y)
                    ; η = λ x y → y x
                    ; monadLemma1 = funExt λ x → funExt λ y → refl
