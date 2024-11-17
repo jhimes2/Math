@@ -221,10 +221,6 @@ instance
             ; scaleId = λ v → funExt λ x → lIdentity (v x)
             }
 
- -- https://en.wikipedia.org/wiki/Function_space
- functionSpace : {{F : Field A}} → VectorSpace (B → A)
- functionSpace = vectMod
-
 foldrMC : {_∗_ : A → A → A}{{M : monoid _∗_}}{{C : Commutative _∗_}} → (u v : < A ^ n >)
         → foldr _∗_ e (zip _∗_ u v) ≡ foldr _∗_ e u ∗ foldr _∗_ e v
 foldrMC {n = Z} u v = sym(lIdentity e)
@@ -521,7 +517,7 @@ module _{C : Type cl} {{R : Ring C}} where
 
  {- The function 'withoutEach' is used as part of the definition of the determinant.
    If you give it a vector
-      <a b c d e>
+      < a b c d e >
    then it outputs the matrix
     << b c d e >
      < a c d e >
@@ -537,8 +533,8 @@ withoutEach {n = S n} v = tail v ∷ map (head v ∷_) (withoutEach (tail v))
 det : {{CRing C}} → Matrix C n n → C
 det {n = Z} M = 1r
 det {n = S n} M = foldr _-_ 0r $ zip (λ a x → a * det x)
-                                           (head M)
-                                           (withoutEach ((tail M) ᵀ))
+                                     (head M)
+                                     (withoutEach ((tail M) ᵀ))
 
 module _ {{R : CRing C}} where
 

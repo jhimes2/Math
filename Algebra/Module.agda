@@ -3,14 +3,10 @@
 module Algebra.Module where
 
 open import Prelude
-open import Relations
 open import Predicate
 open import Algebra.CRing public
 open import Cubical.HITs.PropositionalTruncation renaming (rec to truncRec)
-
---------------------------------------------------------------------------------------
--- Several definitions in this file are generalized from a member space to a module --
---------------------------------------------------------------------------------------
+open import Cubical.Foundations.HLevels
 
 -- https://en.wikipedia.org/wiki/Module_(mathematics)
 -- Try not to confuse 'Module' with Agda's built-in 'module' keyword.

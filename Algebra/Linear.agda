@@ -10,13 +10,9 @@ open import Algebra.Field public
 open import Cubical.Foundations.HLevels
 open import Cubical.HITs.PropositionalTruncation renaming (rec to truncRec)
 
--- https://en.wikipedia.org/wiki/Vector_space
-VectorSpace : {scalar : Type l} → {{F : Field scalar}} → (vector : Type l') → Type (l ⊔ l')
-VectorSpace vector = Module vector
+module _{scalar : Type l}{{F : Field scalar}}{vector : Type l'}{{V : Module vector}} where
 
-module _{scalar : Type l}{{F : Field scalar}}{vector : Type l'}{{V : VectorSpace vector}} where
-
-  module _{vector' : Type al}{{U : VectorSpace vector'}} where
+  module _{vector' : Type al}{{U : Module vector'}} where
 
     -- https://en.wikipedia.org/wiki/Linear_map
     -- A linear map is a module homomorphism whose underlying module is a vector space.
@@ -24,8 +20,8 @@ module _{scalar : Type l}{{F : Field scalar}}{vector : Type l'}{{V : VectorSpace
     LinearMap T = moduleHomomorphism T
 
 instance
-    FieldToVectorSpace : {A : Type l} → {{F : Field A}} → VectorSpace A
-    FieldToVectorSpace {A = A} = record
+    FieldToModule : {A : Type l} → {{F : Field A}} → Module A
+    FieldToModule {A = A} = record
       { _<+>_ = _+_
       ; _*>_ = _*_
       ; scalarDistribute = lDistribute
@@ -34,14 +30,14 @@ instance
       ; scaleId = lIdentity
       }
 
-linearForm : {A : Type l}{vector : Type l'}{{F : Field A}}(VS : VectorSpace vector) → Type (l ⊔ lsuc l')
+linearForm : {A : Type l}{vector : Type l'}{{F : Field A}}(VS : Module vector) → Type (l ⊔ lsuc l')
 linearForm {A = A} {vector} {{F}} VS = Σ λ(T : vector → A) → LinearMap T
   where
    instance
-     U : VectorSpace vector
+     U : Module vector
      U = VS
 
-dualSum : {A : Type l}{vector : Type l'}{{F : Field A}}(VS : VectorSpace vector)
+dualSum : {A : Type l}{vector : Type l'}{{F : Field A}}(VS : Module vector)
         → linearForm VS → linearForm VS → linearForm VS
 dualSum {l} {vector = vector} {{F}} VS =
  λ{(T , record { addT = record {preserve = addTT} ; multT = multTT })
@@ -64,25 +60,25 @@ dualSum {l} {vector = vector} {{F}} VS =
           } }
   where
    instance
-    V : VectorSpace vector
+    V : Module vector
     V = VS
 
-dualZero : {A : Type l}{{F : Field A}}{vector : Type l'}(VS : VectorSpace vector) → linearForm VS
+dualZero : {A : Type l}{{F : Field A}}{vector : Type l'}(VS : Module vector) → linearForm VS
 dualZero {A = A}{{F}} {vector} VS = (λ _ → Ô) , record
                          { addT = record { preserve = λ u v → sym (lIdentity Ô) }
                                       ; multT = λ v c → sym (x*0≡0 c) }
  where
   instance
-   V : VectorSpace vector
+   V : Module vector
    V = VS
 instance
-  DualSumComm : {{F : Field A}}{{VS : VectorSpace B}} → Commutative (dualSum VS)
+  DualSumComm : {{F : Field A}}{{VS : Module B}} → Commutative (dualSum VS)
   DualSumComm {{F = F}} =
     record { comm = λ {(T , record {addT = addTT ; multT = multTT})
                        (R , record {addT = addTR ; multT = multTR})
                           → ΣPathPProp modHomomorphismIsProp
                                       (funExt λ x → comm (T x) (R x))}}
-  DualSumAssoc : {{F : Field A}}{{VS : VectorSpace B}} → Semigroup (dualSum VS)
+  DualSumAssoc : {{F : Field A}}{{VS : Module B}} → Semigroup (dualSum VS)
   DualSumAssoc =
     record { assoc = λ {(T , record {addT = addTT ; multT = multTT})
                         (R , record {addT = addTR ; multT = multTR})
@@ -90,10 +86,10 @@ instance
                            → ΣPathPProp modHomomorphismIsProp
                                        (funExt λ x → assoc (T x) (R x) (Q x))}}
 
-  LFIsSet : {{F : Field A}}{{VS : VectorSpace B}} → is-set (linearForm VS)
+  LFIsSet : {{F : Field A}}{{VS : Module B}} → is-set (linearForm VS)
   LFIsSet = record { IsSet = isSetΣSndProp (isSet→ IsSet) modHomomorphismIsProp }
 
-  LFGroup : {{F : Field A}}{{VS : VectorSpace B}} → group (dualSum VS)
+  LFGroup : {{F : Field A}}{{VS : Module B}} → group (dualSum VS)
   LFGroup {{F}} {{VS = VS}} =
    record { e = dualZero VS
           ; inverse = λ (T , record {addT = record { preserve = addTT }
@@ -114,7 +110,7 @@ instance
                 ΣPathPProp modHomomorphismIsProp (funExt λ x → lIdentity (T x))}
 
   -- https://en.wikipedia.org/wiki/Dual_space
-  dualSpace : {B : Type l} {{F : Field A}}{{VS : VectorSpace B}} → VectorSpace (linearForm VS)
+  dualSpace : {B : Type l} {{F : Field A}}{{VS : Module B}} → Module (linearForm VS)
   dualSpace {{VS = VS}} =
    record
        { _<+>_ = dualSum VS
@@ -141,7 +137,7 @@ instance
        }
 
 instance
-  naturalPairing : {B : Type bl} → {{F : Field A}}{{VS : VectorSpace B}}
+  naturalPairing : {B : Type bl} → {{F : Field A}}{{VS : Module B}}
                    → Bilinear (λ(b : B)(LF : linearForm VS) → fst LF b)
   naturalPairing = record { lLinear = λ v → record { addT = record { preserve = λ a b → refl }
                                                    ; multT = λ u c → refl }
