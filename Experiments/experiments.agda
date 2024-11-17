@@ -9,7 +9,6 @@ open import Data.Natural
 open import Cubical.Foundations.Isomorphism
 open import Cubical.HITs.PropositionalTruncation renaming (rec to recTrunc)
 open import Data.Finite
-open import NumberTheory.Natural
 open import Data.Bool
 
 JRule : (P : {x y : A} → x ≡ y → Type l) → (x : A) → P (λ _ → x) → {y : A} → (p : x ≡ y) → P p
@@ -60,8 +59,8 @@ retNo' = transport (λ i → flipPath i) Yes
 reflLoopF : ((λ i → base) ≡ loop) → Yes ≡ No
 reflLoopF contra = λ i → endPtOfYes (contra i)
 
-Euclid's-Lemma : (a b c : ℕ) → gcd a b ≡ S Z → a ∣ copy b c → a ∣ c
-Euclid's-Lemma a b c coprime p = p >>= λ(x , p) → ∣ {!!} , {!!} ∣₁
+--Euclid's-Lemma : (a b c : ℕ) → gcd a b ≡ S Z → a ∣ copy b c → a ∣ c
+--Euclid's-Lemma a b c coprime p = p >>= λ(x , p) → ∣ {!!} , {!!} ∣₁
 
 Schröder–Bernstein : {A : Type al}
                    → {B : Type bl}
@@ -74,15 +73,31 @@ S1Equiv : Interval → Interval → Type
 S1Equiv i j = {!!}
 
 zorn' : {_≤_ : A → A → Type} → {{_ : Poset _≤_}}
-      → ((C : A → Type al) → chain C → Σ λ g → ∀ x → x ∈ C → g ≤ x → g ≡ x)
-      → ¬((x : A) → Σ λ g → x < g)
-zorn' {A = A} {_≤_ = _≤_} ch contra =
-  let x : A
-      x = {!!} in
-  let y : A
-      y = {!!} in
-  let H : x < y
-      H = {!!} in {!!}
+      → ((C : A → Type al) → chain C → Σ λ x → ∀ g → g ∈ C → x ≤ g)
+      → Σ λ(x : A) → ∀ g → g ≤ x → x ≤ g
+zorn' {A = A} {_≤_ = _≤_} ch = {!!}
+
+distinguish3 : (f : ℕ → 𝔹) → f ≢ (λ x → Yes) → Σ λ x → (f x ≡ No) × ∀ y → f y ≡ No → x ≤ y
+distinguish3 f H = {!!}
+
+module _{_≤_ : A → A → Type al} where
+ instance
+  ΣPreorder : {{PO : Preorder _≤_}} → {P : A → Type l} → {{property : Property P}} → Preorder λ((x , _)(y , _) : Σ P) → x ≤ y
+  ΣPreorder {P} = {!!}
+  ΣPoset : {{PO : Poset _≤_}} → {P : A → Type l} → {{property : Property P}} → Poset λ((x , _)(y , _) : Σ P) → x ≤ y
+  ΣPoset {P} = {!!}
+instance
+ ΣTotalOrder : {{PO : TotalOrder al A}} → {P : A → Type l} → {{property : Property P}} → TotalOrder al (Σ P)
+ ΣTotalOrder {P} = {!!}
+ negProperty : {P : A → Type l} → Property λ x → ¬(P x)
+ negProperty {P} = {!!}
+
+distinguish4 : (f : ℕ → 𝔹)
+             → f ≢ (λ x → Yes)
+             → Σ λ (a : Σ λ x → f x ≢ Yes) → (b : Σ λ y → f y ≢ Yes)
+                                           → b ≤ a
+                                           → a ≤ b
+distinguish4 f H = zorn' {!λ C Chain → ?!}
 
 {-# TERMINATING #-}
 distinguish : (f : ℕ → 𝔹) → f ≢ (λ x → Yes) → Σ λ x → f x ≢ Yes

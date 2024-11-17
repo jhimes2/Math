@@ -1,9 +1,10 @@
 {-# OPTIONS --safe --cubical --hidden-argument-pun #-}
 
-module Experiments.TypeTheory.cubical.Lang2 where
+module Experiments.TypeTheory.cubical.Lang1 where
 
 open import Prelude renaming (i0 to i0'; i1 to i1') hiding (_$_) public
 open import Data.Natural public
+open import Algebra.Semiring hiding (_$_)
 open import Relations public
 open import Data.Matrix renaming (_∷_ to cons) public
 
@@ -25,19 +26,6 @@ interleaved mutual
    _$_ : tm → tm → tm
    ■ : ℕ → tm
    _⇒_ : tm → tm → tm
-   Sigma : tm → tm → tm
-   SigmaElim : tm → tm → tm
-   _,,_ : tm → tm → tm
-   first : tm → tm
-   second : tm → tm
-   ℕelim : tm → tm → tm
-   Nat : tm
-   Zero : tm
-   Suc : tm
-   path : tm → tm → tm → tm
-   pathElim : tm → tm → tm → tm
-   Refl : tm → tm
-   ⟨_⟩_ : tm → tm → tm
 
  infixr 6 _⇒_
  infixr 6 ↦_
@@ -59,26 +47,13 @@ interleaved mutual
  (Var  Z) [ p / S n ] = v0
  (Var (S x)) [ p / Z ] = Var x
  (Var (S x)) [ p / S n ] with trichotomy x n
- ... | (inl _) = Var (S x)
- ... | (inr (inl _)) = p
- ... | (inr (inr _)) = Var x
+ ... | (inl      x<n) = Var (S x)
+ ... | (inr (inl x≡n)) = p
+ ... | (inr (inr n<x)) = Var x
  (↦ x) [ p / n ] = ↦ (x [ p / S n ])
  (X $ Y) [ p / n ] = X [ p / n ] $ Y [ p / n ]
  (■ x) [ p / n ] = ■ x
  (X ⇒ Y) [ p / n ] = X [ p / n ] ⇒ Y [ p / S n ]
- (Sigma x y) [ p / n ] = Sigma (x [ p / n ]) (y [ p / n ])
- (x ,, y) [ p / n ] = (x [ p / n ]) ,, (y [ p / n ])
- (first x) [ p / n ] = first (x [ p / n ])
- (second x) [ p / n ] = second (x [ p / n ])
- (ℕelim x y) [ p / n ] = ℕelim (x [ p / n ]) (y [ p / n ])
- Nat [ p / n ] = Nat
- Zero [ p / n ] = Zero
- Suc [ p / n ] = Suc
- (⟨ a ⟩ b) [ p / n ] = ⟨ a [ p / n ] ⟩ (b [ p / n ])
- (path x y z) [ p / n ] = path (x [ p / n ]) (y [ p / n ]) (z [ p / n ])
- (Refl x) [ p / n ] = Refl (x [ p / n ])
- (SigmaElim x y) [ p / n ] = SigmaElim (x [ p / n ]) (y [ p / n ])
- (pathElim x y z) [ p / n ] = pathElim (x [ p / n ]) (y [ p / n ]) (z [ p / n ])
 
  T : v4 [ v0 / S Z ] ≡ v3
  T = refl
@@ -91,19 +66,6 @@ interleaved mutual
  weakSubst n (x $ y) = weakSubst n x $ weakSubst n y
  weakSubst n (■ x) = ■ x
  weakSubst n (x ⇒ y) = (weakSubst n x) ⇒ (weakSubst (S n) y)
- weakSubst n (Sigma x y) = Sigma (weakSubst n x) (weakSubst (S n) y)
- weakSubst n (SigmaElim x y) = SigmaElim (weakSubst n x) (weakSubst n y) 
- weakSubst n (x ,, y) = (weakSubst n x) ,, (weakSubst n y) 
- weakSubst n (first x) = first (weakSubst n x) 
- weakSubst n (second x) = second (weakSubst n x) 
- weakSubst n (ℕelim x y) = ℕelim (weakSubst n x) (weakSubst n y) 
- weakSubst n Nat = Nat
- weakSubst n Zero = Zero
- weakSubst n Suc = Suc
- weakSubst n (path x y z) = path (weakSubst n x) (weakSubst n y) (weakSubst n z)
- weakSubst n (pathElim x y z) = pathElim (weakSubst n x) (weakSubst n y) (weakSubst n z)
- weakSubst n (Refl x) = Refl (weakSubst n x)
- weakSubst n (⟨ x ⟩ y) = (⟨ weakSubst n x ⟩ (weakSubst n y))
 
  infix 5 _⊢_::_
 
@@ -122,10 +84,10 @@ interleaved mutual
        → Γ ⊢ A :: B
        → Γ ⊢ C :: ■ l
        → cons C Γ ⊢ weakSubst Z A :: weakSubst Z B
-  Π-form :{Γ : Context n}{A B : tm}{l l' : ℕ}
+  Π-form' :{Γ : Context n}{A B : tm}{l : ℕ}
          → Γ ⊢ A :: ■ l
-         → cons A Γ ⊢ B :: ■ l'
-         → Γ ⊢ A ⇒ B :: ■ (max l l')
+         → cons A Γ ⊢ B :: ■ l
+         → Γ ⊢ A ⇒ B :: ■ l
   Π-elim :{Γ : Context n}{A B M N : tm}
        → Γ ⊢ M :: (A ⇒ B)
        → Γ ⊢ N :: A
@@ -133,53 +95,6 @@ interleaved mutual
   Π-intro :{Γ : Context n}{A B M : tm}
           → cons A Γ ⊢ M :: B
           → Γ ⊢ (↦ M) :: (A ⇒ B)
-  Σ-form :{Γ : Context n}{l l' : ℕ}{A B : tm}
-        → Γ ⊢ A :: ■ l
-        → cons A Γ ⊢ B :: ■ l'
-        → Γ ⊢ Sigma A B :: ■ (max l l')
-  Σ-Intro :{Γ : Context n}{A x N B : tm}
-         → Γ ⊢ x :: A
-         → cons A Γ ⊢ N :: B [ x / Z ]
-         → Γ ⊢ x ,, N :: Sigma A B
-  First :{Γ : Context n}{A B t : tm}
-        → Γ ⊢ t :: Sigma A B
-        → Γ ⊢ first t :: A
-  Second :{Γ : Context n}{A B t u : tm}
-         → Γ ⊢ t :: Sigma A B
-         → Γ ⊢ second t :: B [ first t / Z ]
-  ℕ-form :{Γ : Context n}
-         → Γ ⊢ Nat :: ■ (S(S Z))
-  ℕ-intro₁ :{Γ : Context n}
-           → Γ ⊢ Zero :: Nat
-  ℕ-intro₂ : {Γ : Context n}
-           → Γ ⊢ Suc :: (Nat ⇒ Nat)
-  ℕElim :{Γ : Context n}{P a b : tm}{l : ℕ}
-        → cons Nat Γ ⊢ P :: ■ l
-        → Γ ⊢ a :: P [ Zero / Z ]
-        → Γ ⊢ b :: Nat ⇒ P ⇒ P [ Suc $ Var (S n) / Z ]
-        → Γ ⊢ ℕelim a b :: Nat ⇒ P
-  path-form :{Γ : Context n}{A t u : tm}{l : ℕ}
-            → Γ ⊢ A :: ■ (S l)
-            → Γ ⊢ t :: A
-            → Γ ⊢ u :: A
-            → Γ ⊢ path A t u :: ■ l
-  path-intro :{Γ : Context n}{A a : tm}{l : ℕ}
-            → Γ ⊢ a :: A
-            → Γ ⊢ Refl a :: path A a a
-  Transport :{Γ : Context n}{a A B : tm}{l : ℕ}
-            → Γ ⊢ a :: A
-            → Γ ⊢ A ＝ B :: ■ l
-            → Γ ⊢ a :: B
---  path1 :{Γ : Context n}{A t : tm}{l : ℕ}
---        → Γ ⊢ A :: ■ l
---        → cons 𝕀 Γ ⊢ t :: A
---        → Γ ⊢ ⟨ Var (S n) ⟩ t :: path A (t [ i0 / S n ]) (t [ i1 / S n ])
---  path2 :{Γ : Context n}{A t r u₀ u₁ : tm}
---        → Γ ⊢ t :: path A u₀ u₁
---        → Γ ⊢ r :: 𝕀
---        → Γ ⊢ t $ r :: A
-  ext : (Γ : Context n)(A B : tm)
-      → isProp (Γ ⊢ A :: B)
 
  data _⊢_＝_::_ where
   Π-Comp : {f A x : tm}{Γ : Context n}
@@ -208,32 +123,51 @@ interleaved mutual
              → cons A Γ ⊢ B :: ■ l
              → cons A Γ ⊢ b ＝ b' :: B
              → Γ ⊢ ↦ b ＝ ↦ b' :: B
-  ℕ-comp₁ :{Γ : Context n}{P a b : tm}{l : ℕ}
-          → cons Nat Γ ⊢ P :: ■ l
-          → Γ ⊢ a :: P [ Zero / S n ]
-          → Γ ⊢ b :: Nat ⇒ P ⇒ P [ Suc $ Var n / n ]
-          → Γ ⊢ ℕelim a b $ Zero ＝ a :: (P [ Zero / n ])
-  ℕ-comp₂ :{Γ : Context n}{P a b m : tm}{l : ℕ}
-          → cons Nat Γ ⊢ P :: ■ l
-          → Γ ⊢ a :: P [ Zero / S n ]
-          → Γ ⊢ b :: Nat ⇒ P ⇒ P [ Suc $ Var n / n ]
-          → Γ ⊢ m :: Nat
-          → Γ ⊢ ℕelim a b $ (Suc $ m) ＝ Suc $ (ℕelim a b $ m) :: (P [ Suc $ m / n ])
- -- path-comp₁ :{Γ : Context n}{A t r : tm}{l : ℕ}
- --            → Γ ⊢ A :: ■ l
- --            → cons 𝕀 Γ ⊢ t :: A
- --            → Γ ⊢ r :: 𝕀
- --            → Γ ⊢ (⟨ Var (S n) ⟩ t) $ r ＝ t [ r / S n ] :: A
---  path-comp₂ :{Γ : Context n}{A t r u₀ u₁ : tm}
---        → Γ ⊢ t :: path A u₀ u₁
---        → Γ ⊢ t $ i0 ＝ u₀ :: A
---  path-comp₃ :{Γ : Context n}{A t r u₀ u₁ : tm}
---        → Γ ⊢ t :: path A u₀ u₁
---        → Γ ⊢ t $ i1 ＝ u₁ :: A
+
+𝓤-Z : {Γ : Context n}{A : tm}{l : ℕ}
+     → Γ ⊢ A :: ■ Z
+     → Γ ⊢ A :: ■ l
+𝓤-Z {l = Z} H = H
+𝓤-Z {l = S l} H = 𝓤-cumul (𝓤-Z H)
+
+𝓤-+ : {Γ : Context n}{A : tm}{l l' : ℕ}
+     → Γ ⊢ A :: ■ l
+     → Γ ⊢ A :: ■ (l' + l)
+𝓤-+ {Γ}{A} {l = l} {(Z)} H = H
+𝓤-+ {l = l} {S l'} H = 𝓤-cumul (𝓤-+ H)
+
+𝓤-≤ : {Γ : Context n}{A : tm}{l l' : ℕ}
+       → l ≤ l'
+       → Γ ⊢ A :: ■ l
+       → Γ ⊢ A :: ■ l'
+𝓤-≤ {Γ} {A} {l} {l'} l≤l' H = let (n , G) = leΣ {l}{l'} l≤l' in transport (λ i → (Γ ⊢ A :: ■ (G i)))
+  (𝓤-+ H)
+
+𝓤-max : {Γ : Context n}{A : tm}{l : ℕ}
+       → Γ ⊢ A :: ■ l
+       → (l' : ℕ)
+       → Γ ⊢ A :: ■ (max l l')
+𝓤-max {l} H l' = 𝓤-≤ (max≤ l l') H
+
+Π-form :{Γ : Context n}{A B : tm}{l l' : ℕ}
+       → Γ ⊢ A :: ■ l
+       → cons A Γ ⊢ B :: ■ l'
+       → Γ ⊢ A ⇒ B :: ■ (max l l')
+Π-form {Γ} {A}{B} {l} {l'} H G =
+  let P = 𝓤-max H l' in
+  let Q = 𝓤-max G l in
+  let R = transport (λ i → cons A Γ ⊢ B :: ■ (maxComm .comm l' l i)) Q in
+  Π-form' P R
 
 _::_ : tm → tm → Set
 x :: A = <> ⊢ x :: A
 infix 4 _::_
+
+sortStepBack : ∀ {A l} → ■ (S l) :: A → ■ l :: A
+sortStepBack {.(■ (S _))} (𝓤-cumul H) = 𝓤-cumul (sortStepBack H)
+
+¬■:■ : ∀{l} → ¬ (■ l :: ■ l)
+¬■:■ (𝓤-cumul H) = ¬■:■ (sortStepBack H)
 
 parseId : ↦ ↦ v0 :: ■ Z ⇒ v0 ⇒ v1
 parseId = Π-intro (Π-intro (var (var 𝓤-intro)))

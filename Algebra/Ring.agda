@@ -174,6 +174,12 @@ module _{A : Type l}{{R : Ring A}} where
             x * (1r + 1r)         ≡⟨⟩
             x * 2r ∎
 
+ record derivation (∂ : A → A) : Type l where
+  field
+   {{defHomo}} : Homomorphism _+_ _+_ ∂
+   Leibniz : ∀ x y → ∂(x * y) ≡ (∂ x * y) + (x * ∂ y)
+ open derivation {{...}} public
+
  -- Subset of ring that corresponds to natural numbers
  data Nat : A → Type l where
    R0 : Nat 0r

@@ -280,6 +280,18 @@ instance
 
 module _{C : Type cl} {{R : Ring C}} where
 
+ instance
+  funRing : Ring (A → C)
+  funRing = record { _+_ = zip _+_
+                   ; _*_ = zip _*_
+                   ; lDistribute = λ f g h → funExt λ x → lDistribute (f x) (g x) (h x)
+                   ; rDistribute = λ f g h → funExt λ x → rDistribute (f x) (g x) (h x)
+                   }
+  derHM : {∂ : C → C} → {{der : derivation ∂}} → Homomorphism _+_ _+_ λ(f : C → C) → ∂ ∘ f
+  derHM {∂} = record { preserve = λ f g → funExt λ x → preserve (f x) (g x) }
+  derFun : {∂ : C → C} → {{der : derivation ∂}} → derivation λ(f : C → C) → ∂ ∘ f
+  derFun {∂} = record { Leibniz = λ f g → funExt λ x → Leibniz (f x) (g x) }
+
  unitVector : < C ^ n > → Type cl
  unitVector v = Σ λ x → (v x ≡ 1r) × ∀ y → y ≢ x → (v y) ≡ 0r
 
@@ -507,7 +519,7 @@ module _{C : Type cl} {{R : Ring C}} where
 {-# DISPLAY mAdd a b = a + b #-}
 {-# DISPLAY mMult a b = a * b #-}
 
-{- The function 'withoutEach' is used as part of the definition of the determinant.
+ {- The function 'withoutEach' is used as part of the definition of the determinant.
    If you give it a vector
       <a b c d e>
    then it outputs the matrix
@@ -516,7 +528,7 @@ module _{C : Type cl} {{R : Ring C}} where
      < a b d e >
      < a b c e >
      < a b c d >>
--}
+ -}
 withoutEach : < C ^ S n > → Matrix C n (S n)
 withoutEach {n = Z} v u _ = v u
 withoutEach {n = S n} v = tail v ∷ map (head v ∷_) (withoutEach (tail v))

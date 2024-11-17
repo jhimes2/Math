@@ -1,4 +1,4 @@
-{-# OPTIONS --hidden-argument-pun #-}
+{-# OPTIONS --hidden-argument-pun --safe #-}
 
 open import Agda.Primitive public
 
@@ -10,6 +10,11 @@ _+_ : ℕ → ℕ → ℕ
 Z + b = b
 S a + b = S (a + b)
 infixl 6 _+_
+
+_*_ : ℕ → ℕ → ℕ
+Z * b = Z
+S a * b = b + (a * b)
+infixl 7 _*_
 
 data 𝔹 : Set where
  false : 𝔹
@@ -38,10 +43,6 @@ data ⊤ : Set where
 _|>_ : A → (A → B) → B
 a |> f = f a
 infixl 0 _|>_
-
-_$_ : (A → B) → A → B
-f $ a = f a
-infixl 0 _$_
 
 _∈_ : A → (A → Set l) → Set l
 _∈_ = _|>_
@@ -87,13 +88,33 @@ orTm (inr x) = x
 data _≡_ {A : Set l} (a : A) : A → Set l where
  refl : a ≡ a
 infix 4 _≡_
+{-# BUILTIN EQUALITY _≡_  #-}
 
 _≢_ : {A : Set l} → A → A → Set l 
 a ≢ b = ¬(a ≡ b)
 infix 4 _≢_
 
+sym : {x y : A} → x ≡ y → y ≡ x
+sym refl = refl
+
+record Semigroup {A : Set l}(_∙_ : A → A → A) : Set l where
+  field
+      assoc : (a b c : A) → a ∙ (b ∙ c) ≡ (a ∙ b) ∙ c
+open Semigroup {{...}} public
+
+record Commutative {A : Set l}{B : Set l'}(_∙_ : A → A → B) : Set(l ⊔ l') where
+  field
+    comm : (a b : A) → a ∙ b ≡ b ∙ a
+open Commutative {{...}} public
+
 cong : {x y : A} → (f : A → B) → x ≡ y → f x ≡ f y
 cong f refl = refl
+
+left : {x y : A} → {z : B} → (f : A → B → C) → x ≡ y → f x z ≡ f y z
+left f refl = refl
+
+right : {x y : A} → {z : B} → (f : B → A → C) → x ≡ y → f z x ≡ f z y
+right f refl = refl
 
 SInjective : ∀{x y : ℕ} → S x ≡ S y → x ≡ y
 SInjective {x = x} {y = .x} refl = refl
@@ -107,9 +128,31 @@ natDiscrete (S x) (S y) with natDiscrete x y
 ... | (inr p) = inr λ q → p (SInjective q)
 
 max : ℕ → ℕ → ℕ
-max Z y = y
-max (S x) Z = S x
-max (S x) (S y) = S (max x y)
+max a Z = a
+max Z (S b) = S b
+max (S a) (S b) = S (max a b)
+
+maxZ : ∀ n → max n Z ≡ n
+maxZ Z = refl
+maxZ (S n) = refl
+
+instance
+ maxAssoc : Semigroup max
+ maxAssoc = record { assoc = aux }
+  where
+   aux : ∀ a b c → max a (max b c) ≡ max (max a b) c
+   aux a b Z = refl
+   aux a Z (S c) = refl
+   aux Z (S b) (S c) = refl
+   aux (S a) (S b) (S c) = cong S (aux a b c)
+ maxComm : Commutative max
+ maxComm = record { comm = aux }
+  where
+   aux : ∀ a b → max a b ≡ max b a
+   aux Z Z = refl
+   aux Z (S b) = refl
+   aux (S a) Z = refl
+   aux (S a) (S b) = cong S (aux a b)
 
 _≤_ : ℕ → ℕ → Set
 Z ≤ _ = ⊤
@@ -137,3 +180,40 @@ infixr 3 _≡⟨⟩_
 _∎ : (x : A) → x ≡ x
 _ ∎ = refl
 infixr 4 _∎
+
+≤＋> : (a b : ℕ) → a ≤ b ＋ S b ≤ a
+≤＋> Z b = inl tt
+≤＋> (S a) Z = inr tt
+≤＋> (S a) (S b) = ≤＋> a b
+
+_⋆_ : {a b c : A} → a ≡ b → b ≡ c → a ≡ c
+refl ⋆ refl = refl
+
+addZ : (n : ℕ) → n + Z ≡ n
+addZ Z = refl
+addZ (S n) = cong S (addZ n)
+
+Sout : (n m : ℕ) → n + S m ≡ S (n + m)
+Sout Z m = refl
+Sout (S n) m = cong S (Sout n m)
+
+reflexive : ∀ a → a ≤ a
+reflexive Z = tt
+reflexive (S a) = reflexive a
+
+max≤ : ∀ a b → a ≤ max a b
+max≤ Z b = tt
+max≤ (S a) Z = reflexive a
+max≤ (S a) (S b) = max≤ a b
+
+leΣ : {a b : ℕ} → a ≤ b → Σ λ n → n + a ≡ b
+leΣ {(Z)} {(Z)} H = Z , refl
+leΣ {(Z)} {S b} H = S b , cong S (addZ b)
+leΣ {S a} {S b} H with leΣ {a} {b} H
+... | x , H = x , Sout x a ⋆ cong S H
+
+transport : (P : A → Set l) → ∀{x y} → x ≡ y → P x → P y
+transport P {x}{y} refl H = H
+
+data Square : ℕ → Set where
+  sq : (m : ℕ) → Square (m * m)
