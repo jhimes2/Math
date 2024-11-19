@@ -6,9 +6,13 @@ open import Relations
 open import Algebra.Semigroup
 open import Cubical.Foundations.HLevels
 
-record PreSetTheory : Typeω where field
+record SetTheory : Typeω where
+ field
     _∈_ : Type → Type → Type
-    Extensionality : ∀ a b → (∀ x → (x ∈ a ↔ x ∈ b)) → a ≡ b
+ _⊆_ : Type → Type → Type₁
+ X ⊆ Y = (x : Type) → x ∈ X → x ∈ Y
+ field
+    Extensionality : ∀ a b → a ⊆ b → b ⊆ a → a ≡ b
     Pair : Type → Type → Type
     Pair1 : ∀ a b → a ∈ Pair a b
     Pair2 : ∀ a b → a ∈ Pair b a
@@ -19,21 +23,38 @@ record PreSetTheory : Typeω where field
     ⋃ : Type → Type
     Union1 : {X u : Type} → u ∈ ⋃ X → Σ λ z → u ∈ z × z ∈ X
     Union2 : {u z : Type} → u ∈ z → ∀{X} → z ∈ X → u ∈ ⋃ X
-open PreSetTheory {{...}} public
+    ∈Relation : (x y : Type) → is-prop (x ∈ y)
+    ω : Type
+ ∅ : Type
+ ∅ = Sep (λ _ → ⊥) ω
+ singleton : Type → Type
+ singleton X = Pair X X
+ _∪_ : Type → Type → Type
+ X ∪ Y = ⋃ (Pair X Y)
+ _∉_ : Type → Type → Type
+ X ∉ Y = ¬(X ∈ Y)
+ Suc : Type → Type
+ Suc x = x ∪ singleton x
+ field
+    ℙ : Type → Type
+    Power1 : {X u : Type} → u ∈ ℙ X → u ⊆ X
+    Power2 : {X u : Type} → u ⊆ X → u ∈ ℙ X
+    ωbase : ∅ ∈ ω
+    ωstep : ((x : Type) → x ∈ ω → Suc x ∈ ω)
+    Regulate : {X : Type} → X ≢ ∅ → Type
+    Regulate1 : {X : Type} → (p : X ≢ ∅) → Regulate p ∈ X
+    Regulate2 : {X : Type} → (p : X ≢ ∅) → {x : Type} → x ∈ Regulate p → x ∉ X
+    Collect : (Type → Type) → Type → Type
+    Collection : (f : Type → Type) → (X : Type) → (x : Type) → x ∈ X → f x ∈ Collect f X
+open SetTheory {{...}} public
 
-module _{{PST : PreSetTheory}} where
+module _{{ST : SetTheory}} where
 
  ⋂ : Type → Type
  ⋂ X = Sep (λ a → (Z : Type) → Z ∈ X → a ∈ Z) (⋃ X)
 
- _⊆_ : Type → Type → Type₁
- X ⊆ Y = (x : Type) → x ∈ X → x ∈ Y
-
  x⊆x : ∀ x → x ⊆ x
  x⊆x _ _ z = z
-
- singleton : Type → Type
- singleton X = Pair X X
 
  isSingleton : Type → Type₁
  isSingleton X = Σ λ(x : Type) → x ∈ X × ∀ y → y ∈ X → x ≡ y
@@ -70,8 +91,8 @@ module _{{PST : PreSetTheory}} where
 
  ∪[x]≡x : (x : Type) → ⋃ (singleton x) ≡ x
  ∪[x]≡x x = Extensionality (⋃ (singleton x)) x
-   λ y → ∪[x]⊆x x y
-       , x⊆∪[x] x y
+                       (λ y → ∪[x]⊆x x y)
+                        λ y → x⊆∪[x] x y
 
  ∩[x]⊆x : (x : Type) → ⋂ (singleton x) ⊆ x
  ∩[x]⊆x x y y∈∩[x] = let (H , G) = Separate1 y∈∩[x] in G x (x∈[x] x)
@@ -81,8 +102,8 @@ module _{{PST : PreSetTheory}} where
 
  ∩[x]≡x : (x : Type) → ⋂ (singleton x) ≡ x
  ∩[x]≡x x = Extensionality (⋂ (singleton x)) x
-   λ y → ∩[x]⊆x x y
-       , x⊆∩[x] x y
+                           (λ y → ∩[x]⊆x x y)
+                           λ y → x⊆∩[x] x y
 
  singletonInjective : ∀ x y → singleton x ≡ singleton y → x ≡ y
  singletonInjective x y p =
@@ -108,9 +129,6 @@ module _{{PST : PreSetTheory}} where
  isSubSingleton : Type → Type₁
  isSubSingleton X = {x : Type} → x ∈ X → ∀{y} → y ∈ X → x ≡ y
 
- _∪_ : Type → Type → Type
- X ∪ Y = ⋃ (Pair X Y)
-
  _∩_ : Type → Type → Type
  X ∩ Y = Sep (λ a → a ∈ X) Y
 
@@ -133,9 +151,6 @@ module _{{PST : PreSetTheory}} where
        Pair3 z∈Pair |> λ{ (inl p) → inl (transport (right _∈_ p) x∈z)
                         ; (inr p) → inr (transport (right _∈_ p) x∈z)}
 
- _∉_ : Type → Type → Type
- X ∉ Y = ¬(X ∈ Y)
-
  -- Assuming the Axiom Schema of Comprehension leads to Russell's paradox.
  module _(comprehension : (P : Type → Type) → Σ λ(Y : Type) → (x : Type) → x ∈ Y ↔ P x) where
    Russell's-paradox : ⊥
@@ -145,35 +160,36 @@ module _{{PST : PreSetTheory}} where
  instance
   PairComm : Commutative Pair
   PairComm = record { comm = λ a b → Extensionality (Pair a b) (Pair b a)
-    λ x → (λ p → Pair3 p |> λ{ (inl q) → transport (sym $ left _∈_ q) (Pair2 a b)
+    (λ x p → Pair3 p |> λ{ (inl q) → transport (sym $ left _∈_ q) (Pair2 a b)
                              ; (inr q) → transport (sym $ left _∈_ q) (Pair1 b a)})
-                            ,
-           λ p → Pair3 p |> λ{ (inl q) → transport (sym $ left _∈_ q) (Pair2 b a)
-                             ; (inr q) → transport (sym $ left _∈_ q) (Pair1 a b)}
-                             }
+    λ x p → Pair3 p |> λ{ (inl q) → transport (sym $ left _∈_ q) (Pair2 b a)
+                             ; (inr q) → transport (sym $ left _∈_ q) (Pair1 a b)
+                         }}
   ∪Comm : Commutative _∪_
   ∪Comm = record { comm = λ a b → cong ⋃ (comm a b) }
   ∪Assoc : Semigroup _∪_
   ∪Assoc = record { assoc = λ a b c → Extensionality (a ∪ (b ∪ c)) ((a ∪ b) ∪ c)
-           λ x → (λ p → union1 (union2 p |> λ{ (inl q) → inl (union1 (inl q))
+           (λ x → (λ p → union1 (union2 p |> λ{ (inl q) → inl (union1 (inl q))
                                              ; (inr q) → union2 q |> λ{ (inl r) → inl (union1 (inr r))
-                                                                      ; (inr r) → inr r}})) ,
-                  λ p → union1 (union2 p |> λ{ (inl q) → union2 q |> λ{ (inl r) → inl r
+                                                                      ; (inr r) → inr r}})))
+            λ x p → union1 (union2 p |> λ{ (inl q) → union2 q |> λ{ (inl r) → inl r
                                                                       ; (inr r) → inr (union1 (inl r))}
                                              ; (inr q) → inr (union1 (inr q))})
            }
   ∩Comm : Commutative _∩_
   ∩Comm = record { comm = λ a b → Extensionality (a ∩ b) (b ∩ a)
-     (λ x → (λ p → intersection3 (intersection2 p) (intersection1 p))
-          ,  λ p → intersection3 (intersection2 p) (intersection1 p)) }
+     (λ x p → intersection3 (intersection2 p) (intersection1 p))
+      λ x p → intersection3 (intersection2 p) (intersection1 p)
+     }
   ∩Assoc : Semigroup _∩_
   ∩Assoc = record { assoc = λ a b c → Extensionality (a ∩ (b ∩ c)) ((a ∩ b) ∩ c)
-     (λ x → (λ p → intersection3 (intersection3 (intersection1 p)
+     (λ x p → intersection3 (intersection3 (intersection1 p)
                                                 (intersection1 (intersection2 p)))
                                  (intersection2 (intersection2 p)))
-          ,  λ p → intersection3 (intersection1 (intersection1 p))
+      λ x p → intersection3 (intersection1 (intersection1 p))
                                  (intersection3 (intersection2 (intersection1 p))
-                                                (intersection2 p)))}
+                                                (intersection2 p))
+    }
 
 
  [a]∈<b,c>→a≡b : ∀{a b c} → singleton a ∈ OrdPair b c → a ≡ b
@@ -202,33 +218,8 @@ module _{{PST : PreSetTheory}} where
        Pair3 H2 |> λ{ (inl p) → [a,b]≡[c]→a≡c p
                     ; (inr p) → [a]∈<b,c>→a≡b G2}
 
- Suc : Type → Type
- Suc x = x ∪ singleton x
-
 -- _⁻¹[_] : {Dom : Type} → (∀{X} → X ∈ Dom → Type) → Type → set
 -- f ⁻¹[ X ] = Sep {!!} {!!}
-
-record SetTheory : Typeω
-record SetTheory where 
- field
-    {{PST}} : PreSetTheory
-    ∈Relation : (x y : Type) → is-prop (x ∈ y)
-    ω : Type
-    ℙ : Type → Type
-    Power1 : {X u : Type} → u ∈ ℙ X → u ⊆ X
-    Power2 : {X u : Type} → u ⊆ X → u ∈ ℙ X
-    ωbase : Sep (λ _ → ⊥) ω ∈ ω
-    ωstep : ((x : Type) → x ∈ ω → Suc x ∈ ω)
-    Regulate : {X : Type} → X ≢ Sep (λ _ → ⊥) ω → Type
-    Regulate1 : {X : Type} → (p : X ≢ Sep (λ _ → ⊥) ω) → Regulate p ∈ X
-    Regulate2 : {X : Type} → (p : X ≢ Sep (λ _ → ⊥) ω) → {x : Type}→ x ∈ Regulate p → x ∉ X
-    Collect : (Type → Type) → Type → Type
-    Collection : (f : Type → Type) → (X : Type) → (x : Type) → x ∈ X → f x ∈ Collect f X
-open SetTheory {{...}} public
-
-module _{{ST : SetTheory}} where
- ∅ : Type
- ∅ = Sep (λ _ → ⊥) ω
 
  x∉∅ : {x : Type} → x ∉ ∅
  x∉∅ {x} p = snd (Separate1 p)
@@ -266,16 +257,16 @@ module _{{ST : SetTheory}} where
 
  disjointLemma : (X Y : Type) → (∀ x → x ∈ X → x ∉ Y) → X ∩ Y ≡ ∅
  disjointLemma X Y H = Extensionality (X ∩ Y) ∅
-     λ x → (λ p → UNREACHABLE (H x (intersection1 p) (intersection2 p)))
-          , λ p → UNREACHABLE (x∉∅ p)
+                                      (λ x p → UNREACHABLE (H x (intersection1 p) (intersection2 p)))
+                                       λ x p → UNREACHABLE (x∉∅ p)
 
  Map : (Type → Type) → Type → Type
  Map f X = Sep (λ y → Σ λ(x : Type) → (x ∈ X) × (f x ≡ y)) (Collect f X)
 
  Map1 : (f : Type → Type) {X : Type} {x : Type} → x ∈ X → f x ∈ Map f X
- Map1 f {X} {x} x∈X = Separate2 $ Collection f X x x∈X , x , x∈X , Extensionality (f x)
-                                                                               (f x)
-                                                                               λ x → (λ z → z) , λ z → z
+ Map1 f {X} {x} x∈X = Separate2 $ Collection f X x x∈X , x , x∈X , Extensionality (f x) (f x)
+                                                                                    (λ x z → z)
+                                                                                     λ x z → z
 
  Map2 : {f : Type → Type} {X : Type} {y : Type} → y ∈ Map f X → Σ λ x → x ∈ X × (f x ≡ y)
  Map2 {f} {X} {y} y∈Y = snd (Separate1 y∈Y)
@@ -283,16 +274,16 @@ module _{{ST : SetTheory}} where
  MapId : Map id ≡ id
  MapId = funExt λ x → Extensionality (Map id x)
                                      (id x)
-                                     λ y → (λ p → let (z , z∈x , z≡y) = Map2 p
-                                                  in transport (λ i → z≡y i ∈ x) z∈x)
-                                         , Map1 λ z → z
+                                     (λ y p → let (z , z∈x , z≡y) = Map2 p
+                                              in transport (λ i → z≡y i ∈ x) z∈x)
+                                     λ y → Map1 λ z → z
 
  MapComp : (f g : Type → Type) → Map (f ∘ g) ≡ (Map f ∘ Map g)
  MapComp f g = funExt λ x → Extensionality (Map (f ∘ g) x)
                                            ((Map f ∘ Map g) x)
-                                           λ y → (λ(p : y ∈ Map (f ∘ g) x) →
+                                         (λ y → λ(p : y ∈ Map (f ∘ g) x) →
       let (z , z∈x , G) = Map2 p in transport (λ i → G i ∈ (Map f ∘ Map g) x) (Map1 f (Map1 g z∈x)))
-       , λ(p : y ∈ (Map f ∘ Map g) x) →
+      λ y (p : y ∈ (Map f ∘ Map g) x) →
       let (z , z∈Mapgx , G) = Map2 p in 
       let (w , w∈x , F) = Map2 z∈Mapgx in
       let T : (f ∘ g) w ≡ y
@@ -349,7 +340,9 @@ module _{{ST : SetTheory}} where
  ∪∅⊆∅ = λ x x∈∪∅ → let (Y , x∈ , Y∈∅) = Union1 x∈∪∅ in UNREACHABLE (x∉∅ Y∈∅)
 
  ∪∅≡∅ : ⋃ ∅ ≡ ∅
- ∪∅≡∅ = Extensionality (⋃ ∅) ∅ (λ x → ∪∅⊆∅ x , λ x∈∅ → UNREACHABLE (x∉∅ x∈∅))
+ ∪∅≡∅ = Extensionality (⋃ ∅) ∅
+                       (λ x → ∪∅⊆∅ x)
+                        λ x x∈∅ → UNREACHABLE (x∉∅ x∈∅)
  
  ∩∅⊆∅ : ⋂ ∅ ⊆ ∅
  ∩∅⊆∅ x x∈∩∅ =
@@ -357,7 +350,9 @@ module _{{ST : SetTheory}} where
    let (x∈∪∅ , F) = Separate1 x∈∩∅ in ∪∅⊆∅ x x∈∪∅
 
  ∩∅≡∅ : ⋂ ∅ ≡ ∅
- ∩∅≡∅ = Extensionality (⋂ ∅) ∅ (λ x → (∩∅⊆∅ x) , ∅⊆x (⋂ ∅) x)
+ ∩∅≡∅ = Extensionality (⋂ ∅) ∅
+        (λ x → ∩∅⊆∅ x)
+         λ x → ∅⊆x (⋂ ∅) x
 
  -- https://en.wikipedia.org/wiki/Well-order
  record WellOrder : Type₂
