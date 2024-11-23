@@ -110,6 +110,9 @@ open Commutative {{...}} public
 cong : {x y : A} → (f : A → B) → x ≡ y → f x ≡ f y
 cong f refl = refl
 
+cong₂ : {w x : A}{y z : B} → (f : A → B → C) → w ≡ x → y ≡ z  → f w y ≡ f x z
+cong₂ f refl refl = refl
+
 left : {x y : A} → {z : B} → (f : A → B → C) → x ≡ y → f x z ≡ f y z
 left f refl = refl
 
@@ -158,6 +161,12 @@ _≤_ : ℕ → ℕ → Set
 Z ≤ _ = ⊤
 S a ≤ Z = ⊥
 S a ≤ S b = a ≤ b
+
+_≰_ : ℕ → ℕ → Set
+x ≰ y = ¬(x ≤ y)
+
+_≮_ : ℕ → ℕ → Set
+x ≮ y = ¬(S x ≤ y)
 
 trichotomy : ∀ a b → (S a ≤ b) ＋ (a ≡ b) ＋ (S b ≤ a)
 trichotomy Z Z = inr (inl refl)
@@ -215,5 +224,26 @@ leΣ {S a} {S b} H with leΣ {a} {b} H
 transport : (P : A → Set l) → ∀{x y} → x ≡ y → P x → P y
 transport P {x}{y} refl H = H
 
+≤trans : ∀ a b c → a ≤ b → b ≤ c → a ≤ c
+≤trans Z Z c a≤b b≤c = a≤b
+≤trans Z (S b) c a≤b b≤c = tt
+≤trans (S a) (S b) (S c) a≤b b≤c = ≤trans a b c a≤b b≤c
+
+x≮x : ∀ x → x ≮ x
+x≮x Z = λ ()
+x≮x (S x) = x≮x x
+
+x≤y→x≤Sy : ∀ x y → x ≤ y → x ≤ S y
+x≤y→x≤Sy Z y x≤y = x≤y
+x≤y→x≤Sy (S x) (S y) x≤y = x≤y→x≤Sy x y x≤y
+
 data Square : ℕ → Set where
   sq : (m : ℕ) → Square (m * m)
+
+ℕDiscrete : (x y : ℕ) → (x ≡ y) ＋ (x ≢ y)
+ℕDiscrete Z Z = inl refl
+ℕDiscrete Z (S y) = inr λ ()
+ℕDiscrete (S x) Z = inr λ ()
+ℕDiscrete (S x) (S y) with ℕDiscrete x y
+... | inl p = inl (cong S p)
+... | inr p = inr λ q → p (SInjective q)
