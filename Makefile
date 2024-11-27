@@ -1,5 +1,5 @@
 .PHONY: all
-all: Classical/Trigonometry.agdai Classical/Topology.agdai NumberTheory/Finite.agdai Data/Matrix.agdai Algebra/Metric.agdai Classical/SetTheory.agdai
+all: Classical/Trigonometry.agdai Classical/Topology.agdai NumberTheory/Finite.agdai Data/Matrix.agdai Algebra/Metric.agdai Classical/SetTheory.agdai Algebra/Heyting.agdai
 
 #NumberTheory/Integer.agdai: NumberTheory/Integer.agda NumberTheory/Natural.agdai Data/Integer.agdai
 #	agda $<
@@ -65,6 +65,9 @@ Algebra/Semiring.agdai: Algebra/Semiring.agda Algebra/Monoid.agdai
 	agda $<
 
 Algebra/Group.agdai: Algebra/Group.agda Algebra/Monoid.agdai
+	agda $<
+
+Algebra/Heyting.agdai: Algebra/Heyting.agda Algebra/Semigroup.agdai
 	agda $<
 
 Algebra/Monoid.agdai: Algebra/Monoid.agda Algebra/Semigroup.agdai

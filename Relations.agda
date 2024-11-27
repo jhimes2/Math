@@ -6,7 +6,7 @@ open import Cubical.Foundations.HLevels
 module Relations where
 
 -- https://en.wikipedia.org/wiki/Preorder
-record Preorder {A : Type al} (_≤_ : A → A → Type l) : Type (lsuc (l ⊔ al))
+record Preorder {A : Type al} (_≤_ : A → A → Type l) : Type(l ⊔ al)
   where field
    transitive : {a b c : A} → (a ≤ b) → (b ≤ c) → (a ≤ c)
    reflexive : (a : A) → a ≤ a
@@ -17,7 +17,7 @@ eqToLe : {_≤_ : A → A → Type l} → {{_ : Preorder _≤_}} → {a b : A} �
 eqToLe {_≤_ = _≤_} {a = a} p = transport (λ i → a ≤ p i) (reflexive a)
 
 -- https://en.wikipedia.org/wiki/Partially_ordered_set
-record Poset {A : Type l}(_≤_ : A → A → Type al) : Type (lsuc (l ⊔ al))
+record Poset {A : Type l}(_≤_ : A → A → Type al) : Type (l ⊔ al)
   where
   field
    {{partpre}} : Preorder _≤_
@@ -42,17 +42,12 @@ maximal : {A : Type al}{_≤_ : A → A → Type l} → {{P : Poset _≤_}} → 
 maximal {_≤_ = _≤_} a = ∀ x → a ≤ x → x ≤ a
 
 -- https://en.wikipedia.org/wiki/Total_order
-record TotalOrder (l : Level) (A : Type al) : Type (lsuc (l ⊔ al))
+record TotalOrder (l : Level) (A : Type al) : Type (lsuc l ⊔ al)
   where field
    _≤_ : A → A → Type l
    {{totpre}} : Poset _≤_
    stronglyConnected : (a b : A) → (a ≤ b) ＋ (b ≤ a)
-
--- This will make goals more readable
-_≤_ : {{TO : TotalOrder al A}} → A → A → Type al
-_≤_ {{TO}} = TotalOrder._≤_ TO
-
-open TotalOrder {{...}} hiding (_≤_) public
+open TotalOrder {{...}} public
 
 flipNeg : {{TO : TotalOrder al A}} → {a b : A} → ¬(b ≤ a) → a < b
 flipNeg {a = a} {b} p = (stronglyConnected a b
