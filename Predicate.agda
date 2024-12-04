@@ -29,11 +29,10 @@ record Property {A : Type al} (P : A → Type l) : Type(al ⊔ l) where
   setProp : ∀ x → isProp (x ∈ P)
 open Property {{...}} public
 
--- Not a standard name in math. However, this corresponds to multisets
-record Multiproperty {A : Type al} (M : A → Type l) : Type(al ⊔ l) where
+record SetFamily {A : Type al} (M : A → Type l) : Type(al ⊔ l) where
  field
-  multiproperty : ∀ x → isSet (x ∈ M)
-open Multiproperty {{...}} public
+  setFamily : ∀ x → isSet (x ∈ M)
+open SetFamily {{...}} public
 
 module _{A : Type l}(_∙_ : A → A → A) where
 
@@ -74,11 +73,11 @@ chain {_≤_ = _≤_} C = ∀ a b → a ∈ C → b ∈ C → ¬(a ≤ b) → b 
 
 instance
 
- ΣSet : {{is-set A}} → {X : A → Type l} → {{Multiproperty X}} → is-set (Σ X)
- ΣSet = record { IsSet = isSetΣ IsSet λ x → multiproperty x }
+ ΣSet : {{is-set A}} → {X : A → Type l} → {{SetFamily X}} → is-set (Σ X)
+ ΣSet = record { IsSet = isSetΣ IsSet λ x → setFamily x }
 
- propertyIsMultipredicate : {X : A → Type l} → {{Property X}} → Multiproperty X
- propertyIsMultipredicate = record { multiproperty = λ x → isProp→isSet (setProp x) }
+ propertyIsMultipredicate : {X : A → Type l} → {{Property X}} → SetFamily X
+ propertyIsMultipredicate = record { setFamily = λ x → isProp→isSet (setProp x) }
 
  fullProp : Property $ 𝓤 {A = A} {l}
  fullProp = record { setProp = λ x tt tt → refl }

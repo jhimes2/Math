@@ -28,7 +28,7 @@ module _{scalar : Type l}{member : Type l'}{{R : Ring scalar}}{{V : Module membe
 
   -- Zero member; This looks like a zero with a hat
   Ô : member
-  Ô = e
+  Ô = grpIsMonoid .e
 
   -- Additive inverse for members
   -<_> : member → member
