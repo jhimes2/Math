@@ -194,3 +194,11 @@ record Characteristic {A : Type l}{{R : Ring A}} (char : A) : Type l where
   Char : Nat char
   CharMax : char + 1r ≡ 0r
 open Characteristic {{...}} public
+
+record RingHomomorphism{A : Type al}{B : Type bl}
+                      {{r1 : Ring A}}{{r2 : Ring B}}
+                       (h : A → B) : Type (al ⊔ bl) where
+ field
+  {{homo+}} : Homomorphism _+_ _+_ h
+  {{homo*}} : Homomorphism _*_ _*_ h
+  {{1to1}} :  h 1r ≡ 1r
