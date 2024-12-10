@@ -7,7 +7,7 @@ open import Algebra.Semigroup hiding (_∨_ ; _∧_)
 module Algebra.Heyting where
 
 
-record Lattice{A : Type al}(_≤_ : A → A → Type l) : Type(al ⊔ l) where
+record Lattice{A : Type aℓ}(_≤_ : A → A → Type ℓ) : Type(aℓ ⊔ ℓ) where
  field
   {{latPoset}} : Poset _≤_
   _∨_ : A → A → A
@@ -80,7 +80,7 @@ record Lattice{A : Type al}(_≤_ : A → A → Type l) : Type(al ⊔ l) where
 
 open Lattice {{...}} public
 
-record BoundedLattice{A : Type al}(_≤_ : A → A → Type l) : Type(al ⊔ l) where
+record BoundedLattice{A : Type aℓ}(_≤_ : A → A → Type ℓ) : Type(aℓ ⊔ ℓ) where
  field
   {{boundL}} : Lattice _≤_
   l0 : A
@@ -107,7 +107,7 @@ record BoundedLattice{A : Type al}(_≤_ : A → A → Type l) : Type(al ⊔ l) 
   1∧x≤x = transport (λ i → 1∧x≡x (~ i) ≤ x) (reflexive x)
 open BoundedLattice {{...}} public
 
-record Heyting{A : Type al}(_≤_ : A → A → Type l) : Type(al ⊔ l) where
+record Heyting{A : Type aℓ}(_≤_ : A → A → Type ℓ) : Type(aℓ ⊔ ℓ) where
  field
   {{heyBound}} : BoundedLattice _≤_
   _⇒_ : A → A → A

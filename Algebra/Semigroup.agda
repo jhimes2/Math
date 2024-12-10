@@ -8,7 +8,7 @@ open import Cubical.Foundations.HLevels
 open import Cubical.HITs.PropositionalTruncation renaming (rec to recTrunc ; map to mapTrunc)
 open import Cubical.Foundations.Isomorphism
 
-record Semigroup {A : Type l}(_∙_ : A → A → A) : Type l where
+record Semigroup {A : Type ℓ}(_∙_ : A → A → A) : Type ℓ where
   field
       assoc : (a b c : A) → a ∙ (b ∙ c) ≡ (a ∙ b) ∙ c
 open Semigroup {{...}} public
@@ -127,7 +127,7 @@ module _{_∙_ : A → A → A}{{sg : Semigroup _∙_}} where
   curryHomo = record { preserve = λ u v → funExt λ x → sym (assoc u v x) }
 
 instance
- ∪assoc : Semigroup (_∪_ {A = A} {l})
+ ∪assoc : Semigroup (_∪_ {A = A} {ℓ})
  ∪assoc = record { assoc = λ X Y Z → funExt λ x →
     let H : x ∈ X ∪ (Y ∪ Z) → x ∈ (X ∪ Y) ∪ Z
         H = λ p → p >>= λ{(inl p) → η $ inl $ (η (inl p))
@@ -138,7 +138,7 @@ instance
                                            ;(inr p) → η (inr (η (inl p)))}
                         ; (inr p) → η $ inr (η (inr p)) } in
        propExt squash₁ squash₁ H G }
- ∩assoc : Semigroup (_∩_ {A = A} {l})
+ ∩assoc : Semigroup (_∩_ {A = A} {ℓ})
  ∩assoc = record { assoc = λ X Y Z → funExt λ x → isoToPath (iso (λ(a , b , c) → (a , b) , c)
                                                             (λ((a , b), c) → a , b , c)
                                                             (λ b → refl)

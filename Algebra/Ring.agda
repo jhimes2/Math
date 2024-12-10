@@ -8,7 +8,7 @@ open import Algebra.Group public
 open import Cubical.HITs.SetQuotients renaming (rec to rec/)
 
 -- https://en.wikipedia.org/wiki/Ring_(mathematics)
-record Ring (A : Type l) : Type l where
+record Ring (A : Type ℓ) : Type ℓ where
   field
     _+_ : A → A → A
     _*_ : A → A → A
@@ -20,7 +20,7 @@ record Ring (A : Type l) : Type l where
 
 open import Algebra.Semiring public
 
-module _{A : Type l}{{R : Ring A}} where
+module _{A : Type ℓ}{{R : Ring A}} where
 
  instance
   ring→semiring : Semiring A
@@ -138,15 +138,14 @@ module _{A : Type l}{{R : Ring A}} where
    x ∎
 
  -- https://en.wikipedia.org/wiki/Subring
- record Subring(H : A → Type l') : Type (l ⊔ l') where
+ record Subring(H : A → Type ℓ') : Type(ℓ ⊔ ℓ') where
   field
    {{ringSG}} : Subgroup H
    {{ringSM}} : Submonoid H _*_
  open Subring {{...}} public
  
-
  -- https://en.wikipedia.org/wiki/Ideal_(ring_theory)
- record Ideal(I : A → Type l') : Type (l ⊔ l') where
+ record Ideal(I : A → Type ℓ') : Type(ℓ ⊔ ℓ') where
   field
    {{subgrpIdeal}} : Subgroup I
    *-in : (r x : A) → x ∈ I → r * x ∈ I
@@ -176,14 +175,14 @@ module _{A : Type l}{{R : Ring A}} where
             x * (1r + 1r)         ≡⟨⟩
             x * 2r ∎
 
- record derivation (∂ : A → A) : Type l where
+ record derivation (∂ : A → A) : Type ℓ where
   field
    {{defHomo}} : Homomorphism _+_ _+_ ∂
    Leibniz : ∀ x y → ∂(x * y) ≡ (∂ x * y) + (x * ∂ y)
  open derivation {{...}} public
 
  -- Subset of ring that corresponds to natural numbers
- data Nat : A → Type l where
+ data Nat : A → Type ℓ where
    R0 : Nat 0r
    RS : ∀ {a} → Nat a → Nat (a + 1r)
    RLoop : ∀ a → isProp (Nat a)
@@ -191,22 +190,22 @@ module _{A : Type l}{{R : Ring A}} where
 -- https://en.wikipedia.org/wiki/Characteristic_(algebra)
 {- Note that this differs from the standard definition in that Char(R) = 0 implies 0r ≡ 1r.
    I'll have to see if this causes problems in the future. -}
-record Characteristic {A : Type l}{{R : Ring A}} (char : A) : Type l where
+record Characteristic {A : Type ℓ}{{R : Ring A}} (char : A) : Type ℓ where
  field
   Char : Nat char
   CharMax : char + 1r ≡ 0r
 open Characteristic {{...}} public
 
-record RingHomomorphism{A : Type al}{B : Type bl}
+record RingHomomorphism{A : Type aℓ}{B : Type bℓ}
                       {{r1 : Ring A}}{{r2 : Ring B}}
-                       (h : A → B) : Type (al ⊔ bl) where
+                       (h : A → B) : Type(aℓ ⊔ bℓ) where
  field
   {{homo+}} : Homomorphism _+_ _+_ h
   {{homo*}} : Homomorphism _*_ _*_ h
   {{1to1}} :  h 1r ≡ 1r
 
-_R/_ : {A : Type al}
+_R/_ : {A : Type aℓ}
       → {{ring : Ring A}}
-      → (I : A → Type l) → {{SG : Ideal I}}
-      → Type (al ⊔ l)
+      → (I : A → Type ℓ) → {{SG : Ideal I}}
+      → Type (aℓ ⊔ ℓ)
 _R/_ {A} I = A / λ x y → x - y ∈ I

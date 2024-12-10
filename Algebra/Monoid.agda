@@ -8,7 +8,7 @@ open import Cubical.Foundations.HLevels
 open import Cubical.HITs.PropositionalTruncation renaming (rec to recTrunc ; map to mapTrunc)
 
 -- https://en.wikipedia.org/wiki/Monoid
-record monoid {A : Type l}(_∙_ : A → A → A) : Type l where
+record monoid {A : Type ℓ}(_∙_ : A → A → A) : Type ℓ where
   field
       e : A
       lIdentity : (a : A) → e ∙ a ≡ a
@@ -30,9 +30,9 @@ module _{_∙_ : A → A → A} {{M : monoid _∙_}} where
 -- https://en.wikipedia.org/wiki/Monoid#Submonoids
 {- We're requiring the operator to be an explicit parameter because when defining
    a subring it becomes ambiguous whether we're referring to '+' or '*'. -}
-record Submonoid{A : Type al}
-                (H : A → Type bl)
-                (_∙_ : A → A → A) {{M : monoid _∙_}} : Type (al ⊔ bl) where
+record Submonoid{A : Type aℓ}
+                (H : A → Type bℓ)
+                (_∙_ : A → A → A) {{M : monoid _∙_}} : Type(aℓ ⊔ bℓ) where
   field
     id-closed  : e ∈ H
     op-closed  : {x y : A} → x ∈ H → y ∈ H → x ∙ y ∈ H
@@ -43,8 +43,8 @@ module _{_∙_ : A → A → A} {{M : monoid _∙_}} where
 
  instance
   -- The intersection of two submonoids are submonoids
-  intersectionSM : {X : A → Type bl}{{_ : Submonoid X _∙_}}
-                   {Y : A → Type cl}{{_ : Submonoid Y _∙_}}
+  intersectionSM : {X : A → Type bℓ}{{_ : Submonoid X _∙_}}
+                   {Y : A → Type cℓ}{{_ : Submonoid Y _∙_}}
                  → Submonoid (X ∩ Y) _∙_
   intersectionSM = record
     { id-closed = id-closed , id-closed
@@ -52,11 +52,11 @@ module _{_∙_ : A → A → A} {{M : monoid _∙_}} where
     }
 
   -- The full set is a submonoid
-  fullSM : Submonoid (𝓤 {l = l}) _∙_
+  fullSM : Submonoid (𝓤 {ℓ = ℓ}) _∙_
   fullSM = record { id-closed = lift tt ; op-closed = λ _ _ → lift tt }
 
   -- Centralizing any subset of a monoid is a submonoid
-  centralizerSM : {H : A → Type l} → Submonoid (centralizer _∙_ H) _∙_
+  centralizerSM : {H : A → Type ℓ} → Submonoid (centralizer _∙_ H) _∙_
   centralizerSM {H} = record
     { id-closed = λ x x∈H → lIdentity x ⋆ sym (rIdentity x)
     ; op-closed = λ{x y} x∈Cent y∈Cent z z∈H →
@@ -74,7 +74,7 @@ module _{_∙_ : A → A → A} {{M : monoid _∙_}} where
 
 
   -- Normalizing any subset of a monoid is a submonoid
-  normalizerSM : {N : A → Type l} → Submonoid (normalizer _∙_ N) _∙_
+  normalizerSM : {N : A → Type ℓ} → Submonoid (normalizer _∙_ N) _∙_
   normalizerSM {N} = record
      { id-closed = funExt λ
      x → propExt squash₁ squash₁ (map λ(y , y∈N , H) → y , y∈N , H ⋆ lIdentity y ⋆ sym (rIdentity y))
@@ -134,10 +134,10 @@ monoidIsProp {A} _∙_ M1 M2 i =
                                                     {M2 .mAssoc .assoc a b c} i }
           }
 
-module _{A : Type al}{_∙_ : A → A → A}{{M : monoid _∙_}} where
+module _{A : Type aℓ}{_∙_ : A → A → A}{{M : monoid _∙_}} where
 
    -- Left monoid action
-   record Action {B : Type bl}(act : A → B → B) : Type (al ⊔ bl) where
+   record Action {B : Type bℓ}(act : A → B → B) : Type(aℓ ⊔ bℓ) where
     field
      act-identity : ∀ x → act e x ≡ x
      act-compatibility : ∀ x g h → act g (act h x) ≡ act (g ∙ h) x
@@ -187,10 +187,10 @@ module _{A : Type al}{_∙_ : A → A → A}{{M : monoid _∙_}} where
                                             y ∎
                        }
 
-module _{A : Type al}{_∙_ : A → A → A}
-        {B : Type bl}{_*_ : B → B → B}{{H : monoid _*_}} where
+module _{A : Type aℓ}{_∙_ : A → A → A}
+        {B : Type bℓ}{_*_ : B → B → B}{{H : monoid _*_}} where
 
-  Kernel : (h : A → B) → {{_ : Homomorphism _∙_ _*_ h}} → A → Type bl
+  Kernel : (h : A → B) → {{_ : Homomorphism _∙_ _*_ h}} → A → Type bℓ
   Kernel h u = h u ≡ e
 
   instance

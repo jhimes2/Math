@@ -6,7 +6,7 @@ open import Prelude
 open import Algebra.Ring public
 
 -- https://en.wikipedia.org/wiki/Comm_ring
-record CRing (A : Type l) : Type l where
+record CRing (A : Type ℓ) : Type ℓ where
   field
     {{crring}} : Ring A
     {{ringCom}} : Commutative _*_
@@ -25,5 +25,5 @@ multInvUnique {{R}} r (r' , rr'≡1) (r'' , rr''≡1) =
          1r * r''        ≡⟨ lIdentity r'' ⟩
          r''            ∎
 
-_ˣ : (A : Type l) → {{R : CRing A}} → A → Type l
+_ˣ : (A : Type ℓ) → {{R : CRing A}} → A → Type ℓ
 (A ˣ) r = Σ λ r' → r * r' ≡ 1r

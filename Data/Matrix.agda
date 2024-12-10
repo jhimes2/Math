@@ -14,13 +14,13 @@ _ᵀ f b a = f a b
 
 -- Ordered n-tuple
 -- `< 𝔹 ^ n >` would be an ordered n-tuple of booleans
-<_^_> : Type l → ℕ → Type l
+<_^_> : Type ℓ → ℕ → Type ℓ
 < A ^ n > = ℕ< n → A
 
 <> : < A ^ Z >
 <> (x , p , q) = UNREACHABLE $ ZNotS (sym q)
 
-list : Type l → Type l
+list : Type ℓ → Type ℓ
 list A = Σ λ(n : ℕ) → < A ^ n >
 
 head : < A ^ S n > → A
@@ -59,7 +59,7 @@ instance
  emptyTupleIsProp : is-prop < A ^ Z >
  emptyTupleIsProp = record { IsProp = λ x y → funExt λ(_ , _ , p) → UNREACHABLE (ZNotS (sym p)) }
 
-tuple-elim : (P : ∀{n} → < A ^ n > → Type l)
+tuple-elim : (P : ∀{n} → < A ^ n > → Type ℓ)
            → P <>
            → (∀{n} → (x : < A ^ n >) → P x → (a : A) → P (a ∷ x))
            → ∀{n} → (x : < A ^ n >) → P x
@@ -69,23 +69,23 @@ tuple-elim P base step {n = S n} x =
   let T = tail x in transport (λ i → P (tuple-η x i))
    (step T (tuple-elim P base step T) a)
 
-zip : (A → B → C) → {D : Type l} → (D → A) → (D → B) → (D → C)
+zip : (A → B → C) → {D : Type ℓ} → (D → A) → (D → B) → (D → C)
 zip f u v d = f (u d) (v d)
 
 zipHead : (f : < A ^ S n > → < B ^ S n > → < C ^ S n >)
               → ∀ x y → head {n = n} (zip f x y) ≡ f (head x) (head y)
 zipHead f x y = funExt λ z → refl
 
-Matrix : Type l → ℕ → ℕ → Type l
+Matrix : Type ℓ → ℕ → ℕ → Type ℓ
 Matrix A n m = < < A ^ n > ^ m >
 
 instance
-  FunctionFunctor : Functor λ{l}(A : Type l) → B → A
+  FunctionFunctor : Functor λ{ℓ}(A : Type ℓ) → B → A
   FunctionFunctor = record { map = λ f v x → f (v x)
                            ; compPreserve = λ f g → funExt λ x → refl
                            ; idPreserve = funExt λ x → refl
                            }
-  FunctionMonad : Monad λ{l}(A : Type l) → B → A
+  FunctionMonad : Monad λ{ℓ}(A : Type ℓ) → B → A
   FunctionMonad = record { μ = λ f a → f a a
                          ; η = λ x _ → x
                          ; monadLemma1 = funExt λ x → funExt λ y → refl
@@ -132,7 +132,7 @@ foldl++ {n = S n} f q x y =
  foldl f (f (head x) q) (tail x ++ y)   ≡⟨ foldl++ f (f (head x) q) (tail x) y ⟩
  foldl f (foldl f (f (head x) q) (tail x)) y ∎
 
-module _{C : Type cl}{{R : Ring C}} where
+module _{C : Type cℓ}{{R : Ring C}} where
 
  addv : (A → C) → (A → C) → (A → C)
  addv = zip _+_
@@ -158,10 +158,10 @@ module _{C : Type cl}{{R : Ring C}} where
  mMult : (ℕ< n → B → C) → (A → ℕ< n → C) → (A → B → C)
  mMult M N a = MT M (N a)
  
- orthogonal : < C ^ n > → < C ^ n > → Type cl
+ orthogonal : < C ^ n > → < C ^ n > → Type cℓ
  orthogonal u v = u ∙ v ≡ 0r
 
- orthogonal-set : (< C ^ n > → Type cl) → Type cl
+ orthogonal-set : (< C ^ n > → Type cℓ) → Type cℓ
  orthogonal-set X = ∀ u v → X u → X v → u ≢ v → orthogonal u v
 
  dotZL : (V : < C ^ n >)
@@ -274,7 +274,7 @@ instance
   LTMT : {{F : Field A}} → {M : ℕ< n → B → A} → LinearMap (MT M)
   LTMT = MHMT 
 
-module _{C : Type cl} {{R : Ring C}} where
+module _{C : Type cℓ} {{R : Ring C}} where
 
  instance
   funRing : Ring (A → C)
@@ -288,7 +288,7 @@ module _{C : Type cl} {{R : Ring C}} where
   derFun : {∂ : C → C} → {{der : derivation ∂}} → derivation λ(f : C → C) → ∂ ∘ f
   derFun {∂} = record { Leibniz = λ f g → funExt λ x → Leibniz (f x) (g x) }
 
- unitVector : < C ^ n > → Type cl
+ unitVector : < C ^ n > → Type cℓ
  unitVector v = Σ λ x → (v x ≡ 1r) × ∀ y → y ≢ x → (v y) ≡ 0r
 
  dotDistribute : (w u v : < C ^ n >) → (u <+> v) ∙ w ≡ (u ∙ w) + (v ∙ w)
@@ -333,14 +333,14 @@ module _{C : Type cl} {{R : Ring C}} where
   c * ((head u * head v) + (tail u ∙ tail v)) ≡⟨⟩
   c * (u ∙ v) ∎
  
- _orthogonal-to_ : < C ^ n > → (W : < C ^ n > → Type l) → {{Submodule W}} → Type(l ⊔ cl)
+ _orthogonal-to_ : < C ^ n > → (W : < C ^ n > → Type ℓ) → {{Submodule W}} → Type(ℓ ⊔ cℓ)
  z orthogonal-to W = ∀ v → W v → orthogonal z v
  
- orthogonal-complement : (W : < C ^ n > → Type l) → {{Submodule W}} → < C ^ n > → Type(l ⊔ cl)
+ orthogonal-complement : (W : < C ^ n > → Type ℓ) → {{Submodule W}} → < C ^ n > → Type(ℓ ⊔ cℓ)
  orthogonal-complement W z = z orthogonal-to W
 
  -- The orthogonal complement of a submodule is a submodule
- OC-submodule : (W : < C ^ n > → Type l) → {{SS : Submodule W}}
+ OC-submodule : (W : < C ^ n > → Type ℓ) → {{SS : Submodule W}}
              → Submodule (orthogonal-complement W)
  OC-submodule {n = n} W = record
     { ssZero = let H : ∀ v → W v → orthogonal Ô v

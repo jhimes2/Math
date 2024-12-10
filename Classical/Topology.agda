@@ -11,7 +11,7 @@ open import Classical.Classical public
 open import Cubical.HITs.SetQuotients
 
 -- https://en.wikipedia.org/wiki/Topological_space
-record topology {A : set al} (T : ℙ(ℙ A)) : set al where
+record topology {A : set aℓ} (T : ℙ(ℙ A)) : set aℓ where
   field
    tfull : 𝓤 ∈ T
    tunion : {X : ℙ(ℙ A)} → X ⊆ T → ⋃ X ∈ T
@@ -25,7 +25,7 @@ tempty {τ} =
       G = tunion ∅⊆X in
     subst τ ⋃∅≡∅ G
 
-record disconnectedTopology {A : set al} (T : ℙ(ℙ A)) : set al where
+record disconnectedTopology {A : set aℓ} (T : ℙ(ℙ A)) : set aℓ where
  field
   {{dTop}} : topology T
   U V : ℙ A
@@ -41,7 +41,7 @@ indiscrete : ℙ(ℙ A)
 indiscrete = Pair 𝓤 ∅
 
 instance
- DiscreteTopology : topology (discrete {lsuc l} {A})
+ DiscreteTopology : topology (discrete {lsuc ℓ} {A})
  DiscreteTopology =
     record
      { tfull = tt
@@ -75,8 +75,8 @@ instance
 mapContra : (A → B) → ℙ(ℙ A) → ℙ(ℙ B)
 mapContra f H = λ z → H (λ z₁ → z (f z₁))
 
-module _{A : set al}
-        {B : set bl}
+module _{A : set aℓ}
+        {B : set bℓ}
         (τ₀ : ℙ(ℙ A)){{T0 : topology τ₀}}
         (τ₁ : ℙ(ℙ B)){{T1 : topology τ₁}} where
 
@@ -88,10 +88,10 @@ module _{A : set al}
  ProductSpace : ℙ(ℙ (A × B))
  ProductSpace P = ∥ (∀ a → (λ b → P (a , b)) ∈ τ₁) × (∀ b → (λ a → P (a , b)) ∈ τ₀) ∥
 
- continuous : (A → B) → set bl
+ continuous : (A → B) → set bℓ
  continuous f = (V : ℙ B) → V ∈ τ₁ → f ⁻¹[ V ] ∈ τ₀
 
-module _{A : set al}        {B : set al}        
+module _{A : set aℓ}        {B : set aℓ}        
         {τ₀ : ℙ(ℙ A)}       {τ₁ : ℙ(ℙ B)}       
         {{T0 : topology τ₀}}{{T1 : topology τ₁}} where
 
@@ -145,7 +145,7 @@ module _{A : set al}        {B : set al}
  {- Partially applying a continuous function whose domain is a product space
     will result in a continuous function. This implies that requiring two
     functions of a homotopy to be continuous is superfluous. -} 
- partialAppContinuous : {C : set cl}
+ partialAppContinuous : {C : set cℓ}
                       → {τ₂ : ℙ(ℙ C)}
                       → {{T2 : topology τ₂}}
                       → {f : (A × B) → C}
@@ -235,7 +235,7 @@ module _{τ : ℙ(ℙ A)}{{T : topology τ}} where
        λ x∈clos[X]ᶜ → η ((closure X)ᶜ , x∈clos[X]ᶜ , η (closureClosed ,
        λ z P z∈X → P $ η $ λ Q → _>> λ(X⊆Q , Qᶜ∈τ) → X⊆Q z z∈X))
 
-restrict : (f : A → B) → (Q : A → Type l) → Σ Q → B
+restrict : (f : A → B) → (Q : A → Type ℓ) → Σ Q → B
 restrict f Q = λ(x : Σ Q) → f (fst x)
 
 relax : {X : ℙ A} → ℙ (Σ X) → ℙ A
@@ -247,10 +247,10 @@ relax2 {X} H x = H λ y → x (fst y)
 fix : (A → A) → ℙ A
 fix f a = ∥ (f a ≡ a) ∥
 
-module _{A : set al}(τ : ℙ(ℙ A)){{T : topology τ}} where
+module _{A : set aℓ}(τ : ℙ(ℙ A)){{T : topology τ}} where
 
  -- https://en.wikipedia.org/wiki/Quotient_space_(topology)
- quotientTopology : (_~_ : A → A → Type l) → ℙ(ℙ (A / _~_))
+ quotientTopology : (_~_ : A → A → Type ℓ) → ℙ(ℙ (A / _~_))
  quotientTopology _~_ U = [_] ⁻¹[ U ] ∈ τ
 
  qTopInst : {_~_ : A → A → Prop}
@@ -268,7 +268,7 @@ module _{A : set al}(τ : ℙ(ℙ A)){{T : topology τ}} where
   ; tintersection = tintersection
   }
 
- record HousedOff(x y : A) : set al where
+ record HousedOff(x y : A) : set aℓ where
   field
      U : ℙ A
      V : ℙ A
@@ -278,10 +278,10 @@ module _{A : set al}(τ : ℙ(ℙ A)){{T : topology τ}} where
      ∈V : y ∈ V
      U⊆Vᶜ : U ⊆ V ᶜ
 
- Hausdorff : set al
+ Hausdorff : set aℓ
  Hausdorff = ∀{x y} → x ≢ y → HousedOff x y
 
- openCover : ℙ(ℙ A) → set al
+ openCover : ℙ(ℙ A) → set aℓ
  openCover X = (X ⊆ τ) × cover X
 
  {- Proposition 4.33 in book ISBN 1852337826. -}
@@ -330,7 +330,7 @@ module _{A : set al}(τ : ℙ(ℙ A)){{T : topology τ}} where
  ssTopology : (Q : ℙ A) → ℙ(ℙ (Σ Q))
  ssTopology Q = λ(G : ℙ (Σ Q)) → ∃ λ(U : ℙ A) → (U ∈ τ) × (G ≡ (λ(x , _) → x ∈ U))
 
-module _{A : set al}
+module _{A : set aℓ}
         (τ : ℙ(ℙ A)){{T : topology τ}} where
 
  instance
@@ -367,7 +367,7 @@ module _{A : set al}
        subst τ (sym H) tempty
     }
 
- record Base (ℬ : ℙ(ℙ A)) : set al where
+ record Base (ℬ : ℙ(ℙ A)) : set aℓ where
   field
     BaseAxiom1 : ℬ ⊆ τ
     BaseAxiom2 : {S : ℙ A} → S ∈ τ
@@ -412,7 +412,7 @@ module _{A : set al}
 
   {- If f : B → A is a function between two topological spaces B and A, and A has
      basis ℬ, then f is continuous if f⁻¹(A) is open for every set A in the basis ℬ. -}
-  baseContinuous : {B : set al} → {τ₁ : ℙ(ℙ B)}{{T2 : topology τ₁}}
+  baseContinuous : {B : set aℓ} → {τ₁ : ℙ(ℙ B)}{{T2 : topology τ₁}}
                  → (f : B → A) → ((a : ℙ A) → a ∈ ℬ → f ⁻¹[ a ] ∈ τ₁) → continuous τ₁ τ f
   baseContinuous {τ₁} f H x x∈τ =
    BaseAxiom2 x∈τ >> λ(X , X⊆ℬ , x≡∪X) →
@@ -455,11 +455,11 @@ module _{A : set al}
       inst = haus λ fx≡fy → x≢y (inject x y fx≡fy)
 
 -- https://en.wikipedia.org/wiki/Abstract_simplicial_complex
-ASC : {A : Type (lsuc al)} → ℙ(ℙ A) → Type (lsuc al)
+ASC : {A : Type (lsuc aℓ)} → ℙ(ℙ A) → Type (lsuc aℓ)
 ASC {A} Δ = (X : ℙ A) → X ∈ Δ → (Y : ℙ A) → Y ≢ ∅ → Y ⊆ X → Y ∈ Δ
 
 --open import Data.Finite
---module _{A : set al}(τ : ℙ(ℙ A)){{T : topology τ}} where
+--module _{A : set aℓ}(τ : ℙ(ℙ A)){{T : topology τ}} where
 --
--- compact : set al
+-- compact : set aℓ
 -- compact = ∀ {C} → openCover τ C → ∃ λ(sc : ℙ(ℙ A)) → sc ⊆ C × is-finite (Σ sc)

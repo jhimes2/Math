@@ -17,9 +17,9 @@ record SetTheory : Typeω where
     Pair1 : ∀ a b → a ∈ Pair a b
     Pair2 : ∀ a b → a ∈ Pair b a
     Pair3 : ∀{a b x} → x ∈ Pair a b → (x ≡ a) ＋ (x ≡ b)
-    Sep : (Type → Type l) → Type → Type
-    Separate1 : {P : Type → Type l} → ∀{X u} → u ∈ Sep P X → (u ∈ X × P u)
-    Separate2 : {P : Type → Type l} → ∀{X u} → (u ∈ X × P u) → u ∈ Sep P X 
+    Sep : (Type → Type ℓ) → Type → Type
+    Separate1 : {P : Type → Type ℓ} → ∀{X u} → u ∈ Sep P X → (u ∈ X × P u)
+    Separate2 : {P : Type → Type ℓ} → ∀{X u} → (u ∈ X × P u) → u ∈ Sep P X 
     ⋃ : Type → Type
     Union1 : {X u : Type} → u ∈ ⋃ X → Σ λ z → u ∈ z × z ∈ X
     Union2 : {u z : Type} → u ∈ z → ∀{X} → z ∈ X → u ∈ ⋃ X
@@ -242,7 +242,7 @@ module _{{ST : SetTheory}} where
  isNat→Nat .∅ Natbase = Separate2 (ωbase , Natbase)
  isNat→Nat .(Suc x) (Natstep x isNatx) = Separate2 ((ωstep x (isNat→ω x isNatx)) , (Natstep x isNatx))
 
- NatElim : (P : Type → Type l) → P ∅ → ((x : Type) → x ∈ Nat → P x → P (Suc x)) → (x : Type) → x ∈ Nat → P x
+ NatElim : (P : Type → Type ℓ) → P ∅ → ((x : Type) → x ∈ Nat → P x → P (Suc x)) → (x : Type) → x ∈ Nat → P x
  NatElim P base step x x∈ω = NatElimAux x (snd (Separate1 x∈ω))
   where
    NatElimAux : (x : Type) → isNat x → P x

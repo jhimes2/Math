@@ -9,7 +9,7 @@ open import Cubical.HITs.PropositionalTruncation renaming (rec to recTrunc)
 
 open monoid {{...}}
 
-record Semiring (A : Type l) : Type l where
+record Semiring (A : Type ℓ) : Type ℓ where
   field
     _+_ : A → A → A
     _*_ : A → A → A
@@ -20,12 +20,12 @@ record Semiring (A : Type l) : Type l where
     {{comSemiring}} : Commutative _+_
 open Semiring {{...}} public
 
-module _{A : Type l}{{R : Semiring A}} where
+module _{A : Type ℓ}{{R : Semiring A}} where
 
  0r : A
  0r = sraddStr .e
  
- nonZero : Type l
+ nonZero : Type ℓ
  nonZero = Σ λ (a : A) → a ≢ 0r
 
  1r : A
@@ -40,7 +40,7 @@ module _{A : Type l}{{R : Semiring A}} where
  private
   module _{{Com* : Commutative _*_}} where
  
-   _∣_ : A → A → Type l
+   _∣_ : A → A → Type ℓ
    a ∣ b = Σ λ c → c * a ≡ b
   
    refl∣ : ∀ a → a ∣ a
@@ -78,7 +78,7 @@ module _{A : Type l}{{R : Semiring A}} where
           (x * c) + (y * c) ≡⟨ cong₂ _+_ xc≡a yc≡b ⟩
           a + b ∎)
    
-   mod : A → Type l
+   mod : A → Type ℓ
    mod n = A / λ a b → ∃ λ x → (x * n) + b ≡ a
   
    modMap : ∀{a b} → a ∣ b → mod a → mod b

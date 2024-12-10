@@ -5,9 +5,9 @@ module Algebra.Lie where
 open import Algebra.Module public
 
 -- https://en.wikipedia.org/wiki/Lie_algebra
-record Lie {scalar : Type l} {{R : Ring scalar}}
-           {vector : Type l'}
-           ([_,_] : vector → vector → vector) : Type(l ⊔ l') where
+record Lie {scalar : Type ℓ} {{R : Ring scalar}}
+           {vector : Type ℓ'}
+           ([_,_] : vector → vector → vector) : Type(ℓ ⊔ ℓ') where
  field
   {{lieMod}} : Module vector
   bilinearity1 : (a b : scalar)
@@ -20,8 +20,8 @@ record Lie {scalar : Type l} {{R : Ring scalar}}
   Jacobi : (x y z : vector) → [ x , [ y , z ] ] <+> ([ y , [ z , x ] ] <+> [ z , [ x , y ] ]) ≡ Ô
 open Lie {{...}} public
 
-module _{scalar : Type l}{{R : Ring scalar}}
-        {vector : Type l'}
+module _{scalar : Type ℓ}{{R : Ring scalar}}
+        {vector : Type ℓ'}
         {[_,_] : vector → vector → vector}
         {{lie : Lie [_,_]}} where
 

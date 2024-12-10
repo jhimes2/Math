@@ -378,10 +378,10 @@ instance
 nonZ : Type
 nonZ = Σ λ x → Σ λ y → x ≡ S y
 
-greatest : (ℕ → Type l) → Type l
+greatest : (ℕ → Type ℓ) → Type ℓ
 greatest P = Σ λ(g : ℕ) → P g × (∀ x → P x → x ≤ g)
 
-findGreatest : (P : ℕ → Type l) → (∀ n → Dec (P n))
+findGreatest : (P : ℕ → Type ℓ) → (∀ n → Dec (P n))
              → Σ P → (n : ℕ) → (∀ m → P m → m ≤ n) → greatest P
 findGreatest P decide (Z , Px) Z f = Z , (Px , f)
 findGreatest P decide (S x , Px) Z f = f (S x) Px |> UNREACHABLE
@@ -470,7 +470,7 @@ trichotomy (S a) (S b) with trichotomy a b
 ≤＋> (S a) (S b) = ≤＋> a b
 
 
-completeInduction : (P : ℕ → Type l)
+completeInduction : (P : ℕ → Type ℓ)
                 → (a : ℕ)
                 → ((b : ℕ) → b ≤ a → P b)
                 → ((x : ℕ) → P x → P (S(x + a)))

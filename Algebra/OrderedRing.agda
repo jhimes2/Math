@@ -7,14 +7,14 @@ open import Relations
 open import Algebra.Field
 open import Cubical.Foundations.HLevels
 
-record OrderedRing (l' : Level) (A : Type l) {{ordring : Ring A}} : Type (lsuc (l' ⊔ l)) where
+record OrderedRing (ℓ' : Level) (A : Type ℓ) {{ordring : Ring A}} : Type (lsuc(ℓ ⊔ ℓ')) where
   field
-    {{totalOrd}} : TotalOrder l' A
+    {{totalOrd}} : TotalOrder ℓ' A
     addLe : {a b : A} → a ≤ b → (c : A) → (a + c) ≤ (b + c) 
     multLt : {a b : A} → 0r < a → 0r < b → 0r < (a * b)
 open OrderedRing {{...}} public
 
-module ordered{{ordring : Ring A}}{{OR : OrderedRing l A}} where
+module ordered{{ordring : Ring A}}{{OR : OrderedRing ℓ A}} where
 
   subLe : {a b : A} → (c : A) → (a + c) ≤ (b + c) → a ≤ b
   subLe {a} {b} c p =
@@ -90,20 +90,20 @@ module ordered{{ordring : Ring A}}{{OR : OrderedRing l A}} where
   Negative = Σ λ (x : A) → 0r <  x
 
 instance
-  NZPreorder : {{G : Ring A}} → {{OR : OrderedRing l A}} → Preorder λ ((a , _) (b , _) : nonZero) → a ≤ b
+  NZPreorder : {{G : Ring A}} → {{OR : OrderedRing ℓ A}} → Preorder λ ((a , _) (b , _) : nonZero) → a ≤ b
   NZPreorder {A = A} = record
                 { transitive = transitive {A = A}
                 ; reflexive = λ(a , _) → reflexive a
                 ; isRelation = λ (a , _) (b , _) → isRelation a b }
-  NZPoset : {{G : Ring A}} → {{OR : OrderedRing l A}} → Poset λ ((a , _) (b , _) : nonZero) → a ≤ b
+  NZPoset : {{G : Ring A}} → {{OR : OrderedRing ℓ A}} → Poset λ ((a , _) (b , _) : nonZero) → a ≤ b
   NZPoset {A = A} =
      record { antiSymmetric = λ x y → Σ≡Prop (λ a b p → funExt λ x → b x |> UNREACHABLE)
                                              (antiSymmetric x y)}
-  NZTotal : {{G : Ring A}} → {{OR : OrderedRing l A}} → TotalOrder l nonZero
+  NZTotal : {{G : Ring A}} → {{OR : OrderedRing ℓ A}} → TotalOrder ℓ nonZero
   NZTotal {A = A} = record { _≤_ = λ (a , _) (b , _) → a ≤ b
                            ; stronglyConnected = λ (a , _) (b , _) → stronglyConnected a b }
 
-module _{{_ : Field A}}{{OF : OrderedRing l A}} where
+module _{{_ : Field A}}{{OF : OrderedRing ℓ A}} where
 
   1≰0 : ¬(1r ≤ 0r)
   1≰0 contra =
@@ -169,7 +169,7 @@ module _{{_ : Field A}}{{OF : OrderedRing l A}} where
     let H : 0r < ((a + a) * reciprocal 2f)
         H = multLt p (reciprocalLt 0<2) in transport (λ i → 0r < [a+a]/2≡a a i) H
 
-module _{{_ : Ring A}}{{_ : OrderedRing l A}} where
+module _{{_ : Ring A}}{{_ : OrderedRing ℓ A}} where
 
  private
   ABS : (a : A) → Σ λ b → (a ≤ 0r → neg a ≡ b) × (0r ≤ a → a ≡ b)
@@ -185,7 +185,7 @@ module _{{_ : Ring A}}{{_ : OrderedRing l A}} where
  absProperty : (a : A) → (a ≤ 0r → neg a ≡ abs a) × (0r ≤ a → a ≡ abs a)
  absProperty a = snd (ABS a) 
 
- absHelper : {P : A → Type l}
+ absHelper : {P : A → Type ℓ}
          → (a : A)
          → (a ≤ 0r → P (neg a))
          → (0r ≤ a → P a)
@@ -194,7 +194,7 @@ module _{{_ : Ring A}}{{_ : OrderedRing l A}} where
       stronglyConnected a 0r |> λ{(inl q) → subst P (fst H q) (f q)
                                 ; (inr q) → subst P (snd H q) (g q)}
 
- absDiffHelper : {P : A → Type l}
+ absDiffHelper : {P : A → Type ℓ}
          → (a b : A)
          → (a ≤ b → P (b - a))
          → (b ≤ a → P (a - b))

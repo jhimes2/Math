@@ -9,23 +9,23 @@ open import Cubical.Foundations.Prelude
 open import Cubical.HITs.PropositionalTruncation renaming (map to truncMap ; map2 to truncMap2) public
 
 variable
-  l l' al bl cl : Level
-  A : Type al
-  B : Type bl
-  C : Type cl
+  ℓ ℓ' aℓ bℓ cℓ : Level
+  A : Type aℓ
+  B : Type bℓ
+  C : Type cℓ
 
 data ⊤ : Type where
  tt : ⊤
 
 data ⊥ : Type where
 
-¬ : Type l → Type l
+¬ : Type ℓ → Type ℓ
 ¬ X = X → ⊥
 
 Prop : Type₁
 Prop = Type₀
 
-data _＋_ (A : Type l)(B : Type l') : Type (l ⊔ l' ⊔ (lsuc lzero)) where
+data _＋_ (A : Type ℓ)(B : Type ℓ') : Type (ℓ ⊔ ℓ' ⊔ (lsuc lzero)) where
  inl : A → A ＋ B
  inr : B → A ＋ B
 
@@ -33,7 +33,7 @@ data _＋_ (A : Type l)(B : Type l') : Type (l ⊔ l' ⊔ (lsuc lzero)) where
 -- Don't use types of Type₀ that are not propositions --
 --------------------------------------------------------
 postulate
- lem : (A : Type l) → isProp A → A ＋ (¬ A)
+ lem : (A : Type ℓ) → isProp A → A ＋ (¬ A)
  squash : {X : Prop} → isProp X
 
 isProp⊤ : isProp ⊤
@@ -42,28 +42,28 @@ isProp⊤ tt tt = refl
 isProp⊥ : isProp ⊥
 isProp⊥ ()
 
-∥_∥ : (A : Type l) → Prop
+∥_∥ : (A : Type ℓ) → Prop
 ∥ A ∥ with lem ∥ A ∥₁ squash₁
 ... | inl x = ⊤
 ... | inr x = ⊥
 
 -- Is proposition
-record is-prop (A : Type l) : Type l
+record is-prop (A : Type ℓ) : Type ℓ
   where field
    IsProp : isProp A
 open is-prop {{...}} public
 
-lowest : (A : Type l) → {{is-prop A}} → Prop
+lowest : (A : Type ℓ) → {{is-prop A}} → Prop
 lowest A with lem A IsProp
 ... | inl x = ⊤
 ... | inr x = ⊥
 
-intro : {A : Type l} → A → ∥ A ∥
+intro : {A : Type ℓ} → A → ∥ A ∥
 intro {A} a with lem ∥ A ∥₁ squash₁
 ... | inl x = tt 
 ... | inr x = x ∣ a ∣₁
 
-data minEquiv{A : Type al}(R : A → A → Type l) : A → A → Type(al ⊔ l) where
+data minEquiv{A : Type aℓ}(R : A → A → Type ℓ) : A → A → Type(aℓ ⊔ ℓ) where
    ME-intro : ∀{a b} → R a b → minEquiv R a b
    ME-intro2 : ∀{a b} → R a b → minEquiv R b a
    ME-refl : ∀ a → minEquiv R a a
@@ -71,7 +71,7 @@ data minEquiv{A : Type al}(R : A → A → Type l) : A → A → Type(al ⊔ l) 
 --   ME-relation : ∀ a b → isProp (minEquiv R a b)
 
 -- 'MinEquiv R' is the smallest equivalence relation containing 'R'.
-MinEquiv : (R : A → A → Type l) → A → A → Prop
+MinEquiv : (R : A → A → Type ℓ) → A → A → Prop
 MinEquiv R a b = ∥ minEquiv R a b ∥
 
 _>>_ : {B : Prop} → ∥ A ∥ → (A → B) → B
@@ -81,7 +81,7 @@ _>>_ {A} {B} X f with lem ∥ A ∥₁ squash₁
 id : A → A
 id x = x
 
-Σ : {A : Type l} → (P : A → Type l') → Type(l ⊔ l')
+Σ : {A : Type ℓ} → (P : A → Type ℓ') → Type(ℓ ⊔ ℓ')
 Σ {A} = Σ' A
 
 _∘_ : (B → C) → (A → B) → (A → C)
@@ -111,21 +111,21 @@ LEM A = lem A squash
 propExt : {A B : Prop} → (A → B) → (B → A) → A ≡ B
 propExt = propExt' squash squash
 
-_×_ : Type l → Type l' → Type (l ⊔ l')
+_×_ : Type ℓ → Type ℓ' → Type(ℓ ⊔ ℓ')
 A × B = Σ λ(_ : A) → B
 infixr 5 _×_
 
-∃ : {A : Type l} → (A → Type l') → Prop
+∃ : {A : Type ℓ} → (A → Type ℓ') → Prop
 ∃ P = ∥ Σ P ∥
 
-ℙ : Type l → Type (l ⊔ (lsuc lzero))
+ℙ : Type ℓ → Type (ℓ ⊔ (lsuc lzero))
 ℙ X = X → Prop
 
-_∈_ : A → (A → Type l) → Type l
+_∈_ : A → (A → Type ℓ) → Type ℓ
 _∈_ = _|>_
 infixr 6 _∈_
 
-_∉_ :  A → (A → Type l) → Type l
+_∉_ :  A → (A → Type ℓ) → Type ℓ
 _∉_ a X = ¬(a ∈ X)
 infixr 5 _∉_
 
@@ -135,21 +135,21 @@ infixr 5 _∉_
 ⋂ : ℙ(ℙ A) → ℙ A
 ⋂ X = λ x → ∥ (∀ P → P ∈ X → x ∈ P) ∥
 
-injective : {A : Type l}{B : Type l'} → (A → B) → Type (l ⊔ l')
+injective : {A : Type ℓ}{B : Type ℓ'} → (A → B) → Type(ℓ ⊔ ℓ')
 injective f = ∀ x y → f x ≡ f y → x ≡ y
 
-surjective : {A : Type l}{B : Type l'} → (A → B) → Type (l ⊔ l')
+surjective : {A : Type ℓ}{B : Type ℓ'} → (A → B) → Type(ℓ ⊔ ℓ')
 surjective f = ∀ b → Σ λ a → f a ≡ b
 
-[wts_]_ : (A : Type l) → A → A
+[wts_]_ : (A : Type ℓ) → A → A
 [wts _ ] a = a
 infixr 0 [wts_]_
 
 -- https://en.wikipedia.org/wiki/Fiber_(mathematics)
-fiber : {B : Type bl} → (A → B) → B → A → Type bl
+fiber : {B : Type bℓ} → (A → B) → B → A → Type bℓ
 fiber f y = λ x → f x ≡ y
 
-embedding : {A : Type al}{B : Type bl} → (A → B) → Type(al ⊔ bl)
+embedding : {A : Type aℓ}{B : Type bℓ} → (A → B) → Type(aℓ ⊔ bℓ)
 embedding f = ∀ y → isProp (Σ(fiber f y))
 
 set : (l : Level) → Type (lsuc(lsuc l))
@@ -163,21 +163,21 @@ set l = Type (lsuc l)
 ∅ : ℙ A
 ∅ = λ _ → ⊥
 
-_≢_ : {A : Type l} → A → A → Type l
+_≢_ : {A : Type ℓ} → A → A → Type ℓ
 a ≢ b = ¬(a ≡ b)
 
 -- https://en.wikipedia.org/wiki/Principle_of_explosion
-UNREACHABLE : ⊥ → {A : Type l} → A
+UNREACHABLE : ⊥ → {A : Type ℓ} → A
 UNREACHABLE ()
 
-_⊆_ : {A : set al} → ℙ A → ℙ A → set al
+_⊆_ : {A : set aℓ} → ℙ A → ℙ A → set aℓ
 A ⊆ B = ∀ x → x ∈ A → x ∈ B
 
-substP : (x : A) → {P Q : A → Type l} → P ≡ Q → Q x → P x
+substP : (x : A) → {P Q : A → Type ℓ} → P ≡ Q → Q x → P x
 substP x P≡Q y = transport (λ i → P≡Q (~ i) x) y
 
 -- https://en.wikipedia.org/wiki/Functor_(functional_programming)
-record Functor {ρ : Level → Level}(F : ∀{l} → Type l → Type (ρ l)) : Typeω  where
+record Functor {ρ : Level → Level}(F : ∀{ℓ} → Type ℓ → Type (ρ ℓ)) : Typeω  where
   field
     map : (A → B) → F A → F B
     compPreserve : (f : B → C) → (g : A → B) → map (f ∘ g) ≡ (map f ∘ map g)
@@ -185,39 +185,39 @@ record Functor {ρ : Level → Level}(F : ∀{l} → Type l → Type (ρ l)) : T
 open Functor {{...}} public
 
 -- https://en.wikipedia.org/wiki/Monad_(functional_programming)
-record Monad {ρ : Level → Level}(m : ∀{l} → Type l → Type (ρ l)) : Typeω where
+record Monad {ρ : Level → Level}(m : ∀{ℓ} → Type ℓ → Type (ρ ℓ)) : Typeω where
   field
       {{mApp}} : Functor m
       μ : m (m A) → m A -- join
       η  : A → m A      -- return
-      monadLemma1 : {A : Type al} → μ ∘ μ ≡ λ(a : m(m(m A))) → μ (map μ a)
+      monadLemma1 : {A : Type aℓ} → μ ∘ μ ≡ λ(a : m(m(m A))) → μ (map μ a)
       monadLemma2 : μ ∘ η ≡ λ(a : m A) → a
-      monadLemma3 : {A : Type al} → μ ∘ map η ≡ λ(a : m A) → a
+      monadLemma3 : {A : Type aℓ} → μ ∘ map η ≡ λ(a : m A) → a
 open Monad {{...}} public
 
 -- Natural Transformation
 record NatTrans {ρ : Level → Level}
-                {F G : ∀{l} → Type l → Type (ρ l)}
-                (component : {X : Type l} → F X → G X) : Typeω where
+                {F G : ∀{ℓ} → Type ℓ → Type (ρ ℓ)}
+                (component : {X : Type ℓ} → F X → G X) : Typeω where
  field
    overlap {{F'}} : Functor F
    overlap {{G'}} : Functor G
-   componentAx : {A B : Type l}
+   componentAx : {A B : Type ℓ}
                → (f : A → B) → component ∘ map f ≡ map f ∘ component
 open NatTrans {{...}} public
 
-natTransId : {F : ∀{l} → Type l → Type l'}
+natTransId : {F : ∀{ℓ} → Type ℓ → Type ℓ'}
            → {{Functor F}}
-           → NatTrans λ{X : Type l} (p : F X) → p
+           → NatTrans λ{X : Type ℓ} (p : F X) → p
 natTransId = record { componentAx = λ f → funExt λ x → refl }
 
 -- bind
-_>>=_ : {ρ : Level → Level}{m : ∀{l} → Type l → Type (ρ l)} → {{Monad m}}
+_>>=_ : {ρ : Level → Level}{m : ∀{ℓ} → Type ℓ → Type (ρ ℓ)} → {{Monad m}}
       → m A → (A → m B) → m B
 _>>=_ {m} mA p = μ (map p mA)
 
 -- apply
-_<*>_ : {ρ : Level → Level}{m : ∀{l} → Type l → Type (ρ l)} → {{Monad m}}
+_<*>_ : {ρ : Level → Level}{m : ∀{ℓ} → Type ℓ → Type (ρ ℓ)} → {{Monad m}}
       → m (A → B) → m A → m B
 _<*>_ {m} mf mA = mf >>= λ f → map f mA
 
@@ -289,12 +289,12 @@ Union⊆ : (X : ℙ(ℙ A))(Y : ℙ A) → (∀ x → x ∈ X → x ⊆ Y) → �
 Union⊆ X Y H a = _>> λ (Y , a∈Y , Y∈X) → H Y Y∈X a a∈Y
 
 -- Intersection
-_∩_ : (A → Type l) → (A → Type l') → A → Type (l ⊔ l')
+_∩_ : (A → Type ℓ) → (A → Type ℓ') → A → Type(ℓ ⊔ ℓ')
 X ∩ Y = λ x → (x ∈ X) × (x ∈ Y)
 infix 7 _∩_
 
 -- Complement
-_ᶜ : (A → Type l) → A → Type l
+_ᶜ : (A → Type ℓ) → A → Type ℓ
 X ᶜ = λ x → x ∉ X
 infix 25 _ᶜ
 
@@ -309,7 +309,7 @@ DNRule {A} = propExt DNElim λ z z₁ → z₁ z
 dblCompl : {X : ℙ A} → (X ᶜ)ᶜ ≡ X
 dblCompl {X} = funExt λ x → propExt (λ y → DNElim y) λ z z₁ → z₁ z
 
-DeMorgan : {P : A → Type l} → ¬ (∃ P) → ∀ x → ¬ (P x)
+DeMorgan : {P : A → Type ℓ} → ¬ (∃ P) → ∀ x → ¬ (P x)
 DeMorgan {P} H x G = H (η(x , G))
 
 DeMorgan2 : {A B : Prop} → ¬(A × B) → ¬ A ＋ ¬ B
@@ -317,11 +317,11 @@ DeMorgan2 {A}{B} x with LEM A
 ... | inl a = inr λ b → x (a , b)
 ... | inr ¬a = inl λ a → UNREACHABLE $ ¬a a
 
-DeMorgan3 : {A : Type al} {P : ℙ A} → ¬(∀ x → P x) → ∃ λ x → ¬ (P x)
+DeMorgan3 : {A : Type aℓ} {P : ℙ A} → ¬(∀ x → P x) → ∃ λ x → ¬ (P x)
 DeMorgan3 H = DNElim λ X → H λ x → DNElim (DeMorgan X x)
 
 -- Union
-_∪_ : (A → Type l) → (A → Type l') → A → Prop
+_∪_ : (A → Type ℓ) → (A → Type ℓ') → A → Prop
 X ∪ Y = λ x → ∥ (x ∈ X) ＋ (x ∈ Y) ∥
 infix 7 _∪_
 
@@ -329,33 +329,33 @@ infix 7 _∪_
 ∪Complement X = funExt λ x → propExt
     (λ _ → tt) λ _ → LEM (x ∈ X) |> λ{ (inl p) → η (inl p)
                                      ; (inr p) → η (inr p)}
-record Semigroup {A : Type l}(_∙_ : A → A → A) : Type(lsuc l) where
+record Semigroup {A : Type ℓ}(_∙_ : A → A → A) : Type(lsuc ℓ) where
   field
       assoc : (a b c : A) → a ∙ (b ∙ c) ≡ (a ∙ b) ∙ c
 open Semigroup {{...}} public
 
 -- preimage
-_⁻¹[_] : (f : A → B) → (B → Type l) → (A → Type l)
+_⁻¹[_] : (f : A → B) → (B → Type ℓ) → (A → Type ℓ)
 f ⁻¹[ g ] = g ∘ f
 
-record Commutative {A : Type l}{B : Type l'}(_∙_ : A → A → B) : Type(lsuc (l ⊔ l')) where
+record Commutative {A : Type ℓ}{B : Type ℓ'}(_∙_ : A → A → B) : Type(lsuc (ℓ ⊔ ℓ')) where
   field
     comm : (a b : A) → a ∙ b ≡ b ∙ a
 open Commutative {{...}} public
 
 instance
  -- Intersections are commutative
- ∩Comm : Commutative (_∩_ {A = A} {l = lzero})
+ ∩Comm : Commutative (_∩_ {A = A} {ℓ = lzero})
  ∩Comm = record { comm = λ P Q → funExt λ x → propExt (λ(x , y) → (y , x))
                                                        λ(x , y) → (y , x) }
 
  -- Intersections are associative
- ∩assoc : Semigroup (_∩_ {A = A} {l = lzero})
+ ∩assoc : Semigroup (_∩_ {A = A} {ℓ = lzero})
  ∩assoc = record { assoc = λ a b c → funExt λ x → propExt (λ (a , b , c) → ((a , b) , c))
                                                            λ ((a , b) , c) → (a , b , c) }
 
  -- Unions are commutative
- ∪Comm : Commutative (_∪_ {A = A} {l})
+ ∪Comm : Commutative (_∪_ {A = A} {ℓ})
  ∪Comm = record { comm = λ a b → funExt λ x → propExt (_>> λ{ (inl p) → η (inr p)
                                                             ; (inr p) → η (inl p)})
                                                       (map (λ{ (inl x) → inr x
@@ -379,7 +379,7 @@ instance
 image : (A → B) → B → Prop
 image f b = ∃ λ a → f a ≡ b
 
-X∩∅≡∅ : {A : Type l} (X : ℙ A) → X ∩ ∅ ≡ ∅
+X∩∅≡∅ : {A : Type ℓ} (X : ℙ A) → X ∩ ∅ ≡ ∅
 X∩∅≡∅ X = funExt λ x → propExt (λ()) λ()
 
 Pair : A → A → ℙ A
@@ -401,7 +401,7 @@ Pair A B X = ∥ (X ≡ A) ＋ (X ≡ B) ∥
 ⋂lemma3 : (⋂ 𝓤) ≡ ∅ {A = A}
 ⋂lemma3 = funExt λ x → propExt (_>> λ y → y ∅ tt) λ()
 
-⋂lemma4 : {A : Type al} → (⋂ 𝓤)ᶜ ≡ 𝓤 {A = A}
+⋂lemma4 : {A : Type aℓ} → (⋂ 𝓤)ᶜ ≡ 𝓤 {A = A}
 ⋂lemma4 = funExt λ x → propExt (λ y → tt) λ w → _>> λ y → y ∅ tt
 
 ⋃𝓤≡𝓤 : (⋃ 𝓤) ≡ 𝓤 {A = A}
@@ -422,7 +422,7 @@ Pair A B X = ∥ (X ≡ A) ＋ (X ≡ B) ∥
                                                           , subst X (sym dblCompl) Y∈X)
                       (_>> λ(Y , x∈Y , Yᶜ∈X) → _>> λ x∈⋂X → x∈⋂X (Y ᶜ) Yᶜ∈X x∈Y)
 
-cover : {A : Type al} (X : ℙ (ℙ A)) → Type al
+cover : {A : Type aℓ} (X : ℙ (ℙ A)) → Type aℓ
 cover X = ∀ x → x ∈ ⋃ X
 
 [X∩Y]ᶜ≡Xᶜ∪Yᶜ : (X Y : ℙ A) → (X ∩ Y)ᶜ ≡ X ᶜ ∪ Y ᶜ
@@ -439,14 +439,14 @@ cover X = ∀ x → x ∈ ⋃ X
                 λ (x∉X , x∉Y) → _>> λ{ (inl x∈X) → x∉X x∈X
                                      ; (inr x∈Y) → x∉Y x∈Y }
 
-∪preimage : {A : Type l}{B : Type l'} (X : ℙ(ℙ B)) → (f : A → B)
+∪preimage : {A : Type ℓ}{B : Type ℓ'} (X : ℙ(ℙ B)) → (f : A → B)
           → f ⁻¹[ ⋃ X ] ≡ ⋃ (map (f ⁻¹[_]) X)
 ∪preimage X f = funExt λ z → propExt (_>> λ(G , (fz∈G) , X∈G)
    → η $ f ⁻¹[ G ] , fz∈G , η (G , X∈G , refl))
    $ _>> λ(Y , z∈Y , Q) → Q >> λ(h , h∈X , Y≡f⁻¹[h])
                                → η $ h , (substP z (sym Y≡f⁻¹[h]) z∈Y) , h∈X
 
-<*>∅≡∅ : {A B : Type (lsuc l)}
+<*>∅≡∅ : {A B : Type (lsuc ℓ)}
         → (P : ℙ (A → B))
         → P <*> ∅ ≡ ∅
 <*>∅≡∅ P = funExt λ x → propExt (_>> λ(p , q , r)
@@ -460,7 +460,7 @@ X⊆∅→X≡∅ {X} H = funExt λ x → propExt (λ x∈X → H x x∈X) λ ()
 ∅ᶜ≡𝓤 : ∅ ᶜ ≡ 𝓤 {A = A}
 ∅ᶜ≡𝓤 = funExt λ x → propExt (λ z → tt) λ z → id
 
-record Filter{X : set l}(ℬ : ℙ(ℙ X)) : set l where
+record Filter{X : set ℓ}(ℬ : ℙ(ℙ X)) : set ℓ where
  field
   ffull : 𝓤 ∈ ℬ
   fnot∅ : ∅ ∉ ℬ
@@ -468,7 +468,7 @@ record Filter{X : set l}(ℬ : ℙ(ℙ X)) : set l where
   fax : ∀{A B} → A ⊆ B → A ∈ ℬ → B ∈ ℬ
 open Filter {{...}} public
 
-record Ideal{X : set l}(ℬ : ℙ(ℙ X)) : set l where
+record Ideal{X : set ℓ}(ℬ : ℙ(ℙ X)) : set ℓ where
  field
   iempty : ∅ ∈ ℬ
   inotfull : 𝓤 ∉ ℬ
@@ -476,7 +476,7 @@ record Ideal{X : set l}(ℬ : ℙ(ℙ X)) : set l where
   iax : ∀{A B} → A ⊆ B → B ∈ ℬ → A ∈ ℬ
 open Ideal {{...}} public
 
-module _{X : set l}(ℬ : ℙ(ℙ X)){{filter : Filter ℬ}} where
+module _{X : set ℓ}(ℬ : ℙ(ℙ X)){{filter : Filter ℬ}} where
  -- Underlying set for a filter is never empty
  fNonEmpty : ∥ X ∥₁
  fNonEmpty with lem ∥ X ∥₁ squash₁
@@ -494,7 +494,7 @@ module _{X : set l}(ℬ : ℙ(ℙ X)){{filter : Filter ℬ}} where
   ; iax = λ {A} {B} A⊆B → fax λ x x∉B x∈A → x∉B (A⊆B x x∈A)
   }
 
-trivialFilter : {X : set l}
+trivialFilter : {X : set ℓ}
               → ∥ X ∥₁
               → Filter λ(Y : ℙ X) → ∥ 𝓤 ⊆ Y ∥
 trivialFilter {X} ∥X∥₁ = record
@@ -506,7 +506,7 @@ trivialFilter {X} ∥X∥₁ = record
   ; fax = λ{B}{C} A⊆B → _>> λ 𝓤⊆B → η λ x x∈𝓤 → A⊆B x (𝓤⊆B x x∈𝓤)
   }
 
-principalFilter : {X : set l}
+principalFilter : {X : set ℓ}
                 → (A : ℙ X)
                 → ∃ A
                 → Filter λ(Y : ℙ X) → ∥ A ⊆ Y ∥
@@ -518,7 +518,7 @@ principalFilter {X} A ∃A = record
   ; fax = λ{B}{C} B⊆C → _>> λ A⊆B → η λ x x∈A → B⊆C x (A⊆B x x∈A)
   }
 
-module _{X : set l}(ℬ : ℙ(ℙ X)){{ideal : Ideal ℬ}} where
+module _{X : set ℓ}(ℬ : ℙ(ℙ X)){{ideal : Ideal ℬ}} where
  -- Underlying set for an ideal is never empty
  iNonEmpty : ∥ X ∥₁
  iNonEmpty with lem ∥ X ∥₁ squash₁
@@ -536,7 +536,7 @@ module _{X : set l}(ℬ : ℙ(ℙ X)){{ideal : Ideal ℬ}} where
   ; fax = λ{A}{B} A⊆B Aᶜ∈ℬ → iax (λ x x∈Bᶜ x∈A → x∈Bᶜ (A⊆B x x∈A)) Aᶜ∈ℬ
   }
 
-principalIdeal : {X : set l}
+principalIdeal : {X : set ℓ}
                → (A : ℙ X)
                → ∃ (λ x → x ∉ A)
                → Ideal λ(Y : ℙ X) → ∥ Y ⊆ A ∥
@@ -550,17 +550,17 @@ principalIdeal {X} A ∃¬A = record
  ; iax = λ{B}{C} B⊆C → _>> λ C⊆A → η λ x x∈B → C⊆A x (B⊆C x x∈B)
  }
 
-_⟦_⟧ : (A : Type l) → A → A
+_⟦_⟧ : (A : Type ℓ) → A → A
 _ ⟦ x ⟧ = x
 infixr 2 _⟦_⟧
 
 -- Therefore
-_∴_[_] : A → (B : Type l) → (A → B) → B
+_∴_[_] : A → (B : Type ℓ) → (A → B) → B
 a ∴ _ [ f ] = f a
 infixr 1 _∴_[_]
 
 -- Contravariant functor
-record Functor2 {ρ : Level → Level}(F : ∀{l} → Type l → Type (ρ l)) : Typeω  where
+record Functor2 {ρ : Level → Level}(F : ∀{ℓ} → Type ℓ → Type (ρ ℓ)) : Typeω  where
   field
     map2 : (A → B) → F B → F A
     compPreserve2 : (f : B → C) → (g : A → B) → map2 (f ∘ g) ≡ (map2 g ∘ map2 f)
@@ -569,17 +569,17 @@ open Functor2 {{...}} public
 
 -- Natural transformation between two contravariant functors
 record NatTrans2 {ρ : Level → Level}
-                {F G : ∀{l} → Type l → Type (ρ l)}
-                (component : {X : Type l} → F X → G X) : Typeω where
+                {F G : ∀{ℓ} → Type ℓ → Type (ρ ℓ)}
+                (component : {X : Type ℓ} → F X → G X) : Typeω where
  field
    overlap {{F'2}} : Functor2 F
    overlap {{G'2}} : Functor2 G
-   componentAx2 : {A B : Type l}
+   componentAx2 : {A B : Type ℓ}
                 → (f : A → B) → component ∘ map2 f ≡ map2 f ∘ component
 open NatTrans2 {{...}} public
 
 -- Double covariant functor is covariant
-covarComp : {ρ : Level → Level}{F : ∀{l} → Type l → Type (ρ l)}
+covarComp : {ρ : Level → Level}{F : ∀{ℓ} → Type ℓ → Type (ρ ℓ)}
           → {{FF : Functor F}}
           → Functor (F ∘ F)
 covarComp = record
@@ -598,7 +598,7 @@ covarComp = record
 
 -- Double contravariant functor is covariant
 contraComp : {ρ : Level → Level}
-           → {F : ∀{l} → Type l → Type (ρ l)}
+           → {F : ∀{ℓ} → Type ℓ → Type (ρ ℓ)}
            → {{Functor2 F}}
            → Functor (F ∘ F)
 contraComp = record
@@ -625,12 +625,12 @@ instance
   }
 
 -- Alternative definition of the subset relation that makes for a nice instance of a natural transformation
-_⊆'_ : {A : set al} → ℙ A → ℙ (ℙ A)
+_⊆'_ : {A : set aℓ} → ℙ A → ℙ (ℙ A)
 A ⊆' B = ∥ (∀ x → x ∈ A → x ∈ B) ∥
 
 -- The (curried) subset relation is a natural transformation from the covariant powerset functor
 -- to the double contravariant power set functor.
-NT⊆' : NatTrans {lsuc l} {F = ℙ}{G = (ℙ ∘ ℙ)} _⊆'_
+NT⊆' : NatTrans {lsuc ℓ} {F = ℙ}{G = (ℙ ∘ ℙ)} _⊆'_
 NT⊆' = record
  { G' = contraComp
  ; componentAx = λ{A}{B} f → funExt λ x → funExt λ y → propExt (_>> λ H → η (λ a a∈x → H (f a) (η (a , a∈x , refl))))

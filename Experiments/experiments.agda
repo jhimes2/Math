@@ -11,14 +11,14 @@ open import Cubical.HITs.PropositionalTruncation renaming (rec to recTrunc)
 open import Data.Finite
 open import Data.Bool
 
-JRule : (P : {x y : A} → x ≡ y → Type l) → (x : A) → P (λ _ → x) → {y : A} → (p : x ≡ y) → P p
+JRule : (P : {x y : A} → x ≡ y → Type ℓ) → (x : A) → P (λ _ → x) → {y : A} → (p : x ≡ y) → P p
 JRule P x = J (λ y → P {x = x} {y})
 
 JTrans : {a b c : A} → a ≡ b → b ≡ c → a ≡ c
 JTrans {A = A} {a = a} {b} {c} p = let P = λ {b c : A} (q : b ≡ c) → a ≡ c
    in JRule P b p 
 
-_==_ : {A : Type l} → A → A → Type (l ⊔ (lsuc lzero))
+_==_ : {A : Type ℓ} → A → A → Type (l ⊔ (lsuc lzero))
 _==_ {A = A} a b = (P : A → Type) → P a → P b
 
 refl== : {x : A} → x == x
@@ -62,8 +62,8 @@ reflLoopF contra = λ i → endPtOfYes (contra i)
 --Euclid's-Lemma : (a b c : ℕ) → gcd a b ≡ S Z → a ∣ copy b c → a ∣ c
 --Euclid's-Lemma a b c coprime p = p >>= λ(x , p) → ∣ {!!} , {!!} ∣₁
 
-Schröder–Bernstein : {A : Type al}
-                   → {B : Type bl}
+Schröder–Bernstein : {A : Type aℓ}
+                   → {B : Type bℓ}
                    → (f : A → B) → leftInverse f
                    → (g : B → A) → leftInverse g → Σ λ(h : A → B) → bijective h
 Schröder–Bernstein f (f' , finv) g (g' , ginv) = {!!}
@@ -73,23 +73,23 @@ S1Equiv : Interval → Interval → Type
 S1Equiv i j = {!!}
 
 zorn' : {_≤_ : A → A → Type} → {{_ : Poset _≤_}}
-      → ((C : A → Type al) → chain C → Σ λ x → ∀ g → g ∈ C → x ≤ g)
+      → ((C : A → Type aℓ) → chain C → Σ λ x → ∀ g → g ∈ C → x ≤ g)
       → Σ λ(x : A) → ∀ g → g ≤ x → x ≤ g
 zorn' {A = A} {_≤_ = _≤_} ch = {!!}
 
 distinguish3 : (f : ℕ → 𝔹) → f ≢ (λ x → Yes) → Σ λ x → (f x ≡ No) × ∀ y → f y ≡ No → x ≤ y
 distinguish3 f H = {!!}
 
-module _{_≤_ : A → A → Type al} where
+module _{_≤_ : A → A → Type aℓ} where
  instance
-  ΣPreorder : {{PO : Preorder _≤_}} → {P : A → Type l} → {{property : Property P}} → Preorder λ((x , _)(y , _) : Σ P) → x ≤ y
+  ΣPreorder : {{PO : Preorder _≤_}} → {P : A → Type ℓ} → {{property : Property P}} → Preorder λ((x , _)(y , _) : Σ P) → x ≤ y
   ΣPreorder {P} = {!!}
-  ΣPoset : {{PO : Poset _≤_}} → {P : A → Type l} → {{property : Property P}} → Poset λ((x , _)(y , _) : Σ P) → x ≤ y
+  ΣPoset : {{PO : Poset _≤_}} → {P : A → Type ℓ} → {{property : Property P}} → Poset λ((x , _)(y , _) : Σ P) → x ≤ y
   ΣPoset {P} = {!!}
 instance
- ΣTotalOrder : {{PO : TotalOrder al A}} → {P : A → Type l} → {{property : Property P}} → TotalOrder al (Σ P)
+ ΣTotalOrder : {{PO : TotalOrder al A}} → {P : A → Type ℓ} → {{property : Property P}} → TotalOrder al (Σ P)
  ΣTotalOrder {P} = {!!}
- negProperty : {P : A → Type l} → Property λ x → ¬(P x)
+ negProperty : {P : A → Type ℓ} → Property λ x → ¬(P x)
  negProperty {P} = {!!}
 
 distinguish4 : (f : ℕ → 𝔹)
@@ -119,12 +119,12 @@ distinguish2 f H with natDiscrete (f Z) Z
 ...   |  (no p) = Z , p
 
 zorn : {_≤_ : A → A → Type} → {{_ : Poset _≤_}}
-     → ((C : A → Type al) → chain C → Σ λ g → ∀ x → x ∈ C → g ≤ x → g ≡ x)
+     → ((C : A → Type aℓ) → chain C → Σ λ g → ∀ x → x ∈ C → g ≤ x → g ≡ x)
      → ∃ λ g → ∀ x → g ≤ x → g ≡ x
 zorn {A = A} {_≤_ = _≤_} = {!!}
 
-test2 : Dec ((A : Type al) → Dec A)
-test2 {al} = no λ x → (LEM (Dec ((A : Type al) → Dec A))) |> λ{x → {!!}}
+test2 : Dec ((A : Type aℓ) → Dec A)
+test2 {al} = no λ x → (LEM (Dec ((A : Type aℓ) → Dec A))) |> λ{x → {!!}}
 
 DNElimF : ¬ ((l : Level) → (A : Type) → ¬(¬ A) → A)
 DNElimF dn =

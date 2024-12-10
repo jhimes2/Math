@@ -52,10 +52,10 @@ finDiscrete = discreteΣ natDiscrete (λ a x y → yes (finSndIsProp a x y))
 finIsSet : isSet (ℕ< n)
 finIsSet = Discrete→isSet finDiscrete
 
-is-finite : Type l → Type l
+is-finite : Type ℓ → Type ℓ
 is-finite A = Σ λ n → Σ λ(f : A → ℕ< n) → bijective f
 
-is-∞ : Type l → Type l
+is-∞ : Type ℓ → Type ℓ
 is-∞ A = ¬ (is-finite A)
 
 isPropFinSZ : isProp (ℕ< (S Z))

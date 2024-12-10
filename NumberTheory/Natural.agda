@@ -16,7 +16,7 @@ open monoid {{...}}
 -- obvious that the function terminates. Earlier I defined an equivalent function that was
 -- accepted by Agda's termination checker, but I found it too difficult to prove 'cutS' and 'addPaste'.
 {-# TERMINATING #-}
-jumpInductionAux : (P : ℕ → Type l) → (a n : ℕ)
+jumpInductionAux : (P : ℕ → Type ℓ) → (a n : ℕ)
                   → (n ≤ a) ＋ (Σ λ(z : ℕ) → n ≡ S (z + a))
                   → ((b : ℕ) → b ≤ a → P b)
                   → ((x : ℕ) → P x → P (S(x + a)))
@@ -28,7 +28,7 @@ jumpInductionAux P a n (inr (x , p)) Base jump =
                              H = (transport (λ i → (x + a) ≤ p (~ i)) (leS2 (add x a) (add x a) (reflexive (x + a)))) in
                          jumpInductionAux P a x (isLe x a) Base jump
 
-jumpInduction : (P : ℕ → Type l)
+jumpInduction : (P : ℕ → Type ℓ)
                 → (a : ℕ)
                 → ((b : ℕ) → b ≤ a → P b)
                 → ((x : ℕ) → P x → P (S(x + a)))

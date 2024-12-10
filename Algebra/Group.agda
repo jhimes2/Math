@@ -10,7 +10,7 @@ open import Cubical.HITs.SetQuotients renaming (rec to rec/)
 open import Cubical.HITs.PropositionalTruncation renaming (rec to recTrunc ; map to mapTrunc)
 
 -- https://en.wikipedia.org/wiki/Group_(mathematics)
-record group {A : Type l}(_∙_ : A → A → A) : Type l where
+record group {A : Type ℓ}(_∙_ : A → A → A) : Type ℓ where
   field
       e : A
       inverse : (a : A) → Σ λ(b : A) → b ∙ a ≡ e
@@ -104,7 +104,7 @@ module _{_∙_ : A → A → A} {{G : group _∙_}}(a b : A) where
                  (a ∙ (b ∙ inv b)) ∙ c ≡⟨ left _∙_ a[bb']≡a ⟩
                  a ∙ c ∎
 
-module grp {A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
+module grp {A : Type aℓ}{_∙_ : A → A → A}{{G : group _∙_}} where
 
   cancel : (a : A) → {x y : A} → a ∙ x ≡ a ∙ y → x ≡ y
   cancel a {x}{y} = λ(p : a ∙ x ≡ a ∙ y) →
@@ -175,15 +175,15 @@ module grp {A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
     e ∎
 
   -- https://en.wikipedia.org/wiki/Product_of_group_subsets
-  * : (A → Type l) → (A → Type l') → A → Type (al ⊔ l ⊔ l')
+  * : (A → Type ℓ) → (A → Type ℓ') → A → Type (aℓ ⊔ ℓ ⊔ ℓ')
   * S T = λ x → ∃ λ t → (t ∈ T) × (x ∙ inv t ∈ S)
 
   instance
-   *Set : {S : A → Type l} → {T : A → Type l'} → Property (* S T)
+   *Set : {S : A → Type ℓ} → {T : A → Type ℓ'} → Property (* S T)
    *Set {S}{T} = record { setProp = λ x → squash₁ }
 
 
-module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
+module _{A : Type aℓ}{_∙_ : A → A → A}{{G : group _∙_}} where
 
  ab≡e→a≡b' : {a b : A} → a ∙ b ≡ e → a ≡ inv b
  ab≡e→a≡b' {a}{b} ab≡e =
@@ -220,20 +220,20 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
                   inv (inv b ∙ a)     ∎
 
  -- https://en.wikipedia.org/wiki/Subgroup
- record Subgroup(H : A → Type bl) : Type (al ⊔ bl) where
+ record Subgroup(H : A → Type bℓ) : Type(aℓ ⊔ bℓ) where
    field
      inv-closed : {x : A} → x ∈ H → inv x ∈ H
      {{SGSM}} : Submonoid H _∙_
  open Subgroup {{...}} public
 
  -- https://en.wikipedia.org/wiki/Normal_subgroup
- record NormalSG(N : A → Type bl) : Type (al ⊔ bl) where
+ record NormalSG(N : A → Type bℓ) : Type(aℓ ⊔ bℓ) where
    field
      {{NisSG}} : Subgroup N
      [gn]g' : ∀ n → n ∈ N → ∀ g → (g ∙ n) ∙ inv g ∈ N
  open NormalSG {{...}} public
 
- SG-Criterion : {H : A → Type l} → {{Property H}}
+ SG-Criterion : {H : A → Type ℓ} → {{Property H}}
               → Σ H
               → (∀ x y → x ∈ H → y ∈ H → x ∙ inv y ∈ H)
               → Subgroup H
@@ -252,11 +252,11 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
    }
 
  -- The full set is a subgroup
- fullSG : Subgroup $ 𝓤 {l = l}
+ fullSG : Subgroup $ 𝓤 {ℓ = ℓ}
  fullSG = record { inv-closed = λ x → lift tt }
 
  -- Centralizing any subset of a group is a subgroup
- centralizerSG : {H : A → Type l} → Subgroup (centralizer _∙_ H)
+ centralizerSG : {H : A → Type ℓ} → Subgroup (centralizer _∙_ H)
  centralizerSG {H} = record
     { inv-closed = λ{x} (X : x ∈ centralizer _∙_ H) z z∈H
      → [wts inv x ∙ z ≡ z ∙ inv x ] (grp.cancel x)
@@ -268,7 +268,7 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
     }
 
  -- Normalizing any subset of a group is a subgroup
- normalizerSG : {N : A → Type l} → Subgroup (normalizer _∙_ N)
+ normalizerSG : {N : A → Type ℓ} → Subgroup (normalizer _∙_ N)
  normalizerSG {N} = record { inv-closed = λ{x} x∈norm →
      let f = funRed x∈norm in funExt λ y → propExt squash₁ squash₁ (_>>= λ (p , p∈N , H) →
         transport (sym(f (p ∙ x))) (η (p , p∈N , refl)) >>= λ (q , q∈N , G) →
@@ -291,14 +291,14 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
      ; SGSM = normalizerSM {N = N} }
 
  centralizeAbelian : {{Commutative _∙_}}
-                   → {H : A → Type l}
+                   → {H : A → Type ℓ}
                    → ∀ x → x ∈ centralizer _∙_ H
  centralizeAbelian x y y∈H = comm x y
 
  instance
   -- Any subgroup of an abelian group is normal
   normalSGAbelian : {{Commutative _∙_}}
-                  → {H : A → Type l}
+                  → {H : A → Type ℓ}
                   → {{SG : Subgroup H}}
                   → NormalSG H
   normalSGAbelian {H} = record { [gn]g' = λ n n∈H g →
@@ -309,7 +309,7 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
    }
 
 module _{_∙_ : A → A → A}{{G : group _∙_}}
-        {N : A → Type al}{{NSG : NormalSG N}} where
+        {N : A → Type aℓ}{{NSG : NormalSG N}} where
 
  [g'n]g : ∀ n → n ∈ N → ∀ g → (inv g ∙ n) ∙ g ∈ N
  [g'n]g n n∈N g = subst N (right _∙_ (grp.doubleInv g)) ([gn]g' n n∈N (inv g))
@@ -319,7 +319,7 @@ module _{_∙_ : A → A → A}{{G : group _∙_}}
   idClosed = Submonoid.id-closed (Subgroup.SGSM (NormalSG.NisSG NSG))
   opClosed = Submonoid.op-closed (Subgroup.SGSM (NormalSG.NisSG NSG))
 
- module _{S : A → Type bl}{{SSM : Submonoid S _∙_}} where
+ module _{S : A → Type bℓ}{{SSM : Submonoid S _∙_}} where
   instance
   {- If G is a group, N is a normal subgroup, and S is a submonoid,
      then the product SN is a submonoid of G. -}
@@ -420,11 +420,11 @@ module _{_∙_ : A → A → A}{{G : monoid _∙_}}
                      e ∎
        }
 
-module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
- module _{H : A → Type l}{{SG : Subgroup H}} where
+module _{A : Type aℓ}{_∙_ : A → A → A}{{G : group _∙_}} where
+ module _{H : A → Type ℓ}{{SG : Subgroup H}} where
 
   -- The intersection of two subgroups are subgroups
-  intersectionSG : {Y : A → Type cl}{{_ : Subgroup Y}}
+  intersectionSG : {Y : A → Type cℓ}{{_ : Subgroup Y}}
                  → Subgroup (H ∩ Y)
   intersectionSG = record
     { inv-closed = λ{x} (x∈H , y∈H) → inv-closed x∈H , inv-closed y∈H }
@@ -461,13 +461,13 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
      }
 
  -- Overloading '⟨_⟩' for cyclic and generating set of a group
- record Generating (B : Type l) (l' : Level) : Type(l ⊔ al ⊔ lsuc l') where
+ record Generating (B : Type ℓ) (l' : Level) : Type(ℓ ⊔ aℓ ⊔ lsuc ℓ') where
    field
-     ⟨_⟩ : B → A → Type l'
+     ⟨_⟩ : B → A → Type ℓ'
  open Generating {{...}} public
 
   -- https://en.wikipedia.org/wiki/Generating_set_of_a_group
- data generating (X : A → Type l) : A → Type (al ⊔ l) where
+ data generating (X : A → Type ℓ) : A → Type (aℓ ⊔ ℓ) where
   gen-e : e ∈ generating X
   gen-intro : ∀ {x} → x ∈ X → x ∈ generating X
   gen-inv : ∀{y} → y ∈ generating X → inv y ∈ generating X
@@ -475,18 +475,18 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
   gen-set : ∀ y → isProp (y ∈ generating X)
 
  instance
-  generatingOverload : Generating (A → Type l) (al ⊔ l)
+  generatingOverload : Generating (A → Type ℓ) (aℓ ⊔ ℓ)
   generatingOverload = record { ⟨_⟩ = generating }
 
-  generatingProperty : {X : A → Type l} → Property (generating X)
+  generatingProperty : {X : A → Type ℓ} → Property (generating X)
   generatingProperty = record { setProp = gen-set }
 
   -- https://en.wikipedia.org/wiki/Cyclic_group
-  cyclicOverload : Generating A al
+  cyclicOverload : Generating A aℓ
   cyclicOverload = record { ⟨_⟩ = λ x → ⟨ (λ y → y ≡ x) ⟩ }
 
  -- Generating set is a subgroup
- generatingIsSubgroup : (X : A → Type l) → Subgroup ⟨ X ⟩
+ generatingIsSubgroup : (X : A → Type ℓ) → Subgroup ⟨ X ⟩
  generatingIsSubgroup X = record
    { SGSM = record
      { id-closed = gen-e
@@ -495,7 +495,7 @@ module _{A : Type al}{_∙_ : A → A → A}{{G : group _∙_}} where
    ; inv-closed = gen-inv
    }
 
- module _{B : Type bl}{_*_ : B → B → B}{{H : group _*_}} where
+ module _{B : Type bℓ}{_*_ : B → B → B}{{H : group _*_}} where
 
   -- A group homomorphism maps inverse elements to inverse elements
   invToInv : (h : A → B) → {{X : Homomorphism _∙_ _*_ h}} → ∀ a → h (inv a) ≡ inv (h a)
@@ -604,12 +604,12 @@ module _{_∙_ : A → A → A} {{G : group _∙_}} where
 
   {- If 'H' is a subgroup of 'G', then the inclusion map 'H → G' sending each element 'a' of 'H'
      to itself is a homomorphism. -}
-  inclusionMapHM : {H : A → Type l} {{_ : Subgroup H}} → Homomorphism _⪀_ _∙_ (λ((x , _) : Σ H) → x)
+  inclusionMapHM : {H : A → Type ℓ} {{_ : Subgroup H}} → Homomorphism _⪀_ _∙_ (λ((x , _) : Σ H) → x)
   inclusionMapHM = record
       { preserve = λ (u , u') (v , v') → refl }
  
   -- Group action homomorphism
-  actionHomomorphism : {B : Type bl} {act : A → B → B} → {{R : Action act}}
+  actionHomomorphism : {B : Type bℓ} {act : A → B → B} → {{R : Action act}}
                      → Homomorphism _∙_ ≅transitive λ x → act x , ActionBijective act x
   actionHomomorphism {act = act} = record
      {preserve = λ u v → ΣPathPProp bijectiveProp
@@ -617,13 +617,13 @@ module _{_∙_ : A → A → A} {{G : group _∙_}} where
      }
 
 -- Group with carrier and operator inside the structure
-record Group (l : Level) : Type(lsuc l) where
+record Group (ℓ : Level) : Type(lsuc ℓ) where
   field
-      carrier : Type l
+      carrier : Type ℓ
       op : carrier → carrier → carrier
       grp : group op
 
-record directProduct(ℓ : Level)(X : Type l) : Type (l ⊔ lsuc ℓ) where
+record directProduct(ℓ : Level)(X : Type ℓ) : Type (ℓ ⊔ lsuc ℓ) where
  field
   carrier : X → Type ℓ
   op : (x : X) → carrier x → carrier x → carrier x
@@ -631,17 +631,17 @@ record directProduct(ℓ : Level)(X : Type l) : Type (l ⊔ lsuc ℓ) where
 open directProduct {{...}} public
 
 instance
- setDomain : {P : A → Type l} → {{s : SetFamily P}} → is-set ∀ x → P x
+ setDomain : {P : A → Type ℓ} → {{s : SetFamily P}} → is-set ∀ x → P x
  setDomain = record { IsSet = isSetΠ setFamily }
- setOut : {{DP : directProduct l A}} → SetFamily carrier
- setOut {l} = record { setFamily = λ x → group.IsSetGrp (groups x) .IsSet }
-AssocOut : {{DP : directProduct l A}} → {a : A} → Semigroup (op a)
+ setOut : {{DP : directProduct ℓ A}} → SetFamily carrier
+ setOut = record { setFamily = λ x → group.IsSetGrp (groups x) .IsSet }
+AssocOut : {{DP : directProduct ℓ A}} → {a : A} → Semigroup (op a)
 AssocOut {a = a} = record { assoc = λ x y z → (group.gAssoc (groups a) .assoc) x y z }
-groupOut : {{DP : directProduct l A}} → {a : A} → group (op a)
+groupOut : {{DP : directProduct ℓ A}} → {a : A} → group (op a)
 groupOut {a} = groups a
-dpAssoc : {{DP : directProduct l A}} → Semigroup λ(f g : ∀ a → carrier a) (a : A) → op a (f a) (g a)
+dpAssoc : {{DP : directProduct ℓ A}} → Semigroup λ(f g : ∀ a → carrier a) (a : A) → op a (f a) (g a)
 dpAssoc = record { assoc = λ a b c → funExt λ x → group.gAssoc (groups x) .assoc (a x) (b x) (c x) }
-dpGrp : {{DP : directProduct l A}} → group λ(f g : ∀ a → carrier a) (a : A) → op a (f a) (g a)
+dpGrp : {{DP : directProduct ℓ A}} → group λ(f g : ∀ a → carrier a) (a : A) → op a (f a) (g a)
 dpGrp = record {
      e = λ a → grpIsMonoid {{groups a}} .e
    ; inverse = λ a → (λ x → inv {{groups x}} (a x)) , funExt λ p → lInverse {{groups p}} (a p)
@@ -672,7 +672,7 @@ groupIsProp {A} _∙_ G1 G2 i =
            F = let Inv1 = G1 .inverse a in
                let Inv2 = G2 .inverse a in
                let H : fst Inv1 ≡ fst Inv2
-                   H = grp.lcancel ⦃ G1 ⦄ a (snd Inv1 ⋆ sym ((snd Inv2) ⋆ sym E)) in
+                   H = grp.lcancel ⦃ G1 ⦄ a (snd Inv1 ⋆ sym (snd Inv2 ⋆ sym E)) in
                let G : PathP (λ j → H j ∙ a ≡ E j) (snd Inv1) (snd Inv2)
                    G = toPathP set in ΣPathP (H , G)
            in F i
@@ -682,18 +682,18 @@ groupIsProp {A} _∙_ G1 G2 i =
   open group
   open import Cubical.Foundations.HLevels
 
-_G/_ : {A : Type al}
+_G/_ : {A : Type aℓ}
       → (_∙_ : A → A → A) → {{G : group _∙_}}
-      → (H : A → Type l) → {{SG : NormalSG H}}
-      → Type (al ⊔ l)
+      → (H : A → Type ℓ) → {{SG : NormalSG H}}
+      → Type(aℓ ⊔ ℓ)
 _G/_ {A} _∙_ H = A / λ x y → (x ∙ inv y) ∈ H
 
 {- Quotient group operator -}
 {- I need to think of ways of making the quotient group operator less verbose
    while keeping compilation times tolerable. -}
-⋆[_/_] : {A : Type al}
+⋆[_/_] : {A : Type aℓ}
       → (_∙_ : A → A → A) → {{G : group _∙_}}
-      → (H : A → Type l) → {{SG : NormalSG H}}
+      → (H : A → Type ℓ) → {{SG : NormalSG H}}
       → _∙_ G/ H → _∙_ G/ H → _∙_ G/ H
 ⋆[_/_] {A} _∙_ {{G}} H {{SG}} =
    setQuotBinOp (λ a → subst H (sym (rInverse a)) idClosed)
@@ -711,9 +711,9 @@ _G/_ {A} _∙_ H = A / λ x y → (x ∙ inv y) ∈ H
   idClosed = Submonoid.id-closed (Subgroup.SGSM (NormalSG.NisSG SG))
   opClosed = Submonoid.op-closed (Subgroup.SGSM (NormalSG.NisSG SG))
 
-module _ {A : Type al}
+module _ {A : Type aℓ}
          {_∙_ : A → A → A} {{G : group _∙_}}
-         {N : A → Type l} {{SG : NormalSG N}} where
+         {N : A → Type ℓ} {{SG : NormalSG N}} where
 
  -- Restated for faster compilation (kludge)
  idClosed = Submonoid.id-closed (Subgroup.SGSM (NormalSG.NisSG SG))
@@ -753,7 +753,7 @@ module _ {A : Type al}
   quotientGrp : group ⋆[ _∙_ / N ]
   quotientGrp = EpimorphismCodomainGroup {{E = naturalEpimorphism}}
 
- module _{B : Type bl}{_*_ : B → B → B}{{H : group _*_}}
+ module _{B : Type bℓ}{_*_ : B → B → B}{{H : group _*_}}
          (f : A → B){{HM : Homomorphism _∙_ _*_ f}} where
  
   ψ : _∙_ G/ Kernel f → Σ (image f)

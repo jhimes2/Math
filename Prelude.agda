@@ -17,10 +17,10 @@ open import Cubical.Foundations.HLevels
    term. '∃[ a ∈ A ] ...' will become '∃ λ a → ...' -}
 
 variable
-    l l' al bl cl : Level
-    A : Type al
-    B : Type bl
-    C : Type cl
+    ℓ ℓ' aℓ bℓ cℓ : Level
+    A : Type aℓ
+    B : Type bℓ
+    C : Type cℓ
 
 id : A → A
 id x = x
@@ -28,15 +28,15 @@ id x = x
 id2 : A → A
 id2 x using y ← x = y
 
-_≢_ : {A : Type l} → A → A → Type l 
+_≢_ : {A : Type ℓ} → A → A → Type ℓ
 a ≢ b = ¬(a ≡ b)
 
-data _＋_ (A : Type al)(B : Type bl) : Type (al ⊔ bl) where
+data _＋_ (A : Type aℓ)(B : Type bℓ) : Type(aℓ ⊔ bℓ) where
   inl : A → A ＋ B
   inr : B → A ＋ B
 infixr 2 _＋_
 
-data Maybe (A : Type l) : Type l where
+data Maybe (A : Type ℓ) : Type ℓ where
  Just : A → Maybe A
  Nothing : Maybe A
 
@@ -56,42 +56,42 @@ infixr 0 _$_
 _∘_ :  (B → C) → (A → B) → (A → C)
 f ∘ g = λ a → f (g a)
 
-_⟦_⟧ : (A : Type l) → A → A
+_⟦_⟧ : (A : Type ℓ) → A → A
 _ ⟦ x ⟧ = x
 infixr 2 _⟦_⟧
 
 -- Therefore
-_∴_[_] : A → (B : Type l) → (A → B) → B
+_∴_[_] : A → (B : Type ℓ) → (A → B) → B
 a ∴ _ [ f ] = f a
 infixr 1 _∴_[_]
 
-∴-example : {D : Type al} → A → (A → B) → (B → C) → (C → D) → D
+∴-example : {D : Type aℓ} → A → (A → B) → (B → C) → (C → D) → D
 ∴-example {A}{B}{C}{D} a f g h = a ∴ B [ f ]
                                    ∴ C [ g ]
                                    ∴ D [ h ]
 
 -- Explicitly exists
-Σ : {A : Type l} → (P : A → Type l') → Type(l ⊔ l')
+Σ : {A : Type ℓ} → (P : A → Type ℓ') → Type(ℓ ⊔ ℓ')
 Σ {A} = Σ' A
 
 -- Merely exists
-∃ : {A : Type l} → (P : A → Type l') → Type(l ⊔ l')
+∃ : {A : Type ℓ} → (P : A → Type ℓ') → Type(ℓ ⊔ ℓ')
 ∃ P = ∥ Σ P ∥₁
 
-∃! : {A : Type l} → (P : A → Type l') → Type(l ⊔ l')
+∃! : {A : Type ℓ} → (P : A → Type ℓ') → Type(ℓ ⊔ ℓ')
 ∃! {A} P = Σ λ x → P x × ∀ y → P y → x ≡ y
 
-_↔_ : Type l → Type l' → Type (l ⊔ l')
+_↔_ : Type ℓ → Type ℓ' → Type(ℓ ⊔ ℓ')
 A ↔ B = (A → B) × (B → A)
 infixr 0 _↔_ 
 
-_⇔_ : Type l → Type l' → Type (l ⊔ l')
+_⇔_ : Type ℓ → Type ℓ' → Type(ℓ ⊔ ℓ')
 A ⇔ B = ∥ A ↔ B ∥₁
 infixr 0 _⇔_ 
 
 {- Syntax to show the goal as we apply proofs which allows
    the code to be more human readable. -}
-[wts_]_ : (A : Type l) → A → A
+[wts_]_ : (A : Type ℓ) → A → A
 [wts _ ] a = a
 infixr 0 [wts_]_
 
@@ -122,7 +122,7 @@ DeMorgan3 : ¬(A ＋ B) → (¬ A) × (¬ B)
 DeMorgan3 z = (λ x → z (inl x)) , λ x → z (inr x)
 
 -- https://en.wikipedia.org/wiki/Functor_(functional_programmingj)
-record Functor {ρ : Level → Level} (F : ∀{l} → Type l → Type (ρ l)) : Typeω  where
+record Functor {ρ : Level → Level} (F : ∀{ℓ} → Type ℓ → Type (ρ ℓ)) : Typeω  where
   field
     map : (A → B) → F A → F B
     compPreserve : (f : B → C) → (g : A → B) → map (f ∘ g) ≡ (map f ∘ map g)
@@ -130,24 +130,24 @@ record Functor {ρ : Level → Level} (F : ∀{l} → Type l → Type (ρ l)) : 
 open Functor {{...}} public
 
 -- https://en.wikipedia.org/wiki/Monad_(functional_programming)
-record Monad {ρ : Level → Level} (m : ∀{l} → Type l → Type (ρ l)) : Typeω where
+record Monad {ρ : Level → Level} (m : ∀{ℓ} → Type ℓ → Type (ρ ℓ)) : Typeω where
   field
       {{mApp}} : Functor m
       μ : m (m A) → m A -- join
       η  : A → m A      -- return
-      monadLemma1 : {A : Type al} → μ ∘ μ ≡ μ ∘ map {A = m(m A)} μ
+      monadLemma1 : {A : Type aℓ} → μ ∘ μ ≡ μ ∘ map {A = m(m A)} μ
       monadLemma2 : μ ∘ η ≡ λ(a : m A) → a
-      monadLemma3 : {A : Type al} → μ ∘ map η ≡ λ(a : m A) → a
+      monadLemma3 : {A : Type aℓ} → μ ∘ map η ≡ λ(a : m A) → a
 
 open Monad {{...}} public
 
 -- bind
-_>>=_ : {ρ : Level → Level} → {m : ∀{l} → Type l → Type (ρ l)} → {{Monad m}}
+_>>=_ : {ρ : Level → Level} → {m : ∀{ℓ} → Type ℓ → Type (ρ ℓ)} → {{Monad m}}
       → m A → (A → m B) → m B
 _>>=_ {m} mA p = μ (map p mA)
 
 -- apply
-_<*>_ : {ρ : Level → Level} → {m : ∀{l} → Type l → Type (ρ l)} → {{Monad m}}
+_<*>_ : {ρ : Level → Level} → {m : ∀{ℓ} → Type ℓ → Type (ρ ℓ)} → {{Monad m}}
       → m (A → B) → m A → m B
 _<*>_ {m} mf mA = mf >>= λ f → map f mA
 
@@ -206,29 +206,29 @@ instance
                       }
 
 -- https://en.wikipedia.org/wiki/Principle_of_explosion
-UNREACHABLE : ⊥ → {A : Type l} → A
+UNREACHABLE : ⊥ → {A : Type ℓ} → A
 UNREACHABLE ()
 
 -- https://en.wikipedia.org/wiki/Bijection,_injection_and_surjection
 
 -- https://en.wikipedia.org/wiki/Injective_function
-injective : {A : Type l}{B : Type l'} (f : A → B) → Type(l ⊔ l')
+injective : {A : Type ℓ}{B : Type ℓ'} (f : A → B) → Type(ℓ ⊔ ℓ')
 injective {A} f = (x y : A) → f x ≡ f y → x ≡ y
 
 -- https://en.wikipedia.org/wiki/Surjective_function
-surjective : {A : Type l}{B : Type l'} → (A → B) → Type(l ⊔ l')
+surjective : {A : Type ℓ}{B : Type ℓ'} → (A → B) → Type(ℓ ⊔ ℓ')
 surjective {A}{B} f = (b : B) → ∃ λ(a : A) → f a ≡ b
 
 -- Equivalent to having a right inverse
-rightInverse : {A : Type l}{B : Type l'} → (A → B) → Type(l ⊔ l')
+rightInverse : {A : Type ℓ}{B : Type ℓ'} → (A → B) → Type(ℓ ⊔ ℓ')
 rightInverse {A}{B} f = (b : B) → Σ λ(a : A) → f a ≡ b
 
 
 -- https://en.wikipedia.org/wiki/Bijection
-bijective : {A : Type l}{B : Type l'} → (A → B) → Type(l ⊔ l')
+bijective : {A : Type ℓ}{B : Type ℓ'} → (A → B) → Type(ℓ ⊔ ℓ')
 bijective f = injective f × rightInverse f
 
-_≅_ : (A : Type l)(B : Type l') → Type (l ⊔ l')
+_≅_ : (A : Type ℓ)(B : Type ℓ') → Type(ℓ ⊔ ℓ')
 A ≅ B = Σ λ (f : B → A) → bijective f
 
 injectiveComp : {f : A → B} → injective f
@@ -246,7 +246,7 @@ surjectiveComp {f} fSurj {g} gSurj =
 ≅transitive (g , Ginj , Gsurj) (f , Finj , Fsurj) =
   g ∘ f , (λ x y z → Finj x y (Ginj (f x) (f y) z)) , surjectiveComp Fsurj Gsurj
 
-leftInverse : {A : Type l}{B : Type l'} → (A → B) → Type(l ⊔ l')
+leftInverse : {A : Type ℓ}{B : Type ℓ'} → (A → B) → Type(ℓ ⊔ ℓ')
 leftInverse {A}{B} f = Σ λ (g : B → A) → (x : A) → g (f x) ≡ x
 
 -- If a function has a left inverse, then it is injective
@@ -266,7 +266,7 @@ propTruncExt ab ba = propExt squash₁ squash₁ (map ab) (map ba)
 funRed : {f g : A → B} → f ≡ g → (x : A) → f x ≡ g x
 funRed p x i = p i x
 
-record Commutative {A : Type l}{B : Type l'}(_∙_ : A → A → B) : Type(l ⊔ l') where
+record Commutative {A : Type ℓ}{B : Type ℓ'}(_∙_ : A → A → B) : Type(ℓ ⊔ ℓ') where
   field
     comm : (a b : A) → a ∙ b ≡ b ∙ a
 open Commutative {{...}} public
@@ -285,12 +285,12 @@ module _{_∙_ : A → A → A}{{_ : Commutative _∙_}}(a b c : A) where
                c ∙ (b ∙ a) ∎
 
 -- Is proposition
-record is-prop (A : Type l) : Type l
+record is-prop (A : Type ℓ) : Type ℓ
   where field
    IsProp : isProp A
 open is-prop {{...}} public
 
-record is-set (A : Type l) : Type l
+record is-set (A : Type ℓ) : Type ℓ
   where field
    IsSet : isSet A
 open is-set {{...}} public
@@ -319,65 +319,65 @@ instance
 TrueEq : isProp A → A → A ≡ Lift ⊤
 TrueEq p a = propExt p (λ{ (lift tt) (lift tt) → refl}) (λ _ → lift tt) (λ _ → a)
 
-rem₁ : {P Q : A → Type l} → isProp ((λ(x : A) → ∥ P x ∥₁) ≡ (λ(x : A) → ∥ Q x ∥₁))
-rem₁ {A} {P} {Q} = isOfHLevelRetractFromIso {B = ∀ x → (∥ P x ∥₁) ≡ (∥ Q x ∥₁)}
+rem₁ : {P Q : A → Type ℓ} → isProp $ (λ x → ∥ P x ∥₁) ≡ λ x → ∥ Q x ∥₁
+rem₁ {A} {P} {Q} = isOfHLevelRetractFromIso {B = ∀ x → ∥ P x ∥₁ ≡ ∥ Q x ∥₁}
  (suc zero)
  (iso (λ x y →
    let f = funRed x in f y) (λ f → funExt λ x → f x) (λ b → funExt λ x → refl)
    λ f → refl)
- (isPropΠ λ x → isOfHLevel≡ (suc zero) squash₁ squash₁ )
+ (isPropΠ λ x → isOfHLevel≡ (suc zero) squash₁ squash₁)
  where
   open import Cubical.Foundations.Isomorphism
   open import Cubical.Data.Nat
 
-module _{A : Type al}(_∙_ : A → A → A)
-        {B : Type bl}(_*_ : B → B → B)
+module _{A : Type aℓ}(_∙_ : A → A → A)
+        {B : Type bℓ}(_*_ : B → B → B)
         (h : A → B) where
 
- record Homomorphism : Type (al ⊔ bl)
+ record Homomorphism : Type(aℓ ⊔ bℓ)
   where field
    preserve : (u v : A) → h (u ∙ v) ≡ h u * h v
  open Homomorphism {{...}} public
 
- record Monomorphism : Type (al ⊔ bl)
+ record Monomorphism : Type(aℓ ⊔ bℓ)
   where field
    {{mono-preserve}} : Homomorphism
    inject : injective h
  open Monomorphism {{...}} public
 
- record Epimorphism : Type (al ⊔ bl)
+ record Epimorphism : Type(aℓ ⊔ bℓ)
   where field
    {{epi-preserve}} : Homomorphism
    surject : ∀ x → ∃ λ a → h a ≡ x
  open Epimorphism {{...}} public
 
- record Isomorphism : Type (al ⊔ bl)
+ record Isomorphism : Type(aℓ ⊔ bℓ)
   where field
    {{iso-mono}} : Monomorphism
    {{iso-epi}} : Epimorphism
  open Isomorphism {{...}} public
 
 -- https://en.wikipedia.org/wiki/Image_(mathematics)
-image : {A : Type al}{B : Type bl} → (A → B) → B → Type (al ⊔ bl)
+image : {A : Type aℓ}{B : Type bℓ} → (A → B) → B → Type(aℓ ⊔ bℓ)
 image f b = ∃ λ a → f a ≡ b
 
 -- preimage
-_⁻¹[_] : (f : A → B) → (B → Type l) → (A → Type l)
+_⁻¹[_] : (f : A → B) → (B → Type ℓ) → (A → Type ℓ)
 f ⁻¹[ g ] = g ∘ f
 
 -- https://en.wikipedia.org/wiki/Fiber_(mathematics)
-fiber : {B : Type bl} → (A → B) → B → A → Type bl
+fiber : {B : Type bℓ} → (A → B) → B → A → Type bℓ
 fiber f y = λ x → f x ≡ y
 
-embedding : {A : Type al}{B : Type bl} → (A → B) → Type(al ⊔ bl)
-embedding f = ∀ y → isProp (Σ(fiber f y))
+embedding : {A : Type aℓ}{B : Type bℓ} → (A → B) → Type(aℓ ⊔ bℓ)
+embedding f = ∀ y → isProp $ Σ(fiber f y)
 
 -- codomain restriction to make it surjective
 corestrict : (f : A → B) → A → Σ (image f)
-corestrict f a = (f a) , η (a , refl)
+corestrict f a = f a , η (a , refl)
 
 corestrictSurj : (f : A → B) → surjective (corestrict f)
-corestrictSurj f (b , H) = H >>= λ (a , G) → η (a , ΣPathPProp (λ x → squash₁) G)
+corestrictSurj f (b , H) = H >>= λ (a , G) → η $ a , ΣPathPProp (λ x → squash₁) G
 
 module _{_∙_ : A → A → A}
         {_*_ : B → B → B}
