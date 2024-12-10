@@ -270,7 +270,7 @@ module _{A : Type aℓ}{_∙_ : A → A → A}{{G : group _∙_}} where
  -- Normalizing any subset of a group is a subgroup
  normalizerSG : {N : A → Type ℓ} → Subgroup (normalizer _∙_ N)
  normalizerSG {N} = record { inv-closed = λ{x} x∈norm →
-     let f = funRed x∈norm in funExt λ y → propExt squash₁ squash₁ (_>>= λ (p , p∈N , H) →
+     let f = funExt⁻ x∈norm in funExt λ y → propExt squash₁ squash₁ (_>>= λ (p , p∈N , H) →
         transport (sym(f (p ∙ x))) (η (p , p∈N , refl)) >>= λ (q , q∈N , G) →
        η $ q , q∈N ,
        H ⋆ grp.cancel x (
@@ -804,7 +804,7 @@ module _ {A : Type aℓ}
   fundamentalTheoremOnHomomorphisms N⊆Ker[f] = ϕ ,
       (record { preserve = elimProp2 (λ a b → IsSet (ϕ (⋆[ _∙_ / N ] a b)) (ϕ a * ϕ b))
            λ a b → preserve a b } , refl) , λ y (P , Q) → funExt $ elimProp (λ x → IsSet (ϕ x) (y x))
-                                                                             λ x → funRed Q x
+                                                                             λ x → funExt⁻ Q x
    where
     ϕ : _∙_ G/ N → B
     ϕ = rec/ IsSet

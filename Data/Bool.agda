@@ -178,7 +178,7 @@ open import Data.Natural
        surj g |>
       λ((n , H) : Σ λ n → f n ≡ g) → 
    let G : f n n ≡ not (f n n)
-       G = funRed H n in
+       G = funExt⁻ H n in
    B≢notB (f n n) G
 
 ℕ→𝔹¬≅ℕ : ¬((ℕ → 𝔹) ≅ ℕ)

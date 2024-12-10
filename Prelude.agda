@@ -253,7 +253,6 @@ leftInverse {A}{B} f = Σ λ (g : B → A) → (x : A) → g (f x) ≡ x
 lInvToInjective : {f : A → B} → leftInverse f → injective f
 lInvToInjective (g , g') x y p = sym (g' x) ⋆ (cong g p) ⋆ (g' y)
   
-
 -- Propositional Extensionality
 propExt : isProp A → isProp B → (A → B) → (B → A) → A ≡ B
 propExt pA pB ab ba = isoToPath (iso ab ba (λ b → pB (ab (ba b)) b) λ a → pA (ba (ab a)) a)
@@ -261,10 +260,6 @@ propExt pA pB ab ba = isoToPath (iso ab ba (λ b → pB (ab (ba b)) b) λ a → 
 
 propTruncExt : (A → B) → (B → A) → ∥ A ∥₁ ≡ ∥ B ∥₁
 propTruncExt ab ba = propExt squash₁ squash₁ (map ab) (map ba)
-
--- Function reduction - The converse of function extensionality
-funRed : {f g : A → B} → f ≡ g → (x : A) → f x ≡ g x
-funRed p x i = p i x
 
 record Commutative {A : Type ℓ}{B : Type ℓ'}(_∙_ : A → A → B) : Type(ℓ ⊔ ℓ') where
   field
@@ -323,7 +318,7 @@ rem₁ : {P Q : A → Type ℓ} → isProp $ (λ x → ∥ P x ∥₁) ≡ λ x 
 rem₁ {A} {P} {Q} = isOfHLevelRetractFromIso {B = ∀ x → ∥ P x ∥₁ ≡ ∥ Q x ∥₁}
  (suc zero)
  (iso (λ x y →
-   let f = funRed x in f y) (λ f → funExt λ x → f x) (λ b → funExt λ x → refl)
+   let f = funExt⁻ x in f y) (λ f → funExt λ x → f x) (λ b → funExt λ x → refl)
    λ f → refl)
  (isPropΠ λ x → isOfHLevel≡ (suc zero) squash₁ squash₁)
  where

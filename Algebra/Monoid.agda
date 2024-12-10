@@ -80,8 +80,8 @@ module _{_∙_ : A → A → A} {{M : monoid _∙_}} where
      x → propExt squash₁ squash₁ (map λ(y , y∈N , H) → y , y∈N , H ⋆ lIdentity y ⋆ sym (rIdentity y))
                                  (map λ(y , y∈N , H) → y , y∈N , H ⋆ rIdentity y ⋆ sym (lIdentity y))
      ; op-closed = λ{x}{y} x∈norm y∈norm → funExt λ a →
-         let H = funRed x∈norm in
-         let G = funRed y∈norm in
+         let H = funExt⁻ x∈norm in
+         let G = funExt⁻ y∈norm in
          propExt squash₁  squash₁
     (_>>= λ(b , b∈N , P) →
          let T = transport (G (y ∙ b)) in
@@ -180,7 +180,7 @@ module _{A : Type aℓ}{_∙_ : A → A → A}{{M : monoid _∙_}} where
     -- If (A, _∙_) is a curried monoid, then _∙_ is a monomorphism from (A, _∙_) to ((A → A), _∘_)
     curryMono : Monomorphism _∙_ _∘_ _∙_
     curryMono = record { inject = λ x y H → let G : ∀ a → x ∙ a ≡ y ∙ a
-                                                G = funRed H in
+                                                G = funExt⁻ H in
                                             x     ≡⟨ sym (rIdentity x) ⟩
                                             x ∙ e ≡⟨ G e ⟩
                                             y ∙ e ≡⟨ rIdentity y ⟩

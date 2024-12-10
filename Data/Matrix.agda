@@ -406,7 +406,7 @@ module _{C : Type cℓ} {{R : Ring C}} where
  I x y = I∞ (fst x) (fst y)
  
  idTranspose : I {n = n} ≡ I ᵀ
- idTranspose = funExt λ{(x , _) → funExt λ{(y , _) → funRed (funRed I∞Transpose x) y}}
+ idTranspose = funExt λ{(x , _) → funExt λ{(y , _) → funExt⁻ (funExt⁻ I∞Transpose x) y}}
  
  -- Matrix transformation has no effect with the identity matrix
  MT-ID : (v : ℕ< n → C) → MT I v ≡ v
