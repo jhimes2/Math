@@ -3,6 +3,7 @@
 module Algebra.Ring where
 
 open import Prelude
+open import Predicate
 open import Algebra.Group public
 open import Cubical.HITs.SetQuotients renaming (rec to rec/)
 
@@ -148,7 +149,7 @@ module _{A : Type l}{{R : Ring A}} where
  record Ideal(I : A → Type l') : Type (l ⊔ l') where
   field
    {{subgrpIdeal}} : Subgroup I
-   *-in : (r x : A) → I x → I (r * x)
+   *-in : (r x : A) → x ∈ I → r * x ∈ I
  open Ideal {{...}} public
 
  -1*x≡-x : (x : A) → neg 1r * x ≡ neg x
@@ -208,4 +209,4 @@ _R/_ : {A : Type al}
       → {{ring : Ring A}}
       → (I : A → Type l) → {{SG : Ideal I}}
       → Type (al ⊔ l)
-_R/_ {A} I = A / λ x y → I (x - y)
+_R/_ {A} I = A / λ x y → x - y ∈ I
