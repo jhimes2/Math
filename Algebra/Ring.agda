@@ -1,9 +1,10 @@
-{-# OPTIONS --cubical --safe --backtracking-instance-search #-}
+{-# OPTIONS --cubical --safe --hidden-argument-pun --backtracking-instance-search #-}
 
 module Algebra.Ring where
 
 open import Prelude
 open import Algebra.Group public
+open import Cubical.HITs.SetQuotients renaming (rec to rec/)
 
 -- https://en.wikipedia.org/wiki/Ring_(mathematics)
 record Ring (A : Type l) : Type l where
@@ -202,3 +203,9 @@ record RingHomomorphism{A : Type al}{B : Type bl}
   {{homo+}} : Homomorphism _+_ _+_ h
   {{homo*}} : Homomorphism _*_ _*_ h
   {{1to1}} :  h 1r ≡ 1r
+
+_R/_ : {A : Type al}
+      → {{ring : Ring A}}
+      → (I : A → Type l) → {{SG : Ideal I}}
+      → Type (al ⊔ l)
+_R/_ {A} I = A / λ x y → I (x - y)
