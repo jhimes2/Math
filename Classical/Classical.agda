@@ -177,47 +177,47 @@ substP : (x : A) → {P Q : A → Type ℓ} → P ≡ Q → Q x → P x
 substP x P≡Q y = transport (λ i → P≡Q (~ i) x) y
 
 -- https://en.wikipedia.org/wiki/Functor_(functional_programming)
-record Functor {ρ : Level → Level}(F : ∀{ℓ} → Type ℓ → Type (ρ ℓ)) : Typeω  where
+record functor {ρ : Level → Level}(F : ∀{ℓ} → Type ℓ → Type (ρ ℓ)) : Typeω  where
   field
     map : (A → B) → F A → F B
     compPreserve : (f : B → C) → (g : A → B) → map (f ∘ g) ≡ (map f ∘ map g)
     idPreserve : map {A = A} id ≡ id
-open Functor {{...}} public
+open functor {{...}} public
 
 -- https://en.wikipedia.org/wiki/Monad_(functional_programming)
-record Monad {ρ : Level → Level}(m : ∀{ℓ} → Type ℓ → Type (ρ ℓ)) : Typeω where
+record monad {ρ : Level → Level}(m : ∀{ℓ} → Type ℓ → Type (ρ ℓ)) : Typeω where
   field
-      {{mApp}} : Functor m
+      {{mApp}} : functor m
       μ : m (m A) → m A -- join
       η  : A → m A      -- return
       monadLemma1 : {A : Type aℓ} → μ ∘ μ ≡ λ(a : m(m(m A))) → μ (map μ a)
       monadLemma2 : μ ∘ η ≡ λ(a : m A) → a
       monadLemma3 : {A : Type aℓ} → μ ∘ map η ≡ λ(a : m A) → a
-open Monad {{...}} public
+open monad {{...}} public
 
 -- Natural Transformation
 record NatTrans {ρ : Level → Level}
                 {F G : ∀{ℓ} → Type ℓ → Type (ρ ℓ)}
                 (component : {X : Type ℓ} → F X → G X) : Typeω where
  field
-   overlap {{F'}} : Functor F
-   overlap {{G'}} : Functor G
+   overlap {{F'}} : functor F
+   overlap {{G'}} : functor G
    componentAx : {A B : Type ℓ}
                → (f : A → B) → component ∘ map f ≡ map f ∘ component
 open NatTrans {{...}} public
 
 natTransId : {F : ∀{ℓ} → Type ℓ → Type ℓ'}
-           → {{Functor F}}
+           → {{functor F}}
            → NatTrans λ{X : Type ℓ} (p : F X) → p
 natTransId = record { componentAx = λ f → funExt λ x → refl }
 
 -- bind
-_>>=_ : {ρ : Level → Level}{m : ∀{ℓ} → Type ℓ → Type (ρ ℓ)} → {{Monad m}}
+_>>=_ : {ρ : Level → Level}{m : ∀{ℓ} → Type ℓ → Type (ρ ℓ)} → {{monad m}}
       → m A → (A → m B) → m B
 _>>=_ {m} mA p = μ (map p mA)
 
 -- apply
-_<*>_ : {ρ : Level → Level}{m : ∀{ℓ} → Type ℓ → Type (ρ ℓ)} → {{Monad m}}
+_<*>_ : {ρ : Level → Level}{m : ∀{ℓ} → Type ℓ → Type (ρ ℓ)} → {{monad m}}
       → m (A → B) → m A → m B
 _<*>_ {m} mf mA = mf >>= λ f → map f mA
 
@@ -225,15 +225,15 @@ _<*>_ {m} mf mA = mf >>= λ f → map f mA
 ∥map∥ f X = X >> λ a → intro (f a)
 
 instance
- ∥Functor∥ : Functor ∥_∥
- ∥Functor∥ = record { map = ∥map∥
+ ∥functor∥ : functor ∥_∥
+ ∥functor∥ = record { map = ∥map∥
                     ; compPreserve = λ f g → funExt λ x → squash (∥map∥ (f ∘ g) x)
                                                                  ((∥map∥ f ∘ ∥map∥ g) x)
                     ; idPreserve = squash (∥map∥ id) id
                     }
 
- ∥Monad∥ : Monad ∥_∥
- ∥Monad∥ = record
+ ∥monad∥ : monad ∥_∥
+ ∥monad∥ = record
             { μ = _>> id
             ; η = intro
             ; monadLemma1 = funExt λ x → squash (((_>> id) ∘ (_>> id)) x) (map (_>> id) x >> id)
@@ -241,8 +241,8 @@ instance
             ; monadLemma3 = funExt λ x → squash (((_>> id) ∘ map intro) x) x
             }
 
- ℙFunctor : Functor {ρ = λ l → l ⊔ lsuc lzero} ℙ
- ℙFunctor =  record {
+ ℙfunctor : functor {ρ = λ l → l ⊔ lsuc lzero} ℙ
+ ℙfunctor =  record {
     map = λ f X b → ∃ λ a →
       a ∈ X × (b ≡ f a)
    ; compPreserve = λ f g → funExt λ X
@@ -252,8 +252,8 @@ instance
    ; idPreserve = funExt λ X → funExt λ b → propExt (_>> λ(x , x∈X , b≡x) → subst X (sym b≡x) x∈X)
          λ b∈X → η (b , b∈X , refl) }
 
- ℙMonad : Monad {ρ = λ l → l ⊔ lsuc lzero} ℙ
- ℙMonad = record
+ ℙmonad : monad {ρ = λ l → l ⊔ lsuc lzero} ℙ
+ ℙmonad = record
            { μ = ⋃ 
            ; η = λ a x → ∥ x ≡ a ∥
            ; monadLemma1 = funExt λ X → funExt λ x → propExt
@@ -560,28 +560,28 @@ a ∴ _ [ f ] = f a
 infixr 1 _∴_[_]
 
 -- Contravariant functor
-record Functor2 {ρ : Level → Level}(F : ∀{ℓ} → Type ℓ → Type (ρ ℓ)) : Typeω  where
+record functor2 {ρ : Level → Level}(F : ∀{ℓ} → Type ℓ → Type (ρ ℓ)) : Typeω  where
   field
     map2 : (A → B) → F B → F A
     compPreserve2 : (f : B → C) → (g : A → B) → map2 (f ∘ g) ≡ (map2 g ∘ map2 f)
     idPreserve2 : map2 {A = A} id ≡ id
-open Functor2 {{...}} public
+open functor2 {{...}} public
 
 -- Natural transformation between two contravariant functors
 record NatTrans2 {ρ : Level → Level}
                 {F G : ∀{ℓ} → Type ℓ → Type (ρ ℓ)}
                 (component : {X : Type ℓ} → F X → G X) : Typeω where
  field
-   overlap {{F'2}} : Functor2 F
-   overlap {{G'2}} : Functor2 G
+   overlap {{F'2}} : functor2 F
+   overlap {{G'2}} : functor2 G
    componentAx2 : {A B : Type ℓ}
                 → (f : A → B) → component ∘ map2 f ≡ map2 f ∘ component
 open NatTrans2 {{...}} public
 
 -- Double covariant functor is covariant
 covarComp : {ρ : Level → Level}{F : ∀{ℓ} → Type ℓ → Type (ρ ℓ)}
-          → {{FF : Functor F}}
-          → Functor (F ∘ F)
+          → {{FF : functor F}}
+          → functor (F ∘ F)
 covarComp = record
   { map = λ f → (map ∘ map) f
   ; compPreserve = λ f g →
@@ -599,8 +599,8 @@ covarComp = record
 -- Double contravariant functor is covariant
 contraComp : {ρ : Level → Level}
            → {F : ∀{ℓ} → Type ℓ → Type (ρ ℓ)}
-           → {{Functor2 F}}
-           → Functor (F ∘ F)
+           → {{functor2 F}}
+           → functor (F ∘ F)
 contraComp = record
            { map = map2 ∘ map2
            ; compPreserve = λ f g →
@@ -617,7 +617,7 @@ contraComp = record
 
 instance
  -- Contravariant powerset functor
- ℙFun2 : Functor2 ℙ
+ ℙFun2 : functor2 ℙ
  ℙFun2 = record
   { map2 = λ f X a → f a ∈ X
   ; compPreserve2 = λ f g → refl
@@ -638,7 +638,7 @@ NT⊆' = record
  }
 
 -- Contravariant double powerset functor
-ℙℙContra : Functor2 (ℙ ∘ ℙ)
+ℙℙContra : functor2 (ℙ ∘ ℙ)
 ℙℙContra = record
  { map2 = λ f a b → map f b ∈ a
  ; compPreserve2 = λ f g → funExt λ x

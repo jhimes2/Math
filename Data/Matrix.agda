@@ -80,13 +80,13 @@ Matrix : Type ℓ → ℕ → ℕ → Type ℓ
 Matrix A n m = < < A ^ n > ^ m >
 
 instance
-  FunctionFunctor : Functor λ{ℓ}(A : Type ℓ) → B → A
-  FunctionFunctor = record { map = λ f v x → f (v x)
+  Functionfunctor : functor λ{ℓ}(A : Type ℓ) → B → A
+  Functionfunctor = record { map = λ f v x → f (v x)
                            ; compPreserve = λ f g → funExt λ x → refl
                            ; idPreserve = funExt λ x → refl
                            }
-  FunctionMonad : Monad λ{ℓ}(A : Type ℓ) → B → A
-  FunctionMonad = record { μ = λ f a → f a a
+  Functionmonad : monad λ{ℓ}(A : Type ℓ) → B → A
+  Functionmonad = record { μ = λ f a → f a a
                          ; η = λ x _ → x
                          ; monadLemma1 = funExt λ x → funExt λ y → refl
                          ; monadLemma2 = funExt λ x → funExt λ y → refl 

@@ -122,58 +122,58 @@ DeMorgan3 : ¬(A ＋ B) → (¬ A) × (¬ B)
 DeMorgan3 z = (λ x → z (inl x)) , λ x → z (inr x)
 
 -- https://en.wikipedia.org/wiki/Functor_(functional_programmingj)
-record Functor {ρ : Level → Level} (F : ∀{ℓ} → Type ℓ → Type (ρ ℓ)) : Typeω  where
+record functor {ρ : Level → Level} (F : ∀{ℓ} → Type ℓ → Type (ρ ℓ)) : Typeω  where
   field
     map : (A → B) → F A → F B
     compPreserve : (f : B → C) → (g : A → B) → map (f ∘ g) ≡ (map f ∘ map g)
     idPreserve : map {A = A} id ≡ id
-open Functor {{...}} public
+open functor {{...}} public
 
 -- https://en.wikipedia.org/wiki/Monad_(functional_programming)
-record Monad {ρ : Level → Level} (m : ∀{ℓ} → Type ℓ → Type (ρ ℓ)) : Typeω where
+record monad {ρ : Level → Level} (m : ∀{ℓ} → Type ℓ → Type (ρ ℓ)) : Typeω where
   field
-      {{mApp}} : Functor m
+      {{mApp}} : functor m
       μ : m (m A) → m A -- join
       η  : A → m A      -- return
       monadLemma1 : {A : Type aℓ} → μ ∘ μ ≡ μ ∘ map {A = m(m A)} μ
       monadLemma2 : μ ∘ η ≡ λ(a : m A) → a
       monadLemma3 : {A : Type aℓ} → μ ∘ map η ≡ λ(a : m A) → a
 
-open Monad {{...}} public
+open monad {{...}} public
 
 -- bind
-_>>=_ : {ρ : Level → Level} → {m : ∀{ℓ} → Type ℓ → Type (ρ ℓ)} → {{Monad m}}
+_>>=_ : {ρ : Level → Level} → {m : ∀{ℓ} → Type ℓ → Type (ρ ℓ)} → {{monad m}}
       → m A → (A → m B) → m B
 _>>=_ {m} mA p = μ (map p mA)
 
 -- apply
-_<*>_ : {ρ : Level → Level} → {m : ∀{ℓ} → Type ℓ → Type (ρ ℓ)} → {{Monad m}}
+_<*>_ : {ρ : Level → Level} → {m : ∀{ℓ} → Type ℓ → Type (ρ ℓ)} → {{monad m}}
       → m (A → B) → m A → m B
 _<*>_ {m} mf mA = mf >>= λ f → map f mA
 
 instance
   -- Double-negation is a functor and monad
-  dnFunctor : Functor λ x → ¬ ¬ x
-  dnFunctor = record { map = λ f y z → y (λ a → z (f a))
+  dnfunctor : functor λ x → ¬ ¬ x
+  dnfunctor = record { map = λ f y z → y (λ a → z (f a))
                      ; compPreserve = λ f g → funExt λ x → refl
                      ; idPreserve = funExt λ x → refl
                      }
 
-  dnMonad : Monad λ x → ¬ ¬ x
-  dnMonad = record { μ = λ x y → x (λ z → z y)
+  dnmonad : monad λ x → ¬ ¬ x
+  dnmonad = record { μ = λ x y → x (λ z → z y)
                    ; η = λ x y → y x
                    ; monadLemma1 = funExt λ x → funExt λ y → refl
                    ; monadLemma2 = funExt λ x → funExt λ y → refl 
                    ; monadLemma3 = funExt λ x → funExt λ y → refl 
                    }
-  truncFunctor : Functor ∥_∥₁
-  truncFunctor = record {
+  truncfunctor : functor ∥_∥₁
+  truncfunctor = record {
          map = λ f → truncRec squash₁ λ a → ∣ f a ∣₁
        ; compPreserve = λ f g → funExt λ x → squash₁ (map' (f ∘ g) x) ((map' f ∘ map' g) x)
        ; idPreserve = funExt λ x → squash₁ (truncRec squash₁ (λ a → ∣ id a ∣₁) x) x
        }
-  truncMonad : Monad ∥_∥₁
-  truncMonad = record { μ = transport (propTruncIdempotent squash₁)
+  truncmonad : monad ∥_∥₁
+  truncmonad = record { μ = transport (propTruncIdempotent squash₁)
                       ; η = ∣_∣₁
                       ; monadLemma1 = funExt λ x →
                                  squash₁ (μ' (μ' x)) (μ' (map μ' x))
@@ -187,13 +187,13 @@ instance
        η' a = ∣ a ∣₁
 
 
-  maybeFunctor : Functor Maybe
-  maybeFunctor = record { map = λ f → λ{(Just x) → Just (f x) ; Nothing → Nothing }
+  maybefunctor : functor Maybe
+  maybefunctor = record { map = λ f → λ{(Just x) → Just (f x) ; Nothing → Nothing }
                         ; compPreserve = λ f g → funExt λ{ (Just x) → refl ; Nothing → refl}
                         ; idPreserve = funExt λ{ (Just x) → refl ; Nothing → refl}
                         }
-  maybeMonad : Monad Maybe
-  maybeMonad = record { μ = λ{ (Just (Just x)) → Just x ; _ → Nothing}
+  maybemonad : monad Maybe
+  maybemonad = record { μ = λ{ (Just (Just x)) → Just x ; _ → Nothing}
                       ; η = λ x → Just x
                       ; monadLemma1 =  funExt λ{ (Just (Just (Just x))) → refl
                                                ; (Just (Just Nothing)) → refl
