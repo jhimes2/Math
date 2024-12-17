@@ -55,7 +55,7 @@ module _{scalar : Type ℓ}{member : Type ℓ'}{{R : Ring scalar}}{{V : Module m
     ∴ (0r *> v) <+> (0r *> v) ≡ (0r *> v) <+> Ô           [ id ]
     ∴ 0r *> v ≡ Ô           [ grp.cancel (0r *> v)]
 
-  -- zero member scaled is 0r member
+  -- zero member scaled is zero member
   scaleVZ : (c : scalar) → c *> Ô ≡ Ô
   scaleVZ c =
     (c *> Ô) <+> (c *> Ô) ≡⟨ sym (scalarDistribute c Ô Ô)⟩
@@ -126,8 +126,8 @@ module _{scalar : Type ℓ}{member : Type ℓ'}{{R : Ring scalar}}{{V : Module m
   spanStep2 (spanSet {w} a b i) q c = spanSet (spanStep2 a q c)
                                               (spanStep2 b q c) i
 
-  spanScale2 : {X : member → Type aℓ} → ∀ v → v ∈ Span X → (c : scalar) → c *> v ∈ Span X
-  spanScale2 {X = X} v H c =
+  spanScale : {X : member → Type aℓ} → ∀ v → v ∈ Span X → (c : scalar) → c *> v ∈ Span X
+  spanScale {X = X} v H c =
      transport (λ i → ((c *> v) <+> Ô ≡⟨ rIdentity (c *> v)⟩
                        c *> v ∎) i ∈ Span X)
      (spanStep2 H spanÔ c)
@@ -236,7 +236,7 @@ module _{scalar : Type ℓ}{member : Type ℓ'}{{R : Ring scalar}}{{V : Module m
   spanIsSubmodule =
       record { ssZero = spanÔ
              ; ssAdd = λ {v} {u} x y → spanAdd2 v u x y
-             ; ss*> = λ {v} x c → spanScale2 v x c
+             ; ss*> = λ {v} x c → spanScale v x c
              }
 
   -- https://en.wikipedia.org/wiki/Linear_independence
