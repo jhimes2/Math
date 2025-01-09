@@ -23,10 +23,10 @@ _∉_ :  A → (A → Type ℓ) → Type ℓ
 _∉_ a X = ¬(a ∈ X)
 infixr 5 _∉_
 
--- We define a property as a function that maps elements to propositions.
+-- We define a property as a family of propositions
 record Property {A : Type aℓ} (P : A → Type ℓ) : Type(aℓ ⊔ ℓ) where
  field
-  setProp : ∀ x → isProp (x ∈ P)
+  propFamily : ∀ x → isProp (x ∈ P)
 open Property {{...}} public
 
 record SetFamily {A : Type aℓ} (M : A → Type ℓ) : Type(aℓ ⊔ ℓ) where
@@ -77,18 +77,18 @@ instance
  ΣSet = record { IsSet = isSetΣ IsSet λ x → setFamily x }
 
  propertyIsMultipredicate : {X : A → Type ℓ} → {{Property X}} → SetFamily X
- propertyIsMultipredicate = record { setFamily = λ x → isProp→isSet (setProp x) }
+ propertyIsMultipredicate = record { setFamily = λ x → isProp→isSet (propFamily x) }
 
  fullProp : Property $ 𝓤 {A = A} {ℓ}
- fullProp = record { setProp = λ x tt tt → refl }
+ fullProp = record { propFamily = λ x tt tt → refl }
 
  centralizerProperty : {{_ : is-set A}} → {_∙_ : A → A → A}
                      → {H : A → Type ℓ} → Property (centralizer _∙_ H)
  centralizerProperty {_∙_} =
-     record { setProp = λ x → isPropΠ λ y → isProp→ (IsSet (x ∙ y) (y ∙ x)) }
+     record { propFamily = λ x → isPropΠ λ y → isProp→ (IsSet (x ∙ y) (y ∙ x)) }
 
  imageProp : {f : A → B} → Property (image f)
- imageProp = record { setProp = λ x → squash₁ }
+ imageProp = record { propFamily = λ x → squash₁ }
 
 data Support{A : Type aℓ}(X : A → Type ℓ) : A → Type(aℓ ⊔ ℓ) where
   supportIntro : ∀ x → x ∈ X → x ∈ Support X 
@@ -100,11 +100,10 @@ supportRec {X} BProp x f (supportProp .x z y i) = BProp (supportRec BProp x f z)
                                                         (supportRec BProp x f y) i
 
 instance
- -- The support of a multitype 'X' is an underlying property
+ -- The support of a type family 'X' is an underlying property
  supportProperty : {X : A → Type ℓ} → Property (Support X)
- supportProperty = record { setProp = λ x → supportProp x }
+ supportProperty = record { propFamily = λ x → supportProp x }
 
--- Multitype union
 _⊎_ : (A → Type ℓ) → (A → Type ℓ') → A → Type(ℓ ⊔ ℓ')
 X ⊎ Y = λ x → (x ∈ X) ＋ (x ∈ Y)
 infix 6 _⊎_
@@ -131,42 +130,34 @@ open inclusion {{...}} public
 
 instance
  sub1 : {A : Type aℓ} → inclusion (A → Type ℓ)(A → Type ℓ') (aℓ ⊔ ℓ ⊔ ℓ')
- sub1 = record { _⊆_ = λ X Y → ∀ x → x ∈ X → ∥ x ∈ Y ∥₁ }
+ sub1 = record { _⊆_ = λ X Y → ∀ x → x ∈ X → x ∈ Y }
 
- sub2 : {A : Type aℓ}{_≤_ : A → A → Type ℓ}{{_ : Preorder _≤_}}{P : A → Type bℓ}
+ sub2 : {A : Type aℓ}{_≤_ : A → A → Type ℓ}{{_ : Category _≤_}}{P : A → Type bℓ}
       → inclusion (Σ P) (Σ P) ℓ
  sub2 {_≤_ = _≤_} = record { _⊆_ = λ X Y → fst X ≤ fst Y }
 
  ∩Prop : {X : A → Type aℓ} → {{_ : Property X}}
        → {Y : A → Type bℓ} → {{_ : Property Y}}
        → Property (X ∩ Y)
- ∩Prop = record { setProp = λ x → isProp× (setProp x) (setProp x) }
+ ∩Prop = record { propFamily = λ x → isProp× (propFamily x) (propFamily x) }
 
- inclusionPre : {A : Type aℓ} → Preorder (λ(X Y : A → Type ℓ) → X ⊆ Y)
- inclusionPre = record
-   { transitive = λ{a b c} f g x z → f x z >>= λ p →
-                                     g x p >>= λ q → η q
-   ; reflexive = λ _ x z → η z
-   ; isRelation = λ a b x y → funExt λ z → funExt λ w → squash₁ (x z w) (y z w)
+ inclusionCat : {A : Type aℓ} → Category (λ(X Y : A → Type ℓ) → X ⊆ Y)
+ inclusionCat = record
+   { transitive = λ{a b c} f g x z → g x (f x z)
+   ; reflexive = λ _ x z → z
    }
 
- inclusionPre2 : {P : A → Type aℓ} → {_≤_ : A → A → Type ℓ} → {{_ : Preorder _≤_}}
-               → Preorder (λ(X Y : Σ P) → fst X ≤ fst Y)
- inclusionPre2 {_≤_ = _≤_} = record
+ inclusionCat2 : {P : A → Type aℓ} → {_≤_ : A → A → Type ℓ} → {{_ : Category _≤_}}
+               → Category (λ(X Y : Σ P) → fst X ≤ fst Y)
+ inclusionCat2 {_≤_ = _≤_} = record
    { transitive = λ{a b c} p q → transitive {a = fst a} p q
    ; reflexive = λ a → reflexive (fst a)
-   ; isRelation = λ a b → isRelation (fst a) (fst b)
    }
 
- inclusionPos2 : {P : A → Type aℓ}
-               → {_≤_ : A → A → Type ℓ} → {{_ : Poset _≤_}}
-               → Poset (λ(X Y : Σ λ x → ¬(¬(P x))) → fst X ≤ fst Y)
- inclusionPos2 {_≤_ = _≤_} = record
-   { antiSymmetric = λ {a b} x y → let H = antiSymmetric {a = fst a} {b = fst b} x y
-      in ΣPathPProp (λ p q r → funExt (λ s → r s |> UNREACHABLE)) (antiSymmetric {a = fst a} x y)
-   }
-  where
-   open import Cubical.Foundations.HLevels
+ inclusionPre : {P : A → Type aℓ} → {_≤_ : A → A → Type ℓ} → {{_ : Preorder _≤_}}
+               → Preorder (λ(X Y : Σ P) → fst X ≤ fst Y)
+ inclusionPre {_≤_ = _≤_} = record
+   { isRelation = λ (a , _) (b , _) → isRelation a b }
 
 ∩Complement : (X : A → Type ℓ) → X ∩ X ᶜ ≡ ∅
 ∩Complement X = funExt λ x → isoToPath (iso (λ(a , b) → b a |> UNREACHABLE)

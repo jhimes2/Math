@@ -180,7 +180,7 @@ module grp {A : Type aℓ}{_∙_ : A → A → A}{{G : group _∙_}} where
 
   instance
    *Set : {S : A → Type ℓ} → {T : A → Type ℓ'} → Property (* S T)
-   *Set {S}{T} = record { setProp = λ x → squash₁ }
+   *Set {S}{T} = record { propFamily = λ x → squash₁ }
 
 
 module _{A : Type aℓ}{_∙_ : A → A → A}{{G : group _∙_}} where
@@ -441,14 +441,14 @@ module _{A : Type aℓ}{_∙_ : A → A → A}{{G : group _∙_}} where
 
   instance
    ⪀assoc : Semigroup _⪀_
-   ⪀assoc = record { assoc = λ (a , a') (b , b') (c , c') → ΣPathPProp setProp (assoc a b c) }
+   ⪀assoc = record { assoc = λ (a , a') (b , b') (c , c') → ΣPathPProp propFamily (assoc a b c) }
  
    -- Group structure of a subgroup
    subgrpStr : group _⪀_
    subgrpStr = record
        { e = e , IdClosed
-       ; inverse = λ(a , a') → (inv a , inv-closed a') , ΣPathPProp setProp (lInverse a)
-       ; lIdentity = λ(a , a') → ΣPathPProp setProp (lIdentity a)
+       ; inverse = λ(a , a') → (inv a , inv-closed a') , ΣPathPProp propFamily (lInverse a)
+       ; lIdentity = λ(a , a') → ΣPathPProp propFamily (lIdentity a)
        ; IsSetGrp = ΣSet
        }
          
@@ -479,7 +479,7 @@ module _{A : Type aℓ}{_∙_ : A → A → A}{{G : group _∙_}} where
   generatingOverload = record { ⟨_⟩ = generating }
 
   generatingProperty : {X : A → Type ℓ} → Property (generating X)
-  generatingProperty = record { setProp = gen-set }
+  generatingProperty = record { propFamily = gen-set }
 
   -- https://en.wikipedia.org/wiki/Cyclic_group
   cyclicOverload : Generating A aℓ
@@ -719,7 +719,7 @@ module _ {A : Type aℓ}
  idClosed = Submonoid.id-closed (Subgroup.SGSM (NormalSG.NisSG SG))
  opClosed = Submonoid.op-closed (Subgroup.SGSM (NormalSG.NisSG SG))
  invClosed = Subgroup.inv-closed (NormalSG.NisSG SG)
- SetProp = Property.setProp (Submonoid.submonoid-set (Subgroup.SGSM (NormalSG.NisSG SG)))
+ SetProp = Property.propFamily (Submonoid.submonoid-set (Subgroup.SGSM (NormalSG.NisSG SG)))
 
  instance
   qGrpIsSet : is-set (_∙_ G/ N )
@@ -819,4 +819,4 @@ module _ {A : Type aℓ}
                                         (f (a ∙ inv b)) * f b   ≡⟨ left _*_ Q ⟩
                                         e * f b                 ≡⟨ lIdentity (f b)⟩
                                         f b ∎)
-                                 (N⊆Ker[f] (a ∙ inv b) P)
+                                 (η $ N⊆Ker[f] (a ∙ inv b) P)

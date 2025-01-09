@@ -189,10 +189,10 @@ module divides where
          c * b ∎)) a∣b
 
 instance
-  dividesNZPreorder : Preorder _∣_
-  dividesNZPreorder = record { transitive = λ{a b c} → trans a b c
-                           ; reflexive = λ a → η $ (S Z , rIdentity a)
-                           ; isRelation = λ a b → squash₁ }
+  dividesNZCategory : Category _∣_
+  dividesNZCategory = record { transitive = λ{a b c} → trans a b c
+                             ; reflexive = λ a → η $ (S Z , rIdentity a)
+                             }
    where
     trans : (a b c : ℕ) → a ∣ b → b ∣ c → a ∣ c
     trans a b c x y =
@@ -204,6 +204,8 @@ instance
           y * b          ≡⟨ q ⟩
           c ∎)
 
+  dividesPreorder : Preorder _∣_
+  dividesPreorder = record { isRelation = λ a b → squash₁ }
   dividesPoset : Poset _∣_
   dividesPoset = record { antiSymmetric = λ{a b} → antisymmetric a b }
    where

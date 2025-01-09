@@ -85,7 +85,7 @@ module _{scalar : Type ℓ}{member : Type ℓ'}{{R : Ring scalar}}{{V : Module m
                  c *> (neg 1r *> v) ≡⟨ right _*>_ (scaleNegOneInv v)⟩
                  c *> -< v > ∎
 
-  -- https://en.wikipedia.org/wiki/Linear_span
+  -- https://en.wikipedia.org/wiki/Generating_set_of_a_module
   data Span (X : member → Type aℓ) : member → Type (ℓ ⊔ ℓ' ⊔ aℓ) where
     spanÔ : Ô ∈ Span X
     spanStep : ∀{u v} → u ∈ X → v ∈ Span X → (c : scalar) → (c *> u) <+> v ∈ Span X
@@ -93,7 +93,7 @@ module _{scalar : Type ℓ}{member : Type ℓ'}{{R : Ring scalar}}{{V : Module m
 
   instance
     spanIsSet : {X : member → Type aℓ} → Property (Span X)
-    spanIsSet = record { setProp = λ x y z → spanSet y z }
+    spanIsSet = record { propFamily = λ x y z → spanSet y z }
 
   spanIntro : {X : member → Type aℓ} → ∀ v → v ∈ X → v ∈ Span X
   spanIntro {X = X} v v∈X =
@@ -161,16 +161,15 @@ module _{scalar : Type ℓ}{member : Type ℓ'}{{R : Ring scalar}}{{V : Module m
      aux2 v (spanSet x y i) = spanSet (aux2 v x) (aux2 v y) i
 
   span⊆preserve : ∀ {X Y : member → Type aℓ} → X ⊆ Y → Span X ⊆ Span Y
-  span⊆preserve {X = X} {Y} p _ spanÔ = η spanÔ
-  span⊆preserve {X = X} {Y} p _ (spanStep {u} {v} x y c) =
-     span⊆preserve p v y >>= λ H →
-       truncRec squash₁ (λ G →
-      η $ spanAdd2 (c *> u) v (span*> u G c) H) (p u x)
-  span⊆preserve {X = X} {Y} p v (spanSet x y i) = squash₁ (span⊆preserve p v x)
-                                                          (span⊆preserve p v y) i
+  span⊆preserve p _ spanÔ = spanÔ
+  span⊆preserve p _ (spanStep {u} {v} u∈X v∈SpanX c) =
+                let v∈SpanY = span⊆preserve p v v∈SpanX
+                in spanAdd2 (c *> u) v (span*> u (p u u∈X) c) v∈SpanY
+  span⊆preserve p v (spanSet x y i) = spanSet (span⊆preserve p v x)
+                                              (span⊆preserve p v y) i
 
   ⊆span : (X : member → Type aℓ) → X ⊆ Span X
-  ⊆span X x P = η (spanIntro x P)
+  ⊆span X x P = spanIntro x P
 
   SpanX-Ô→SpanX : {X : member → Type aℓ} → ∀ v → v ∈ Span (λ x → (x ∈ X) × (x ≢ Ô)) → v ∈ Span X
   SpanX-Ô→SpanX _ spanÔ = spanÔ
@@ -187,29 +186,26 @@ module _{scalar : Type ℓ}{member : Type ℓ'}{{R : Ring scalar}}{{V : Module m
 
   SS2ToSS : (X : member → Type aℓ)
           → {{SS : Submodule X}} → Span X ⊆ X
-  SS2ToSS X _ spanÔ = η $ ssZero
-  SS2ToSS X _ (spanStep {u}{w} p q c) =
-    truncRec squash₁ (λ O →
-    let H1 = ss*> p c in
-    let H2 = ssAdd H1 O in η $ H2) (SS2ToSS X w q)
-  SS2ToSS X x (spanSet p q i) =
+  SS2ToSS X _ spanÔ = ssZero
+  SS2ToSS X _ (spanStep {u}{w} u∈X w∈SpanX c) =
+
+    let H1 = ss*> u∈X c in
+    let w∈X = SS2ToSS X w w∈SpanX in
+    let H2 = ssAdd H1 w∈X in
+        H2
+  SS2ToSS X {{SS}} x (spanSet p q i) =
     let R1 = SS2ToSS X x p in
     let R2 = SS2ToSS X x q in
-     squash₁ R1 R2 i
+     SS .ssSet .propFamily x R1 R2 i
 
   SSToSS2 : (X : member → Type aℓ) → {{XP : Property X}}
           → Span X ⊆ X → Submodule X
-  SSToSS2 X {{XP}} H = record {
-        ssZero =
-          truncRec (setProp {P = X} Ô) id (H Ô spanÔ)
-      ; ssAdd = λ{v}{u} p q →
-          let H1 : ∥ v <+> u ∈ X ∥₁
-              H1 = H (v <+> u) (spanAdd v u p (spanIntro u q)) in
-          truncRec (setProp {P = X} (v <+> u)) id H1
-      ; ss*> = λ{v} v∈X c →
-          let H1 : ∥ c *> v ∈ X ∥₁
-              H1 = H (c *> v) (span*> v v∈X c) in
-          truncRec (setProp (c *> v)) id H1
+  SSToSS2 X {{XP}} SpanX⊆X = record {
+        ssZero = SpanX⊆X Ô spanÔ
+      ; ssAdd = λ{v}{u} v∈X u∈X → SpanX⊆X (v <+> u)
+                                            (spanAdd v u v∈X (spanIntro u u∈X))
+      ; ss*> = λ{v} v∈X c → SpanX⊆X (c *> v)
+                                     (span*> v v∈X c)
       }
 
   instance
@@ -239,25 +235,27 @@ module _{scalar : Type ℓ}{member : Type ℓ'}{{R : Ring scalar}}{{V : Module m
              ; ss*> = λ {v} x c → spanScale v x c
              }
 
-  -- https://en.wikipedia.org/wiki/Linear_independence
-  record LinearlyIndependent (X : member → Type aℓ) : Type (ℓ ⊔ ℓ' ⊔ lsuc aℓ)
-   where field
-     li : (Y : member → Type aℓ) → Span X ⊆ Span Y → Y ⊆ X → X ⊆ Y
+  -- A generalization of linear independence, using a module instead of a vector space
+  record Independent (X : member → Type aℓ) : Type (ℓ ⊔ ℓ' ⊔ lsuc aℓ) where
+   field
+     -- ∀ Y. Y ⊆ X ⊆ Span Y → X ⊆ Y
+     li : (Y : member → Type aℓ) → Y ⊆ X → X ⊆ Span Y → X ⊆ Y
      {{liProp}} : Property X
-  open LinearlyIndependent {{...}} public
+  open Independent {{...}} public
 
-  -- https://en.wikipedia.org/wiki/Basis_(linear_algebra)
-  -- In this program, a basis is defined as a maximal element of the family of linearly independent sets
-  -- by the order of set inclusion.
-  Basis : Σ (LinearlyIndependent {aℓ = aℓ}) → Type(ℓ ⊔ ℓ' ⊔ lsuc aℓ)
-  Basis X = (Y : Σ LinearlyIndependent) → X ⊆ Y → Y ⊆ X
+  -- A generaliztion of a basis, using a module instead of a vector space
+  record Basis (X : member → Type aℓ) : Type (ℓ ⊔ ℓ' ⊔ lsuc aℓ) where
+   field
+    {{LI}} : Independent X
+    universalSpan : ∀ v → v ∈ Span X
+  open Basis {{...}} public
 
-  completeSpan : (X : member → Type(ℓ ⊔ ℓ')) {{LI : LinearlyIndependent X}} → (∀ v → v ∈ Span X) → Basis (X , LI)
-  completeSpan X {{LI}} f (Z , LI2) = λ (y : X ⊆ Z) x x∈Z →
-       let H = span⊆preserve y in
-       let T = LinearlyIndependent.liProp LI in
-       let G = LinearlyIndependent.li LI2 X λ z → λ F → η $ f z in
-           η $ truncRec (Property.setProp T x) id (G y x x∈Z)
+  completeSpan : (X : member → Type(ℓ ⊔ ℓ')) {{basis : Basis X}}
+               → (Y : Σ Independent) → (X , LI) ⊆ Y → Y ⊆ (X , LI)
+  completeSpan X (Y , YisLI) X⊆Y y y∈Y =
+    let H = span⊆preserve X⊆Y in
+    let G = Independent.li YisLI X X⊆Y in
+     Independent.li YisLI X X⊆Y (λ z z∈Y → universalSpan z) y y∈Y
 
 -- https://en.wikipedia.org/wiki/Module_homomorphism
 record moduleHomomorphism {A : Type ℓ}
@@ -368,7 +366,7 @@ eigenmemberSubmodule T c = record
                    (d * c) *> v  ≡⟨ left _*>_ (comm d c)⟩
                    (c * d) *> v  ≡⟨ sym (scalarAssoc v c d)⟩
                    c *> (d *> v) ∎
-    ; ssSet = record { setProp = λ v → IsSet (T v) (c *> v) }
+    ; ssSet = record { propFamily = λ v → IsSet (T v) (c *> v) }
     }
 
 module _ {A : Type ℓ}  {{CR : CRing A}}

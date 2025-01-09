@@ -107,11 +107,10 @@ private
  le Yes Yes = ⊤
 
 instance
-  boolPreorder : Preorder le
-  boolPreorder = record {
-         transitive = λ{a = a}{b}{c} → auxTrans a b c
-       ; reflexive = λ a → auxRefl a
-       ; isRelation = auxRel }
+  boolCategory : Category le
+  boolCategory = record { transitive = λ{a = a}{b}{c} → auxTrans a b c
+                        ; reflexive = λ a → auxRefl a
+                        }
    where
     auxTrans : (a b c : 𝔹) → le a b → le b c → le a c
     auxTrans Yes Yes c _ z = z
@@ -120,6 +119,10 @@ instance
     auxRefl : (a : 𝔹) → le a a
     auxRefl Yes = tt
     auxRefl No = tt
+
+  boolPreorder : Preorder le
+  boolPreorder = record { isRelation = auxRel }
+   where
     auxRel : (a b : 𝔹) → isProp (le a b)
     auxRel Yes Yes tt tt = refl
     auxRel Yes No = isProp⊥

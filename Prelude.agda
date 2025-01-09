@@ -25,9 +25,6 @@ variable
 id : A → A
 id x = x
 
-id2 : A → A
-id2 x using y ← x = y
-
 _≢_ : {A : Type ℓ} → A → A → Type ℓ
 a ≢ b = ¬(a ≡ b)
 

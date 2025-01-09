@@ -213,16 +213,16 @@ private
  le : ℤ → ℤ → Type
  le a b = fst (le' a b)
 
+ intLeProp : (a b : ℤ) → isProp (le a b)
+ intLeProp = elimProp2 (λ x y → isPropIsProp)
+                            λ a b → isRelation (fst a + snd b) (fst b + snd a)
 instance
  -- Integer ≤ relation is a preorder
- intLePreorder : Preorder le
- intLePreorder = record { transitive = λ {a b c} → intLeTrans a b c
-   ; reflexive = λ a → intLeRefl a
-   ; isRelation = intLeProp }
+ intLeCategory : Category le
+ intLeCategory = record { transitive = λ {a b c} → intLeTrans a b c
+                        ; reflexive = λ a → intLeRefl a
+                        }
    where
-    intLeProp : (a b : ℤ) → isProp (le a b)
-    intLeProp = elimProp2 (λ x y → isPropIsProp)
-                            λ a b → isRelation (fst a + snd b) (fst b + snd a)
     intLeRefl : (a : ℤ) → le a a
     intLeRefl = elimProp (λ x → intLeProp x x) λ a → reflexive (fst a + snd a)
     intLeTrans : (a b c : ℤ) → le a b → le b c → le a c
@@ -237,6 +237,9 @@ instance
            (transport (λ i → a[bc]≡b[ac] a c f i ≤ a[bc]≡b[ac] a e d i) G)
            (transport (λ i → (e + (a + d)) ≤ a[bc]≡b[ac] e c b i) H))
  
+ intLePreorder : Preorder le
+ intLePreorder = record { isRelation = intLeProp }
+
  -- Integer ≤ relation is a poset
  intLePoset : Poset le
  intLePoset = record { antiSymmetric = λ{a b : ℤ} → aux a b }

@@ -84,24 +84,26 @@ module ordered{{ordring : Ring A}}{{OR : OrderedRing ℓ A}} where
   lemma6 {a = a} {b} p = transport (cong₂ _≤_ (grp.doubleInv b) (grp.doubleInv a)) (lemma2 p)
 
   Positive : Type _
-  Positive = Σ λ (x : A) → 0r <  x
+  Positive = Σ λ (x : A) → 0r < x
 
   Negative : Type _
-  Negative = Σ λ (x : A) → 0r <  x
+  Negative = Σ λ (x : A) → 0r < x
 
-instance
-  NZPreorder : {{G : Ring A}} → {{OR : OrderedRing ℓ A}} → Preorder λ ((a , _) (b , _) : nonZero) → a ≤ b
-  NZPreorder {A = A} = record
-                { transitive = transitive {A = A}
-                ; reflexive = λ(a , _) → reflexive a
-                ; isRelation = λ (a , _) (b , _) → isRelation a b }
-  NZPoset : {{G : Ring A}} → {{OR : OrderedRing ℓ A}} → Poset λ ((a , _) (b , _) : nonZero) → a ≤ b
-  NZPoset {A = A} =
-     record { antiSymmetric = λ x y → Σ≡Prop (λ a b p → funExt λ x → b x |> UNREACHABLE)
-                                             (antiSymmetric x y)}
-  NZTotal : {{G : Ring A}} → {{OR : OrderedRing ℓ A}} → TotalOrder ℓ nonZero
-  NZTotal {A = A} = record { _≤_ = λ (a , _) (b , _) → a ≤ b
-                           ; stronglyConnected = λ (a , _) (b , _) → stronglyConnected a b }
+  instance
+    NZCategory : Category λ ((a , _) (b , _) : nonZero) → a ≤ b
+    NZCategory = record { transitive = transitive {A = A}
+                        ; reflexive = λ(a , _) → reflexive a
+                        }
+    NZPreorder : Preorder λ ((a , _) (b , _) : nonZero) → a ≤ b
+    NZPreorder = record { isRelation = λ (a , _) (b , _) → isRelation a b }
+    NZPoset : Poset λ ((a , _) (b , _) : nonZero) → a ≤ b
+    NZPoset = record { antiSymmetric = λ x y → Σ≡Prop (λ a b p → funExt λ x → b x |> UNREACHABLE)
+                                                      (antiSymmetric x y)
+                     }
+    NZTotal : TotalOrder ℓ nonZero
+    NZTotal = record { _≤_ = λ (a , _) (b , _) → a ≤ b
+                     ; stronglyConnected = λ (a , _) (b , _) → stronglyConnected a b
+                     }
 
 module _{{_ : Field A}}{{OF : OrderedRing ℓ A}} where
 

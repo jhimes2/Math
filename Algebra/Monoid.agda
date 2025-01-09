@@ -111,7 +111,7 @@ module _{_∙_ : A → A → A} {{M : monoid _∙_}} where
                             x ∙ (q ∙ y) ≡⟨ right _∙_ T1 ⟩
                             x ∙ (y ∙ r) ≡⟨ assoc x y r ⟩
                            (x ∙ y) ∙ r  ∎ ))
-         ; submonoid-set = record { setProp = λ r → [wts isProp (lCoset _∙_ N r ≡ rCoset _∙_ N r) ] rem₁ }
+         ; submonoid-set = record { propFamily = λ r → [wts isProp (lCoset _∙_ N r ≡ rCoset _∙_ N r) ] rem₁ }
          }
 
 -- Every operator can only be part of at most one monoid
@@ -195,7 +195,7 @@ module _{A : Type aℓ}{_∙_ : A → A → A}
 
   instance
     property : {h : A → B} → {{_ : Homomorphism _∙_ _*_ h}} → Property (Kernel h)
-    property {h} = record { setProp = λ x → IsSet (h x) e }
+    property {h} = record { propFamily = λ x → IsSet (h x) e }
 
 ∘monoid : {{is-set A}} → monoid (_∘_ {A = A})
 ∘monoid = record { e = id ; lIdentity = λ x → refl ; rIdentity = λ x → refl }

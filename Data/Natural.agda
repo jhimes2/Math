@@ -234,11 +234,10 @@ leℕ (S x) (S y) = leℕ x y
 leℕ _ Z = ⊥
 
 instance
-  preorderNat : Preorder leℕ
-  preorderNat = record
+  categoryNat : Category leℕ
+  categoryNat = record
                  { transitive = λ {a b c} → leTrans a b c
                  ; reflexive = λ a → leRefl a
-                 ; isRelation = ≤isProp
                  }
     where
       leTrans : (a b c : ℕ) → leℕ a b → leℕ b c → leℕ a c
@@ -247,10 +246,14 @@ instance
       leRefl : (a : ℕ) → leℕ a a
       leRefl Z = tt
       leRefl (S a) = leRefl a
-      ≤isProp : (a b : ℕ) → isProp (leℕ a b)
-      ≤isProp Z _ = isPropUnit
-      ≤isProp (S a) Z = isProp⊥
-      ≤isProp (S a) (S b) = ≤isProp a b
+
+  preorderNat : Preorder leℕ
+  preorderNat = record { isRelation = ≤isProp }
+   where
+    ≤isProp : (a b : ℕ) → isProp (leℕ a b)
+    ≤isProp Z _ = isPropUnit
+    ≤isProp (S a) Z = isProp⊥
+    ≤isProp (S a) (S b) = ≤isProp a b
 
   posetNat : Poset leℕ
   posetNat = record { antiSymmetric = λ {a b} → leAntiSymmetric a b }
@@ -486,3 +489,13 @@ completeInduction P a base jump n = Aux n n (reflexive n)
             G = transport (λ i → Q i ≤ S l) H in
          transport (λ i → P (Q (~ i))) $ jump r
          $ Aux r l (leAdd r a l G)
+
+ℕ-elim : (P : ℕ → Type ℓ) → P Z → (∀ x → P x → P (S x)) → ∀ x → P x
+ℕ-elim P base step = aux
+ where
+  aux : ∀ x → P x
+  aux Z = base
+  aux (S x) = step x (aux x)
+
+ℕ-rec : A → (ℕ → A → A) → ℕ → A
+ℕ-rec {A = A} = ℕ-elim (λ _ → A)
