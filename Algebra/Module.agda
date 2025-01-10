@@ -48,30 +48,30 @@ module _{scalar : Type ℓ}{member : Type ℓ'}{{R : Ring scalar}}{{V : Module m
   -- Member scaled by 0r is Ô
   scaleZ : (v : member) → 0r *> v ≡ Ô
   scaleZ v =
-    (0r *> v) <+> (0r *> v) ≡⟨ sym (memberDistribute v 0r 0r)⟩
-    (0r + 0r) *> v          ≡⟨ left _*>_ (lIdentity 0r)⟩
-    0r *> v                 ≡⟨ sym (rIdentity (_*>_ 0r v))⟩
-    (0r *> v) <+> Ô ∎
-    ∴ (0r *> v) <+> (0r *> v) ≡ (0r *> v) <+> Ô           [ id ]
-    ∴ 0r *> v ≡ Ô           [ grp.cancel (0r *> v)]
+     (0r *> v) <+> (0r *> v) ≡⟨ sym (memberDistribute v 0r 0r)⟩
+     (0r + 0r) *> v          ≡⟨ left _*>_ (lIdentity 0r)⟩
+     0r *> v                 ≡⟨ sym (rIdentity (_*>_ 0r v))⟩
+     (0r *> v) <+> Ô ∎
+   ∴ (0r *> v) <+> (0r *> v) ≡ (0r *> v) <+> Ô [ id ]
+   ∴ 0r *> v ≡ Ô                               [ grp.cancel (0r *> v)]
 
   -- zero member scaled is zero member
   scaleVZ : (c : scalar) → c *> Ô ≡ Ô
   scaleVZ c =
-    (c *> Ô) <+> (c *> Ô) ≡⟨ sym (scalarDistribute c Ô Ô)⟩
-    c *> (Ô <+> Ô)        ≡⟨ right _*>_ (lIdentity Ô)⟩
-    c *> Ô                ≡⟨ sym (rIdentity (c *> Ô))⟩
-    (c *> Ô) <+> Ô ∎
-    ∴ c *> Ô ≡ Ô          [ grp.cancel (c *> Ô)]
+     (c *> Ô) <+> (c *> Ô) ≡⟨ sym (scalarDistribute c Ô Ô)⟩
+     c *> (Ô <+> Ô)        ≡⟨ right _*>_ (lIdentity Ô)⟩
+     c *> Ô                ≡⟨ sym (rIdentity (c *> Ô))⟩
+     (c *> Ô) <+> Ô ∎
+   ∴ c *> Ô ≡ Ô          [ grp.cancel (c *> Ô)]
 
   scaleInv : (v : member) → (c : scalar) → neg c *> v ≡ -< c *> v >
   scaleInv v c =
-    (neg c *> v) <+> -< -< c *> v > > ≡⟨ right _<+>_ (grp.doubleInv (c *> v))⟩
-    (neg c *> v) <+> (c *> v)         ≡⟨ sym (memberDistribute v (neg c) c)⟩
-    (neg c + c) *> v                  ≡⟨ left _*>_ (lInverse c)⟩
-    0r *> v                           ≡⟨ scaleZ v ⟩
-    Ô ∎
-    ∴ neg c *> v ≡ -< c *> v >        [ grp.uniqueInv ]
+     (neg c *> v) <+> -< -< c *> v > > ≡⟨ right _<+>_ (grp.doubleInv (c *> v))⟩
+     (neg c *> v) <+> (c *> v)         ≡⟨ sym (memberDistribute v (neg c) c)⟩
+     (neg c + c) *> v                  ≡⟨ left _*>_ (lInverse c)⟩
+     0r *> v                           ≡⟨ scaleZ v ⟩
+     Ô ∎
+   ∴ neg c *> v ≡ -< c *> v >        [ grp.uniqueInv ]
 
   scaleNegOneInv : (v : member) → neg 1r *> v ≡ -< v >
   scaleNegOneInv v =
@@ -94,13 +94,6 @@ module _{scalar : Type ℓ}{member : Type ℓ'}{{R : Ring scalar}}{{V : Module m
   instance
     spanIsSet : {X : member → Type aℓ} → Property (Span X)
     spanIsSet = record { propFamily = λ x y z → spanSet y z }
-
-  spanIntro : {X : member → Type aℓ} → ∀ v → v ∈ X → v ∈ Span X
-  spanIntro {X = X} v v∈X =
-     transport (λ i → ((1r *> v) <+> Ô ≡⟨ rIdentity (1r *> v)⟩
-                       1r *> v         ≡⟨ scaleId v ⟩
-                       v ∎) i ∈ Span X)
-     (spanStep v∈X spanÔ 1r)
 
   span*> : {X : member → Type aℓ} → ∀ v → v ∈ X → (c : scalar) → c *> v ∈ Span X
   span*> {X = X} v v∈X c =
@@ -130,22 +123,37 @@ module _{scalar : Type ℓ}{member : Type ℓ'}{{R : Ring scalar}}{{V : Module m
   spanScale {X = X} v H c =
      transport (λ i → ((c *> v) <+> Ô ≡⟨ rIdentity (c *> v)⟩
                        c *> v ∎) i ∈ Span X)
-     (spanStep2 H spanÔ c)
+               (spanStep2 H spanÔ c)
 
   spanAdd2 : {X : member → Type aℓ} → ∀ u v → u ∈ Span X → v ∈ Span X → u <+> v ∈ Span X
   spanAdd2 {X = X} u v p q =
     transport (λ i → (scaleId u i) <+> v ∈ Span X) (spanStep2 p q 1r)
 
+  map-Span : ∀ {X Y : member → Type aℓ} → X ⊆ Y → Span X ⊆ Span Y
+  map-Span p _ spanÔ = spanÔ
+  map-Span p _ (spanStep {u} {v} u∈X v∈SpanX c) =
+                let v∈SpanY = map-Span p v v∈SpanX
+                in spanAdd2 (c *> u) v (span*> u (p u u∈X) c) v∈SpanY
+  map-Span p v (spanSet x y i) = spanSet (map-Span p v x)
+                                         (map-Span p v y) i
+
+  η-Span : {X : member → Type aℓ} → X ⊆ Span X
+  η-Span {X = X} v v∈X =
+     transport (λ i → ((1r *> v) <+> Ô ≡⟨ rIdentity (1r *> v)⟩
+                       1r *> v         ≡⟨ scaleId v ⟩
+                       v ∎) i ∈ Span X)
+     (spanStep v∈X spanÔ 1r)
+
+  μ-Span : (X : member → Type aℓ) → (Span ∘ Span) X ⊆ Span X
+  μ-Span X x spanÔ = spanÔ
+  μ-Span X x (spanStep {u} {v} p q c) = spanStep2 p (μ-Span X v q) c
+  μ-Span X x (spanSet p q i) = spanSet (μ-Span X x p) (μ-Span X x q) i
+
   spanIdempotent : (Span ∘ Span) ≡ Span {aℓ}
-  spanIdempotent = funExt λ X → funExt λ x → propExt spanSet spanSet (aux X x) (spanIntro x)
-   where
-    aux : (X : member → Type aℓ) → (x : member) → x ∈ (Span ∘ Span) X → x ∈ Span X
-    aux X x spanÔ = spanÔ
-    aux X x (spanStep {u} {v} p q c) = spanStep2 p (aux X v q) c
-    aux X x (spanSet p q i) = spanSet (aux X x p) (aux X x q) i
+  spanIdempotent = funExt λ X → funExt λ x → propExt spanSet spanSet (μ-Span X x) (η-Span x)
 
   support→span : (X : member → Type aℓ) → ∀ v → v ∈ Support X → v ∈ Span X
-  support→span X v (supportIntro .v x) = spanIntro v x
+  support→span X v (supportIntro .v x) = η-Span v x
   support→span X v (supportProp .v x y i) = spanSet (support→span X v x) (support→span X v y) i
 
   spanSupport : (X : member → Type aℓ) → Span (Support X) ≡ Span X
@@ -153,23 +161,12 @@ module _{scalar : Type ℓ}{member : Type ℓ'}{{R : Ring scalar}}{{V : Module m
     where
      aux1 : ∀ v → v ∈ Span (Support X) → v ∈ Span X
      aux1 z spanÔ = spanÔ
-     aux1 z (spanStep {u} {v} p q c) = spanStep2 (supportRec spanSet u (spanIntro u) p) (aux1 v q) c
+     aux1 z (spanStep {u} {v} p q c) = spanStep2 (supportRec spanSet u (η-Span u) p) (aux1 v q) c
      aux1 v (spanSet x y i) = spanSet (aux1 v x) (aux1 v y) i
      aux2 : ∀ v → v ∈ Span X → v ∈ Span (Support X)
      aux2 z spanÔ = spanÔ
      aux2 z (spanStep {u} {v} x y c) = spanStep (supportIntro u x) (aux2 v y) c
      aux2 v (spanSet x y i) = spanSet (aux2 v x) (aux2 v y) i
-
-  span⊆preserve : ∀ {X Y : member → Type aℓ} → X ⊆ Y → Span X ⊆ Span Y
-  span⊆preserve p _ spanÔ = spanÔ
-  span⊆preserve p _ (spanStep {u} {v} u∈X v∈SpanX c) =
-                let v∈SpanY = span⊆preserve p v v∈SpanX
-                in spanAdd2 (c *> u) v (span*> u (p u u∈X) c) v∈SpanY
-  span⊆preserve p v (spanSet x y i) = spanSet (span⊆preserve p v x)
-                                              (span⊆preserve p v y) i
-
-  ⊆span : (X : member → Type aℓ) → X ⊆ Span X
-  ⊆span X x P = spanIntro x P
 
   SpanX-Ô→SpanX : {X : member → Type aℓ} → ∀ v → v ∈ Span (λ x → (x ∈ X) × (x ≢ Ô)) → v ∈ Span X
   SpanX-Ô→SpanX _ spanÔ = spanÔ
@@ -203,7 +200,7 @@ module _{scalar : Type ℓ}{member : Type ℓ'}{{R : Ring scalar}}{{V : Module m
   SSToSS2 X {{XP}} SpanX⊆X = record {
         ssZero = SpanX⊆X Ô spanÔ
       ; ssAdd = λ{v}{u} v∈X u∈X → SpanX⊆X (v <+> u)
-                                            (spanAdd v u v∈X (spanIntro u u∈X))
+                                            (spanAdd v u v∈X (η-Span u u∈X))
       ; ss*> = λ{v} v∈X c → SpanX⊆X (c *> v)
                                      (span*> v v∈X c)
       }
@@ -253,7 +250,7 @@ module _{scalar : Type ℓ}{member : Type ℓ'}{{R : Ring scalar}}{{V : Module m
   completeSpan : (X : member → Type(ℓ ⊔ ℓ')) {{basis : Basis X}}
                → (Y : Σ Independent) → (X , LI) ⊆ Y → Y ⊆ (X , LI)
   completeSpan X (Y , YisLI) X⊆Y y y∈Y =
-    let H = span⊆preserve X⊆Y in
+    let H = map-Span X⊆Y in
     let G = Independent.li YisLI X X⊆Y in
      Independent.li YisLI X X⊆Y (λ z z∈Y → universalSpan z) y y∈Y
 
