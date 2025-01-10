@@ -159,50 +159,57 @@ module _{scalar : Type ℓ}{member : Type ℓ'}{{R : Ring scalar}}{{V : Module m
   spanSupport : (X : member → Type aℓ) → Span (Support X) ≡ Span X
   spanSupport X = funExt λ v → propExt spanSet spanSet (aux1 v) (aux2 v)
     where
-     aux1 : ∀ v → v ∈ Span (Support X) → v ∈ Span X
+     aux1 : Span (Support X) ⊆ Span X
      aux1 z spanÔ = spanÔ
      aux1 z (spanStep {u} {v} p q c) = spanStep2 (supportRec spanSet u (η-Span u) p) (aux1 v q) c
      aux1 v (spanSet x y i) = spanSet (aux1 v x) (aux1 v y) i
-     aux2 : ∀ v → v ∈ Span X → v ∈ Span (Support X)
+     aux2 : Span X ⊆ Span (Support X)
      aux2 z spanÔ = spanÔ
      aux2 z (spanStep {u} {v} x y c) = spanStep (supportIntro u x) (aux2 v y) c
      aux2 v (spanSet x y i) = spanSet (aux2 v x) (aux2 v y) i
 
-  SpanX-Ô→SpanX : {X : member → Type aℓ} → ∀ v → v ∈ Span (λ x → (x ∈ X) × (x ≢ Ô)) → v ∈ Span X
-  SpanX-Ô→SpanX _ spanÔ = spanÔ
-  SpanX-Ô→SpanX _ (spanStep {u} {v} x y c) = spanStep (fst x) (SpanX-Ô→SpanX v y) c
-  SpanX-Ô→SpanX v (spanSet x y i) = spanSet (SpanX-Ô→SpanX v x) (SpanX-Ô→SpanX v y) i
+  SpanX-Ô⊆SpanX : {X : member → Type aℓ} → Span (λ x → (x ∈ X) × (x ≢ Ô)) ⊆ Span X
+  SpanX-Ô⊆SpanX _ spanÔ = spanÔ
+  SpanX-Ô⊆SpanX _ (spanStep {u} {v} x y c) = spanStep (fst x) (SpanX-Ô⊆SpanX v y) c
+  SpanX-Ô⊆SpanX v (spanSet x y i) = spanSet (SpanX-Ô⊆SpanX v x) (SpanX-Ô⊆SpanX v y) i
 
   record Submodule (X : member → Type aℓ) : Type (aℓ ⊔ ℓ ⊔ ℓ')
     where field
-        ssZero : Ô ∈ X 
-        ssAdd : {v u : member} → v ∈ X → u ∈ X → v <+> u ∈ X
-        ss*> : {v : member} → v ∈ X → (c : scalar) →  c *> v ∈ X
-        {{ssSet}} : Property X
+     ssZero : Ô ∈ X 
+     ssAdd : {v u : member} → v ∈ X → u ∈ X → v <+> u ∈ X
+     ss*> : {v : member} → v ∈ X → (c : scalar) → c *> v ∈ X
+     {{ssSet}} : Property X
   open Submodule {{...}} public
 
+  -- Equivalent definition of a submodule
+  record Submodule2 (X : member → Type aℓ) : Type (aℓ ⊔ ℓ ⊔ ℓ')
+    where field
+     SpanX⊆X : Span X ⊆ X
+     {{ssSet2}} : Property X
+  open Submodule2 {{...}} public
+
   SS2ToSS : (X : member → Type aℓ)
-          → {{SS : Submodule X}} → Span X ⊆ X
+          → {{SS : Submodule X}}
+          → Span X ⊆ X
   SS2ToSS X _ spanÔ = ssZero
   SS2ToSS X _ (spanStep {u}{w} u∈X w∈SpanX c) =
-
-    let H1 = ss*> u∈X c in
+    let cu∈X = ss*> u∈X c in
     let w∈X = SS2ToSS X w w∈SpanX in
-    let H2 = ssAdd H1 w∈X in
-        H2
+    ssAdd cu∈X w∈X
   SS2ToSS X {{SS}} x (spanSet p q i) =
     let R1 = SS2ToSS X x p in
     let R2 = SS2ToSS X x q in
      SS .ssSet .propFamily x R1 R2 i
 
-  SSToSS2 : (X : member → Type aℓ) → {{XP : Property X}}
-          → Span X ⊆ X → Submodule X
-  SSToSS2 X {{XP}} SpanX⊆X = record {
+  SSToSS2 : (X : member → Type aℓ)
+          → {{SS2 : Submodule2 X}}
+          → Submodule X
+  SSToSS2 X {{XP}} = record {
         ssZero = SpanX⊆X Ô spanÔ
       ; ssAdd = λ{v}{u} v∈X u∈X → SpanX⊆X (v <+> u)
                                             (spanAdd v u v∈X (η-Span u u∈X))
       ; ss*> = λ{v} v∈X c → SpanX⊆X (c *> v)
-                                     (span*> v v∈X c)
+                                    (span*> v v∈X c)
       }
 
   instance
