@@ -40,14 +40,20 @@ discrete  {A} = λ (_ : ℙ A) → ⊤
 indiscrete : ℙ(ℙ A)
 indiscrete = Pair 𝓤 ∅
 
--- https://en.wikipedia.org/wiki/Initial_topology
-{-# NO_UNIVERSE_CHECK #-}
-data initial{A : set ℓ}{P : A → set aℓ}(X : ∀ a → (∀ a → P a) → P a)(τ : ∀ a → ℙ(ℙ(P a))) : (ℙ(∀ a → P a)) → Type _ where
-  init𝓤 : 𝓤 ∈ initial X τ
-  initIntro : ∀ a → ∀ Y → Y ∈ τ a → (X a ⁻¹[ Y ]) ∈ initial X τ
-  initUnion : (Y : ℙ(ℙ(∀ a → P a))) → Y ⊆ initial X τ → ⋃ Y ∈ initial X τ
-  initInter : ∀ a b → a ∈ initial X τ → b ∈ initial X τ → a ∩ b ∈ initial X τ
-  initProp : ∀ x → isProp (x ∈ initial X τ)
+module _{A : set ℓ}{B : set bℓ}{P : A → set aℓ}(τ : ∀ a → ℙ(ℙ(P a))) where
+
+ -- https://en.wikipedia.org/wiki/Initial_topology
+ {-# NO_UNIVERSE_CHECK #-}
+ data initial (X : ∀ a → B → P a) : ℙ(ℙ B) where
+   init𝓤 : 𝓤 ∈ initial X
+   initIntro : ∀ a → ∀ Y → Y ∈ τ a → (X a ⁻¹[ Y ]) ∈ initial X
+   initUnion : ∀ Y → Y ⊆ initial X → ⋃ Y ∈ initial X
+   initInter : ∀ a b → a ∈ initial X → b ∈ initial X → a ∩ b ∈ initial X
+   initProp : ∀ x → isProp (x ∈ initial X)
+
+ -- https://en.wikipedia.org/wiki/Final_topology
+ final : (X : ∀ a → P a → B) → ℙ(ℙ B)
+ final X H = ∥ (∀ a → X a ⁻¹[ H ] ∈ τ a) ∥
 
 instance
  DiscreteTopology : topology (discrete {lsuc ℓ} {A})
@@ -89,9 +95,22 @@ module _{A : set aℓ}
         (τ : ∀ a → ℙ(ℙ(P a))) where
 
  instance
-  initialTop : {X : ∀ a → (∀ a → P a) → P a} → topology (initial X τ)
-  initialTop = record { tfull = init𝓤 ; tunion = λ {X} → initUnion X ; tintersection = λ {X} {Y} → initInter X Y }
-
+  initialTop : {X : ∀ a → (∀ a → P a) → P a} → topology (initial τ X)
+  initialTop = record { tfull = init𝓤
+                      ; tunion = λ {X} → initUnion X
+                      ; tintersection = λ {X} {Y} → initInter X Y
+                      }
+ module _(T : ∀ a → topology (τ a)) where
+  instance
+   finalTop : {X : ∀ a → P a → B} →  topology (final τ X)
+   finalTop {X} =
+     record { tfull = η $ λ a → T a .tfull
+            ; tunion = λ{Y} H → η $ λ a → subst (τ a) (sym (∪preimage Y (X a)))
+              $ T a .tunion λ z → _>> λ (b , b∈Y , G) → subst (τ a) (sym G)
+              $ H b b∈Y >> λ c → c a
+            ; tintersection = λ{Y}{Z} → _>> λ H → _>> λ G → η
+              $ λ a → T a .tintersection (H a) (G a)
+            }
 
 module _{A : set aℓ}
         {B : set bℓ}
@@ -114,8 +133,8 @@ module _{A : set aℓ}        {B : set aℓ}
         {{T0 : topology τ₀}}{{T1 : topology τ₁}} where
 
  instance
-  -- Proving that the product space is a topological space
-  PSInst : topology (ProductSpace τ₀ τ₁)
+  -- Proving that the (not) product space is a topological space
+  PSInst : topology (NotProductSpace τ₀ τ₁)
   PSInst = record
      { tfull = η ((λ a → tfull) , (λ b → tfull))
      ; tunion = λ{X} H → η ((λ a → [wts (λ b → (a , b)) ⁻¹[ ⋃ X ] ∈ τ₁ ]
@@ -160,22 +179,21 @@ module _{A : set aℓ}        {B : set aℓ}
                 ; tintersection = λ{X Y} (p , P) (q , Q) → tintersection p q , tintersection P Q
                 }
           
- {- Partially applying a continuous function whose domain is a product space
-    will result in a continuous function. This implies that requiring two
-    functions of a homotopy to be continuous is superfluous. -} 
+ {- Partially applying a continuous function whose domain is a (not) product space
+    will result in a continuous function. -}
  partialAppContinuous : {C : set cℓ}
                       → {τ₂ : ℙ(ℙ C)}
                       → {{T2 : topology τ₂}}
                       → {f : (A × B) → C}
-                      → continuous (ProductSpace τ₀ τ₁) τ₂ f
+                      → continuous (NotProductSpace τ₀ τ₁) τ₂ f
                       → ∀ a → continuous τ₁ τ₂ λ b → f (a , b) 
  partialAppContinuous H a V V∈τ₂ = H V V∈τ₂ >> λ(u , t) → u a
 
- -- Given a product space (A × B), the function
+ -- Given a (not) product space (A × B), the function
  --     fst : (A × B) → A
  --     fst(a, b) = a
  -- is continuous
- fstContinuous : continuous (ProductSpace τ₀ τ₁) τ₀ fst
+ fstContinuous : continuous (NotProductSpace τ₀ τ₁) τ₀ fst
  fstContinuous = λ V V∈τ₀ → η $ (λ a →
    LEM (a ∈ V) |> λ{ (inl a∈V) → let H : 𝓤 ≡ (λ(_ : B) → a ∈ V)
                                      H = funExt λ _ → propExt (λ t → a∈V) λ z → tt in
