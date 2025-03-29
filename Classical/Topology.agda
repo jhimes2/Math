@@ -40,6 +40,15 @@ discrete  {A} = λ (_ : ℙ A) → ⊤
 indiscrete : ℙ(ℙ A)
 indiscrete = Pair 𝓤 ∅
 
+-- https://en.wikipedia.org/wiki/Initial_topology
+{-# NO_UNIVERSE_CHECK #-}
+data initial{A : set ℓ}{P : A → set aℓ}(X : ∀ a → (∀ a → P a) → P a)(τ : ∀ a → ℙ(ℙ(P a))) : (ℙ(∀ a → P a)) → Type _ where
+  init𝓤 : 𝓤 ∈ initial X τ
+  initIntro : ∀ a → ∀ Y → Y ∈ τ a → (X a ⁻¹[ Y ]) ∈ initial X τ
+  initUnion : (Y : ℙ(ℙ(∀ a → P a))) → Y ⊆ initial X τ → ⋃ Y ∈ initial X τ
+  initInter : ∀ a b → a ∈ initial X τ → b ∈ initial X τ → a ∩ b ∈ initial X τ
+  initProp : ∀ x → isProp (x ∈ initial X τ)
+
 instance
  DiscreteTopology : topology (discrete {lsuc ℓ} {A})
  DiscreteTopology =
@@ -76,6 +85,15 @@ mapContra : (A → B) → ℙ(ℙ A) → ℙ(ℙ B)
 mapContra f H = λ z → H (λ z₁ → z (f z₁))
 
 module _{A : set aℓ}
+        {P : A → set ℓ}
+        (τ : ∀ a → ℙ(ℙ(P a))) where
+
+ instance
+  initialTop : {X : ∀ a → (∀ a → P a) → P a} → topology (initial X τ)
+  initialTop = record { tfull = init𝓤 ; tunion = λ {X} → initUnion X ; tintersection = λ {X} {Y} → initInter X Y }
+
+
+module _{A : set aℓ}
         {B : set bℓ}
         (τ₀ : ℙ(ℙ A)){{T0 : topology τ₀}}
         (τ₁ : ℙ(ℙ B)){{T1 : topology τ₁}} where
@@ -84,9 +102,9 @@ module _{A : set aℓ}
  _⊎_  : ℙ(ℙ (A ＋ B))
  _⊎_ P = (λ a → P (inl a)) ∈ τ₀ × (λ b → P (inr b)) ∈ τ₁
 
- -- https://en.wikipedia.org/wiki/Product_topology
- ProductSpace : ℙ(ℙ (A × B))
- ProductSpace P = ∥ (∀ a → (λ b → P (a , b)) ∈ τ₁) × (∀ b → (λ a → P (a , b)) ∈ τ₀) ∥
+ -- I originally thought this was the product space. Nevertheless, it still is a topology.
+ NotProductSpace : ℙ(ℙ (A × B))
+ NotProductSpace P = ∥ (∀ a → (λ b → P (a , b)) ∈ τ₁) × (∀ b → (λ a → P (a , b)) ∈ τ₀) ∥
 
  continuous : (A → B) → set bℓ
  continuous f = (V : ℙ B) → V ∈ τ₁ → f ⁻¹[ V ] ∈ τ₀
