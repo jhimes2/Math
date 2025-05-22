@@ -3,7 +3,7 @@
 module Data.Matrix where
 
 open import Prelude
-open import Relations
+open import Predicate
 open import Algebra.Linear
 open import Data.Finite
 open import Cubical.Foundations.HLevels
@@ -764,7 +764,7 @@ CFᵀ {n = S n} {m = S m} (S b₀ , b₁ , B) (S a₀ , a₁ , A) M' =
 finNZ : ℕ → Type
 finNZ n = Σ λ x → Σ λ y → add (S(S x)) y ≡ S(S n)
 
-module _ {{R : CRing C}} where
+module _ {C : Type ℓ}{{R : CRing C}} where
 
  fold- : < C ^ n > → C
  fold- = foldr (λ x y → x - y) 0r
@@ -933,6 +933,42 @@ module _ {{R : CRing C}} where
 
  -}
 
-add2 : ℕ × ℕ → ℕ
-add2 (Z , b) = b
-add2 (S a , b) = S (add2 (a , b))
+ data Term : ((ℕ< n → C) → C) → Type ℓ where
+   tIntro : ∀ x → (λ(_ :(ℕ< n → C)) → x) ∈ Term
+   tMult : ∀ f → f ∈ Term → (m : ℕ< n) → (λ(x :(ℕ< n → C)) → f x * x m) ∈ Term
+  
+ data Poly : ((ℕ< n → C) → C) → Type ℓ where
+   pIntro : (λ(_ : (ℕ< n → C)) → 0r) ∈ Poly 
+   pAdd : (f g : (ℕ< n → C) → C) → f ∈ Term → g ∈ Poly → f + g ∈ Poly
+--   pSet : (f : ((ℕ< n → C) → C)) → isProp(f ∈ Poly)
+    
+ pMult : ∀ f → f ∈ Poly → (m : ℕ< n) → (λ(x :(ℕ< n → C)) → f x * x m) ∈ Poly
+ pMult f pIntro m = subst Poly (sym (funExt λ x → 0*x≡0 (x m))) pIntro
+ pMult f (pAdd h g h∈Term g∈Poly) m using R ← pMult g g∈Poly m =
+         subst Poly (funExt λ x → sym (rDistribute (x m) (h x) (g x))) $
+         pAdd (λ x → h x * x m) (λ x → g x * x m) (tMult h h∈Term m) (pMult g g∈Poly m)
+    
+ pAdd2 : (f g : (ℕ< n → C) → C) → f ∈ Poly → g ∈ Poly → f + g ∈ Poly
+ pAdd2 f g pIntro G = pAdd (λ _ → 0r) g (tIntro 0r) G
+ pAdd2 f g (pAdd q r q∈Term r∈Poly) G = subst Poly (funExt λ x → assoc (q x) (r x) (g x)) $
+       pAdd q (r + g) q∈Term (pAdd2 r g r∈Poly G)
+
+ ∂Term : (f : (ℕ< n → C) → C) → Term f → ℕ< n → Σ λ(x : (ℕ< n → C) → C) → Poly x
+ ∂Term f (tIntro x) a = (λ _ → 0r) , pIntro
+ ∂Term f (tMult g G m) a using (h , H) ← ∂Term g G a
+                         with (finDiscrete a m)
+ ... | yes a≡m = g + (λ x → h x * x m) , pAdd g ((λ x → h x * x m)) G (pMult h H m)
+ ... | no a≢m = (λ x → h x * x m) , pMult h H m
+  
+ -- Partial derivative on polynomials
+ ∂ : (f : (ℕ< n → C) → C) → Poly f → ℕ< n → Σ λ(x : (ℕ< n → C) → C) → Poly x
+ ∂ f pIntro a = (λ _ → 0r) , pIntro
+ ∂ f (pAdd h g x y) a using (q , Q) ← ∂Term h x a
+                      using (r , R) ← ∂ g y a = (q + r) , pAdd2 q r Q R
+  
+ Jacobian : (F : ℕ< m → (ℕ< n → C) → C)
+          → (∀ x → Poly (F x))
+          → ℕ< n → ℕ< m
+          → Σ λ(x : (ℕ< n → C) → C)
+          → Poly x
+ Jacobian F P a b = ∂ (F b) (P b) a
