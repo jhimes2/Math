@@ -22,6 +22,9 @@ finSndIsProp : (a : ℕ) → isProp(Σ λ s → S a + s ≡ n)
 finSndIsProp {n = n} a (x , x') (y , y') =
    let H = natLCancel (S a) (y' ⋆ sym x') in ΣPathPProp (λ b → IsSet (S (a + b)) n) (sym H)
 
+finFstInj : (a b : ℕ< n) → fst a ≡ fst b → a ≡ b
+finFstInj a b = ΣPathPProp finSndIsProp
+
 finZ : ℕ< (S n)
 finZ {n = n} = Z , n , refl
 

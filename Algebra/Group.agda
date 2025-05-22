@@ -174,6 +174,20 @@ module grp {A : Type aℓ}{_∙_ : A → A → A}{{G : group _∙_}} where
     e ∙ inv e ≡⟨ rInverse e ⟩
     e ∎
 
+  lemma5 : {{Com : Commutative _∙_}}
+         → (a b c d : A)
+         → (a ∙ inv b) ∙ inv (c ∙ inv d) ≡ (a ∙ inv c) ∙ inv (b ∙ inv d)
+  lemma5 a b c d =
+   (a ∙ inv b) ∙ inv (c ∙ inv d)           ≡⟨ right _∙_ (sym (lemma1 c (inv d)))⟩
+   (a ∙ inv b) ∙ (inv(inv d) ∙ inv c)      ≡⟨ right _∙_ (left _∙_ (doubleInv d))⟩
+   (a ∙ inv b) ∙ (d ∙ inv c)               ≡⟨ right _∙_ (comm d (inv c))⟩
+   (a ∙ inv b) ∙ (inv c ∙ d)               ≡⟨ [ab][cd]≡[ac][bd] a (inv b) (inv c) d ⟩
+   (a ∙ inv c) ∙ (inv b ∙ d)               ≡⟨ right _∙_ (comm (inv b) d)⟩
+   (a ∙ inv c) ∙ (d ∙ inv b)               ≡⟨ right _∙_ (sym (doubleInv (d ∙ inv b)))⟩
+   (a ∙ inv c) ∙ inv(inv(d ∙ inv b))       ≡⟨ right _∙_ (cong inv (sym (lemma1 d (inv b))))⟩
+   (a ∙ inv c) ∙ inv((inv(inv b) ∙ inv d)) ≡⟨ right _∙_ (cong inv (left _∙_ (doubleInv b)))⟩
+   (a ∙ inv c) ∙ inv (b ∙ inv d) ∎
+
   -- https://en.wikipedia.org/wiki/Product_of_group_subsets
   * : (A → Type ℓ) → (A → Type ℓ') → A → Type (aℓ ⊔ ℓ ⊔ ℓ')
   * S T = λ x → ∃ λ t → (t ∈ T) × (x ∙ inv t ∈ S)

@@ -12,6 +12,9 @@ open import Cubical.Foundations.HLevels
 _ᵀ : (A → B → C) → (B → A → C)
 _ᵀ f b a = f a b
 
+ᵀInject : {f g : A → B → C} → f ᵀ ≡ g ᵀ → f ≡ g
+ᵀInject {f = f} {g = g} p i a b = p i b a 
+
 -- Ordered n-tuple
 -- `< 𝔹 ^ n >` would be an ordered n-tuple of booleans
 <_^_> : Type ℓ → ℕ → Type ℓ
@@ -23,23 +26,25 @@ _ᵀ f b a = f a b
 list : Type ℓ → Type ℓ
 list A = Σ λ(n : ℕ) → < A ^ n >
 
-head : < A ^ S n > → A
-head v = v finZ
+-- hd
+hd : < A ^ S n > → A
+hd v = v finZ
 
-tail : < A ^ S n > → < A ^ n >
-tail v x = v (finS x)
+-- tl
+tl : < A ^ S n > → < A ^ n >
+tl v x = v (finS x)
 
 _∷_ : A → < A ^ n > → < A ^ S n >
 (a ∷ _) (Z , _) = a
 (a ∷ v) (S x , x' , P) = v (x , x' , SInjective P)
 
 -- tuple η-conversion
-tuple-η : (f : < A ^ S n >) → head f ∷ tail f ≡ f
+tuple-η : (f : < A ^ S n >) → hd f ∷ tl f ≡ f
 tuple-η {n = Z} f = funExt
   λ{(Z , b , p) →
   let H : b ≡ Z
       H = SInjective p in
-  [wts (head f ∷ tail f) (Z , b , p) ≡ f (Z , b , p) ] cong f $
+  [wts (hd f ∷ tl f) (Z , b , p) ≡ f (Z , b , p) ] cong f $
   [wts finZ ≡ (Z , b , p) ]
   ΣPathP (refl , Σ≡Prop (λ x → IsSet (S x) (S Z)) (sym H))
   ;(S a , b , p) → UNREACHABLE (ZNotS (sym(SInjective p)))
@@ -49,11 +54,18 @@ tuple-η {n = Z} f = funExt
 tuple-η {n = S n} f = funExt λ{ (Z , b , p) →
    cong f (ΣPathP (refl , (Σ≡Prop (λ x → IsSet (S x) (S(S n))) (sym (SInjective p)))))
      ; (S a , b , p) →
-  [wts tail f (a , b , SInjective p) ≡ f (S a , b , p) ]
+  [wts tl f (a , b , SInjective p) ≡ f (S a , b , p) ]
   [wts f (finS (a , b , SInjective p)) ≡ f (S a , b , p) ]
   [wts f ((S a , b , cong S (SInjective p))) ≡ f (S a , b , p) ]
     cong f (ΣPathP (refl , (Σ≡Prop (λ x → IsSet (S (S (a + x))) (S (S n))) refl)))
   }
+
+tl∷ : ∀ a → (f : < A ^ n >) → tl (a ∷ f) ≡ f
+tl∷ {A = A} {n = n} a f = funExt (aux n f)
+ where
+  aux : ∀ n → (f : < A ^ n >) → (x : ℕ< n) →  tl (a ∷ f) x ≡ f x
+  aux n f (x , y , H) = [wts f (x , y , SInjective(cong S H)) ≡ f (x , y , H) ]
+    cong (λ z → f (x , y , z)) $ IsSet (S x + y) n (SInjective (λ i → S (H i))) H
 
 instance
  emptyTupleIsProp : is-prop < A ^ Z >
@@ -65,23 +77,82 @@ tuple-elim : (P : ∀{n} → < A ^ n > → Type ℓ)
            → ∀{n} → (x : < A ^ n >) → P x
 tuple-elim P base step {n = Z} x = transport (λ i → P (IsProp <> x i)) base
 tuple-elim P base step {n = S n} x =
-  let a = head x in
-  let T = tail x in transport (λ i → P (tuple-η x i))
+  let a = hd x in
+  let T = tl x in transport (λ i → P (tuple-η x i))
    (step T (tuple-elim P base step T) a)
 
 zip : (A → B → C) → {D : Type ℓ} → (D → A) → (D → B) → (D → C)
 zip f u v d = f (u d) (v d)
 
 zipHead : (f : < A ^ S n > → < B ^ S n > → < C ^ S n >)
-              → ∀ x y → head {n = n} (zip f x y) ≡ f (head x) (head y)
+              → ∀ x y → hd {n = n} (zip f x y) ≡ f (hd x) (hd y)
 zipHead f x y = funExt λ z → refl
 
 Matrix : Type ℓ → ℕ → ℕ → Type ℓ
 Matrix A n m = < < A ^ n > ^ m >
 
+zip∷ : (f : A → B → C)(v : < A ^ n >)(u : < B ^ n >) → ∀ x y → zip f (x ∷ v) (y ∷ u) ≡ f x y ∷ zip f v u
+zip∷ f v u x y = funExt λ{ (Z , a₁ , A) → refl ; (S a₀ , a₁ , A) → refl}
+
+∘∷ : (f : A → B) → (v : < A ^ n >) → ∀ x → f ∘ (x ∷ v) ≡ f x ∷ (f ∘ v)
+∘∷ f v x  = funExt λ{ (Z , a₁ , A) → refl ; (S a₀ , a₁ , A) → refl}
+
+Matrix-elim : (P : ∀{n m} → Matrix A n m → Type ℓ)
+            → (∀ m → (P (<> {A = < A ^ m >})))
+            → (∀ n → (P (<> ∷ λ(_ : ℕ< n) → <>)))
+            → (∀{n m} → (M : Matrix A n m) → P M → ∀ u v x → P ((x ∷ u) ∷ zip _∷_ v M))
+            → ∀ {n m} → (M : Matrix A n m) → P M
+Matrix-elim P H1 H2 H3 {n = n} {m = Z} M = subst P (IsProp <> M) (H1 n)
+Matrix-elim P H1 H2 H3 {n = Z} {m = S m} M = subst P (funExt λ v → IsProp ((<> ∷ (λ _ → <>)) v) (M v)) (H2 m)
+Matrix-elim P H1 H2 H3 {n = S n} {m = S m} M = subst P (
+  ((hd (hd M) ∷ tl (hd M)) ∷ zip _∷_ (hd ∘ tl M) (tl ∘ tl M)) ≡⟨ cong₂ _∷_ (tuple-η (hd M)) (funExt λ x → tuple-η (tl M x)) ⟩
+  hd M ∷ tl M  ≡⟨ tuple-η M ⟩
+  M  ∎
+   )(H3 (tl ∘ tl M) (Matrix-elim P H1 H2 H3 (tl ∘ tl M)) (tl(hd M)) (hd ∘ tl M) (hd (hd M)))
+
+tl∘zip∷ : (f : < A ^ n >) → (M : Matrix A m n) → tl ∘ zip _∷_ f M ≡ M
+tl∘zip∷ {n = Z} f M = funExt λ x → UNREACHABLE (ZNotS (sym (x .snd .snd)))
+tl∘zip∷ {n = (S n)} f M =
+ tl ∘ zip _∷_ f M ≡⟨ cong (λ z → tl ∘ zip _∷_ f z) (sym (tuple-η M)) ⟩
+ tl ∘ zip _∷_ f (hd M ∷ tl M) ≡⟨  cong (λ z → tl ∘ zip _∷_ z (hd M ∷ tl M)) (sym (tuple-η f))⟩
+ tl ∘ zip _∷_ (hd f ∷ tl f) (hd M ∷ tl M) ≡⟨ cong (tl ∘_) (zip∷ _∷_ (tl f) (tl M) (hd f) (hd M)) ⟩
+ tl ∘ ((hd f ∷ hd M) ∷ zip _∷_ (tl f) (tl M)) ≡⟨ ∘∷ tl (zip _∷_ (tl f) (tl M)) (hd f ∷ hd M) ⟩
+ (tl(hd f ∷ hd M) ∷ (tl ∘ zip _∷_ (tl f) (tl M))) ≡⟨ left _∷_ (tl∷ (hd f) (hd M))⟩
+ (hd M ∷ (tl ∘ zip _∷_ (tl f) (tl M))) ≡⟨ right _∷_ (tl∘zip∷ (tl f) (tl M))⟩
+ (hd M ∷ tl M) ≡⟨ tuple-η M ⟩
+ M ∎
+
+zipTranspose : (M : Matrix C m n)(v : < C ^ m >) → zip _∷_ v (M ᵀ) ≡ (v ∷ M) ᵀ
+zipTranspose M v = funExt λ x → funExt (aux M v x)
+ where
+  aux : ∀{n m} → (M : Matrix C m n)(v : < C ^ m >) → ∀ x y → zip _∷_ v (M ᵀ) x y ≡ ((v ∷ M) ᵀ) x y
+  aux M v x (Z , y' , Y) = refl
+  aux M v x (S y , y' , Y) = refl
+
+∷Transpose : (M : Matrix C m n) → ∀ v u x → 
+      ((x ∷ u) ∷ ((v ∷ (M ᵀ))ᵀ))ᵀ
+    ≡ (x ∷ v) ∷ ((u ∷ M) ᵀ)
+∷Transpose M v u x = funExt λ a → funExt λ b → aux M v u x a b
+ where
+  aux : ∀{n m} → (M : Matrix C m n) → ∀ v u x a b → 
+       (((x ∷ u) ∷ ((v ∷ (M ᵀ))ᵀ))ᵀ) a b
+     ≡ ((x ∷ v) ∷ ((u ∷ M) ᵀ)) a b
+  aux M v u x (Z , a₁ , A) (Z , b₁ , B) = refl
+  aux M v u x (S a₀ , a₁ , A) (Z , b₁ , B) = refl
+  aux M v u x (Z , a₁ , A) (S b₀ , b₁ , B) = refl
+  aux M v u x (S a₀ , a₁ , A) (S b₀ , b₁ , B) = refl
+
+zipTranspose2 : (M : Matrix C m n) → ∀ v u x → ((x ∷ u) ∷ zip _∷_ v M) ᵀ ≡ (x ∷ v) ∷ zip _∷_ u (M ᵀ)
+zipTranspose2 M v u x =
+  ((x ∷ u) ∷ zip _∷_ v M)ᵀ ≡⟨⟩
+  ((x ∷ u) ∷ zip _∷_ v ((M ᵀ)ᵀ))ᵀ ≡⟨ cong (λ z → ((x ∷ u) ∷ z) ᵀ) (zipTranspose (M ᵀ) v)⟩
+  ((x ∷ u) ∷ ((v ∷ (M ᵀ))ᵀ))ᵀ ≡⟨ ∷Transpose M v u x ⟩
+  (x ∷ v) ∷ ((u ∷ M) ᵀ)     ≡⟨ cong (λ z → (x ∷ v) ∷ z) (sym (zipTranspose M u)) ⟩
+  (x ∷ v) ∷ zip _∷_ u (M ᵀ) ∎
+
 instance
   Functionfunctor : functor λ{ℓ}(A : Type ℓ) → B → A
-  Functionfunctor = record { map = λ f v x → f (v x)
+  Functionfunctor = record { map = _∘_
                            ; compPreserve = λ f g → funExt λ x → refl
                            ; idPreserve = funExt λ x → refl
                            }
@@ -95,42 +166,42 @@ instance
 
 foldr : (A → B → B) → B → < A ^ n > → B
 foldr {n = Z}f b _ = b
-foldr {n = S n} f b v = f (head v) (foldr f b (tail v))
+foldr {n = S n} f b v = f (hd v) (foldr f b (tl v))
 
 foldl : (A → B → B) → B → < A ^ n > → B
 foldl {n = Z}f b _ = b
-foldl {n = S n} f b v = foldl f (f (head v) b) (tail v)
+foldl {n = S n} f b v = foldl f (f (hd v) b) (tl v)
 
 -- Ordered n-tuple concatenation
 _++_ : < A ^ n > → < A ^ m > → < A ^ (n + m) >
 _++_ {n = Z} u v x = v x
 _++_ {n = S n} u v (Z , H) = u finZ
-_++_ {n = S n} u v (S x , y , p) = (tail u ++ v) (x , y , SInjective p)
+_++_ {n = S n} u v (S x , y , p) = (tl u ++ v) (x , y , SInjective p)
 
-tail++ : (u : < A ^ S n >) → (v : < A ^ m >) → tail (u ++ v) ≡ tail u ++ v 
-tail++ u v = funExt λ z → aux u v z
+tl++ : (u : < A ^ S n >) → (v : < A ^ m >) → tl (u ++ v) ≡ tl u ++ v 
+tl++ u v = funExt λ z → aux u v z
  where
-  aux : (u : < A ^ S n >) → (v : < A ^ m >) → (x : ℕ< (n + m)) → tail (u ++ v) x ≡ (tail u ++ v) x 
+  aux : (u : < A ^ S n >) → (v : < A ^ m >) → (x : ℕ< (n + m)) → tl (u ++ v) x ≡ (tl u ++ v) x 
   aux {n = Z} {m} u v (x , y , p) = cong v (ΣPathPProp finSndIsProp refl)
   aux {n = S n} {m} u v (Z , y , p) = refl
-  aux {n = S n} {m} u v (S x , y , p) = aux (tail u) v (x , y , SInjective p)
+  aux {n = S n} {m} u v (S x , y , p) = aux (tl u) v (x , y , SInjective p)
 
 foldr++ : (f : A → B → B) → (q : B) → (x : < A ^ n >) → (y : < A ^ m >)
         → foldr f q (x ++ y) ≡ foldr f (foldr f q y) x
 foldr++ {n = Z} f q x y = refl
 foldr++ {n = S n} f q x y =
-   let H = head x in
-   f H (foldr f q (tail(x ++ y))) ≡⟨ right f (cong (λ x → foldr f q x) (tail++ x y))⟩
-   f H (foldr f q (tail x ++ y)) ≡⟨ right f (foldr++ f q (tail x) y) ⟩
+   let H = hd x in
+   f H (foldr f q (tl(x ++ y))) ≡⟨ right f (cong (λ x → foldr f q x) (tl++ x y))⟩
+   f H (foldr f q (tl x ++ y)) ≡⟨ right f (foldr++ f q (tl x) y) ⟩
    foldr f (foldr f q y) x ∎
 
 foldl++ : (f : A → B → B) → (q : B) → (x : < A ^ n >) → (y : < A ^ m >)
         → foldl f q (x ++ y) ≡ foldl f (foldl f q x) y
 foldl++ {n = Z} f q x y = refl
 foldl++ {n = S n} f q x y =
- foldl f (f (head x) q) (tail (x ++ y)) ≡⟨ cong (λ z → foldl f (f (head x) q) z) (tail++ x y)⟩
- foldl f (f (head x) q) (tail x ++ y)   ≡⟨ foldl++ f (f (head x) q) (tail x) y ⟩
- foldl f (foldl f (f (head x) q) (tail x)) y ∎
+ foldl f (f (hd x) q) (tl (x ++ y)) ≡⟨ cong (λ z → foldl f (f (hd x) q) z) (tl++ x y)⟩
+ foldl f (f (hd x) q) (tl x ++ y)   ≡⟨ foldl++ f (f (hd x) q) (tl x) y ⟩
+ foldl f (foldl f (f (hd x) q) (tl x)) y ∎
 
 module _{C : Type cℓ}{{R : Ring C}} where
 
@@ -168,18 +239,18 @@ module _{C : Type cℓ}{{R : Ring C}} where
        → (λ _ → 0r) ∙ V ≡ 0r
  dotZL {n = Z} V = refl
  dotZL {n = S n} V =
-  (0r * head V) + ((λ (_ : ℕ< n) → 0r) ∙ tail V) ≡⟨ left _+_ (0*x≡0 (head V))⟩
-  0r + ((λ _ → 0r) ∙ tail V)                      ≡⟨ lIdentity ((λ (_ : ℕ< n) → 0r) ∙ tail V)⟩
-  (λ (_ : ℕ< n) → 0r) ∙ tail V                   ≡⟨ dotZL (tail V)⟩
+  (0r * hd V) + ((λ (_ : ℕ< n) → 0r) ∙ tl V) ≡⟨ left _+_ (0*x≡0 (hd V))⟩
+  0r + ((λ _ → 0r) ∙ tl V)                      ≡⟨ lIdentity ((λ (_ : ℕ< n) → 0r) ∙ tl V)⟩
+  (λ (_ : ℕ< n) → 0r) ∙ tl V                   ≡⟨ dotZL (tl V)⟩
   0r ∎
  
  dotZR : (V : < C ^ n >)
        → V ∙ (λ _ → 0r) ≡ 0r
  dotZR {n = Z} V = refl
  dotZR {n = S n} V =
-  (head V * 0r) + (tail V ∙ λ (_ : ℕ< n) → 0r) ≡⟨ left _+_ (x*0≡0 (head V))⟩
-  0r + (tail V ∙ λ _ → 0r)                      ≡⟨ lIdentity (tail V ∙ λ (_ : ℕ< n) → 0r)⟩
-  tail V ∙ (λ (_ : ℕ< n) → 0r)                 ≡⟨ dotZR (tail V)⟩
+  (hd V * 0r) + (tl V ∙ λ (_ : ℕ< n) → 0r) ≡⟨ left _+_ (x*0≡0 (hd V))⟩
+  0r + (tl V ∙ λ _ → 0r)                      ≡⟨ lIdentity (tl V ∙ λ (_ : ℕ< n) → 0r)⟩
+  tl V ∙ (λ (_ : ℕ< n) → 0r)                 ≡⟨ dotZR (tl V)⟩
   0r ∎
 
  scalar-distributivity : (x y : C)(v : A → C) → scaleV (x + y) v ≡ addv (scaleV x v) (scaleV y v)
@@ -221,12 +292,13 @@ instance
             ; scaleId = λ v → funExt λ x → lIdentity (v x)
             }
 
+-- This can be generalized to include subtraction
 foldrMC : {_∗_ : A → A → A}{{M : monoid _∗_}}{{C : Commutative _∗_}} → (u v : < A ^ n >)
         → foldr _∗_ e (zip _∗_ u v) ≡ foldr _∗_ e u ∗ foldr _∗_ e v
 foldrMC {n = Z} u v = sym(lIdentity e)
 foldrMC {n = S n} {_∗_ = _∗_} u v =
- right _∗_ (foldrMC (tail u) (tail v))
-           ⋆ [ab][cd]≡[ac][bd] (head u) (head v) (foldr _∗_ e (tail u)) (foldr _∗_ e (tail v))
+ right _∗_ (foldrMC (tl u) (tl v))
+           ⋆ [ab][cd]≡[ac][bd] (hd u) (hd v) (foldr _∗_ e (tl u)) (foldr _∗_ e (tl v))
 
 instance
   -- Matrix transformation over a ring is a module homomorphism.
@@ -264,11 +336,11 @@ instance
             → foldr _+_ 0r  (λ y → (c * (u y * M y x))) ≡ c * foldr _+_ 0r  (λ y → u y * M y x)
         Rec {n = Z} M u c x = sym (x*0≡0 c)
         Rec {n = S n} M u c x =
-          head (λ y → (c * (u y * M y x))) + foldr _+_ 0r  (tail (λ y → (c * (u y * M y x))))
-           ≡⟨ right _+_ (Rec {n = n} (tail M) (tail u) c x) ⟩
-          (c * head (λ y → u y * M y x)) + (c * (foldr _+_ 0r  (tail(λ y → u y * M y x))))
-            ≡⟨ sym (lDistribute c ((head (λ y → u y * M y x))) (foldr _+_ 0r  (tail(λ y → u y * M y x))))⟩
-          c * (head (λ y → u y * M y x) + foldr _+_ 0r (tail(λ y → u y * M y x))) ∎
+          hd (λ y → (c * (u y * M y x))) + foldr _+_ 0r  (tl (λ y → (c * (u y * M y x))))
+           ≡⟨ right _+_ (Rec {n = n} (tl M) (tl u) c x) ⟩
+          (c * hd (λ y → u y * M y x)) + (c * (foldr _+_ 0r  (tl(λ y → u y * M y x))))
+            ≡⟨ sym (lDistribute c ((hd (λ y → u y * M y x))) (foldr _+_ 0r  (tl(λ y → u y * M y x))))⟩
+          c * (hd (λ y → u y * M y x) + foldr _+_ 0r (tl(λ y → u y * M y x))) ∎
 
   -- Matrix transformation over a field is a linear map.
   LTMT : {{F : Field A}} → {M : ℕ< n → B → A} → LinearMap (MT M)
@@ -294,43 +366,43 @@ module _{C : Type cℓ} {{R : Ring C}} where
  dotDistribute : (w u v : < C ^ n >) → (u <+> v) ∙ w ≡ (u ∙ w) + (v ∙ w)
  dotDistribute {n = Z} w u v = sym (lIdentity 0r)
  dotDistribute {n = S n} w u v =
-   let v∙w = tail v ∙ tail w in
-   let u∙w = tail u ∙ tail w in
+   let v∙w = tl v ∙ tl w in
+   let u∙w = tl u ∙ tl w in
   (u <+> v) ∙ w ≡⟨⟩
-  (head(u <+> v) * head w) + (tail(u <+> v) ∙ tail w) ≡⟨⟩
-  ((head u + head v) * head w) + ((tail u <+> tail v) ∙ tail w)
-     ≡⟨ right _+_ (dotDistribute (tail w) (tail u) (tail v))⟩
-  ((head u + head v) * head w) + (u∙w + v∙w) ≡⟨ left _+_ (rDistribute (head w)(head u)(head v))⟩
-  ((head u * head w) + (head v * head w)) + (u∙w + v∙w)
-     ≡⟨ [ab][cd]≡[ac][bd] (head u * head w) (head v * head w) (u∙w) (v∙w)⟩
-  ((head u * head w) + u∙w) + ((head v * head w) + v∙w) ≡⟨⟩
+  (hd(u <+> v) * hd w) + (tl(u <+> v) ∙ tl w) ≡⟨⟩
+  ((hd u + hd v) * hd w) + ((tl u <+> tl v) ∙ tl w)
+     ≡⟨ right _+_ (dotDistribute (tl w) (tl u) (tl v))⟩
+  ((hd u + hd v) * hd w) + (u∙w + v∙w) ≡⟨ left _+_ (rDistribute (hd w)(hd u)(hd v))⟩
+  ((hd u * hd w) + (hd v * hd w)) + (u∙w + v∙w)
+     ≡⟨ [ab][cd]≡[ac][bd] (hd u * hd w) (hd v * hd w) (u∙w) (v∙w)⟩
+  ((hd u * hd w) + u∙w) + ((hd v * hd w) + v∙w) ≡⟨⟩
   (u ∙ w) + (v ∙ w) ∎
  
  dotlDistribute : (w u v : < C ^ n >) → w ∙ (u <+> v) ≡ (w ∙ u) + (w ∙ v)
  dotlDistribute {n = Z} w u v = sym (rIdentity 0r)
  dotlDistribute {n = S n} w u v =
-   let w∙v = tail w ∙ tail v in
-   let w∙u = tail w ∙ tail u in
-  (head w * head(u <+> v)) + (tail w ∙ tail(u <+> v))
-   ≡⟨ right _+_ (dotlDistribute (tail w) (tail u) (tail v))⟩
-  (head w * head(u <+> v)) + ((tail w ∙ tail u) + (tail w ∙ tail v))
-   ≡⟨ left _+_ (lDistribute (head w) (head u) (head v)) ⟩
-  ((head w * head u) + (head w * head v)) + ((tail w ∙ tail u) + (tail w ∙ tail v))
-   ≡⟨ [ab][cd]≡[ac][bd] (head w * head u) (head w * head v) w∙u w∙v ⟩
+   let w∙v = tl w ∙ tl v in
+   let w∙u = tl w ∙ tl u in
+  (hd w * hd(u <+> v)) + (tl w ∙ tl(u <+> v))
+   ≡⟨ right _+_ (dotlDistribute (tl w) (tl u) (tl v))⟩
+  (hd w * hd(u <+> v)) + ((tl w ∙ tl u) + (tl w ∙ tl v))
+   ≡⟨ left _+_ (lDistribute (hd w) (hd u) (hd v)) ⟩
+  ((hd w * hd u) + (hd w * hd v)) + ((tl w ∙ tl u) + (tl w ∙ tl v))
+   ≡⟨ [ab][cd]≡[ac][bd] (hd w * hd u) (hd w * hd v) w∙u w∙v ⟩
    (w ∙ u) + (w ∙ v) ∎
  
  dot*> : (c : C) → (u v : < C ^ n >) → (c *> u) ∙ v ≡ c * (u ∙ v)
  dot*> {n = Z} c u v = sym (x*0≡0 c)
  dot*> {n = S n} c u v =
   (c *> u) ∙ v ≡⟨⟩
-  (head(c *> u) * head v) + (tail(c *> u) ∙ tail v)
-  ≡⟨ right _+_ (dot*> {n = n} c (tail u) (tail v))⟩
-  (head(c *> u) * head v) + (c * (tail u ∙ tail v)) ≡⟨⟩
-  ((c * head u) * head v) + (c * (tail u ∙ tail v))
-  ≡⟨ left _+_ (sym (assoc c (head u) (head v)))⟩
-  (c * (head u * head v)) + (c * (tail u ∙ tail v))
-  ≡⟨ sym (lDistribute c (head u * head v) ((tail u ∙ tail v)))⟩
-  c * ((head u * head v) + (tail u ∙ tail v)) ≡⟨⟩
+  (hd(c *> u) * hd v) + (tl(c *> u) ∙ tl v)
+  ≡⟨ right _+_ (dot*> {n = n} c (tl u) (tl v))⟩
+  (hd(c *> u) * hd v) + (c * (tl u ∙ tl v)) ≡⟨⟩
+  ((c * hd u) * hd v) + (c * (tl u ∙ tl v))
+  ≡⟨ left _+_ (sym (assoc c (hd u) (hd v)))⟩
+  (c * (hd u * hd v)) + (c * (tl u ∙ tl v))
+  ≡⟨ sym (lDistribute c (hd u * hd v) ((tl u ∙ tl v)))⟩
+  c * ((hd u * hd v) + (tl u ∙ tl v)) ≡⟨⟩
   c * (u ∙ v) ∎
  
  _orthogonal-to_ : < C ^ n > → (W : < C ^ n > → Type ℓ) → {{Submodule W}} → Type(ℓ ⊔ cℓ)
@@ -377,12 +449,12 @@ module _{C : Type cℓ} {{R : Ring C}} where
    dotMatrix n Z u M v = dotZL u
    dotMatrix n (S m) u M v =
     (λ n' → v ∙ (λ m' → M m' n')) ∙ u ≡⟨⟩
-    (λ n' → (head v * (head M) n') + (tail v ∙ tail λ m' → M m' n')) ∙ u ≡⟨⟩
-    ((λ n' → head v * (head M) n') <+> (λ n' → tail v ∙ λ m' → (tail M) m' n')) ∙ u
-    ≡⟨ dotDistribute u (λ n' → (head v * head λ m' → M m' n')) (λ n' → tail v ∙ λ m' → (tail M) m' n')⟩
-    ((head v *> head M) ∙ u) + ((λ n' → tail v ∙ λ m' → (tail M) m' n') ∙ u)
-    ≡⟨ cong₂ _+_ (dot*> {n = n} (head v) (head M) u) (dotMatrix n m u (tail M) (tail v))⟩
-    (head v * (head M ∙ u)) + (tail v ∙ tail λ m' → M m' ∙ u) ≡⟨⟩
+    (λ n' → (hd v * (hd M) n') + (tl v ∙ tl λ m' → M m' n')) ∙ u ≡⟨⟩
+    ((λ n' → hd v * (hd M) n') <+> (λ n' → tl v ∙ λ m' → (tl M) m' n')) ∙ u
+    ≡⟨ dotDistribute u (λ n' → (hd v * hd λ m' → M m' n')) (λ n' → tl v ∙ λ m' → (tl M) m' n')⟩
+    ((hd v *> hd M) ∙ u) + ((λ n' → tl v ∙ λ m' → (tl M) m' n') ∙ u)
+    ≡⟨ cong₂ _+_ (dot*> {n = n} (hd v) (hd M) u) (dotMatrix n m u (tl M) (tl v))⟩
+    (hd v * (hd M ∙ u)) + (tl v ∙ tl λ m' → M m' ∙ u) ≡⟨⟩
     v ∙ (λ m' → M m' ∙ u) ∎
 
  {- An infinite identity matrix is a function that takes two natural
@@ -408,7 +480,7 @@ module _{C : Type cℓ} {{R : Ring C}} where
  idTranspose : I {n = n} ≡ I ᵀ
  idTranspose = funExt λ{(x , _) → funExt λ{(y , _) → funExt⁻ (funExt⁻ I∞Transpose x) y}}
  
- -- Matrix transformation has no effect with the identity matrix
+ -- Matrix transformation has no effect on the identity matrix
  MT-ID : (v : ℕ< n → C) → MT I v ≡ v
  MT-ID v = funExt λ x → aux v x
   where
@@ -417,28 +489,28 @@ module _{C : Type cℓ} {{R : Ring C}} where
    aux {n = S n} v (Z , yp) =
      MT I v (Z , yp) ≡⟨⟩
      v ∙ (I (Z , yp)) ≡⟨⟩
-     (head v * 1r) + (tail v ∙ λ _ → 0r) ≡⟨ left _+_ (rIdentity (head v))⟩
-     head v + (tail v ∙ λ _ → 0r) ≡⟨⟩
-     head v + (tail v ∙ λ _ → 0r) ≡⟨ right _+_ (dotZR (tail v))⟩
-     head v + 0r ≡⟨ rIdentity (head v)⟩
-     head v ≡⟨ cong v (ΣPathPProp (λ a → finSndIsProp a) refl)⟩
+     (hd v * 1r) + (tl v ∙ λ _ → 0r) ≡⟨ left _+_ (rIdentity (hd v))⟩
+     hd v + (tl v ∙ λ _ → 0r) ≡⟨⟩
+     hd v + (tl v ∙ λ _ → 0r) ≡⟨ right _+_ (dotZR (tl v))⟩
+     hd v + 0r ≡⟨ rIdentity (hd v)⟩
+     hd v ≡⟨ cong v (ΣPathPProp (λ a → finSndIsProp a) refl)⟩
      v (Z , yp) ∎
    aux {n = S Z} v (S x , y , p) = ZNotS (sym (SInjective p)) |> UNREACHABLE
    aux {n = S (S n)} v (S x , y , p) =
-         let R' : (tail v ∙ λ z → I z (x , y , SInjective p)) ≡ tail v (x , y , SInjective p)
-             R' = aux (tail v) (x , y , SInjective p) in
-         let R : tail v ∙ I (x , y , SInjective p) ≡ tail v (x , y , SInjective p)
-             R = cong (λ a → tail v ∙ a (x , y , SInjective p)) idTranspose ⋆ R' in
+         let R' : (tl v ∙ λ z → I z (x , y , SInjective p)) ≡ tl v (x , y , SInjective p)
+             R' = aux (tl v) (x , y , SInjective p) in
+         let R : tl v ∙ I (x , y , SInjective p) ≡ tl v (x , y , SInjective p)
+             R = cong (λ a → tl v ∙ a (x , y , SInjective p)) idTranspose ⋆ R' in
     MT I v (S x , y , p) ≡⟨⟩
     v ∙ (λ z → I z (S x , y , p)) ≡⟨ cong (λ a → v ∙ λ z → a z (S x , y , p)) idTranspose ⟩
     v ∙ I (S x , y , p) ≡⟨⟩
-    (head v * head (I (S x , y , p))) + (tail v ∙ tail (I (S x , y , p))) ≡⟨⟩
-    (head v * (I (S x , y , p)) (Z , (S n) , refl)) + (tail v ∙ tail (I (S x , y , p))) ≡⟨⟩
-    (head v * 0r) + (tail v ∙ tail (I (S x , y , p))) ≡⟨ left _+_ (x*0≡0 (head v))⟩
-    0r + (tail v ∙ tail (I (S x , y , p))) ≡⟨ lIdentity (tail v ∙ tail (I (S x , y , p)))⟩
-    tail v ∙ tail (I (S x , y , p)) ≡⟨⟩
-    tail v ∙ I (x , y , SInjective p) ≡⟨ R ⟩
-    tail v (x , y , SInjective p) ≡⟨ cong v (ΣPathPProp (λ a → finSndIsProp a) refl)⟩
+    (hd v * hd (I (S x , y , p))) + (tl v ∙ tl (I (S x , y , p))) ≡⟨⟩
+    (hd v * (I (S x , y , p)) (Z , (S n) , refl)) + (tl v ∙ tl (I (S x , y , p))) ≡⟨⟩
+    (hd v * 0r) + (tl v ∙ tl (I (S x , y , p))) ≡⟨ left _+_ (x*0≡0 (hd v))⟩
+    0r + (tl v ∙ tl (I (S x , y , p))) ≡⟨ lIdentity (tl v ∙ tl (I (S x , y , p)))⟩
+    tl v ∙ tl (I (S x , y , p)) ≡⟨⟩
+    tl v ∙ I (x , y , SInjective p) ≡⟨ R ⟩
+    tl v (x , y , SInjective p) ≡⟨ cong v (ΣPathPProp (λ a → finSndIsProp a) refl)⟩
     v (S x , y , p) ∎
  
  IL-ID : (M : A → ℕ< n → C) → mMult I M ≡ M
@@ -452,21 +524,21 @@ module _{C : Type cℓ} {{R : Ring C}} where
    aux {n = Z} M (x , y , p) b = ZNotS (sym p) |> UNREACHABLE
    aux {n = S n} M (Z , yp) b =
      I (Z , yp) ∙ (λ z → M z b) ≡⟨⟩
-     (1r * head λ z → M z b) + ((λ _ → 0r) ∙ tail λ z → M z b) ≡⟨ left _+_ (lIdentity (head λ z → M z b))⟩
-     head (λ z → M z b) + ((λ _ → 0r) ∙ tail λ z → M z b) ≡⟨ right _+_ (dotZL (tail λ z → M z b))⟩
-     head (λ z → M z b) + 0r ≡⟨ rIdentity (head λ z → M z b)⟩
-     head (λ z → M z b) ≡⟨ left M (ΣPathPProp (λ a → finSndIsProp a) refl)⟩
+     (1r * hd λ z → M z b) + ((λ _ → 0r) ∙ tl λ z → M z b) ≡⟨ left _+_ (lIdentity (hd λ z → M z b))⟩
+     hd (λ z → M z b) + ((λ _ → 0r) ∙ tl λ z → M z b) ≡⟨ right _+_ (dotZL (tl λ z → M z b))⟩
+     hd (λ z → M z b) + 0r ≡⟨ rIdentity (hd λ z → M z b)⟩
+     hd (λ z → M z b) ≡⟨ left M (ΣPathPProp (λ a → finSndIsProp a) refl)⟩
      M (Z , yp) b ∎ 
    aux {n = S Z} M (S x , y , p) b = ZNotS (sym (SInjective p)) |> UNREACHABLE
    aux {n = S (S n)} M (S x , y , p) b =
-    let R : I (x , y , SInjective p) ∙ (λ z → tail M z b) ≡ tail M (x , y , SInjective p) b
-        R = aux (tail M) (x , y , SInjective p) b in
+    let R : I (x , y , SInjective p) ∙ (λ z → tl M z b) ≡ tl M (x , y , SInjective p) b
+        R = aux (tl M) (x , y , SInjective p) b in
     I (S x , y , p) ∙ (λ z → M z b) ≡⟨⟩
-    (0r * head λ z → M z b) + (tail (I (S x , y , p)) ∙ tail λ z → M z b) ≡⟨ left _+_ (0*x≡0 (head λ z → M z b))⟩
-    0r + (tail (I (S x , y , p)) ∙ tail (λ z → M z b)) ≡⟨ lIdentity (tail (I (S x , y , p)) ∙ tail λ z → M z b)⟩
-    tail (I (S x , y , p)) ∙ tail (λ z → M z b) ≡⟨⟩
-    I (x , y , SInjective p) ∙ tail (λ z → M z b) ≡⟨ R ⟩
-    tail M (x , y , SInjective p) b ≡⟨ left M (ΣPathPProp (λ a → finSndIsProp a) refl)⟩
+    (0r * hd λ z → M z b) + (tl (I (S x , y , p)) ∙ tl λ z → M z b) ≡⟨ left _+_ (0*x≡0 (hd λ z → M z b))⟩
+    0r + (tl (I (S x , y , p)) ∙ tl (λ z → M z b)) ≡⟨ lIdentity (tl (I (S x , y , p)) ∙ tl λ z → M z b)⟩
+    tl (I (S x , y , p)) ∙ tl (λ z → M z b) ≡⟨⟩
+    I (x , y , SInjective p) ∙ tl (λ z → M z b) ≡⟨ R ⟩
+    tl M (x , y , SInjective p) b ≡⟨ left M (ΣPathPProp (λ a → finSndIsProp a) refl)⟩
     M (S x , y , p) b ∎
  
  mAdd : (A → B → C) → (A → B → C) → (A → B → C)
@@ -515,28 +587,201 @@ module _{C : Type cℓ} {{R : Ring C}} where
 {-# DISPLAY mAdd a b = a + b #-}
 {-# DISPLAY mMult a b = a * b #-}
 
- {- The function 'withoutEach' is used as part of the definition of the determinant.
-   If you give it a vector
-      < a b c d e >
-   then it outputs the matrix
-    << b c d e >
-     < a c d e >
-     < a b d e >
-     < a b c e >
-     < a b c d >>
- -}
-withoutEach : < C ^ S n > → Matrix C n (S n)
-withoutEach {n = Z} v u _ = v u
-withoutEach {n = S n} v = tail v ∷ map (head v ∷_) (withoutEach (tail v))
+skipAt : < C ^ S n > → Matrix C n (S n)
+skipAt {n = Z} v u _ = v u
+skipAt {n = S n} v = tl v ∷ ((hd v ∷_) ∘ skipAt (tl v))
 
--- Determinant
-det : {{CRing C}} → Matrix C n n → C
-det {n = Z} M = 1r
-det {n = S n} M = foldr _-_ 0r $ zip (λ a x → a * det x)
-                                     (head M)
-                                     (withoutEach ((tail M) ᵀ))
+-- cofactor
+CF : (M : Matrix A (S n) (S m)) → ℕ< (S n) → ℕ< (S m) → Matrix A m n
+CF M x y = skipAt (skipAt M y ᵀ) x
+
+CF2 : (M : Matrix A (S n) (S m)) → ℕ< (S n) → ℕ< (S m) → Matrix A n m
+CF2 M x y = skipAt (skipAt (M ᵀ) x ᵀ) y
+
+lemma3 : (M : < C ^ (S(S m)) >) → ∀ y →
+         tl (tl (skipAt M) y) ≡
+         skipAt (tl M) y
+lemma3 {m = m} M y =   
+   let H : (tl (tl M ∷ ((hd M ∷_) ∘ (skipAt (tl M)))) y) ≡
+           hd M ∷ (skipAt (tl M) y)
+       H = tl (tl M ∷ ((hd M ∷_) ∘ (skipAt (tl M)))) y
+                     ≡⟨ cong (λ z → z y) (tl∷ (tl M) ( ((hd M ∷_) ∘ (skipAt (tl M))))) ⟩
+           hd M ∷ (skipAt (tl M) y) ∎
+          
+        in
+         tl (tl (skipAt M) y) ≡⟨⟩
+         tl (tl (tl M ∷ ((hd M ∷_) ∘ (skipAt (tl M)))) y) ≡⟨ cong tl H ⟩
+         tl (hd M ∷ (skipAt (tl M) y)) ≡⟨ tl∷ (hd M) (skipAt (tl M) y)⟩
+         skipAt (tl M) y ∎
+
+lemma4 : (v : < C ^ S(S n) >) → (b : ℕ< (S n))
+       → (hd v ∷ skipAt (tl v) b)
+       ≡ tl (skipAt v) b
+lemma4 v b = (hd v ∷ skipAt (tl v) b) ≡⟨ right _∷_ (sym (lemma3 v b)) ⟩
+             (hd (tl (skipAt v) b) ∷ tl(tl (skipAt v) b)) ≡⟨ tuple-η (tl (skipAt v) b) ⟩
+             tl (skipAt v) b ∎
+
+skipAtTranspose : (M : Matrix C (S n) m) → ∀ x → skipAt (M ᵀ) x ≡ λ a b → skipAt (M b) x a
+skipAtTranspose {C = C} {n = n}{m} M x = funExt $ aux M x
+ where
+  aux : ∀{n} → (M : Matrix C (S n) m) → ∀ x a → skipAt (M ᵀ) x a ≡ λ b → skipAt (M b) x a
+  aux {n = Z} _ _ (a , a' , A) = UNREACHABLE (ZNotS (sym A))
+  aux {n = S n} M (Z , _) _ = refl
+  aux {n = S n} M (S x , _) (Z , _) = refl
+  aux {n = S n} M (S x , x' , X) (S a , a' , A) = aux (λ z z₁ → M z (finS z₁)) (x , x' , SInjective X)
+                                                                               (a , a' , SInjective A)
+
+skipAtZip : (M : Matrix C m (S n))(v : ℕ< (S n) → C) → skipAt (zip _∷_ v M)
+                                                     ≡ zip (zip _∷_) (skipAt v) (skipAt M)
+skipAtZip M v = funExt λ a → funExt λ b → aux M v a b
+ where
+  aux : ∀{n m} → (M : Matrix C m (S n))(v : ℕ< (S n) → C)
+      → ∀ a b → skipAt (zip _∷_ v M) a b
+              ≡ zip _∷_ (skipAt v a) (skipAt M a) b
+  aux {n = Z} {m} M v a (b , b' , H) = UNREACHABLE (ZNotS (sym H))
+  aux {n = S n} {m} M v (Z , a' , H) b = refl
+  aux {n = S n} {m} M v (S a , a' , H) (Z , b₁ , G) = refl
+  aux {n = S n} {m} M v (S a₀ , a₁ , H) (S b₀ , b₁ , G) = aux (tl M)
+                                                              (tl v)
+                                                              (a₀ , a₁ , SInjective H)
+                                                              (b₀ , b₁ , SInjective G)
+hdtlᵀ : (M : Matrix C (S n) (S m)) → hd (tl (M ᵀ) ᵀ) ≡ tl (hd M)
+hdtlᵀ M = refl
+
+Matrix-η : (N : Matrix C (S n) m)
+         → zip _∷_ (hd ∘ N) (tl ∘ N) ≡ N
+Matrix-η N = funExt λ a → tuple-η (N a)
+
+
+CFᵀ : ∀ a b → (M : Matrix C (S n)(S m)) →
+        CF (M ᵀ) a b
+      ≡ (CF M b a) ᵀ
+CFᵀ {n = Z} a b M = funExt λ x → funExt λ{(y₀ , y₁ , Y) → UNREACHABLE (ZNotS (sym Y))}
+CFᵀ {n = S n} {m = Z} (a₀ , a₁ , A) (b₀ , b₁ , B) M = funExt λ{(x₀ , x₁ , X) → UNREACHABLE (ZNotS (sym X))}
+CFᵀ {n = S n} {m = S m} (Z , A) (Z , b₁ , B) M = refl
+CFᵀ {n = S n} {m = S m} (Z , a₁ , A) (S b₀ , b₁ , B) M' =
+      let M = (map tl (tl M')) in
+      let x = hd(hd M') in
+      let u = tl(hd M') in
+      let v = (map hd (tl M')) in
+      let b : ℕ< (S n)
+          b = (b₀ , b₁ , SInjective B) in
+     CF (M' ᵀ) (Z , a₁ , A) (S b₀ , b₁ , B) ≡⟨⟩
+     skipAt (skipAt (M' ᵀ) (S b₀ , b₁ , B) ᵀ) (Z , a₁ , A) ≡⟨⟩
+     tl ((skipAt (M' ᵀ) (S b₀ , b₁ , B) ᵀ)) ≡⟨⟩
+     tl ((hd (M' ᵀ) ∷ skipAt (tl (M' ᵀ)) b) ᵀ) ≡⟨ cong (λ z → tl ((hd (M' ᵀ) ∷ skipAt (tl (z ᵀ)) b) ᵀ)) (sym (tuple-η M')) ⟩
+     tl ((hd (M' ᵀ) ∷ skipAt (tl ((hd M' ∷ tl M') ᵀ)) b) ᵀ) ≡⟨ cong (λ z → tl ((hd (M' ᵀ) ∷ skipAt (tl ((z ∷ tl M') ᵀ)) b) ᵀ)) (sym (tuple-η (hd M'))) ⟩
+     tl ((hd (M' ᵀ) ∷ skipAt (tl (((x ∷ u) ∷ tl M') ᵀ)) b) ᵀ) ≡⟨ cong (λ z → tl ((hd (M' ᵀ) ∷ skipAt (tl (((x ∷ u)∷ z) ᵀ)) b) ᵀ))
+        (sym (Matrix-η (tl M'))) ⟩
+     tl ((hd (M' ᵀ) ∷ skipAt (tl (((x ∷ u) ∷ zip _∷_ v M) ᵀ)) b) ᵀ) ≡⟨ cong (λ z → tl ((hd (M' ᵀ) ∷ skipAt (tl z) b) ᵀ)) (zipTranspose2 M v u x) ⟩
+     tl ((hd (M' ᵀ) ∷ skipAt (tl ((x ∷ v) ∷ zip _∷_ u (M ᵀ))) b) ᵀ) ≡⟨ cong (λ z → tl ((hd (M' ᵀ) ∷ skipAt z b) ᵀ)) (tl∷ (λ z → x) (zip _∷_ u (M ᵀ))) ⟩
+     tl ((hd (M' ᵀ) ∷ skipAt (zip _∷_ u (M ᵀ)) b) ᵀ) ≡⟨ cong (λ z → tl (z ᵀ)) (left _∷_ (sym (tuple-η (hd (M' ᵀ))))) ⟩
+     tl (((x ∷ v) ∷ skipAt (zip _∷_ u (M ᵀ)) b) ᵀ) ≡⟨⟩
+     (tl ∘ ((x ∷ v) ∷ skipAt (zip _∷_ u (M ᵀ)) b))ᵀ ≡⟨ cong _ᵀ (∘∷ tl (skipAt (zip _∷_ u (M ᵀ)) b) ((x ∷ v))) ⟩
+     (tl (x ∷ v) ∷ (tl ∘ skipAt (zip _∷_ u (M ᵀ)) b))ᵀ ≡⟨ cong _ᵀ (left _∷_ (tl∷ x v)) ⟩
+     (v ∷ (tl ∘ skipAt (zip _∷_ u (M ᵀ)) b))ᵀ ≡⟨ cong (λ z → (v ∷ (tl ∘ z b))ᵀ) (skipAtZip (M ᵀ) u) ⟩
+     (v ∷ (tl ∘ (zip _∷_ (skipAt u b) (skipAt (M ᵀ) b))))ᵀ ≡⟨ cong (λ z → (v ∷ z) ᵀ) (tl∘zip∷ (λ z → x) (skipAt (M ᵀ) b)) ⟩
+     (v ∷ skipAt (M ᵀ) b) ᵀ ≡⟨⟩
+     (v ∷ skipAt (tl(tl M' ᵀ)) b) ᵀ ≡⟨⟩
+     ((hd (tl M' ᵀ)) ∷ skipAt (tl(tl M' ᵀ)) b) ᵀ ≡⟨⟩
+     ((hd (tl M' ᵀ)) ∷ skipAt (tl(tl M' ᵀ)) b) ᵀ ≡⟨⟩
+     skipAt (tl M' ᵀ)(S b₀ , b₁ , B) ᵀ ≡⟨⟩
+     skipAt (skipAt M' (Z , a₁ , A) ᵀ)(S b₀ , b₁ , B) ᵀ ≡⟨⟩
+     (CF M' (S b₀ , b₁ , B) (Z , a₁ , A) ᵀ) ∎
+CFᵀ {n = S n} {m = S m} (S a₀ , a₁ , A) (Z , b₁ , B) M' =
+      let M = (map tl (tl M')) in
+      let x = hd(hd M') in
+      let u = tl(hd M') in
+      let v = (map hd (tl M')) in
+      let a : ℕ< (S m)
+          a = (a₀ , a₁ , SInjective A) in
+     CF (M' ᵀ) (S a₀ , a₁ , A) (Z , b₁ , B) ≡⟨⟩
+     skipAt (skipAt (M' ᵀ) (Z , b₁ , B) ᵀ) (S a₀ , a₁ , A) ≡⟨⟩
+     skipAt (skipAt (M' ᵀ) (Z , b₁ , B) ᵀ) (S a₀ , a₁ , A) ≡⟨⟩
+     skipAt (tl (M' ᵀ) ᵀ) (S a₀ , a₁ , A) ≡⟨⟩
+     hd (tl (M' ᵀ) ᵀ) ∷ skipAt (tl(tl (M' ᵀ) ᵀ)) a ≡⟨⟩
+     tl (hd M') ∷ skipAt (tl(tl (M' ᵀ) ᵀ)) a ≡⟨⟩
+     tl (hd M') ∷ skipAt (tl ∘ (tl M')) a ≡⟨⟩
+
+     u ∷ skipAt M a ≡⟨ sym (ᵀInject (zipTranspose (skipAt M a) u)) ⟩
+     (zip _∷_ u ((skipAt M a)ᵀ))ᵀ ≡⟨ sym (ᵀInject (tl∷ (λ z → x) ((zip _∷_ u (skipAt M a ᵀ) ᵀ) ᵀ))) ⟩
+     tl ((x ∷ (skipAt v a)) ∷ zip _∷_ u (skipAt M a ᵀ) )ᵀ ≡⟨ cong (λ z → tl z ᵀ) (sym (zipTranspose2 (skipAt M a) (skipAt v a) u x)) ⟩
+     tl (((x ∷ u) ∷ zip _∷_ (skipAt v a) (skipAt M a)) ᵀ)ᵀ ≡⟨ cong (λ z → tl (((x ∷ u) ∷ z a) ᵀ) ᵀ) (sym (skipAtZip M v)) ⟩
+     tl (((x ∷ u) ∷ skipAt (zip _∷_ v M) a) ᵀ)ᵀ ≡⟨ cong (λ z → tl (((x ∷ u) ∷ skipAt z a) ᵀ) ᵀ) (Matrix-η (tl M')) ⟩
+     tl (((x ∷ u) ∷ skipAt (tl M') a) ᵀ)ᵀ ≡⟨ cong (λ z → tl ((z ∷ skipAt (tl M') a) ᵀ) ᵀ) (tuple-η (hd M')) ⟩
+     tl ((hd M' ∷ skipAt (tl M') a) ᵀ)ᵀ ≡⟨⟩
+     (tl (skipAt M' (S a₀ , a₁ , A) ᵀ) ᵀ) ≡⟨⟩
+     (skipAt (skipAt M' (S a₀ , a₁ , A) ᵀ) (Z , b₁ , B) ᵀ) ≡⟨⟩
+     (CF M' (Z , b₁ , B) (S a₀ , a₁ , A) ᵀ) ∎
+CFᵀ {n = S n} {m = S m} (S b₀ , b₁ , B) (S a₀ , a₁ , A) M' = 
+      let Sa : ℕ< (S(S n))
+          Sa = (S a₀ , a₁ , A) in
+      let Sb : ℕ< (S(S m))
+          Sb = (S b₀ , b₁ , B) in
+      let a : ℕ< (S n)
+          a = (a₀ , a₁ , SInjective A) in
+      let b : ℕ< (S m)
+          b = (b₀ , b₁ , SInjective B) in
+      let M = (map tl (tl M')) in
+      let x = hd(hd M') in
+      let u = tl(hd M') in
+      let v = (map hd (tl M')) in
+
+       CF (M' ᵀ) Sb Sa ≡⟨⟩
+       skipAt (skipAt (M' ᵀ) Sa ᵀ) Sb ≡⟨ cong (λ z → skipAt (skipAt (z ᵀ) Sa ᵀ) Sb) (sym (tuple-η M')) ⟩
+       skipAt (skipAt ((hd M' ∷ tl M') ᵀ) Sa ᵀ) Sb ≡⟨ cong (λ z → skipAt (skipAt ((z ∷ tl M') ᵀ) Sa ᵀ) Sb) (sym (tuple-η (hd M'))) ⟩
+       skipAt (skipAt (((hd(hd M') ∷ tl(hd M')) ∷ tl M')ᵀ) Sa ᵀ) Sb ≡⟨⟩
+       skipAt (skipAt (((x ∷ u) ∷ tl M')ᵀ) Sa ᵀ) Sb ≡⟨ cong (λ z → skipAt (skipAt (((x ∷ u) ∷ z) ᵀ) Sa ᵀ) Sb) (sym (Matrix-η (tl M'))) ⟩
+       skipAt (skipAt (((x ∷ u) ∷ zip _∷_ v M)ᵀ) Sa ᵀ) Sb ≡⟨ cong (λ z → skipAt (skipAt z Sa ᵀ) Sb) (zipTranspose2 M v u x)⟩
+       skipAt (skipAt (((x ∷ v) ∷ zip _∷_ u (M ᵀ))) Sa ᵀ) Sb ≡⟨⟩
+       skipAt (((x ∷ v) ∷ skipAt (tl((x ∷ v) ∷ zip _∷_ u (M ᵀ))) a) ᵀ) Sb
+        ≡⟨ cong (λ z → skipAt (((x ∷ v) ∷ skipAt z a) ᵀ) Sb ) (tl∷ (λ z → x) (zip _∷_ u (M ᵀ))) ⟩
+       skipAt (((x ∷ v) ∷ skipAt (zip _∷_ u (M ᵀ)) a) ᵀ) Sb
+         ≡⟨ cong (λ z → (skipAt (((x ∷ v) ∷ z a) ᵀ) Sb)) (skipAtZip (M ᵀ) u) ⟩
+       skipAt (((x ∷ v) ∷ zip _∷_ (skipAt u a) (skipAt (M ᵀ) a))ᵀ) Sb ≡⟨ cong (λ z → skipAt z Sb) (zipTranspose2 (skipAt (M ᵀ) a) (skipAt u a) v x) ⟩
+       skipAt ((x ∷ (skipAt u a)) ∷ zip _∷_ v ((skipAt (M ᵀ) a)ᵀ)) Sb ≡⟨⟩
+       ((x ∷ (skipAt u a)) ∷ skipAt (tl((x ∷ (skipAt u a)) ∷ zip _∷_ v ((skipAt (M ᵀ) a)ᵀ)))b)
+         ≡⟨ cong (λ z → ((x ∷ (skipAt u a)) ∷ skipAt z b)) (tl∷ (λ z → x) (zip _∷_ v (skipAt (M ᵀ) a ᵀ))) ⟩
+       ((x ∷ (skipAt u a)) ∷ skipAt (zip _∷_ v ((skipAt (M ᵀ) a)ᵀ))b)
+         ≡⟨ cong (λ z → ((x ∷ (skipAt u a)) ∷ z b)) (skipAtZip (skipAt (M ᵀ) a ᵀ) v) ⟩
+       ((x ∷ (skipAt u a)) ∷ (zip _∷_ (skipAt v b) (skipAt ((skipAt (M ᵀ) a)ᵀ) b))) ≡⟨⟩
+       ((x ∷ (skipAt u a)) ∷ (zip _∷_ (skipAt v b) (CF (M ᵀ) b a))) ≡⟨ right _∷_ (cong (zip _∷_ (skipAt v b)) (CFᵀ b a (λ z z₁ → M' (finS z) (finS z₁)))) ⟩
+       (x ∷ skipAt u a) ∷ zip _∷_ (skipAt v b) ((CF M a b)ᵀ) ≡⟨⟩
+       (x ∷ skipAt u a) ∷ zip _∷_ (skipAt v b) ((skipAt (skipAt M b ᵀ) a)ᵀ) ≡⟨ sym (zipTranspose2 (skipAt (skipAt M b ᵀ) a) (skipAt u a) (skipAt v b) x) ⟩
+       ((x ∷ skipAt v b) ∷ (zip _∷_ (skipAt u a) (skipAt (skipAt M b ᵀ) a))) ᵀ ≡⟨ cong _ᵀ (right _∷_ (sym (cong (λ z → z a) (skipAtZip (skipAt M b ᵀ) u)))) ⟩
+       ((x ∷ skipAt v b) ∷ (skipAt (zip _∷_ u (skipAt M b ᵀ)) a)) ᵀ ≡⟨ cong _ᵀ (right _∷_ (cong (λ z → skipAt z a) (sym (tl∷ (λ z → x) (zip _∷_ u (skipAt M b ᵀ)))))) ⟩
+       ((x ∷ skipAt v b) ∷ (skipAt (tl((x ∷ (skipAt v b)) ∷ (zip _∷_ u (skipAt M b ᵀ)))) a)) ᵀ ≡⟨⟩
+        skipAt ((x ∷ (skipAt v b)) ∷ (zip _∷_ u (skipAt M b ᵀ))) Sa ᵀ ≡⟨ cong (λ z → skipAt z Sa ᵀ) (sym (zipTranspose2 (skipAt M b) (skipAt v b) u x)) ⟩
+        skipAt (((x ∷ u) ∷ (zip _∷_ (skipAt v b) (skipAt M b))) ᵀ) Sa ᵀ ≡⟨ cong (λ z → skipAt (((x ∷ u) ∷ z b) ᵀ) Sa ᵀ) (sym (skipAtZip M v)) ⟩
+        skipAt (((x ∷ u) ∷ skipAt (zip _∷_ v M) b) ᵀ) Sa ᵀ ≡⟨ cong (λ z → skipAt (((x ∷ u) ∷ skipAt z b) ᵀ) Sa ᵀ) (sym (tl∷ (λ z → x) (zip _∷_ v M))) ⟩
+        skipAt (((x ∷ u) ∷ skipAt (tl((x ∷ u) ∷ (zip _∷_ v M))) b) ᵀ) Sa ᵀ ≡⟨⟩
+        skipAt (skipAt ((x ∷ u) ∷ (zip _∷_ v M)) Sb ᵀ) Sa ᵀ ≡⟨ cong (λ z → skipAt (skipAt ((x ∷ u) ∷ z) Sb ᵀ) Sa ᵀ) (Matrix-η (tl M')) ⟩
+        skipAt (skipAt ((x ∷ u) ∷ tl M') Sb ᵀ) Sa ᵀ ≡⟨ cong (λ z → skipAt z Sa ᵀ) (cong (λ z → skipAt (z ∷ tl M') Sb ᵀ) (tuple-η (hd M'))) ⟩
+        skipAt (skipAt (hd M' ∷ tl M') Sb ᵀ) Sa ᵀ ≡⟨ cong (λ z → skipAt (skipAt z Sb ᵀ) Sa ᵀ) (tuple-η M') ⟩
+        skipAt (skipAt M' Sb ᵀ) Sa ᵀ ≡⟨⟩
+       (CF M' Sa Sb) ᵀ ∎
+
+finNZ : ℕ → Type
+finNZ n = Σ λ x → Σ λ y → add (S(S x)) y ≡ S(S n)
 
 module _ {{R : CRing C}} where
+
+ fold- : < C ^ n > → C
+ fold- = foldr (λ x y → x - y) 0r
+
+ fold-0 : ∀ n → 0r ≡ fold- λ(_ : ℕ< n) → 0r
+ fold-0 Z = refl
+ fold-0 (S n) =
+      0r ≡⟨ sym grp.lemma4 ⟩
+      neg 0r ≡⟨ sym (lIdentity (neg 0r)) ⟩
+      0r - 0r ≡⟨ right _-_ (fold-0 n) ⟩
+      0r - fold- (tl (λ(_ : ℕ< (S n)) → 0r)) ≡⟨⟩
+      fold- (λ(_ : ℕ< (S n)) → 0r) ∎
+
+ -- Determinant
+ det : Matrix C n n → C
+ det {Z} M = 1r
+ det {S n} M = fold- $ hd M * map det (skipAt $ tl M ᵀ)
 
  instance
   dotComm : Commutative (_∙_ {C = C} {n = n} )
@@ -545,13 +790,149 @@ module _ {{R : CRing C}} where
     aux : (u v : < C ^ n >)
         → u ∙ v ≡ v ∙ u
     aux {n = Z} u v = refl
-    aux {n = S n} u v = cong₂ _+_ (comm (head u) (head v)) (aux (tail u) (tail v))
- 
+    aux {n = S n} u v = cong₂ _+_ (comm (hd u) (hd v)) (aux (tl u) (tl v))
+
  transposeMMult : (M : ℕ< n → A → C)
                 → (N : B → ℕ< n → C)
                 → (mMult M N) ᵀ ≡ mMult (N ᵀ) (M ᵀ)
  transposeMMult M N = funExt λ c → funExt λ b →
-     ((mMult M N) ᵀ) c b ≡⟨⟩
+     (mMult M N ᵀ) c b ≡⟨⟩
      N b ∙ (λ x → M x c)       ≡⟨ comm (N b) (λ x → M x c)⟩
      (λ x → M x c) ∙ N b       ≡⟨⟩
      mMult (N ᵀ) (M ᵀ) c b ∎
+
+
+ fold-Distr : (f : < C ^ n >) → (c : C) → c * fold- f ≡ fold- (c *> f)
+ fold-Distr {n = Z} f c = x*0≡0 c
+ fold-Distr {n = S n} f c =
+                c * fold- f ≡⟨⟩
+                c * (hd f + neg(fold- (tl f))) ≡⟨ lDistribute c (hd f) (neg (fold- (tl f)))⟩
+                (c * hd f) + (c * neg (fold- (tl f))) ≡⟨ right _+_ (x*-y≡-[x*y] c (fold- (tl f)))⟩
+                (c * hd f) - (c * fold- (tl f)) ≡⟨ right _-_ (fold-Distr (tl f) c) ⟩
+                hd (c *> f) - fold- (tl(c *> f)) ≡⟨⟩
+                fold- (c *> f) ∎
+
+ fold-Distr2 : (u v : < C ^ n >) → fold- (u - v) ≡ fold- u - fold- v
+ fold-Distr2 {n = Z} u v = sym (lIdentity (neg 0r) ⋆ grp.lemma4)
+ fold-Distr2 {n = S n} u v =
+   fold- (u - v) ≡⟨⟩
+   hd (u - v) - fold- (tl(u - v)) ≡⟨⟩
+   hd (u - v) - fold- (tl u - tl v) ≡⟨ right _-_ (fold-Distr2 (tl u) (tl v))⟩
+   hd (u - v) - (fold- (tl u) - fold- (tl v)) ≡⟨ grp.lemma5 (hd u) (hd v) (fold- (tl u)) (fold- (tl v))⟩
+   (hd u - fold- (tl u)) - (hd v - fold- (tl v)) ≡⟨⟩
+   fold- u - fold- v ∎
+
+ fold-ᵀ : (M : Matrix C n m) → fold- (fold- ∘ M) ≡ fold- (fold- ∘ (M ᵀ))
+ fold-ᵀ = Matrix-elim (λ{n m} → λ M → fold- (fold- ∘ M) ≡ fold- (fold- ∘ (M ᵀ)))
+   fold-0 (λ n → sym (fold-0 (S n)))
+     λ{n m} M H u v x →
+     fold- (fold- ∘ ((x ∷ u) ∷ zip _∷_ v M)) ≡⟨⟩
+     fold- (fold- (x ∷ u) ∷ (fold- ∘ zip _∷_ v M)) ≡⟨⟩
+     fold- (x ∷ u) - fold- (tl(fold- (x ∷ u) ∷ (fold- ∘ zip _∷_ v M))) ≡⟨ right _-_ (cong fold- (tl∷ (fold- (x ∷ u)) (fold- ∘ zip _∷_ v M)))⟩
+     fold- (x ∷ u) - fold- (fold- ∘ (zip _∷_ v M)) ≡⟨⟩
+     fold- (x ∷ u) - fold- (fold- ∘ (λ z → v z ∷ M z)) ≡⟨⟩
+     fold- (x ∷ u) - fold- (λ y → fold- (v y ∷ M y)) ≡⟨⟩
+     fold- (x ∷ u) - fold- (λ y → v y - fold- (tl(v y ∷ M y))) ≡⟨ right _-_ (cong fold- (funExt λ y → right _-_ (cong fold- (tl∷ (v y) (M y)))))⟩
+     (x - fold- (tl (x ∷ u))) - fold- (λ y → v y - fold- (M y)) ≡⟨⟩
+     fold- (x ∷ u) - fold- (λ y → v y - fold- (M y)) ≡⟨ left _-_ (right _-_ (cong fold- (tl∷ x u)))⟩
+     (x - fold- u) - fold- (λ y → v y - fold- (M y)) ≡⟨⟩
+     (x - fold- u) - fold- (v - (fold- ∘ M)) ≡⟨ right _-_ (fold-Distr2 v (fold- ∘ M))⟩
+     (x - fold- u) - (fold- v - fold- (fold- ∘ M)) ≡⟨ right _-_ (right _-_ H) ⟩
+     (x - fold- u) - (fold- v - fold- (fold- ∘ (M ᵀ))) ≡⟨ grp.lemma5 x (fold- u) (fold- v) (fold-(fold- ∘ (M ᵀ)))⟩
+     (x - fold- v) - (fold- u - fold- (fold- ∘ (M ᵀ))) ≡⟨ right _-_ (sym (fold-Distr2 u (fold- ∘ (M ᵀ))))⟩
+     (x - fold- v) - fold- (zip _-_ u (fold- ∘ (M ᵀ))) ≡⟨⟩
+     (x - fold- v) - fold- (λ y → u y - fold- ((M ᵀ) y)) ≡⟨ right _-_ (cong fold- (funExt λ y → right _-_ (cong fold- (sym (tl∷ (u y) ((M ᵀ) y)))))) ⟩
+     (x - fold- v) - fold- (λ y → fold- (u y ∷ (M ᵀ) y)) ≡⟨⟩
+     (x - fold- v) - fold- (fold- ∘ (zip _∷_ u (M ᵀ))) ≡⟨ left _-_ (right _-_ (cong fold- (sym (tl∷ x v))))⟩
+     fold- (x ∷ v) - fold- (fold- ∘ (zip _∷_ u (M ᵀ))) ≡⟨ right _-_ (cong fold- (sym(tl∷ (fold- (x ∷ v)) (fold- ∘ (zip _∷_ u (M ᵀ)))))) ⟩
+     fold- (x ∷ v) - fold- (tl(fold- (x ∷ v) ∷ (fold- ∘ ((zip _∷_ u (M ᵀ)))))) ≡⟨⟩
+     fold- (fold- (x ∷ v) ∷ (fold- ∘ ((zip _∷_ u (M ᵀ))))) ≡⟨⟩
+     fold- (fold- ∘ (((x ∷ v) ∷ zip _∷_ u (M ᵀ)))) ≡⟨⟩
+     fold- (fold- ∘ (((x ∷ u) ∷ zip _∷_ v M) ᵀ)) ∎
+  
+ -- The determinant of a matrix is equal to the determinant of its transpose
+ detTranspose : (M : Matrix C n n) → det M ≡ det(M ᵀ)
+ detTranspose {n = Z} M = refl
+ detTranspose {n = S Z} M = refl
+ detTranspose {n = S (S n)} M =
+   let v = tl(hd M) in
+   let u = tl(hd (M ᵀ)) in
+   let x = hd (hd M) in
+   let N : Matrix C (S n) (S (S n))
+       N = tl M ᵀ in
+   let O = tl (M ᵀ) ᵀ in
+   let H : det(hd (skipAt $ tl M ᵀ)) ≡ det((hd (skipAt $ tl M ᵀ))ᵀ)
+       H = detTranspose (hd (skipAt $ tl M ᵀ)) in
+    let P : ∀ x y → (CF ((tl(tl M ᵀ))) y x ᵀ) ≡ (CF ((tl(tl M ᵀ))ᵀ) x y)
+        P = λ x y → sym (CFᵀ x y (tl(tl M ᵀ))) in
+    let G : ∀ x y → det ((skipAt $ tl (tl(skipAt $ tl M ᵀ)y) ᵀ) x)
+                  ≡ det ((skipAt $ tl (tl(skipAt $ tl (M ᵀ) ᵀ)x) ᵀ) y)
+        G = λ x y →
+          det ((skipAt  (tl (tl(skipAt $ tl M ᵀ)y) ᵀ)) x) ≡⟨ cong (λ z → det (z x)) (cong skipAt (cong _ᵀ (lemma3 (tl M ᵀ) y))) ⟩
+          det ((skipAt ((skipAt (tl(tl M ᵀ))y) ᵀ)) x) ≡⟨⟩
+          det (CF (tl(tl M ᵀ)) x y) ≡⟨ detTranspose (CF (tl(tl M ᵀ)) x y) ⟩
+          det (CF ((tl(tl M ᵀ))) x y ᵀ) ≡⟨ cong det (P y x) ⟩
+          det (CF ((tl(tl M ᵀ))ᵀ) y x) ≡⟨⟩
+          det ((skipAt (((skipAt $ tl(tl M ᵀ) ᵀ)x) ᵀ)) y) ≡⟨⟩
+          det ((skipAt (((skipAt $ tl(tl (M ᵀ) ᵀ))x) ᵀ)) y) ≡⟨ sym (cong (λ z → det (skipAt (z ᵀ) y)) (lemma3 (tl (M ᵀ) ᵀ) x)) ⟩
+          det ((skipAt (tl (tl(skipAt $ tl (M ᵀ) ᵀ)x) ᵀ)) y) ∎
+       in
+   let F : (λ(x y : ℕ< (S n)) → u x * (v y * det ((skipAt $ tl (tl(skipAt $ tl M ᵀ)y) ᵀ) x) ))
+         ≡ (λ(x y : ℕ< (S n)) → u x * (v y * det ((skipAt $ tl (tl(skipAt $ tl (M ᵀ) ᵀ)x) ᵀ) y)))
+       F = funExt λ x → funExt λ y → right _*_ (right _*_ (G x y))
+   in
+
+   [wts (x * det(hd (skipAt $ tl M ᵀ))) - (fold- $ v * map det (tl(skipAt $ tl M ᵀ)))
+         ≡ (fold- $ hd (M ᵀ) * map det (skipAt $ (tl (M ᵀ)ᵀ)))]
+   [wts (x * det(hd (skipAt $ tl M ᵀ))) - (fold- $ v * map det (tl(skipAt $ tl M ᵀ)))
+     ≡ (x * det((hd (skipAt $ tl M ᵀ))ᵀ)) - (fold- $ tl(hd (M ᵀ)) * tl(map det (skipAt $ (tl (M ᵀ)ᵀ))))]
+         transport (λ i → (x * H (~ i))
+          - (fold- $ v * map det (tl(skipAt $ tl M ᵀ)))
+     ≡ (x * det((hd (skipAt $ tl M ᵀ))ᵀ)) - (fold- $ tl(hd (M ᵀ)) * tl(map det (skipAt $ (tl (M ᵀ)ᵀ)))))
+    $ right _-_ $
+        fold- (v * map det (tl(skipAt $ tl M ᵀ)))   ≡⟨⟩
+        fold- (v * map (λ X → fold- $ hd X * map det (skipAt $ tl X ᵀ)) (tl(skipAt $ tl M ᵀ)))   ≡⟨⟩
+        fold- (λ(x : ℕ< (S n)) → v x * (λ (X : Matrix C (S n) (S n)) → fold- $ hd X * map det (skipAt $ tl X ᵀ)) (tl(skipAt $ tl M ᵀ)x))  ≡⟨⟩
+        fold- (λ(x : ℕ< (S n)) → v x * fold- (hd (tl(skipAt $ tl M ᵀ)x) * map det (skipAt $ tl (tl(skipAt $ tl M ᵀ)x) ᵀ)))
+           ≡⟨ cong fold- (funExt λ x → fold-Distr (hd (tl(skipAt $ tl M ᵀ)x) * map det (skipAt $ tl (tl(skipAt $ tl M ᵀ)x) ᵀ)) (v x) ) ⟩
+        fold- (λ(x : ℕ< (S n)) → fold- (v x *> λ(y : ℕ< (S n)) → hd (tl(skipAt $ tl M ᵀ)x) y * det ((skipAt $ tl (tl(skipAt $ tl M ᵀ)x) ᵀ) y))) ≡⟨⟩
+        fold- (λ(x : ℕ< (S n)) → fold- λ(y : ℕ< (S n)) → v x * (u y * det ((skipAt $ tl (tl(skipAt $ tl M ᵀ)x) ᵀ) y))) ≡⟨⟩
+        fold- (fold- ∘ λ(x y : ℕ< (S n)) → v x * (u y * det ((skipAt $ tl (tl(skipAt $ tl M ᵀ)x) ᵀ) y))) ≡⟨ fold-ᵀ (λ(x y : ℕ< (S n)) → v x * (u y * det ((skipAt $ tl (tl(skipAt $ tl M ᵀ)x) ᵀ) y))) ⟩
+        fold- (fold- ∘ λ(x y : ℕ< (S n)) → v y * (u x * det ((skipAt $ tl (tl(skipAt $ tl M ᵀ)y) ᵀ) x))) ≡⟨ cong (λ(z : Matrix C (S n)(S n)) → fold- (fold- ∘ z)) (funExt λ x → funExt λ y → a[bc]≡b[ac] (v y) (u x) ( det ((skipAt $ tl (tl(skipAt $ tl M ᵀ)y) ᵀ) x))) ⟩
+        fold- (fold- ∘ λ(x y : ℕ< (S n)) → u x * (v y * det ((skipAt $ tl (tl(skipAt $ tl M ᵀ)y) ᵀ) x))) ≡⟨ cong (λ z → fold- (fold- ∘ z)) F ⟩
+        fold- (fold- ∘ λ(x y : ℕ< (S n)) → u x * (v y * det ((skipAt $ tl (tl(skipAt $ tl (M ᵀ) ᵀ)x) ᵀ) y))) ≡⟨⟩
+       
+        fold- (λ(x : ℕ< (S n)) → fold- (u x *> (hd (tl(skipAt $ tl (M ᵀ) ᵀ)x) * map det (skipAt $ tl (tl(skipAt $ tl (M ᵀ) ᵀ)x) ᵀ))))
+          ≡⟨ sym (cong fold- (funExt λ x → fold-Distr (hd (tl(skipAt $ tl (M ᵀ) ᵀ)x) * map det (skipAt $ tl (tl(skipAt $ tl (M ᵀ) ᵀ)x) ᵀ)) (u x))) ⟩
+        fold- (λ(x : ℕ< (S n)) → u x * fold- (hd (tl(skipAt $ tl (M ᵀ) ᵀ)x) * map det (skipAt $ tl (tl(skipAt $ tl (M ᵀ) ᵀ)x) ᵀ))) ≡⟨⟩
+        fold- (u * (det ∘ (tl(skipAt $ tl (M ᵀ)ᵀ)))) ∎
+
+ {-
+   IH : ∀(M : Matrix C n n). det(M) ≡ det(Mᵀ)
+   M : Matrix C n n
+   v u : <C^n>
+   x : C
+   [wts det((x∷v)∷zip _∷_ u M)
+      ≡ det((x∷u)∷zip _∷_ v Mᵀ)
+  i.e.
+      fold- $ (x∷v) * map det(skipAt(u∷Mᵀ))
+    ≡ fold- $ (x∷u) * map det(skipAt(v∷M))
+  i.e.
+      fold- $ (x∷v) * map det(Mᵀ ∷ map (u ∷_) (skipAt Mᵀ))
+    ≡ fold- $ (x∷u) * map det(M ∷ map (v ∷_) (skipAt M))
+  i.e.
+      x*det(Mᵀ) - fold- $ v * map det(map (u ∷_) (skipAt Mᵀ))
+    ≡ x*det(M) - fold- $ u * map det(map (v ∷_) (skipAt M))
+   ]
+   Using IH.
+    [wts  x*det(M) - fold- $ v * map det(map (u ∷_) (skipAt Mᵀ))
+        ≡ x*det(M) - fold- $ u * map det(map (v ∷_) (skipAt M))]
+    Thus,
+    [wts  fold- $ v * map det(map (u ∷_) (skipAt Mᵀ))
+        ≡ fold- $ u * map det(map (v ∷_) (skipAt M))]
+
+ -}
+
+add2 : ℕ × ℕ → ℕ
+add2 (Z , b) = b
+add2 (S a , b) = S (add2 (a , b))
