@@ -250,13 +250,22 @@ module _{τ : ℙ(ℙ A)}{{T : topology τ}} where
  boundary : ℙ A → ℙ A
  boundary X = λ p → p ∈ closure X × p ∉ interior X 
 
+ η-closure : (X : ℙ A) → X ⊆ closure X
+ η-closure X x x∈X = η λ P → _>> λ(X⊆P , H) → X⊆P x x∈X
+
  closureLemma1 : {X : ℙ A} → X ᶜ ∈ τ → closure X ≡ X
  closureLemma1 {X} Xᶜ∈τ = funExt λ x → propExt (_>> (λ H → H X (η ((λ _ z → z) , Xᶜ∈τ))))
-                                                λ x∈X → η λ P → _>> λ(X⊆P , H) → X⊆P x x∈X
+                                               (η-closure X x)
 
  closureClosed : {X : ℙ A} → (closure X)ᶜ ∈ τ
  closureClosed {X} = subst τ (sym ([⋂X]ᶜ≡⋃Xᶜ λ z → ∥ (X ⊆ z) × z ᶜ ∈ τ ∥))
    $ tunion λ Z → _>> λ(X⊆Zᶜ , [zᶜ]ᶜ∈τ) → subst τ dblCompl [zᶜ]ᶜ∈τ
+
+ map-closure : {X Y : ℙ A} → X ⊆ Y → closure X ⊆ closure Y
+ map-closure {X}{Y} X⊆Y z = _>> λ Z → Z (closure Y) $ η ((λ y y∈X → η-closure Y y (X⊆Y y y∈X)) , closureClosed)
+
+ μ-closure : (X : ℙ A) → (closure ∘ closure) X ⊆ closure X
+ μ-closure X z = _>> λ H → H (closure X) $ η $ (λ x z₁ → z₁) , closureClosed
 
  interiorLemma1 : {X : ℙ A} → interior X ⊆ X
  interiorLemma1 {X} x = _>> λ(a , x∈a , c) → c >> λ(d , e) → d x x∈a
@@ -268,10 +277,10 @@ module _{τ : ℙ(ℙ A)}{{T : topology τ}} where
  interiorLemma3 : (X : ℙ A) → interior X ∈ τ
  interiorLemma3 X = tunion λ x → _>> snd
 
- interiorMap : {X Y : ℙ A} → X ⊆ Y → interior X ⊆ interior Y
- interiorMap {X}{Y} X⊆Y Z Z∈IX = let Z∈X = interiorLemma1 Z Z∈IX in
-                                 let Z∈Y = X⊆Y Z Z∈X in η $ interior X ,
-                                 Z∈IX , η (((λ x x∈IX → X⊆Y x (interiorLemma1 x x∈IX))) , interiorLemma3 X)
+ map-interior : {X Y : ℙ A} → X ⊆ Y → interior X ⊆ interior Y
+ map-interior {X}{Y} X⊆Y Z Z∈IX = η $ interior X
+                                    , Z∈IX
+                                    , η ((λ x x∈IX → X⊆Y x $ interiorLemma1 x x∈IX) , interiorLemma3 X)
 
  ext≡closᶜ : {X : ℙ A} → exterior X ≡ (closure X)ᶜ
  ext≡closᶜ {X} = funExt λ x → propExt (_>> λ(Y , x∈Y , c) → c >> λ(Y∈τ , e) →
