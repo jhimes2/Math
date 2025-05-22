@@ -5,8 +5,6 @@ open import Cubical.Foundations.HLevels
 
 module Relations where
 
--- This is actually some sort of category
--- TODO: include an axiom '(a b : A) → isProp (a ≤ b)'
 record Category {A : Type aℓ} (_≤_ : A → A → Type ℓ) : Type(ℓ ⊔ aℓ) where
  field
    transitive : {a b c : A} → (a ≤ b) → (b ≤ c) → (a ≤ c)
