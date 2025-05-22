@@ -1,4 +1,4 @@
-{-# OPTIONS --allow-unsolved-metas --cubical --backtracking-instance-search --hidden-argument-pun #-}
+{-# OPTIONS --allow-unsolved-metas --cubical --hidden-argument-pun #-}
 
 module Experiments.experiments where
 
@@ -7,7 +7,7 @@ open import Relations
 open import Predicate
 open import Data.Natural
 open import Cubical.Foundations.Isomorphism
-open import Cubical.HITs.PropositionalTruncation renaming (rec to recTrunc)
+open import Cubical.HITs.PropositionalTruncation renaming (rec to recTrunc ; map to map₁)
 open import Data.Finite
 open import Data.Bool
 
@@ -18,7 +18,7 @@ JTrans : {a b c : A} → a ≡ b → b ≡ c → a ≡ c
 JTrans {A = A} {a = a} {b} {c} p = let P = λ {b c : A} (q : b ≡ c) → a ≡ c
    in JRule P b p 
 
-_==_ : {A : Type ℓ} → A → A → Type (l ⊔ (lsuc lzero))
+_==_ : {A : Type ℓ} → A → A → Type (ℓ ⊔ (lsuc lzero))
 _==_ {A = A} a b = (P : A → Type) → P a → P b
 
 refl== : {x : A} → x == x
@@ -87,7 +87,7 @@ module _{_≤_ : A → A → Type aℓ} where
   ΣPoset : {{PO : Poset _≤_}} → {P : A → Type ℓ} → {{property : Property P}} → Poset λ((x , _)(y , _) : Σ P) → x ≤ y
   ΣPoset {P} = {!!}
 instance
- ΣTotalOrder : {{PO : TotalOrder al A}} → {P : A → Type ℓ} → {{property : Property P}} → TotalOrder al (Σ P)
+ ΣTotalOrder : {{PO : TotalOrder aℓ A}} → {P : A → Type ℓ} → {{property : Property P}} → TotalOrder aℓ (Σ P)
  ΣTotalOrder {P} = {!!}
  negProperty : {P : A → Type ℓ} → Property λ x → ¬(P x)
  negProperty {P} = {!!}
@@ -118,13 +118,25 @@ distinguish2 f H with natDiscrete (f Z) Z
                    S x , G
 ...   |  (no p) = Z , p
 
+data genPreOrder {A : Type ℓ}(R : A → A → Type ℓ) : Type ℓ where
+  introGPO : A → genPreOrder R
+  GPOSquish : ∀ x y → R x y → R y x → introGPO x ≡ introGPO y
+
+genPO : (R : A → A → Type ℓ) → {{cat : Category R}} → genPreOrder R → genPreOrder R → Type ℓ
+genPO R (introGPO x) (introGPO y) = ∥ R x y ∥₁
+-- ∥ R x y ∥₁ ≡ ∥ R x z ∥₁
+genPO R (introGPO x) (GPOSquish y z q p i) = propExt squash₁ squash₁ (map₁ (λ(r : R x y) → transitive r q))
+        (map₁ λ(r : R x z) → transitive r p) i
+-- ∥ R x p ∥₁ ≡ ∥ R y p ∥₁
+genPO R (GPOSquish x y G H i) (introGPO p) = propExt squash₁ squash₁ (map₁ λ(r : R x p) → transitive H r)
+                   (map₁ (λ r → transitive G r)) i
+genPO R (GPOSquish a b G H i) (GPOSquish x y P Q j) = hcomp {!!} {!GPOSquish!} -- propExt {!!} {!!} {!!} {!!} (i ∧ j)
+
 zorn : {_≤_ : A → A → Type} → {{_ : Poset _≤_}}
      → ((C : A → Type aℓ) → chain C → Σ λ g → ∀ x → x ∈ C → g ≤ x → g ≡ x)
      → ∃ λ g → ∀ x → g ≤ x → g ≡ x
 zorn {A = A} {_≤_ = _≤_} = {!!}
 
-test2 : Dec ((A : Type aℓ) → Dec A)
-test2 {al} = no λ x → (LEM (Dec ((A : Type aℓ) → Dec A))) |> λ{x → {!!}}
 
 DNElimF : ¬ ((l : Level) → (A : Type) → ¬(¬ A) → A)
 DNElimF dn =
