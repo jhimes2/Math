@@ -258,9 +258,20 @@ module _{τ : ℙ(ℙ A)}{{T : topology τ}} where
  closureClosed {X} = subst τ (sym ([⋂X]ᶜ≡⋃Xᶜ λ z → ∥ (X ⊆ z) × z ᶜ ∈ τ ∥))
    $ tunion λ Z → _>> λ(X⊆Zᶜ , [zᶜ]ᶜ∈τ) → subst τ dblCompl [zᶜ]ᶜ∈τ
 
- interiorLemma1 : {X : ℙ A} → X ∈ τ → interior X ≡ X
- interiorLemma1 {X} X∈τ = funExt λ x → propExt (_>> λ(a , x∈a , c) → c >> λ(d , e) → d x x∈a)
+ interiorLemma1 : {X : ℙ A} → interior X ⊆ X
+ interiorLemma1 {X} x = _>> λ(a , x∈a , c) → c >> λ(d , e) → d x x∈a
+
+ interiorLemma2 : {X : ℙ A} → X ∈ τ → interior X ≡ X
+ interiorLemma2 {X} X∈τ = funExt λ x → propExt (interiorLemma1 x)
                                                 λ x∈X → η (X , x∈X , η ((λ y z → z) , X∈τ))
+
+ interiorLemma3 : (X : ℙ A) → interior X ∈ τ
+ interiorLemma3 X = tunion λ x → _>> snd
+
+ interiorMap : {X Y : ℙ A} → X ⊆ Y → interior X ⊆ interior Y
+ interiorMap {X}{Y} X⊆Y Z Z∈IX = let Z∈X = interiorLemma1 Z Z∈IX in
+                                 let Z∈Y = X⊆Y Z Z∈X in η $ interior X ,
+                                 Z∈IX , η (((λ x x∈IX → X⊆Y x (interiorLemma1 x x∈IX))) , interiorLemma3 X)
 
  ext≡closᶜ : {X : ℙ A} → exterior X ≡ (closure X)ᶜ
  ext≡closᶜ {X} = funExt λ x → propExt (_>> λ(Y , x∈Y , c) → c >> λ(Y∈τ , e) →
