@@ -58,7 +58,7 @@ Algebra/Field.agdai: Algebra/Field.agda Algebra/CRing.agdai
 Algebra/CRing.agdai: Algebra/CRing.agda Algebra/Ring.agdai
 	agda $<
 
-Algebra/Ring.agdai: Algebra/Ring.agda Algebra/Semiring.agdai Predicate.agdai
+Algebra/Ring.agdai: Algebra/Ring.agda Algebra/Semiring.agdai
 	agda $<
 
 Algebra/Semiring.agdai: Algebra/Semiring.agda Algebra/Monoid.agdai

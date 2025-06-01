@@ -7,9 +7,12 @@ open import Relations
 open import Predicate
 open import Data.Natural
 open import Cubical.Foundations.Isomorphism
+open import Cubical.Foundations.HLevels
 open import Cubical.HITs.PropositionalTruncation renaming (rec to recTrunc ; map to map₁)
+open import Cubical.HITs.SetQuotients renaming (rec to rec/ ; elim to elim/ ; rec2 to rec2/)
 open import Data.Finite
 open import Data.Bool
+open import Cubical.Foundations.Transport
 
 JRule : (P : {x y : A} → x ≡ y → Type ℓ) → (x : A) → P (λ _ → x) → {y : A} → (p : x ≡ y) → P p
 JRule P x = J (λ y → P {x = x} {y})
@@ -60,44 +63,31 @@ reflLoopF : ((λ i → base) ≡ loop) → Yes ≡ No
 reflLoopF contra = λ i → endPtOfYes (contra i)
 
 --Euclid's-Lemma : (a b c : ℕ) → gcd a b ≡ S Z → a ∣ copy b c → a ∣ c
---Euclid's-Lemma a b c coprime p = p >>= λ(x , p) → ∣ {!!} , {!!} ∣₁
+--Euclid's-Lemma a b c coprime p = p >>= λ(x , p) → ∣ {! !} , {! !} ∣₁
 
 Schröder–Bernstein : {A : Type aℓ}
                    → {B : Type bℓ}
                    → (f : A → B) → leftInverse f
                    → (g : B → A) → leftInverse g → Σ λ(h : A → B) → bijective h
-Schröder–Bernstein f (f' , finv) g (g' , ginv) = {!!}
+Schröder–Bernstein f (f' , finv) g (g' , ginv) = {! !}
 
 
-S1Equiv : Interval → Interval → Type
-S1Equiv i j = {!!}
+--zorn' : {_≤_ : A → A → Type} → {{_ : Poset _≤_}}
+--      → ((C : A → Type aℓ) → chain C → Σ λ x → ∀ g → g ∈ C → x ≤ g)
+--      → Σ λ(x : A) → ∀ g → g ≤ x → x ≤ g
+--zorn' {A = A} {_≤_ = _≤_} ch = {! !}
 
-zorn' : {_≤_ : A → A → Type} → {{_ : Poset _≤_}}
-      → ((C : A → Type aℓ) → chain C → Σ λ x → ∀ g → g ∈ C → x ≤ g)
-      → Σ λ(x : A) → ∀ g → g ≤ x → x ≤ g
-zorn' {A = A} {_≤_ = _≤_} ch = {!!}
-
-distinguish3 : (f : ℕ → 𝔹) → f ≢ (λ x → Yes) → Σ λ x → (f x ≡ No) × ∀ y → f y ≡ No → x ≤ y
-distinguish3 f H = {!!}
-
-module _{_≤_ : A → A → Type aℓ} where
- instance
-  ΣPreorder : {{PO : Preorder _≤_}} → {P : A → Type ℓ} → {{property : Property P}} → Preorder λ((x , _)(y , _) : Σ P) → x ≤ y
-  ΣPreorder {P} = {!!}
-  ΣPoset : {{PO : Poset _≤_}} → {P : A → Type ℓ} → {{property : Property P}} → Poset λ((x , _)(y , _) : Σ P) → x ≤ y
-  ΣPoset {P} = {!!}
-instance
- ΣTotalOrder : {{PO : TotalOrder aℓ A}} → {P : A → Type ℓ} → {{property : Property P}} → TotalOrder aℓ (Σ P)
- ΣTotalOrder {P} = {!!}
- negProperty : {P : A → Type ℓ} → Property λ x → ¬(P x)
- negProperty {P} = {!!}
-
-distinguish4 : (f : ℕ → 𝔹)
-             → f ≢ (λ x → Yes)
-             → Σ λ (a : Σ λ x → f x ≢ Yes) → (b : Σ λ y → f y ≢ Yes)
-                                           → b ≤ a
-                                           → a ≤ b
-distinguish4 f H = zorn' {!λ C Chain → ?!}
+--module _{_≤_ : A → A → Type aℓ} where
+-- instance
+--  ΣPreorder : {{PO : Preorder _≤_}} → {P : A → Type ℓ} → {{property : Property P}} → Preorder λ((x , _)(y , _) : Σ P) → x ≤ y
+--  ΣPreorder {P} = {! !}
+--  ΣPoset : {{PO : Poset _≤_}} → {P : A → Type ℓ} → {{property : Property P}} → Poset λ((x , _)(y , _) : Σ P) → x ≤ y
+--  ΣPoset {P} = {! !}
+--instance
+-- ΣTotalOrder : {{PO : TotalOrder aℓ A}} → {P : A → Type ℓ} → {{property : Property P}} → TotalOrder aℓ (Σ P)
+-- ΣTotalOrder {P} = {! !}
+-- negProperty : {P : A → Type ℓ} → Property λ x → ¬(P x)
+-- negProperty {P} = {! !}
 
 {-# TERMINATING #-}
 distinguish : (f : ℕ → 𝔹) → f ≢ (λ x → Yes) → Σ λ x → f x ≢ Yes
@@ -118,32 +108,55 @@ distinguish2 f H with natDiscrete (f Z) Z
                    S x , G
 ...   |  (no p) = Z , p
 
-data genPreOrder {A : Type ℓ}(R : A → A → Type ℓ) : Type ℓ where
-  introGPO : A → genPreOrder R
-  GPOSquish : ∀ x y → R x y → R y x → introGPO x ≡ introGPO y
+GPO : {A : Type aℓ} → (A → A → Type ℓ) → Type (ℓ ⊔ aℓ)
+GPO {A} R = A / λ x y → R x y × R y x
 
-genPO : (R : A → A → Type ℓ) → {{cat : Category R}} → genPreOrder R → genPreOrder R → Type ℓ
-genPO R (introGPO x) (introGPO y) = ∥ R x y ∥₁
--- ∥ R x y ∥₁ ≡ ∥ R x z ∥₁
-genPO R (introGPO x) (GPOSquish y z q p i) = propExt squash₁ squash₁ (map₁ (λ(r : R x y) → transitive r q))
-        (map₁ λ(r : R x z) → transitive r p) i
--- ∥ R x p ∥₁ ≡ ∥ R y p ∥₁
-genPO R (GPOSquish x y G H i) (introGPO p) = propExt squash₁ squash₁ (map₁ λ(r : R x p) → transitive H r)
-                   (map₁ (λ r → transitive G r)) i
-genPO R (GPOSquish a b G H i) (GPOSquish x y P Q j) = hcomp {!!} {!GPOSquish!} -- propExt {!!} {!!} {!!} {!!} (i ∧ j)
+transTest : (a b c d : A) → b ≡ a → b ≡ c → c ≡ d → a ≡ d
+transTest a b c d ba bc cd i = hcomp
+         (λ k →
+             λ{
+             (i = i0) → ba k
+           ; (i = i1) → cd k
+           })
+  (bc i)
 
-zorn : {_≤_ : A → A → Type} → {{_ : Poset _≤_}}
-     → ((C : A → Type aℓ) → chain C → Σ λ g → ∀ x → x ∈ C → g ≤ x → g ≡ x)
-     → ∃ λ g → ∀ x → g ≤ x → g ≡ x
-zorn {A = A} {_≤_ = _≤_} = {!!}
+isProp[Y]→isProp[X≡Y] : (X Y : Type ℓ) → isProp Y → isProp (X ≡ Y)
+isProp[Y]→isProp[X≡Y] X Y G P Q = isInjectiveTransport (funExt λ x → G (transport P x) (transport Q x))
 
+isOfHLevel' : ℕ → Type ℓ → Type ℓ
+isOfHLevel' Z A = isContr A
+isOfHLevel' (S Z) A = isProp A
+isOfHLevel' (S (S n)) A = (x y : A) → isOfHLevel' (S n) (x ≡ y)
+
+isPropIsOfHLevel' : (n : ℕ) → isProp (isOfHLevel' n A)
+isPropIsOfHLevel' Z = isPropIsContr
+isPropIsOfHLevel' (S Z) = isPropIsProp
+isPropIsOfHLevel' (S (S n)) f g i a b =
+  isPropIsOfHLevel' (S n) (f a b) (g a b) i
+
+genPO : (R : A → A → Type ℓ) → {{cat : Category R}} → GPO R → GPO R → Type ℓ
+genPO R p q = fst $ rec2/ isSetHProp (λ x y →  ∥ R x y ∥₁ , squash₁)
+   (λ a b c (Rab , Rba) → Σ≡Prop
+        (λ x → isPropIsProp) (propExt squash₁ squash₁ (map λ Rac → transitive {a = b} Rba Rac)
+                                                      (map λ Rbc → transitive {a = a} Rab Rbc)))
+   (λ a b c (Rbc , Rcb) → Σ≡Prop
+        (λ x → isPropIsProp) (propExt squash₁ squash₁ (map λ Rab → transitive {a = a} Rab Rbc)
+                                                      (map λ Rac → transitive {a = a} Rac Rcb))) p q
+
+zorn : Typeω
+zorn = ∀{ℓ ℓ₁ ℓ₂} → {A : Type ℓ}{_≤_ : A → A → Type ℓ₁}{{P : Poset _≤_}}
+     → ((C : A → Type ℓ₂) → chain C → Σ λ g → ∀ x → x ∈ C → x ≤ g)
+     → ∃ λ(m : A) → maximal m
+zorn2 : Typeω
+zorn2 = ∀{ℓ ℓ₁} → {A : Type ℓ}{_≤_ : A → A → Type ℓ₁}{{P : Poset _≤_}}
+     → ∃ λ(C : Σ (chain {bℓ = ℓ₁} {A = A})) → maximal C
 
 DNElimF : ¬ ((l : Level) → (A : Type) → ¬(¬ A) → A)
 DNElimF dn =
   let f = dn lzero 𝔹 in
   let isEq : (A : Type) → Discrete A
-      isEq = {!!}
-  in {!!}
+      isEq = {! !}
+  in {! !}
 
 -- https://en.wikipedia.org/wiki/Klein_four-group
 -- Would this be a klein four-group?

@@ -1,4 +1,4 @@
-{-# OPTIONS --cubical --safe --backtracking-instance-search #-}
+{-# OPTIONS --cubical --safe --backtracking-instance-search --hidden-argument-pun #-}
 
 open import Prelude
 open import Cubical.Foundations.HLevels
@@ -11,8 +11,8 @@ record Category {A : Type aℓ} (_≤_ : A → A → Type ℓ) : Type(ℓ ⊔ a�
    reflexive : (a : A) → a ≤ a
 open Category {{...}} public
 
-eqToLe : {_≤_ : A → A → Type ℓ} → {{_ : Category _≤_}} → {a b : A} → a ≡ b → a ≤ b
-eqToLe {_≤_ = _≤_} {a = a} p = transport (λ i → a ≤ p i) (reflexive a)
+eqToLe : {_≤_ : A → A → Type ℓ}{{_ : Category _≤_}} → {a b : A} → a ≡ b → a ≤ b
+eqToLe {_≤_} {a = a} p = transport (λ i → a ≤ p i) (reflexive a)
 
 -- https://en.wikipedia.org/wiki/Preorder
 record Preorder {A : Type aℓ} (_≤_ : A → A → Type ℓ) : Type(ℓ ⊔ aℓ) where
@@ -29,18 +29,18 @@ record Poset {A : Type ℓ}(_≤_ : A → A → Type aℓ) : Type (ℓ ⊔ aℓ)
    antiSymmetric : {a b : A} → (a ≤ b) → (b ≤ a) → a ≡ b
 open Poset {{...}} public
 
-_<_ : {A : Type aℓ} → {_≤_ : A → A → Type ℓ} → {{Poset _≤_}} → A → A → Type(ℓ ⊔ aℓ)
-_<_ {_≤_ = _≤_} a b = (a ≤ b) × (a ≢ b)
+_<_ : {A : Type aℓ}{_≤_ : A → A → Type ℓ} → {{Poset _≤_}} → A → A → Type(ℓ ⊔ aℓ)
+_<_ {_≤_} a b = (a ≤ b) × (a ≢ b)
 
-a<b→b≤c→a≢c : {_≤_ : A → A → Type ℓ} {{O : Poset _≤_}} → {a b c : A} → a < b → b ≤ c → a ≢ c 
-a<b→b≤c→a≢c {_≤_ = _≤_} {a = a} {b} {c} (q , p) b<c contra = p
+a<b→b≤c→a≢c : {_≤_ : A → A → Type ℓ} {{O : Poset _≤_}} {a b c : A} → a < b → b ≤ c → a ≢ c 
+a<b→b≤c→a≢c {_≤_} {a = a} {b} {c} (q , p) b<c contra = p
      $ antiSymmetric q $ transport (λ i → b ≤ contra (~ i)) b<c
 
-minimal : {A : Type aℓ}{_≤_ : A → A → Type ℓ} → {{P : Poset _≤_}} → A → Type (ℓ ⊔ aℓ)
-minimal {_≤_ = _≤_} a = ∀ x → x ≤ a → a ≤ x
+minimal : {A : Type aℓ}{_≤_ : A → A → Type ℓ}{{P : Category _≤_}} → A → Type (ℓ ⊔ aℓ)
+minimal {_≤_} a = ∀ x → x ≤ a → a ≤ x
 
-maximal : {A : Type aℓ}{_≤_ : A → A → Type ℓ} → {{P : Poset _≤_}} → A → Type (ℓ ⊔ aℓ)
-maximal {_≤_ = _≤_} a = ∀ x → a ≤ x → x ≤ a
+maximal : {A : Type aℓ}{_≤_ : A → A → Type ℓ}{{P : Category _≤_}} → A → Type (ℓ ⊔ aℓ)
+maximal {_≤_} a = ∀ x → a ≤ x → x ≤ a
 
 -- https://en.wikipedia.org/wiki/Total_order
 record TotalOrder (ℓ : Level) (A : Type aℓ) : Type (lsuc ℓ ⊔ aℓ)
@@ -50,13 +50,13 @@ record TotalOrder (ℓ : Level) (A : Type aℓ) : Type (lsuc ℓ ⊔ aℓ)
    stronglyConnected : (a b : A) → (a ≤ b) ＋ (b ≤ a)
 open TotalOrder {{...}} public
 
-flipNeg : {{TO : TotalOrder aℓ A}} → {a b : A} → ¬(b ≤ a) → a < b
-flipNeg {a = a} {b} p = (stronglyConnected a b
+flipNeg : {{TO : TotalOrder aℓ A}}{a b : A} → ¬(b ≤ a) → a < b
+flipNeg {a} {b} p = (stronglyConnected a b
                          |>  (λ{ (inl x) → x
                                ; (inr x) → p x |> UNREACHABLE})), aux p
   where
-   aux : {{TO : TotalOrder aℓ A}} → {a b : A} → ¬(b ≤ a) → a ≢ b
-   aux {a = a} {b} = modusTollens (λ x → transport (λ i → x i ≤ a) (reflexive a))
+   aux : {{TO : TotalOrder aℓ A}}{a b : A} → ¬(b ≤ a) → a ≢ b
+   aux {a}{b} = modusTollens (λ x → transport (λ i → x i ≤ a) (reflexive a))
 
 record ConstructiveWellOrder (l : Level) (A : Type aℓ) : Type (lsuc (l ⊔ aℓ))
   where field
@@ -65,7 +65,7 @@ record ConstructiveWellOrder (l : Level) (A : Type aℓ) : Type (lsuc (l ⊔ a�
 open ConstructiveWellOrder {{...}} public
 
 compPath : ∀ {ℓ} {A : Set ℓ} {x y z : A} → x ≡ y → y ≡ z → x ≡ z
-compPath {x = x} p q i = hcomp (λ j → λ { (i = i0) → x
+compPath {x} p q i = hcomp (λ j → λ { (i = i0) → x
                                         ; (i = i1) → q j })
                                (p i)
 

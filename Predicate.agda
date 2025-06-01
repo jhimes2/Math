@@ -68,8 +68,8 @@ DeMorgan6 f (a , p) = f a p
 ∅ : A → Type ℓ
 ∅ = λ _ → Lift ⊥
 
-chain : {A : Type aℓ} {_≤_ : A → A → Type} → {{_ : Poset _≤_}} → (A → Type aℓ) → Type aℓ
-chain {_≤_ = _≤_} C = ∀ a b → a ∈ C → b ∈ C → ¬(a ≤ b) → b ≤ a
+chain : {A : Type aℓ}{_≤_ : A → A → Type ℓ}{{P : Poset _≤_}} → (A → Type bℓ) → Type (ℓ ⊔ aℓ ⊔ bℓ)
+chain {_≤_} C = ∀ a b → a ∈ C → b ∈ C → ¬(a ≤ b) → b ≤ a
 
 instance
 
@@ -154,9 +154,9 @@ instance
    ; reflexive = λ a → reflexive (fst a)
    }
 
- inclusionPre : {P : A → Type aℓ} → {_≤_ : A → A → Type ℓ} → {{_ : Preorder _≤_}}
+ inclusionPre2 : {P : A → Type aℓ} → {_≤_ : A → A → Type ℓ} → {{_ : Preorder _≤_}}
                → Preorder (λ(X Y : Σ P) → fst X ≤ fst Y)
- inclusionPre {_≤_ = _≤_} = record
+ inclusionPre2 {_≤_ = _≤_} = record
    { isRelation = λ (a , _) (b , _) → isRelation a b }
 
 ∩Complement : (X : A → Type ℓ) → X ∩ X ᶜ ≡ ∅

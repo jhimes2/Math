@@ -69,8 +69,8 @@ instance
      { tfull = η $ inl refl
      ; tunion = λ {X} H →
       LEM (𝓤 ∈ X)
-        |> λ{ (inl p) → η (inl (funExt λ x → propExt 
-           (λ G → tt) λ G → η (𝓤 , tt , p))) 
+        |> λ{ (inl p) → η (inl (funExt λ x → propExt
+           (λ G → tt) λ G → η (𝓤 , tt , p)))
             ; (inr p) → η $ inr (funExt λ x → propExt (_>> λ(Y , F , G)
              → H Y G >> λ{ (inl q) → p (subst X q G) ; (inr q) → substP x (sym q) F }) λ x∈∅ → UNREACHABLE $ x∈∅)}
      ; tintersection = λ{X}{Y} ∥X∈ind∥ ∥Y∈ind∥ →
@@ -128,8 +128,8 @@ module _{A : set aℓ}
  continuous : (A → B) → set bℓ
  continuous f = (V : ℙ B) → V ∈ τ₁ → f ⁻¹[ V ] ∈ τ₀
 
-module _{A : set aℓ}        {B : set aℓ}        
-        {τ₀ : ℙ(ℙ A)}       {τ₁ : ℙ(ℙ B)}       
+module _{A : set aℓ}        {B : set aℓ}
+        {τ₀ : ℙ(ℙ A)}       {τ₁ : ℙ(ℙ B)}
         {{T0 : topology τ₀}}{{T1 : topology τ₁}} where
 
  instance
@@ -147,7 +147,7 @@ module _{A : set aℓ}        {B : set aℓ}
           H P P∈X >> λ(t , u) → u b )))
      ; tintersection = λ{X}{Y} H G → H >> λ(t , u)
                                    → G >> λ(p , q) → η ((λ a → tintersection (t a) (p a))
-                                                           , λ b → tintersection (u b) (q b))
+                                                       , λ b → tintersection (u b) (q b))
      }
 
   -- Proving that the disjoint union space is a topological space
@@ -156,7 +156,7 @@ module _{A : set aℓ}        {B : set aℓ}
                 { tfull = (tfull , tfull)
                 ; tunion = λ{Z}
                             (Z⊆⊎ : (∀ x → x ∈ Z → (λ p → x (inl p)) ∈ τ₀
-                                                 × (λ p → x (inr p)) ∈ τ₁)) →
+                                                × (λ p → x (inr p)) ∈ τ₁)) →
                   let H : ⋃ (map (λ H a → H (inl a)) Z) ≡ λ a → ⋃ Z (inl a)
                       H = funExt λ x → propExt (_>> λ(a , x∈a , c)
                         → c >> λ(d , d∈Z , f) → η $
@@ -178,7 +178,7 @@ module _{A : set aℓ}        {B : set aℓ}
                                                   (snd(Z⊆⊎ a a∈Z)))
                 ; tintersection = λ{X Y} (p , P) (q , Q) → tintersection p q , tintersection P Q
                 }
-          
+
  {- Partially applying a continuous function whose domain is a (not) product space
     will result in a continuous function. -}
  partialAppContinuous : {C : set cℓ}
@@ -186,7 +186,7 @@ module _{A : set aℓ}        {B : set aℓ}
                       → {{T2 : topology τ₂}}
                       → {f : (A × B) → C}
                       → continuous (NotProductSpace τ₀ τ₁) τ₂ f
-                      → ∀ a → continuous τ₁ τ₂ λ b → f (a , b) 
+                      → ∀ a → continuous τ₁ τ₂ λ b → f (a , b)
  partialAppContinuous H a V V∈τ₂ = H V V∈τ₂ >> λ(u , t) → u a
 
  -- Given a (not) product space (A × B), the function
@@ -201,7 +201,7 @@ module _{A : set aℓ}        {B : set aℓ}
                     ; (inr a∉V) → let H : ∅ ≡ λ(_ : B) → a ∈ V
                                       H = funExt λ p → propExt (λ()) λ x → a∉V x in
                                   subst τ₁ H tempty}) , λ b → V∈τ₀
- 
+
  -- The set of all topological spaces on a set contains the universal set.
  𝓤∈setOfTop : 𝓤 ∈ λ(τ : ℙ(ℙ A)) → ∥ topology τ ∥
  𝓤∈setOfTop = η $
@@ -237,18 +237,18 @@ module _{τ : ℙ(ℙ A)}{{T : topology τ}} where
 
  closed : ℙ(ℙ A)
  closed s = s ᶜ ∈ τ
- 
+
  closure : ℙ A → ℙ A
  closure  X = ⋂ λ B → ∥ X ⊆ B × B ᶜ ∈ τ ∥
- 
+
  interior : ℙ A → ℙ A
  interior X = ⋃ λ C → ∥ C ⊆ X × C ∈ τ ∥
 
  exterior : ℙ A → ℙ A
  exterior X = ⋃ λ B → ∥ B ∈ τ × (∀ x → x ∈ B → x ∉ X) ∥
- 
+
  boundary : ℙ A → ℙ A
- boundary X = λ p → p ∈ closure X × p ∉ interior X 
+ boundary X = λ p → p ∈ closure X × p ∉ interior X
 
  η-closure : (X : ℙ A) → X ⊆ closure X
  η-closure X x x∈X = η λ P → _>> λ(X⊆P , H) → X⊆P x x∈X
@@ -267,6 +267,18 @@ module _{τ : ℙ(ℙ A)}{{T : topology τ}} where
  μ-closure : (X : ℙ A) → (closure ∘ closure) X ⊆ closure X
  μ-closure X z = _>> λ H → H (closure X) $ η $ (λ x z₁ → z₁) , closureClosed
 
+ closureLemma2 : {X Y : ℙ A} → closure (X ∪ Y) ⊆ (closure X ∪ closure Y)
+ closureLemma2 {X}{Y} z = _>> λ G → G (closure X ∪ closure Y)
+              $ η $ (λ y → _>> λ{ (inl H) → η (inl (η-closure X y H))
+                                ; (inr H) → η (inr (η-closure Y y H))})
+                               , subst τ (sym ([X∪Y]ᶜ≡Xᶜ∩Yᶜ (closure X) (closure Y)))
+                                 (tintersection closureClosed
+                                                closureClosed)
+
+ closureLemma3 : {X Y : ℙ A} →  (closure X ∪ closure Y) ⊆ closure (X ∪ Y)
+ closureLemma3 {X}{Y} z = _>> λ{ (inl z∈Cl[X]) → map-closure (λ y y∈X → η (inl y∈X)) z z∈Cl[X]
+                               ; (inr z∈Cl[Y]) → map-closure (λ y y∈Y → η (inr y∈Y)) z z∈Cl[Y]}
+
  interiorLemma1 : {X : ℙ A} → interior X ⊆ X
  interiorLemma1 {X} x = _>> λ(a , x∈a , c) → c >> λ(d , e) → d x x∈a
 
@@ -276,6 +288,17 @@ module _{τ : ℙ(ℙ A)}{{T : topology τ}} where
 
  interiorLemma3 : (X : ℙ A) → interior X ∈ τ
  interiorLemma3 X = tunion λ x → _>> snd
+
+ interiorLemma4 : {X Y : ℙ A} → interior (X ∩ Y) ⊆ (interior X ∩ interior Y)
+ interiorLemma4 {X}{Y} x H = (H >> λ(Z , x∈Z , G) → G >> λ(Z⊆X∩Y , Z∈τ) → η (Z , x∈Z , η ((λ y y∈Z → fst (Z⊆X∩Y y y∈Z)) , Z∈τ)))
+                           , (H >> λ(Z , x∈Z , G) → G >> λ(Z⊆X∩Y , Z∈τ) → η (Z , x∈Z , η ((λ y y∈Z → snd (Z⊆X∩Y y y∈Z)) , Z∈τ)))
+
+ interiorLemma5 : {X Y : ℙ A} →  (interior X ∩ interior Y) ⊆ interior (X ∩ Y)
+ interiorLemma5 {X}{Y} x (H , G) = H >> λ(P , x∈P , T)
+                                 → G >> λ(Q , x∈Q , U)
+                                 → T >> λ(P⊆X , P∈τ)
+                                 → U >> λ(Q⊆Y , Q∈τ)
+                                 → η $ P ∩ Q , (x∈P , x∈Q) , η ((λ a (a∈P , a∈Q) → P⊆X a a∈P , Q⊆Y a a∈Q) , tintersection P∈τ Q∈τ)
 
  map-interior : {X Y : ℙ A} → X ⊆ Y → interior X ⊆ interior Y
  map-interior {X}{Y} X⊆Y Z Z∈IX = η $ interior X
@@ -447,7 +470,7 @@ module _{A : set aℓ}
   baseCover x =
     BaseAxiom2 tfull >> λ (X , X⊆ℬ , 𝓤≡∪X) →
      let H : x ∈ ⋃ X
-         H = substP x (sym 𝓤≡∪X) tt in 
+         H = substP x (sym 𝓤≡∪X) tt in
         H >> λ(U , x∈U , U∈X) →
     η $ U , x∈U , X⊆ℬ U U∈X
 
@@ -486,7 +509,7 @@ module _{A : set aℓ}
                            → (Q : ℙ A)
                            → continuous (ssTopology τ Q) τ₁ λ(x , _) → f x
   restrictDomainContinuous {f = f} x Q y V = let H = x y V in η $ f ⁻¹[ y ] , H , refl
- 
+
   -- If f and g are continuous, then (g ∘ f) is continuous
   continuousComp : {τ₂ : ℙ(ℙ C)}{{T2 : topology τ₂}}
        → {f : A → B} → continuous τ τ₁ f
@@ -509,13 +532,3 @@ module _{A : set aℓ}
      instance
       inst : HousedOff τ₁ (f x) (f y)
       inst = haus λ fx≡fy → x≢y (inject x y fx≡fy)
-
--- https://en.wikipedia.org/wiki/Abstract_simplicial_complex
-ASC : {A : Type (lsuc aℓ)} → ℙ(ℙ A) → Type (lsuc aℓ)
-ASC {A} Δ = (X : ℙ A) → X ∈ Δ → (Y : ℙ A) → Y ≢ ∅ → Y ⊆ X → Y ∈ Δ
-
---open import Data.Finite
---module _{A : set aℓ}(τ : ℙ(ℙ A)){{T : topology τ}} where
---
--- compact : set aℓ
--- compact = ∀ {C} → openCover τ C → ∃ λ(sc : ℙ(ℙ A)) → sc ⊆ C × is-finite (Σ sc)
