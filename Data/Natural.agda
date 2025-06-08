@@ -76,10 +76,13 @@ SInjective p = natSetoidToEq (eqToNatSetoid p)
 
 natLCancel : {a b : ℕ} → (c : ℕ) → add c a ≡ add c b → a ≡ b
 natLCancel Z p = p
-natLCancel {a} {b} (S c) p = natLCancel c (SInjective p) 
+natLCancel {a} {b} (S c) p = natLCancel c (SInjective p)
 
 ZNotS : {n : ℕ} → Z ≢ S n
 ZNotS p = eqToNatSetoid p
+
+SNotZ : {n : ℕ} → S n ≢ Z
+SNotZ p = eqToNatSetoid p
 
 x≢Sx : {x : ℕ} → x ≢ S x
 x≢Sx {x = Z} = ZNotS
@@ -93,7 +96,7 @@ x≢x+Sy {x = S x} p = x≢x+Sy (SInjective p)
 natDiscrete : Discrete ℕ
 natDiscrete Z Z = yes refl
 natDiscrete Z (S b) = no (λ x → ZNotS x)
-natDiscrete (S a) Z = no (λ x → ZNotS (sym x))
+natDiscrete (S a) Z = no (λ x → SNotZ x)
 natDiscrete (S a) (S b) = natDiscrete a b |> λ{ (yes x) → yes (cong S x) ; (no x) → no (λ y → x (SInjective y))}
 
 -- Addition on natural numbers is a comm monoid
@@ -217,13 +220,21 @@ instance
     split (S x) y + split x (S y) ≡⟨ cong₂ _+_ (aux (S x) y) (aux x (S y))⟩
     split y (S x) + split (S y) x ∎
 
+split1 : ∀ n → split n (S Z) ≡ S n
+split1 Z = refl
+split1 (S n) = comm (split n (S Z)) (S Z) ⋆ cong S (split1 n)
+
+1split : ∀ n → split (S Z) n ≡ S n
+1split Z = refl
+1split (S n) = cong S (1split n)
+
 natRCancel : {a b : ℕ} → (c : ℕ) → a + c ≡ b + c → a ≡ b
 natRCancel {a} {b} c p = natLCancel c (comm c a ⋆ p ⋆ comm b c)
 
 multCancel : (a b m : ℕ) → a * S m ≡ b * S m → a ≡ b
 multCancel Z Z m p = refl
 multCancel Z (S b) m p = ZNotS p |> UNREACHABLE
-multCancel (S a) Z m p = ZNotS (sym p) |> UNREACHABLE
+multCancel (S a) Z m p = SNotZ p |> UNREACHABLE
 multCancel (S a) (S b) m p = cong S
       let p = SInjective p in
       multCancel a b m (natRCancel m (comm (a * S m) m ⋆ p ⋆ comm m (b * S m)))
@@ -298,7 +309,7 @@ leAdd3 a (S b) = leS2 a (add b a) (leAdd3 a b)
 leAddN : (a b : ℕ) → ¬((S b + a) ≤ b)
 leAddN a (S b) = leAddN a b
 
-leSlide : (a b c : ℕ) → (c + a) ≤ (c + b) → a ≤ b 
+leSlide : (a b c : ℕ) → (c + a) ≤ (c + b) → a ≤ b
 leSlide a b Z p = p
 leSlide a b (S x) p = leSlide a b x p
 
@@ -482,7 +493,7 @@ completeInduction P a base jump n = Aux n n (reflexive n)
  where
   Aux : (n l : ℕ) → n ≤ l → P n
   Aux Z Z H = base Z tt
-  Aux n (S l) H with isLe n a 
+  Aux n (S l) H with isLe n a
   ... | inl X = base n X
   ... | inr (r , Q) =
         let G : (r + a) ≤ l

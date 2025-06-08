@@ -41,13 +41,13 @@ apparent-finS : ℕ< n → ℕ< (S n)
 apparent-finS (x , y , p) = x , S y , cong S (Sout x y ⋆ p)
 
 ¬finZ : ¬ (ℕ< Z)
-¬finZ (x , y , P) = ZNotS (sym P)
+¬finZ (x , y , P) = SNotZ P
 
 finS≢finZ : {x : ℕ< n} → finS x ≢ finZ
-finS≢finZ {n} {x = (x , p , r)} contra = ZNotS (sym λ i → fst(contra i))
+finS≢finZ {n} {x = (x , p , r)} contra = SNotZ λ i → fst(contra i)
 
 finMax : ℕ< (S n)
-finMax {n} = n , (Z , (cong S (addZ n)))
+finMax {n} = n , Z , cong S (addZ n)
 
 finDiscrete : Discrete (ℕ< n)
 finDiscrete = discreteΣ natDiscrete (λ a x y → yes (finSndIsProp a x y))
@@ -63,8 +63,8 @@ is-∞ A = ¬ (is-finite A)
 
 isPropFinSZ : isProp (ℕ< (S Z))
 isPropFinSZ (Z , y) (Z , w) = ΣPathPProp finSndIsProp refl
-isPropFinSZ _ (S z , w , p) = ZNotS (sym (SInjective p)) |> UNREACHABLE
-isPropFinSZ (S x , y , p) _ = ZNotS (sym (SInjective p)) |> UNREACHABLE
+isPropFinSZ _ (S z , w , p) = SNotZ (SInjective p) |> UNREACHABLE
+isPropFinSZ (S x , y , p) _ = SNotZ (SInjective p) |> UNREACHABLE
 
 finSInj : {x y : ℕ< n} → finS x ≡ finS y → x ≡ y
 finSInj {x = x , y} {a , b} p = ΣPathPProp finSndIsProp (SInjective λ i → fst (p i))
@@ -90,7 +90,7 @@ pigeonhole {n = S n} {m} f contra = let (g , gInj) = G (f , contra) in
    where
     decr : ℕ< (S n) → ℕ< (S m)
     decr x with finDiscrete finZ (f (finS x))
-    ...      | (yes p) with finDiscrete finZ (f finZ) 
+    ...      | (yes p) with finDiscrete finZ (f finZ)
     ...                 | (yes r) = finS≢finZ (fInj (finS x) finZ (sym p ⋆ r)) |> λ()
     ...                 | (no r) = finDecr r
     decr x   | (no p) = finDecr p
@@ -119,7 +119,7 @@ pigeonhole {n = S n} {m} f contra = let (g , gInj) = G (f , contra) in
         G = ((fst F) ∘ (λ x → fst x)) , injectiveComp (λ x y p → ΣPathPProp finSndIsProp p)
                                                       (snd F) in
     let G2 = Σ λ(g : ℕ< (S n + Z) → ℕ< n) → injective g
-        G2 = transport (λ i → Σ λ (g : ℕ< (addZ (S n) (~ i)) → ℕ< n) → injective g) G in 
+        G2 = transport (λ i → Σ λ (g : ℕ< (addZ (S n) (~ i)) → ℕ< n) → injective g) G in
   pigeonhole (fst G2) (snd G2)
 
 -- A finite set is not equivalent to ℕ

@@ -13,7 +13,7 @@ _ᵀ : (A → B → C) → (B → A → C)
 _ᵀ f b a = f a b
 
 ᵀInject : {f g : A → B → C} → f ᵀ ≡ g ᵀ → f ≡ g
-ᵀInject {f = f} {g = g} p i a b = p i b a 
+ᵀInject {f = f} {g = g} p i a b = p i b a
 
 -- Ordered n-tuple
 -- `< 𝔹 ^ n >` would be an ordered n-tuple of booleans
@@ -21,7 +21,7 @@ _ᵀ f b a = f a b
 < A ^ n > = ℕ< n → A
 
 <> : < A ^ Z >
-<> (x , p , q) = UNREACHABLE $ ZNotS (sym q)
+<> (x , p , q) = UNREACHABLE $ SNotZ q
 
 list : Type ℓ → Type ℓ
 list A = Σ λ(n : ℕ) → < A ^ n >
@@ -47,7 +47,7 @@ tuple-η {n = Z} f = funExt
   [wts (hd f ∷ tl f) (Z , b , p) ≡ f (Z , b , p) ] cong f $
   [wts finZ ≡ (Z , b , p) ]
   ΣPathP (refl , Σ≡Prop (λ x → IsSet (S x) (S Z)) (sym H))
-  ;(S a , b , p) → UNREACHABLE (ZNotS (sym(SInjective p)))
+  ;(S a , b , p) → UNREACHABLE (SNotZ (SInjective p))
   }
  where
   open import Cubical.Foundations.Univalence
@@ -69,7 +69,7 @@ tl∷ {A = A} {n = n} a f = funExt (aux n f)
 
 instance
  emptyTupleIsProp : is-prop < A ^ Z >
- emptyTupleIsProp = record { IsProp = λ x y → funExt λ(_ , _ , p) → UNREACHABLE (ZNotS (sym p)) }
+ emptyTupleIsProp = record { IsProp = λ x y → funExt λ(_ , _ , p) → UNREACHABLE (SNotZ p) }
 
 tuple-elim : (P : ∀{n} → < A ^ n > → Type ℓ)
            → P <>
@@ -111,7 +111,7 @@ Matrix-elim P H1 H2 H3 {n = S n} {m = S m} M = subst P (
    )(H3 (tl ∘ tl M) (Matrix-elim P H1 H2 H3 (tl ∘ tl M)) (tl(hd M)) (hd ∘ tl M) (hd (hd M)))
 
 tl∘zip∷ : (f : < A ^ n >) → (M : Matrix A m n) → tl ∘ zip _∷_ f M ≡ M
-tl∘zip∷ {n = Z} f M = funExt λ x → UNREACHABLE (ZNotS (sym (x .snd .snd)))
+tl∘zip∷ {n = Z} f M = funExt λ x → UNREACHABLE (SNotZ (x .snd .snd))
 tl∘zip∷ {n = (S n)} f M =
  tl ∘ zip _∷_ f M ≡⟨ cong (λ z → tl ∘ zip _∷_ f z) (sym (tuple-η M)) ⟩
  tl ∘ zip _∷_ f (hd M ∷ tl M) ≡⟨  cong (λ z → tl ∘ zip _∷_ z (hd M ∷ tl M)) (sym (tuple-η f))⟩
@@ -129,12 +129,12 @@ zipTranspose M v = funExt λ x → funExt (aux M v x)
   aux M v x (Z , y' , Y) = refl
   aux M v x (S y , y' , Y) = refl
 
-∷Transpose : (M : Matrix C m n) → ∀ v u x → 
+∷Transpose : (M : Matrix C m n) → ∀ v u x →
       ((x ∷ u) ∷ ((v ∷ (M ᵀ))ᵀ))ᵀ
     ≡ (x ∷ v) ∷ ((u ∷ M) ᵀ)
 ∷Transpose M v u x = funExt λ a → funExt λ b → aux M v u x a b
  where
-  aux : ∀{n m} → (M : Matrix C m n) → ∀ v u x a b → 
+  aux : ∀{n m} → (M : Matrix C m n) → ∀ v u x a b →
        (((x ∷ u) ∷ ((v ∷ (M ᵀ))ᵀ))ᵀ) a b
      ≡ ((x ∷ v) ∷ ((u ∷ M) ᵀ)) a b
   aux M v u x (Z , a₁ , A) (Z , b₁ , B) = refl
@@ -160,8 +160,8 @@ instance
   Functionmonad = record { μ = λ f a → f a a
                          ; η = λ x _ → x
                          ; monadLemma1 = funExt λ x → funExt λ y → refl
-                         ; monadLemma2 = funExt λ x → funExt λ y → refl 
-                         ; monadLemma3 = funExt λ x → funExt λ y → refl 
+                         ; monadLemma2 = funExt λ x → funExt λ y → refl
+                         ; monadLemma3 = funExt λ x → funExt λ y → refl
                          }
 
 foldr : (A → B → B) → B → < A ^ n > → B
@@ -178,10 +178,10 @@ _++_ {n = Z} u v x = v x
 _++_ {n = S n} u v (Z , H) = u finZ
 _++_ {n = S n} u v (S x , y , p) = (tl u ++ v) (x , y , SInjective p)
 
-tl++ : (u : < A ^ S n >) → (v : < A ^ m >) → tl (u ++ v) ≡ tl u ++ v 
+tl++ : (u : < A ^ S n >) → (v : < A ^ m >) → tl (u ++ v) ≡ tl u ++ v
 tl++ u v = funExt λ z → aux u v z
  where
-  aux : (u : < A ^ S n >) → (v : < A ^ m >) → (x : ℕ< (n + m)) → tl (u ++ v) x ≡ (tl u ++ v) x 
+  aux : (u : < A ^ S n >) → (v : < A ^ m >) → (x : ℕ< (n + m)) → tl (u ++ v) x ≡ (tl u ++ v) x
   aux {n = Z} {m} u v (x , y , p) = cong v (ΣPathPProp finSndIsProp refl)
   aux {n = S n} {m} u v (Z , y , p) = refl
   aux {n = S n} {m} u v (S x , y , p) = aux (tl u) v (x , y , SInjective p)
@@ -207,13 +207,13 @@ module _{C : Type cℓ}{{R : Ring C}} where
 
  addv : (A → C) → (A → C) → (A → C)
  addv = zip _+_
- 
+
  negv : (A → C) → (A → C)
  negv v a = neg (v a)
- 
+
  multv : (A → C) → (A → C) → (A → C)
  multv = zip _*_
- 
+
  scaleV : C → (A → C) → (A → C)
  scaleV c v a = c * (v a)
 
@@ -228,7 +228,7 @@ module _{C : Type cℓ}{{R : Ring C}} where
  -- Matrix Multiplication
  mMult : (ℕ< n → B → C) → (A → ℕ< n → C) → (A → B → C)
  mMult M N a = MT M (N a)
- 
+
  orthogonal : < C ^ n > → < C ^ n > → Type cℓ
  orthogonal u v = u ∙ v ≡ 0r
 
@@ -243,7 +243,7 @@ module _{C : Type cℓ}{{R : Ring C}} where
   0r + ((λ _ → 0r) ∙ tl V)                      ≡⟨ lIdentity ((λ (_ : ℕ< n) → 0r) ∙ tl V)⟩
   (λ (_ : ℕ< n) → 0r) ∙ tl V                   ≡⟨ dotZL (tl V)⟩
   0r ∎
- 
+
  dotZR : (V : < C ^ n >)
        → V ∙ (λ _ → 0r) ≡ 0r
  dotZR {n = Z} V = refl
@@ -255,7 +255,7 @@ module _{C : Type cℓ}{{R : Ring C}} where
 
  scalar-distributivity : (x y : C)(v : A → C) → scaleV (x + y) v ≡ addv (scaleV x v) (scaleV y v)
  scalar-distributivity x y v = funExt λ z → rDistribute (v z) x y
- 
+
  scalar-distributivity2 : (c : C)(x y : A → C) → scaleV c (addv x y) ≡ addv (scaleV c x) (scaleV c y)
  scalar-distributivity2 s x y = funExt λ z → lDistribute s (x z) (y z)
 
@@ -344,7 +344,7 @@ instance
 
   -- Matrix transformation over a field is a linear map.
   LTMT : {{F : Field A}} → {M : ℕ< n → B → A} → LinearMap (MT M)
-  LTMT = MHMT 
+  LTMT = MHMT
 
 module _{C : Type cℓ} {{R : Ring C}} where
 
@@ -377,7 +377,7 @@ module _{C : Type cℓ} {{R : Ring C}} where
      ≡⟨ [ab][cd]≡[ac][bd] (hd u * hd w) (hd v * hd w) (u∙w) (v∙w)⟩
   ((hd u * hd w) + u∙w) + ((hd v * hd w) + v∙w) ≡⟨⟩
   (u ∙ w) + (v ∙ w) ∎
- 
+
  dotlDistribute : (w u v : < C ^ n >) → w ∙ (u <+> v) ≡ (w ∙ u) + (w ∙ v)
  dotlDistribute {n = Z} w u v = sym (rIdentity 0r)
  dotlDistribute {n = S n} w u v =
@@ -390,7 +390,7 @@ module _{C : Type cℓ} {{R : Ring C}} where
   ((hd w * hd u) + (hd w * hd v)) + ((tl w ∙ tl u) + (tl w ∙ tl v))
    ≡⟨ [ab][cd]≡[ac][bd] (hd w * hd u) (hd w * hd v) w∙u w∙v ⟩
    (w ∙ u) + (w ∙ v) ∎
- 
+
  dot*> : (c : C) → (u v : < C ^ n >) → (c *> u) ∙ v ≡ c * (u ∙ v)
  dot*> {n = Z} c u v = sym (x*0≡0 c)
  dot*> {n = S n} c u v =
@@ -404,10 +404,10 @@ module _{C : Type cℓ} {{R : Ring C}} where
   ≡⟨ sym (lDistribute c (hd u * hd v) ((tl u ∙ tl v)))⟩
   c * ((hd u * hd v) + (tl u ∙ tl v)) ≡⟨⟩
   c * (u ∙ v) ∎
- 
+
  _orthogonal-to_ : < C ^ n > → (W : < C ^ n > → Type ℓ) → {{Submodule W}} → Type(ℓ ⊔ cℓ)
  z orthogonal-to W = ∀ v → W v → orthogonal z v
- 
+
  orthogonal-complement : (W : < C ^ n > → Type ℓ) → {{Submodule W}} → < C ^ n > → Type(ℓ ⊔ cℓ)
  orthogonal-complement W z = z orthogonal-to W
 
@@ -463,7 +463,7 @@ module _{C : Type cℓ} {{R : Ring C}} where
  I∞ Z Z = 1r
  I∞ (S a) (S b) = I∞ a b
  I∞ _ _ = 0r
- 
+
  I∞Transpose : I∞ ≡ I∞ ᵀ
  I∞Transpose = funExt λ x → funExt λ y → Rec x y
    where
@@ -476,16 +476,16 @@ module _{C : Type cℓ} {{R : Ring C}} where
  -- Identity Matrix
  I : Matrix C n n
  I x y = I∞ (fst x) (fst y)
- 
+
  idTranspose : I {n = n} ≡ I ᵀ
  idTranspose = funExt λ{(x , _) → funExt λ{(y , _) → funExt⁻ (funExt⁻ I∞Transpose x) y}}
- 
+
  -- Matrix transformation has no effect on the identity matrix
  MT-ID : (v : ℕ< n → C) → MT I v ≡ v
  MT-ID v = funExt λ x → aux v x
   where
-   aux : (v : ℕ< n → C) → (a : ℕ< n) → MT I v a ≡ v a 
-   aux {n = Z} v (x , y , p) = ZNotS (sym p) |> UNREACHABLE
+   aux : (v : ℕ< n → C) → (a : ℕ< n) → MT I v a ≡ v a
+   aux {n = Z} v (x , y , p) = SNotZ p |> UNREACHABLE
    aux {n = S n} v (Z , yp) =
      MT I v (Z , yp) ≡⟨⟩
      v ∙ (I (Z , yp)) ≡⟨⟩
@@ -495,7 +495,7 @@ module _{C : Type cℓ} {{R : Ring C}} where
      hd v + 0r ≡⟨ rIdentity (hd v)⟩
      hd v ≡⟨ cong v (ΣPathPProp (λ a → finSndIsProp a) refl)⟩
      v (Z , yp) ∎
-   aux {n = S Z} v (S x , y , p) = ZNotS (sym (SInjective p)) |> UNREACHABLE
+   aux {n = S Z} v (S x , y , p) = SNotZ (SInjective p) |> UNREACHABLE
    aux {n = S (S n)} v (S x , y , p) =
          let R' : (tl v ∙ λ z → I z (x , y , SInjective p)) ≡ tl v (x , y , SInjective p)
              R' = aux (tl v) (x , y , SInjective p) in
@@ -512,24 +512,24 @@ module _{C : Type cℓ} {{R : Ring C}} where
     tl v ∙ I (x , y , SInjective p) ≡⟨ R ⟩
     tl v (x , y , SInjective p) ≡⟨ cong v (ΣPathPProp (λ a → finSndIsProp a) refl)⟩
     v (S x , y , p) ∎
- 
+
  IL-ID : (M : A → ℕ< n → C) → mMult I M ≡ M
  IL-ID M = funExt λ x → MT-ID (M x)
- 
+
  IR-ID : (M : ℕ< n → A → C) → mMult M I ≡ M
- IR-ID {n = Z} M = funExt λ (a , b , p) → ZNotS (sym p) |> UNREACHABLE
+ IR-ID {n = Z} M = funExt λ (a , b , p) → SNotZ p |> UNREACHABLE
  IR-ID {n = S n} M = funExt λ (x , yp) → funExt λ b → aux M (x , yp) b
   where
    aux : {n : ℕ} → (M : ℕ< n → A → C) → (a : ℕ< n) → (b : A) → mMult M I a b ≡ M a b
-   aux {n = Z} M (x , y , p) b = ZNotS (sym p) |> UNREACHABLE
+   aux {n = Z} M (x , y , p) b = SNotZ p |> UNREACHABLE
    aux {n = S n} M (Z , yp) b =
      I (Z , yp) ∙ (λ z → M z b) ≡⟨⟩
      (1r * hd λ z → M z b) + ((λ _ → 0r) ∙ tl λ z → M z b) ≡⟨ left _+_ (lIdentity (hd λ z → M z b))⟩
      hd (λ z → M z b) + ((λ _ → 0r) ∙ tl λ z → M z b) ≡⟨ right _+_ (dotZL (tl λ z → M z b))⟩
      hd (λ z → M z b) + 0r ≡⟨ rIdentity (hd λ z → M z b)⟩
      hd (λ z → M z b) ≡⟨ left M (ΣPathPProp (λ a → finSndIsProp a) refl)⟩
-     M (Z , yp) b ∎ 
-   aux {n = S Z} M (S x , y , p) b = ZNotS (sym (SInjective p)) |> UNREACHABLE
+     M (Z , yp) b ∎
+   aux {n = S Z} M (S x , y , p) b = SNotZ (SInjective p) |> UNREACHABLE
    aux {n = S (S n)} M (S x , y , p) b =
     let R : I (x , y , SInjective p) ∙ (λ z → tl M z b) ≡ tl M (x , y , SInjective p) b
         R = aux (tl M) (x , y , SInjective p) b in
@@ -540,22 +540,22 @@ module _{C : Type cℓ} {{R : Ring C}} where
     I (x , y , SInjective p) ∙ tl (λ z → M z b) ≡⟨ R ⟩
     tl M (x , y , SInjective p) b ≡⟨ left M (ΣPathPProp (λ a → finSndIsProp a) refl)⟩
     M (S x , y , p) b ∎
- 
+
  mAdd : (A → B → C) → (A → B → C) → (A → B → C)
  mAdd = λ M N → λ x → M x <+> N x
- 
+
  -- left Matrix distribution
  lMatrixDistr : (M : ℕ< n → A → C)
               → (N O : B → ℕ< n → C)
               → mMult M (mAdd N O) ≡ mAdd (mMult M N) (mMult M O)
  lMatrixDistr a b c = funExt λ x → funExt λ y → dotDistribute (λ z → a z y) (b x) (c x)
- 
+
  -- right Matrix distribution
  rMatrixDistr : (M : A → ℕ< n → C)
               → (N O : ℕ< n → B → C)
               → mMult (mAdd N O) M ≡ mAdd (mMult N M) (mMult O M)
  rMatrixDistr a b c = funExt λ x → funExt λ y → dotlDistribute (a x) (λ z → b z y) λ z → c z y
- 
+
  -- Square matrix Ring
  instance
   mAddAssoc : Semigroup (mAdd {A = A} {B = B})
@@ -601,13 +601,13 @@ CF2 M x y = skipAt (skipAt (M ᵀ) x ᵀ) y
 lemma3 : (M : < C ^ (S(S m)) >) → ∀ y →
          tl (tl (skipAt M) y) ≡
          skipAt (tl M) y
-lemma3 {m = m} M y =   
+lemma3 {m = m} M y =
    let H : (tl (tl M ∷ ((hd M ∷_) ∘ (skipAt (tl M)))) y) ≡
            hd M ∷ (skipAt (tl M) y)
        H = tl (tl M ∷ ((hd M ∷_) ∘ (skipAt (tl M)))) y
                      ≡⟨ cong (λ z → z y) (tl∷ (tl M) ( ((hd M ∷_) ∘ (skipAt (tl M))))) ⟩
            hd M ∷ (skipAt (tl M) y) ∎
-          
+
         in
          tl (tl (skipAt M) y) ≡⟨⟩
          tl (tl (tl M ∷ ((hd M ∷_) ∘ (skipAt (tl M)))) y) ≡⟨ cong tl H ⟩
@@ -625,7 +625,7 @@ skipAtTranspose : (M : Matrix C (S n) m) → ∀ x → skipAt (M ᵀ) x ≡ λ a
 skipAtTranspose {C = C} {n = n}{m} M x = funExt $ aux M x
  where
   aux : ∀{n} → (M : Matrix C (S n) m) → ∀ x a → skipAt (M ᵀ) x a ≡ λ b → skipAt (M b) x a
-  aux {n = Z} _ _ (a , a' , A) = UNREACHABLE (ZNotS (sym A))
+  aux {n = Z} _ _ (a , a' , A) = UNREACHABLE (SNotZ A)
   aux {n = S n} M (Z , _) _ = refl
   aux {n = S n} M (S x , _) (Z , _) = refl
   aux {n = S n} M (S x , x' , X) (S a , a' , A) = aux (λ z z₁ → M z (finS z₁)) (x , x' , SInjective X)
@@ -638,7 +638,7 @@ skipAtZip M v = funExt λ a → funExt λ b → aux M v a b
   aux : ∀{n m} → (M : Matrix C m (S n))(v : ℕ< (S n) → C)
       → ∀ a b → skipAt (zip _∷_ v M) a b
               ≡ zip _∷_ (skipAt v a) (skipAt M a) b
-  aux {n = Z} {m} M v a (b , b' , H) = UNREACHABLE (ZNotS (sym H))
+  aux {n = Z} {m} M v a (b , b' , H) = UNREACHABLE (SNotZ H)
   aux {n = S n} {m} M v (Z , a' , H) b = refl
   aux {n = S n} {m} M v (S a , a' , H) (Z , b₁ , G) = refl
   aux {n = S n} {m} M v (S a₀ , a₁ , H) (S b₀ , b₁ , G) = aux (tl M)
@@ -656,8 +656,8 @@ Matrix-η N = funExt λ a → tuple-η (N a)
 CFᵀ : ∀ a b → (M : Matrix C (S n)(S m)) →
         CF (M ᵀ) a b
       ≡ (CF M b a) ᵀ
-CFᵀ {n = Z} a b M = funExt λ x → funExt λ{(y₀ , y₁ , Y) → UNREACHABLE (ZNotS (sym Y))}
-CFᵀ {n = S n} {m = Z} (a₀ , a₁ , A) (b₀ , b₁ , B) M = funExt λ{(x₀ , x₁ , X) → UNREACHABLE (ZNotS (sym X))}
+CFᵀ {n = Z} a b M = funExt λ x → funExt λ{(y₀ , y₁ , Y) → UNREACHABLE (SNotZ Y)}
+CFᵀ {n = S n} {m = Z} (a₀ , a₁ , A) (b₀ , b₁ , B) M = funExt λ{(x₀ , x₁ , X) → UNREACHABLE (SNotZ X)}
 CFᵀ {n = S n} {m = S m} (Z , A) (Z , b₁ , B) M = refl
 CFᵀ {n = S n} {m = S m} (Z , a₁ , A) (S b₀ , b₁ , B) M' =
       let M = (map tl (tl M')) in
@@ -713,7 +713,7 @@ CFᵀ {n = S n} {m = S m} (S a₀ , a₁ , A) (Z , b₁ , B) M' =
      (tl (skipAt M' (S a₀ , a₁ , A) ᵀ) ᵀ) ≡⟨⟩
      (skipAt (skipAt M' (S a₀ , a₁ , A) ᵀ) (Z , b₁ , B) ᵀ) ≡⟨⟩
      (CF M' (Z , b₁ , B) (S a₀ , a₁ , A) ᵀ) ∎
-CFᵀ {n = S n} {m = S m} (S b₀ , b₁ , B) (S a₀ , a₁ , A) M' = 
+CFᵀ {n = S n} {m = S m} (S b₀ , b₁ , B) (S a₀ , a₁ , A) M' =
       let Sa : ℕ< (S(S n))
           Sa = (S a₀ , a₁ , A) in
       let Sb : ℕ< (S(S m))
@@ -849,7 +849,7 @@ module _ {C : Type ℓ}{{R : CRing C}} where
      fold- (fold- (x ∷ v) ∷ (fold- ∘ ((zip _∷_ u (M ᵀ))))) ≡⟨⟩
      fold- (fold- ∘ (((x ∷ v) ∷ zip _∷_ u (M ᵀ)))) ≡⟨⟩
      fold- (fold- ∘ (((x ∷ u) ∷ zip _∷_ v M) ᵀ)) ∎
-  
+
  -- The determinant of a matrix is equal to the determinant of its transpose
  detTranspose : (M : Matrix C n n) → det M ≡ det(M ᵀ)
  detTranspose {n = Z} M = refl
@@ -901,7 +901,7 @@ module _ {C : Type ℓ}{{R : CRing C}} where
         fold- (fold- ∘ λ(x y : ℕ< (S n)) → v y * (u x * det ((skipAt $ tl (tl(skipAt $ tl M ᵀ)y) ᵀ) x))) ≡⟨ cong (λ(z : Matrix C (S n)(S n)) → fold- (fold- ∘ z)) (funExt λ x → funExt λ y → a[bc]≡b[ac] (v y) (u x) ( det ((skipAt $ tl (tl(skipAt $ tl M ᵀ)y) ᵀ) x))) ⟩
         fold- (fold- ∘ λ(x y : ℕ< (S n)) → u x * (v y * det ((skipAt $ tl (tl(skipAt $ tl M ᵀ)y) ᵀ) x))) ≡⟨ cong (λ z → fold- (fold- ∘ z)) F ⟩
         fold- (fold- ∘ λ(x y : ℕ< (S n)) → u x * (v y * det ((skipAt $ tl (tl(skipAt $ tl (M ᵀ) ᵀ)x) ᵀ) y))) ≡⟨⟩
-       
+
         fold- (λ(x : ℕ< (S n)) → fold- (u x *> (hd (tl(skipAt $ tl (M ᵀ) ᵀ)x) * map det (skipAt $ tl (tl(skipAt $ tl (M ᵀ) ᵀ)x) ᵀ))))
           ≡⟨ sym (cong fold- (funExt λ x → fold-Distr (hd (tl(skipAt $ tl (M ᵀ) ᵀ)x) * map det (skipAt $ tl (tl(skipAt $ tl (M ᵀ) ᵀ)x) ᵀ)) (u x))) ⟩
         fold- (λ(x : ℕ< (S n)) → u x * fold- (hd (tl(skipAt $ tl (M ᵀ) ᵀ)x) * map det (skipAt $ tl (tl(skipAt $ tl (M ᵀ) ᵀ)x) ᵀ))) ≡⟨⟩
@@ -936,18 +936,18 @@ module _ {C : Type ℓ}{{R : CRing C}} where
  data Term : ((ℕ< n → C) → C) → Type ℓ where
    tIntro : ∀ x → (λ(_ :(ℕ< n → C)) → x) ∈ Term
    tMult : ∀ f → f ∈ Term → (m : ℕ< n) → (λ(x :(ℕ< n → C)) → f x * x m) ∈ Term
-  
+
  data Poly : ((ℕ< n → C) → C) → Type ℓ where
-   pIntro : (λ(_ : (ℕ< n → C)) → 0r) ∈ Poly 
+   pIntro : (λ(_ : (ℕ< n → C)) → 0r) ∈ Poly
    pAdd : (f g : (ℕ< n → C) → C) → f ∈ Term → g ∈ Poly → f + g ∈ Poly
 --   pSet : (f : ((ℕ< n → C) → C)) → isProp(f ∈ Poly)
-    
+
  pMult : ∀ f → f ∈ Poly → (m : ℕ< n) → (λ(x :(ℕ< n → C)) → f x * x m) ∈ Poly
  pMult f pIntro m = subst Poly (sym (funExt λ x → 0*x≡0 (x m))) pIntro
  pMult f (pAdd h g h∈Term g∈Poly) m using R ← pMult g g∈Poly m =
          subst Poly (funExt λ x → sym (rDistribute (x m) (h x) (g x))) $
          pAdd (λ x → h x * x m) (λ x → g x * x m) (tMult h h∈Term m) (pMult g g∈Poly m)
-    
+
  pAdd2 : (f g : (ℕ< n → C) → C) → f ∈ Poly → g ∈ Poly → f + g ∈ Poly
  pAdd2 f g pIntro G = pAdd (λ _ → 0r) g (tIntro 0r) G
  pAdd2 f g (pAdd q r q∈Term r∈Poly) G = subst Poly (funExt λ x → assoc (q x) (r x) (g x)) $
@@ -959,13 +959,13 @@ module _ {C : Type ℓ}{{R : CRing C}} where
                          with (finDiscrete a m)
  ... | yes a≡m = g + (λ x → h x * x m) , pAdd g ((λ x → h x * x m)) G (pMult h H m)
  ... | no a≢m = (λ x → h x * x m) , pMult h H m
-  
+
  -- Partial derivative on polynomials
  ∂ : (f : (ℕ< n → C) → C) → Poly f → ℕ< n → Σ λ(x : (ℕ< n → C) → C) → Poly x
  ∂ f pIntro a = (λ _ → 0r) , pIntro
  ∂ f (pAdd h g x y) a using (q , Q) ← ∂Term h x a
                       using (r , R) ← ∂ g y a = (q + r) , pAdd2 q r Q R
-  
+
  Jacobian : (F : ℕ< m → (ℕ< n → C) → C)
           → (∀ x → Poly (F x))
           → ℕ< n → ℕ< m
