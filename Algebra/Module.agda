@@ -231,6 +231,16 @@ module _{scalar : Type ℓ}{member : Type ℓ'}{{R : Ring scalar}}{{V : Module m
             transport H F
       }
 
+  ΣSubModule : {X : member → Type aℓ}{{SM : Submodule X}} → Module (Σ X)
+  ΣSubModule {X} = record
+                    { _<+>_ = λ (a , a')(b , b') → (a <+> b) , ssAdd a' b'
+                    ; _*>_ = λ x (v , v') → (x *> v) , ss*> v' x
+                    ; scalarDistribute = λ a (u , u')(v , v') → ΣPathPProp propFamily (scalarDistribute a u v)
+                    ; memberDistribute = λ(v , v') a b → ΣPathPProp propFamily (memberDistribute v a b)
+                    ; scalarAssoc = λ(v , v') a b → ΣPathPProp propFamily (scalarAssoc v a b)
+                    ; scaleId = λ(v , v') → ΣPathPProp propFamily (scaleId v)
+                    }
+
   -- The span of a set of members is a submodule
   spanIsSubmodule : {X : member → Type aℓ} → Submodule (Span X)
   spanIsSubmodule =
