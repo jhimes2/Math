@@ -178,6 +178,14 @@ _++_ {n = Z} u v x = v x
 _++_ {n = S n} u v (Z , H) = u finZ
 _++_ {n = S n} u v (S x , y , p) = (tl u ++ v) (x , y , SInjective p)
 
+_>>_#_ : (a b : ℕ) → (ℕ< (a + b) → A) → ℕ< b → A
+Z >> b # v = v
+S a >> b # v = a >> b # tl v
+
+_<<_#_ : (a b : ℕ) → (ℕ< (a + b) → A) → ℕ< a → A
+Z << b # v = <>
+S a << b # v = hd v ∷ (a << b # tl v)
+
 tl++ : (u : < A ^ S n >) → (v : < A ^ m >) → tl (u ++ v) ≡ tl u ++ v
 tl++ u v = funExt λ z → aux u v z
  where
@@ -933,42 +941,21 @@ module _ {C : Type ℓ}{{R : CRing C}} where
 
  -}
 
- data Term : ((ℕ< n → C) → C) → Type ℓ where
-   tIntro : ∀ x → (λ(_ :(ℕ< n → C)) → x) ∈ Term
-   tMult : ∀ f → f ∈ Term → (m : ℕ< n) → (λ(x :(ℕ< n → C)) → f x * x m) ∈ Term
+ Poly : ∀{a} → (ℕ< a → C) → ∀{b} → (ℕ< (split a b) → C) → C
+ Poly {Z} var {b} co = hd co
+ Poly {S a} var {Z} co = hd co
+ Poly {S a} var {S b} co = Poly (tl var) (split a (S b) << split (S a) b # co)
+                         + (hd var * Poly var {b} (split a (S b) >> split (S a) b # co))
 
- data Poly : ((ℕ< n → C) → C) → Type ℓ where
-   pIntro : (λ(_ : (ℕ< n → C)) → 0r) ∈ Poly
-   pAdd : (f g : (ℕ< n → C) → C) → f ∈ Term → g ∈ Poly → f + g ∈ Poly
---   pSet : (f : ((ℕ< n → C) → C)) → isProp(f ∈ Poly)
+ -- Partial derivative
+ ∂ : ∀{a b} → (ℕ< (split a (S b)) → C) → ℕ< a → ℕ< (split a b) → C
+ ∂ {a} {Z} v n u = v (subst ℕ< (sym (split1 a)) (finS n))
+ ∂ {Z} {S b} v (n , m , H) = UNREACHABLE (SNotZ H)
+ ∂ {S a} {S b} v (Z , m , H) = let G = split a (S(S b)) >> split (S a) (S b) # v in
+          (split a (S b) << split (S a) b # G) ++ ((split a (S b) >> split (S a) b # G) + ∂ G (Z , m , H))
+ ∂ {S a} {S b} v (S n , m , H) =
+      ∂ (split a (S(S b)) << split (S a) (S b) # v) (n , m , SInjective H)
+   ++ ∂ (split a (S(S b)) >> split (S a) (S b) # v) (S n , m , H)
 
- pMult : ∀ f → f ∈ Poly → (m : ℕ< n) → (λ(x :(ℕ< n → C)) → f x * x m) ∈ Poly
- pMult f pIntro m = subst Poly (sym (funExt λ x → 0*x≡0 (x m))) pIntro
- pMult f (pAdd h g h∈Term g∈Poly) m using R ← pMult g g∈Poly m =
-         subst Poly (funExt λ x → sym (rDistribute (x m) (h x) (g x))) $
-         pAdd (λ x → h x * x m) (λ x → g x * x m) (tMult h h∈Term m) (pMult g g∈Poly m)
-
- pAdd2 : (f g : (ℕ< n → C) → C) → f ∈ Poly → g ∈ Poly → f + g ∈ Poly
- pAdd2 f g pIntro G = pAdd (λ _ → 0r) g (tIntro 0r) G
- pAdd2 f g (pAdd q r q∈Term r∈Poly) G = subst Poly (funExt λ x → assoc (q x) (r x) (g x)) $
-       pAdd q (r + g) q∈Term (pAdd2 r g r∈Poly G)
-
- ∂Term : (f : (ℕ< n → C) → C) → Term f → ℕ< n → Σ λ(x : (ℕ< n → C) → C) → Poly x
- ∂Term f (tIntro x) a = (λ _ → 0r) , pIntro
- ∂Term f (tMult g G m) a using (h , H) ← ∂Term g G a
-                         with (finDiscrete a m)
- ... | yes a≡m = g + (λ x → h x * x m) , pAdd g ((λ x → h x * x m)) G (pMult h H m)
- ... | no a≢m = (λ x → h x * x m) , pMult h H m
-
- -- Partial derivative on polynomials
- ∂ : (f : (ℕ< n → C) → C) → Poly f → ℕ< n → Σ λ(x : (ℕ< n → C) → C) → Poly x
- ∂ f pIntro a = (λ _ → 0r) , pIntro
- ∂ f (pAdd h g x y) a using (q , Q) ← ∂Term h x a
-                      using (r , R) ← ∂ g y a = (q + r) , pAdd2 q r Q R
-
- Jacobian : (F : ℕ< m → (ℕ< n → C) → C)
-          → (∀ x → Poly (F x))
-          → ℕ< n → ℕ< m
-          → Σ λ(x : (ℕ< n → C) → C)
-          → Poly x
- Jacobian F P a b = ∂ (F b) (P b) a
+ Jacobian : (ℕ< n → ℕ< (split n (S n)) → C) → ℕ< n → ℕ< n → ℕ< (split n n) → C
+ Jacobian F = ∂ ∘ F
