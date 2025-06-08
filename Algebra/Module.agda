@@ -175,7 +175,7 @@ module _{scalar : Type ℓ}{member : Type ℓ'}{{R : Ring scalar}}{{V : Module m
 
   record Submodule (X : member → Type aℓ) : Type (aℓ ⊔ ℓ ⊔ ℓ')
     where field
-     ssZero : Ô ∈ X 
+     ssZero : Ô ∈ X
      ssAdd : {v u : member} → v ∈ X → u ∈ X → v <+> u ∈ X
      ss*> : {v : member} → v ∈ X → (c : scalar) → c *> v ∈ X
      {{ssSet}} : Property X
@@ -272,7 +272,7 @@ record moduleHomomorphism {A : Type ℓ}
   where field
   {{addT}} : Homomorphism _<+>_ _<+>_ T
   multT : ∀ u → (c : A) → T (c *> u) ≡ c *> T u
-open moduleHomomorphism {{...}} public 
+open moduleHomomorphism {{...}} public
 
 -- I need this for defining a dual space
 modHomomorphismIsProp : {{F : Ring A}}
@@ -380,7 +380,7 @@ module _ {A : Type ℓ}  {{CR : CRing A}}
 
  -- https://en.wikipedia.org/wiki/Bilinear_map
  record Bilinear (B : V → W → X) : Type (ℓ ⊔ lsuc (aℓ ⊔ bℓ) ⊔ cℓ) where
-  field      
+  field
    lLinear : (v : V) → moduleHomomorphism (B v)
    rLinear : (w : W) → moduleHomomorphism (λ x → B x w)
  open Bilinear {{...}}
@@ -396,3 +396,23 @@ module _ {A : Type ℓ}  {{CR : CRing A}}
    where instance
        H : Homomorphism _<+>_ _<+>_ λ x → B x w
        H = moduleHomomorphism.addT (rLinear w)
+
+record Affine {scalar : Type ℓ} {{R : Ring scalar}} (member : Type ℓ')(A : Type aℓ) : Type(ℓ ⊔ ℓ' ⊔ aℓ) where
+  field
+    {{aMod}} : Module member
+    _+>_ : A → member → A
+    _<-_ : A → A → member
+    afId : ∀ a → a +> Ô ≡ a
+    afAssoc : ∀ v w a → (a +> v) +> w ≡ a +> (v <+> w)
+    afInv1 : ∀ a → (a +>_) ∘ (_<- a) ≡ id
+    afInv2 : ∀ a → (_<- a) ∘ (a +>_)  ≡ id
+open Affine {{...}} public
+
+module _{scalar : Type ℓ}{member : Type ℓ'}{{R : Ring scalar}}{{V : Affine member A}} where
+
+  afInv3 : (v : member) → (_+> v) ∘ (λ(a : A) → a +> -< v >) ≡ id
+  afInv3 v = funExt λ a →
+     (a +> -< v >) +> v  ≡⟨ afAssoc -< v > v a ⟩
+     a +> (-< v > <+> v) ≡⟨ right _+>_ (lInverse v)⟩
+     a +> Ô ≡⟨ afId a ⟩
+     a ∎
