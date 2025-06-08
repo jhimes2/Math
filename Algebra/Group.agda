@@ -121,7 +121,7 @@ module grp {A : Type aℓ}{_∙_ : A → A → A}{{G : group _∙_}} where
       y ∎
 
   doubleInv : (x : A) → inv (inv x) ≡ x
-  doubleInv x = 
+  doubleInv x =
     inv(inv x)                ≡⟨ sym (a[b'b]≡a (inv(inv x)) x)⟩
     inv(inv x) ∙ (inv x ∙ x)  ≡⟨ a'[ab]≡b (inv x) x ⟩
     x ∎
@@ -154,7 +154,7 @@ module grp {A : Type aℓ}{_∙_ : A → A → A}{{G : group _∙_}} where
       inv b ∙ (inv a ∙ (a ∙ b))         ≡⟨ right _∙_ (a'[ab]≡b a b)⟩
       inv b ∙ b                         ≡⟨ lInverse b ⟩
       e ∎
-  
+
   lemma2 : {a b c : A} → c ≡ a ∙ b → inv a ∙ c ≡ b
   lemma2 {a}{b}{c} = λ(p : c ≡ a ∙ b) →
       inv a ∙ c       ≡⟨ right _∙_ p ⟩
@@ -448,7 +448,7 @@ module _{A : Type aℓ}{_∙_ : A → A → A}{{G : group _∙_}} where
   (x , x∈H) ⪀ (y , y∈H) = x ∙ y , Submonoid.op-closed (G .SGSM) x∈H y∈H
   {- I stated 'Submonoid.op-closed (G .SGSM) x∈H y∈H' instead of 'op-closed x∈H y∈H'
      for faster compilation (temporary kludge). -}
- 
+
    -- Used for faster compilation (temporary kludge)
   IdClosed : e ∈ H
   IdClosed = Submonoid.id-closed (G .SGSM)
@@ -456,7 +456,7 @@ module _{A : Type aℓ}{_∙_ : A → A → A}{{G : group _∙_}} where
   instance
    ⪀assoc : Semigroup _⪀_
    ⪀assoc = record { assoc = λ (a , a') (b , b') (c , c') → ΣPathPProp propFamily (assoc a b c) }
- 
+
    -- Group structure of a subgroup
    subgrpStr : group _⪀_
    subgrpStr = record
@@ -465,7 +465,12 @@ module _{A : Type aℓ}{_∙_ : A → A → A}{{G : group _∙_}} where
        ; lIdentity = λ(a , a') → ΣPathPProp propFamily (lIdentity a)
        ; IsSetGrp = ΣSet
        }
-         
+
+   subgrpStrCom : {{Com : Commutative _∙_}} → Commutative _⪀_
+   subgrpStrCom = record
+       { comm = λ (a , a')(b , b') → ΣPathPProp propFamily (comm a b)
+       }
+
   -- Every subgroup of an abelian group is normal
   abelian≥→⊵ : {{Commutative _∙_}} → NormalSG H
   abelian≥→⊵ = record
@@ -538,7 +543,7 @@ module _{A : Type aℓ}{_∙_ : A → A → A}{{G : group _∙_}} where
        ∴ x ∙ inv y ≡ e   [ p (x ∙ inv y)]
        ∴ x ≡ y           [ grp.uniqueInv ]
     }
- 
+
    instance
     -- The kernel is a subgroup
     SG : Subgroup (Kernel h)
@@ -561,7 +566,7 @@ module _{A : Type aℓ}{_∙_ : A → A → A}{{G : group _∙_}} where
        h g * inv (h g)         ≡⟨ rInverse (h g)⟩
        e ∎
       }
- 
+
   instance
 
    -- The image of a homomorphism is a subgroup
@@ -621,7 +626,7 @@ module _{_∙_ : A → A → A} {{G : group _∙_}} where
   inclusionMapHM : {H : A → Type ℓ} {{_ : Subgroup H}} → Homomorphism _⪀_ _∙_ (λ((x , _) : Σ H) → x)
   inclusionMapHM = record
       { preserve = λ (u , u') (v , v') → refl }
- 
+
   -- Group action homomorphism
   actionHomomorphism : {B : Type bℓ} {act : A → B → B} → {{R : Action act}}
                      → Homomorphism _∙_ ≅transitive λ x → act x , ActionBijective act x
@@ -769,7 +774,7 @@ module _ {A : Type aℓ}
 
  module _{B : Type bℓ}{_*_ : B → B → B}{{H : group _*_}}
          (f : A → B){{HM : Homomorphism _∙_ _*_ f}} where
- 
+
   ψ : _∙_ G/ Kernel f → Σ (image f)
   ψ = rec/ (isSetΣ IsSet (λ x → isProp→isSet squash₁))
                  (λ a → f a , η (a , refl)) λ a b ab'∈Ker[f] → ΣPathPProp (λ _ → squash₁)
@@ -789,9 +794,9 @@ module _ {A : Type aℓ}
       elimProp2 (λ u v → [wts isProp((ψ (⋆[ _∙_ / Kernel f ] u v)) ≡ (ψ u ⪀ ψ v)) ]
          isSetΣSndProp IsSet (λ _ → squash₁) (ψ (⋆[ _∙_ / Kernel f ] u v)) (ψ u ⪀ ψ v))
              λ a b → [wts (ψ (⋆[ _∙_ / Kernel f ] [ a ] [ b ])) ≡ (ψ [ a ] ⪀ ψ [ b ])]
-                   ΣPathPProp (λ _ → squash₁) (preserve a b) 
+                   ΣPathPProp (λ _ → squash₁) (preserve a b)
      }
- 
+
    FToH-lemma2 : Monomorphism ⋆[ _∙_ / Kernel f ] _⪀_ ψ
    FToH-lemma2 = record { inject = elimProp2 (λ x y → isProp→ (squash/ x y))
      λ a b P →
