@@ -42,7 +42,7 @@ module _{A : Type ℓ}(_∙_ : A → A → A) where
  rCoset : (A → Type ℓ') → A → A → Type(ℓ ⊔ ℓ')
  rCoset H a = λ x → ∃ λ y → (y ∈ H) × (x ≡ y ∙ a)
 
--- https://en.wikipedia.org/wiki/Centralizer_and_def1
+-- https://en.wikipedia.org/wiki/Centralizer_and_normalizer
 
  centralizer : (A → Type ℓ') → A → Type(ℓ ⊔ ℓ')
  centralizer X a = ∀ x → x ∈ X → a ∙ x ≡ x ∙ a
@@ -91,7 +91,7 @@ instance
  imageProp = record { propFamily = λ x → squash₁ }
 
 data Support{A : Type aℓ}(X : A → Type ℓ) : A → Type(aℓ ⊔ ℓ) where
-  supportIntro : ∀ x → x ∈ X → x ∈ Support X 
+  supportIntro : ∀ x → x ∈ X → x ∈ Support X
   supportProp : ∀ x → isProp (x ∈ Support X)
 
 supportRec : {X : A → Type aℓ} → isProp B → ∀ x → (x ∈ X → B) → x ∈ Support X → B
