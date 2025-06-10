@@ -238,80 +238,85 @@ module _{τ : ℙ(ℙ A)}{{T : topology τ}} where
  closed : ℙ(ℙ A)
  closed s = s ᶜ ∈ τ
 
- closure : ℙ A → ℙ A
- closure  X = ⋂ λ B → ∥ X ⊆ B × B ᶜ ∈ τ ∥
+ -- closure
+ Cl : ℙ A → ℙ A
+ Cl  X = ⋂ λ B → ∥ X ⊆ B × B ᶜ ∈ τ ∥
 
- interior : ℙ A → ℙ A
- interior X = ⋃ λ C → ∥ C ⊆ X × C ∈ τ ∥
+ -- interior
+ _° : ℙ A → ℙ A
+ _° X = ⋃ λ C → ∥ C ⊆ X × C ∈ τ ∥
+ infixl 30 _°
 
- exterior : ℙ A → ℙ A
- exterior X = ⋃ λ B → ∥ B ∈ τ × (∀ x → x ∈ B → x ∉ X) ∥
+ -- exterior
+ Ext : ℙ A → ℙ A
+ Ext X = ⋃ λ B → ∥ B ∈ τ × (∀ x → x ∈ B → x ∉ X) ∥
 
- boundary : ℙ A → ℙ A
- boundary X = λ p → p ∈ closure X × p ∉ interior X
+ -- Frontier
+ Fr : ℙ A → ℙ A
+ Fr X = λ p → p ∈ Cl X × p ∉ X °
 
- η-closure : (X : ℙ A) → X ⊆ closure X
+ η-closure : (X : ℙ A) → X ⊆ Cl X
  η-closure X x x∈X = η λ P → _>> λ(X⊆P , H) → X⊆P x x∈X
 
- closureLemma1 : {X : ℙ A} → X ᶜ ∈ τ → closure X ≡ X
+ closureLemma1 : {X : ℙ A} → X ᶜ ∈ τ → Cl X ≡ X
  closureLemma1 {X} Xᶜ∈τ = funExt λ x → propExt (_>> (λ H → H X (η ((λ _ z → z) , Xᶜ∈τ))))
                                                (η-closure X x)
 
- closureClosed : {X : ℙ A} → (closure X)ᶜ ∈ τ
+ closureClosed : {X : ℙ A} → (Cl X)ᶜ ∈ τ
  closureClosed {X} = subst τ (sym ([⋂X]ᶜ≡⋃Xᶜ λ z → ∥ (X ⊆ z) × z ᶜ ∈ τ ∥))
    $ tunion λ Z → _>> λ(X⊆Zᶜ , [zᶜ]ᶜ∈τ) → subst τ dblCompl [zᶜ]ᶜ∈τ
 
- map-closure : {X Y : ℙ A} → X ⊆ Y → closure X ⊆ closure Y
- map-closure {X}{Y} X⊆Y z = _>> λ Z → Z (closure Y) $ η ((λ y y∈X → η-closure Y y (X⊆Y y y∈X)) , closureClosed)
+ map-closure : {X Y : ℙ A} → X ⊆ Y → Cl X ⊆ Cl Y
+ map-closure {X}{Y} X⊆Y z = _>> λ Z → Z (Cl Y) $ η ((λ y y∈X → η-closure Y y (X⊆Y y y∈X)) , closureClosed)
 
- μ-closure : (X : ℙ A) → (closure ∘ closure) X ⊆ closure X
- μ-closure X z = _>> λ H → H (closure X) $ η $ (λ x z₁ → z₁) , closureClosed
+ μ-closure : (X : ℙ A) → (Cl ∘ Cl) X ⊆ Cl X
+ μ-closure X z = _>> λ H → H (Cl X) $ η $ (λ x z₁ → z₁) , closureClosed
 
- closureLemma2 : {X Y : ℙ A} → closure (X ∪ Y) ⊆ (closure X ∪ closure Y)
- closureLemma2 {X}{Y} z = _>> λ G → G (closure X ∪ closure Y)
+ closureLemma2 : {X Y : ℙ A} → Cl (X ∪ Y) ⊆ (Cl X ∪ Cl Y)
+ closureLemma2 {X}{Y} z = _>> λ G → G (Cl X ∪ Cl Y)
               $ η $ (λ y → _>> λ{ (inl H) → η (inl (η-closure X y H))
                                 ; (inr H) → η (inr (η-closure Y y H))})
-                               , subst τ (sym ([X∪Y]ᶜ≡Xᶜ∩Yᶜ (closure X) (closure Y)))
+                               , subst τ (sym ([X∪Y]ᶜ≡Xᶜ∩Yᶜ (Cl X) (Cl Y)))
                                  (tintersection closureClosed
                                                 closureClosed)
 
- closureLemma3 : {X Y : ℙ A} →  (closure X ∪ closure Y) ⊆ closure (X ∪ Y)
+ closureLemma3 : {X Y : ℙ A} →  (Cl X ∪ Cl Y) ⊆ Cl (X ∪ Y)
  closureLemma3 {X}{Y} z = _>> λ{ (inl z∈Cl[X]) → map-closure (λ y y∈X → η (inl y∈X)) z z∈Cl[X]
                                ; (inr z∈Cl[Y]) → map-closure (λ y y∈Y → η (inr y∈Y)) z z∈Cl[Y]}
 
- interiorLemma1 : {X : ℙ A} → interior X ⊆ X
+ interiorLemma1 : {X : ℙ A} → X ° ⊆ X
  interiorLemma1 {X} x = _>> λ(a , x∈a , c) → c >> λ(d , e) → d x x∈a
 
- interiorLemma2 : {X : ℙ A} → X ∈ τ → interior X ≡ X
+ interiorLemma2 : {X : ℙ A} → X ∈ τ → X ° ≡ X
  interiorLemma2 {X} X∈τ = funExt λ x → propExt (interiorLemma1 x)
                                                 λ x∈X → η (X , x∈X , η ((λ y z → z) , X∈τ))
 
- interiorLemma3 : (X : ℙ A) → interior X ∈ τ
+ interiorLemma3 : (X : ℙ A) → X ° ∈ τ
  interiorLemma3 X = tunion λ x → _>> snd
 
- interiorLemma4 : {X Y : ℙ A} → interior (X ∩ Y) ⊆ (interior X ∩ interior Y)
+ interiorLemma4 : {X Y : ℙ A} → (X ∩ Y)° ⊆ (X ° ∩ Y °)
  interiorLemma4 {X}{Y} x H = (H >> λ(Z , x∈Z , G) → G >> λ(Z⊆X∩Y , Z∈τ) → η (Z , x∈Z , η ((λ y y∈Z → fst (Z⊆X∩Y y y∈Z)) , Z∈τ)))
                            , (H >> λ(Z , x∈Z , G) → G >> λ(Z⊆X∩Y , Z∈τ) → η (Z , x∈Z , η ((λ y y∈Z → snd (Z⊆X∩Y y y∈Z)) , Z∈τ)))
 
- interiorLemma5 : {X Y : ℙ A} →  (interior X ∩ interior Y) ⊆ interior (X ∩ Y)
+ interiorLemma5 : {X Y : ℙ A} →  (X ° ∩ Y °) ⊆ (X ∩ Y)°
  interiorLemma5 {X}{Y} x (H , G) = H >> λ(P , x∈P , T)
                                  → G >> λ(Q , x∈Q , U)
                                  → T >> λ(P⊆X , P∈τ)
                                  → U >> λ(Q⊆Y , Q∈τ)
                                  → η $ P ∩ Q , (x∈P , x∈Q) , η ((λ a (a∈P , a∈Q) → P⊆X a a∈P , Q⊆Y a a∈Q) , tintersection P∈τ Q∈τ)
 
- map-interior : {X Y : ℙ A} → X ⊆ Y → interior X ⊆ interior Y
- map-interior {X}{Y} X⊆Y Z Z∈IX = η $ interior X
+ map-interior : {X Y : ℙ A} → X ⊆ Y → X ° ⊆ Y °
+ map-interior {X}{Y} X⊆Y Z Z∈IX = η $ X °
                                     , Z∈IX
                                     , η ((λ x x∈IX → X⊆Y x $ interiorLemma1 x x∈IX) , interiorLemma3 X)
 
- ext≡closᶜ : {X : ℙ A} → exterior X ≡ (closure X)ᶜ
+ ext≡closᶜ : {X : ℙ A} → Ext X ≡ (Cl X)ᶜ
  ext≡closᶜ {X} = funExt λ x → propExt (_>> λ(Y , x∈Y , c) → c >> λ(Y∈τ , e) →
       _>> λ(f) →
        let F : Y ≡ (Y ᶜ)ᶜ
            F = funExt λ z → propExt (λ r → λ z₁ → z₁ r) DNElim in
        let x∈Yᶜ = f (Y ᶜ) (η ((λ z z∈X z∈Y → e z z∈Y z∈X) , subst τ F Y∈τ)) in x∈Yᶜ x∈Y)
-       λ x∈clos[X]ᶜ → η ((closure X)ᶜ , x∈clos[X]ᶜ , η (closureClosed ,
+       λ x∈clos[X]ᶜ → η ((Cl X)ᶜ , x∈clos[X]ᶜ , η (closureClosed ,
        λ z P z∈X → P $ η $ λ Q → _>> λ(X⊆Q , Qᶜ∈τ) → X⊆Q z z∈X))
 
 restrict : (f : A → B) → (Q : A → Type ℓ) → Σ Q → B
