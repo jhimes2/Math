@@ -231,8 +231,8 @@ module _{scalar : Type ℓ}{member : Type ℓ'}{{R : Ring scalar}}{{V : Module m
             transport H F
       }
 
-  ΣSubModule : {X : member → Type aℓ}{{SM : Submodule X}} → Module (Σ X)
-  ΣSubModule {X} = record
+   ΣSubModule : {X : member → Type aℓ}{{SM : Submodule X}} → Module (Σ X)
+   ΣSubModule {X} = record
                     { _<+>_ = λ (a , a')(b , b') → (a <+> b) , ssAdd a' b'
                     ; _*>_ = λ x (v , v') → (x *> v) , ss*> v' x
                     ; scalarDistribute = λ a (u , u')(v , v') → ΣPathPProp propFamily (scalarDistribute a u v)
@@ -407,22 +407,51 @@ module _ {A : Type ℓ}  {{CR : CRing A}}
        H : Homomorphism _<+>_ _<+>_ λ x → B x w
        H = moduleHomomorphism.addT (rLinear w)
 
-record Affine {scalar : Type ℓ} {{R : Ring scalar}} (member : Type ℓ')(A : Type aℓ) : Type(ℓ ⊔ ℓ' ⊔ aℓ) where
+
+
+record Affine{scalar : Type ℓ}{{R : Ring scalar}}(member : Type ℓ')(A : Type aℓ) : Type(ℓ ⊔ ℓ' ⊔ aℓ) where
   field
     {{aMod}} : Module member
-    _+>_ : A → member → A
+    _<+_ : member → A → A
     _<-_ : A → A → member
-    afId : ∀ a → a +> Ô ≡ a
-    afAssoc : ∀ v w a → (a +> v) +> w ≡ a +> (v <+> w)
-    afInv1 : ∀ a → (a +>_) ∘ (_<- a) ≡ id
-    afInv2 : ∀ a → (_<- a) ∘ (a +>_)  ≡ id
+    afId : ∀ a → Ô <+ a ≡ a
+    afAssoc : ∀ v w a → w <+ (v <+ a) ≡ (w <+> v) <+ a
+    afInv1 : ∀ a → (_<+ a) ∘ (_<- a) ≡ id
+    afInv2 : ∀ a → (_<- a) ∘ (_<+ a)  ≡ id
 open Affine {{...}} public
 
 module _{scalar : Type ℓ}{member : Type ℓ'}{{R : Ring scalar}}{{V : Affine member A}} where
 
-  afInv3 : (v : member) → (_+> v) ∘ (λ(a : A) → a +> -< v >) ≡ id
-  afInv3 v = funExt λ a →
-     (a +> -< v >) +> v  ≡⟨ afAssoc -< v > v a ⟩
-     a +> (-< v > <+> v) ≡⟨ right _+>_ (lInverse v)⟩
-     a +> Ô ≡⟨ afId a ⟩
-     a ∎
+ afInv3 : (v : member) → (v <+_) ∘ (λ(a : A) → -< v > <+ a) ≡ id
+ afInv3 v = funExt λ a →
+    v <+ (-< v > <+ a)  ≡⟨ afAssoc -< v > v a ⟩
+    (v <+> -< v >) <+ a ≡⟨ left _<+_ (rInverse v)⟩
+    Ô <+ a ≡⟨ afId a ⟩
+    a ∎
+
+ instance
+  -- Any coset of a submodule M of a module is an affine space over that submodule
+  afCoset : {H : member → Type aℓ}{{SG : Submodule H}}{m : member} → Affine (Σ H) (Σ (cosetL H m))
+  afCoset {H = H}{m} = record
+                 { _<+_ = λ (y , y∈H) (x , m<->x∈H) → y <+> x ,
+                  ((m <-> x) <-> y ∈ H   ⟦ op-closed m<->x∈H (inv-closed y∈H) ⟧
+                   ∴ m <-> (y <+> x) ∈ H [ subst H ([ab']c'≡a[cb]' m x y) ])
+                 ; _<-_ = λ(x , m<->x∈H)(y , m<->y∈H) → -< m <-> x > <+>(m <-> y) , op-closed (inv-closed m<->x∈H)
+                                                                                              m<->y∈H
+                 ; afId = λ(a , m<->a∈H) → ΣPathPProp (λ b → propFamily (m <-> b)) (lIdentity a)
+                 ; afAssoc = λ (v , v∈H)(w , w∈H)(a , m<->a∈H) → ΣPathPProp (λ b → propFamily (m <-> b))
+                                                                            (assoc w v a)
+                 ; afInv1 = λ (a , m<->a∈H) → funExt λ (b , m<->b∈H) →
+                   ΣPathPProp (λ c → propFamily (m <-> c)) $
+                   (-< m <-> b > <+> (m <-> a)) <+> a ≡⟨ left _<+>_ (assoc -< m <-> b > m -< a >)⟩
+                   ((-< m <-> b > <+> m) <-> a) <+> a ≡⟨ [ab']b≡a (-< m <-> b > <+> m) a ⟩
+                   (-< m <-> b > <+> m)               ≡⟨ [ab']'a≡b m b ⟩
+                   b ∎
+                 ; afInv2 = λ (a , m<->a∈H) → funExt λ (b , b∈H) →
+                    ΣPathPProp propFamily $
+                  -< m <-> (b <+> a)> <+> (m <-> a) ≡⟨ left _<+>_ ([ab']'≡ba' m (b <+> a))⟩
+                  ((b <+> a) <-> m) <+> (m <-> a)   ≡⟨ assoc ((b <+> a) <-> m) m -< a > ⟩
+                  (((b <+> a) <-> m) <+> m) <-> a   ≡⟨ left _<->_ ([ab']b≡a (b <+> a) m)⟩
+                  (b <+> a) <-> a                   ≡⟨ [ab]b'≡a b a ⟩
+                    b ∎
+                 }

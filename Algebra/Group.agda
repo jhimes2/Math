@@ -233,12 +233,30 @@ module _{A : Type aℓ}{_∙_ : A → A → A}{{G : group _∙_}} where
                   inv a ∙ inv (inv b) ≡⟨ grp.lemma1 (inv b) a ⟩
                   inv (inv b ∙ a)     ∎
 
+ [ab']c'≡a[cb]' : (a b c : A) → (a ∙ inv b) ∙ inv c ≡ a ∙ inv (c ∙ b)
+ [ab']c'≡a[cb]' a b c = (a ∙ inv b) ∙ inv c ≡⟨ sym (assoc a (inv b) (inv c))⟩
+                        a ∙ (inv b ∙ inv c) ≡⟨ right _∙_ (grp.lemma1 c b)⟩
+                        a ∙ inv (c ∙ b) ∎
+
+ [ab']'≡ba' : (a b : A) → inv (a ∙ inv b) ≡ b ∙ inv a
+ [ab']'≡ba' a b = inv (a ∙ inv b)    ≡⟨ sym (grp.lemma1 a (inv b))⟩
+                  inv(inv b) ∙ inv a ≡⟨ left _∙_ (grp.doubleInv b)⟩
+                  b ∙ inv a ∎
+
+ [ab']'a≡b : (a b : A) → inv (a ∙ inv b) ∙ a ≡ b
+ [ab']'a≡b a b = inv (a ∙ inv b) ∙ a ≡⟨ left _∙_ ([ab']'≡ba' a b)⟩
+                 (b ∙ inv a) ∙ a     ≡⟨ [ab']b≡a b a ⟩
+                 b ∎
+
  -- https://en.wikipedia.org/wiki/Subgroup
  record Subgroup(H : A → Type bℓ) : Type(aℓ ⊔ bℓ) where
    field
      inv-closed : {x : A} → x ∈ H → inv x ∈ H
      {{SGSM}} : Submonoid H _∙_
  open Subgroup {{...}} public
+
+ cosetL : (H : A → Type bℓ)(a b : A) → Type bℓ
+ cosetL H a b = a ∙ inv b ∈ H
 
  -- https://en.wikipedia.org/wiki/Normal_subgroup
  record NormalSG(N : A → Type bℓ) : Type(aℓ ⊔ bℓ) where
