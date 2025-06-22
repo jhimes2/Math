@@ -362,10 +362,10 @@ module _{A : set aℓ}(τ : ℙ(ℙ A)){{T : topology τ}} where
      V∈ : V ∈ τ
      ∈U : x ∈ U
      ∈V : y ∈ V
-     U⊆Vᶜ : U ⊆ V ᶜ
+     hoLem : ∀ z → z ∈ U ∩ V → x ≡ y
 
  Hausdorff : set aℓ
- Hausdorff = ∀{x y} → x ≢ y → HousedOff x y
+ Hausdorff = ∀ x y → HousedOff x y
 
  openCover : ℙ(ℙ A) → set aℓ
  openCover X = (X ⊆ τ) × cover X
@@ -375,35 +375,36 @@ module _{A : set aℓ}(τ : ℙ(ℙ A)){{T : topology τ}} where
     point set of f is a closed subset of A. -}
  p4-33 : (f : A → A) → Hausdorff → continuous τ τ f → (fix f) ᶜ ∈ τ
  p4-33 f haus cont =
+
   let S : ℙ(ℙ A)
       S = λ(X : ℙ A) → ∃ λ(y : A) → Σ λ(fy≢y : f y ≢ y) →
          let instance
                H : HousedOff (f y) y
-               H = haus fy≢y in X ≡ V ∩ f ⁻¹[ U ] in
+               H = haus (f y) y in X ≡ V ∩ f ⁻¹[ U ] in
   let P : ∀ X → X ∈ S → X ⊆ (fix f)ᶜ
       P = λ X D x x∈X → _>> λ(fx≡x) → D >> λ(y , fy≢y , H) →
         let instance
               Inst : HousedOff (f y) y
-              Inst = haus fy≢y in
+              Inst = haus (f y) y in
         let H1 : x ∈ V ∩ f ⁻¹[ U ]
             H1 = subst (x ∈_) H x∈X in
         let x∈V = fst H1 in
         let fx∈U = snd H1 in
         let fx∈V = subst V (sym fx≡x) x∈V in
-            U⊆Vᶜ (f x) fx∈U (fx∈V) in
+          fy≢y (hoLem (f x) (fx∈U , fx∈V)) in
   let Q1 : ⋃ S ⊆ (fix f)ᶜ
       Q1 = Union⊆ S ((fix f)ᶜ) P in
   let Q2 :  (fix f)ᶜ ⊆ ⋃ S
       Q2 = λ x D → η $
          let instance
                H : HousedOff (f x) x
-               H = haus (λ p → D (η p)) in
+               H = haus (f x) x in
         V ∩ f ⁻¹[ U ] , (∈V , ∈U) , (η $ x , (λ p → D (η p)) , refl) in
   let S⊆τ : S ⊆ τ
       S⊆τ = λ x → _>> λ (y , fy≢y , X)
           → let instance
                   H : HousedOff (f y) y
-                  H = haus fy≢y in subst τ (sym X) (tintersection V∈ (cont U U∈)) in
+                  H = haus (f y) y in subst τ (sym X) (tintersection V∈ (cont U U∈)) in
   let R :  (fix f)ᶜ ≡ ⋃ S
       R = setExt Q2 Q1 in
     subst τ (sym R) (tunion S⊆τ)
@@ -527,17 +528,17 @@ module _{A : set aℓ}
 
   -- If f : A → B is continuous and injective and B is Hausdorff, then A is Hausdorff.
   p4-35 : (f : A → B) → Hausdorff τ₁ → continuous τ τ₁ f → injective f → Hausdorff τ
-  p4-35 f haus cont inject {x}{y} x≢y = record
+  p4-35 f haus cont inject x y = record
                                       { U = f ⁻¹[ U ]
                                       ; V = f ⁻¹[ V ]
                                       ; U∈ = cont U U∈
                                       ; V∈ = cont V V∈
                                       ; ∈U = ∈U
                                       ; ∈V = ∈V
-                                      ; U⊆Vᶜ = λ a → U⊆Vᶜ (f a)
+                                      ; hoLem = λ a z → inject x y (hoLem (f a) z)
                                       }
     where
      open HousedOff {{...}}
      instance
       inst : HousedOff τ₁ (f x) (f y)
-      inst = haus λ fx≡fy → x≢y (inject x y fx≡fy)
+      inst = haus (f x) (f y)
