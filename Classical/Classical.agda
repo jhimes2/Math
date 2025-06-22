@@ -37,7 +37,7 @@ postulate
  squash : {X : Prop} → isProp X
 
 isProp⊤ : isProp ⊤
-isProp⊤ tt tt = refl 
+isProp⊤ tt tt = refl
 
 isProp⊥ : isProp ⊥
 isProp⊥ ()
@@ -60,7 +60,7 @@ lowest A with lem A IsProp
 
 intro : {A : Type ℓ} → A → ∥ A ∥
 intro {A} a with lem ∥ A ∥₁ squash₁
-... | inl x = tt 
+... | inl x = tt
 ... | inr x = x ∣ a ∣₁
 
 data minEquiv{A : Type aℓ}(R : A → A → Type ℓ) : A → A → Type(aℓ ⊔ ℓ) where
@@ -85,7 +85,7 @@ id x = x
 Σ {A} = Σ' A
 
 _∘_ : (B → C) → (A → B) → (A → C)
-_∘_ f g x = f (g x) 
+_∘_ f g x = f (g x)
 
 -- Modus ponens operator
 -- Equivalent to the pipe operator `|>` in F#
@@ -254,7 +254,7 @@ instance
 
  ℙmonad : monad {ρ = λ l → l ⊔ lsuc lzero} ℙ
  ℙmonad = record
-           { μ = ⋃ 
+           { μ = ⋃
            ; η = λ a x → ∥ x ≡ a ∥
            ; monadLemma1 = funExt λ X → funExt λ x → propExt
              (_>> (λ(P , x∈P , G) →
@@ -407,11 +407,11 @@ Pair A B X = ∥ (X ≡ A) ＋ (X ≡ B) ∥
 ⋃𝓤≡𝓤 : (⋃ 𝓤) ≡ 𝓤 {A = A}
 ⋃𝓤≡𝓤 = funExt λ x → propExt (λ y → tt) λ t → η (𝓤 , t , t)
 
--- Expressing DeMorgan's Law on arbitrary unions and intersections often results in 
+-- Expressing DeMorgan's Law on arbitrary unions and intersections often results in
 -- an abuse of notation. The following statement is not true when taken literally:
 --
 --     (⋂ X)ᶜ ≡ ⋃ Xᶜ
--- 
+--
 -- What we really mean is this
 --
 --     (⋂ X)ᶜ ≡ ⋃ {a | aᶜ ∈ X}
@@ -485,7 +485,7 @@ module _{X : set ℓ}(ℬ : ℙ(ℙ X)){{filter : Filter ℬ}} where
    let H : 𝓤 ≡ ∅
        H = funExt λ(x : X) → UNREACHABLE (p ∣ x ∣₁) in
         UNREACHABLE $ fnot∅ $ subst ℬ H ffull
- 
+
  FilterᶜIsIdeal : Ideal λ Y → Y ᶜ ∈ ℬ
  FilterᶜIsIdeal = record
   { iempty = subst ℬ (sym ∅ᶜ≡𝓤) ffull
@@ -646,6 +646,6 @@ NT⊆' = record
                          → map (f ∘ g) y ∈ x    ≡⟨ cong (λ i → i y ∈ x) (compPreserve f g)⟩
                           (map f ∘ map g) y ∈ x ≡⟨⟩
                          map g y ∈ (λ b → map f b ∈ x) ∎
-  
+
  ; idPreserve2 = funExt λ a → funExt λ b → cong (λ x → x b ∈ a) idPreserve
  }
