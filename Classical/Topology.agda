@@ -289,21 +289,23 @@ module _{τ : ℙ(ℙ A)}{{T : topology τ}} where
 
  interiorLemma2 : {X : ℙ A} → X ∈ τ → X ° ≡ X
  interiorLemma2 {X} X∈τ = funExt λ x → propExt (interiorLemma1 x)
-                                                λ x∈X → η (X , x∈X , η ((λ y z → z) , X∈τ))
+                                                λ x∈X → η $ X , x∈X , η ((λ y z → z) , X∈τ)
 
  interiorLemma3 : (X : ℙ A) → X ° ∈ τ
  interiorLemma3 X = tunion λ x → _>> snd
 
  interiorLemma4 : {X Y : ℙ A} → (X ∩ Y)° ⊆ (X ° ∩ Y °)
- interiorLemma4 {X}{Y} x H = (H >> λ(Z , x∈Z , G) → G >> λ(Z⊆X∩Y , Z∈τ) → η (Z , x∈Z , η ((λ y y∈Z → fst (Z⊆X∩Y y y∈Z)) , Z∈τ)))
-                           , (H >> λ(Z , x∈Z , G) → G >> λ(Z⊆X∩Y , Z∈τ) → η (Z , x∈Z , η ((λ y y∈Z → snd (Z⊆X∩Y y y∈Z)) , Z∈τ)))
+ interiorLemma4 {X}{Y} x H = (H >> λ(Z , x∈Z , G) → G >> λ(Z⊆X∩Y , Z∈τ) → η $ Z , x∈Z , η ((λ y y∈Z → fst (Z⊆X∩Y y y∈Z)) , Z∈τ))
+                            , H >> λ(Z , x∈Z , G) → G >> λ(Z⊆X∩Y , Z∈τ) → η $ Z , x∈Z , η ((λ y y∈Z → snd (Z⊆X∩Y y y∈Z)) , Z∈τ)
 
  interiorLemma5 : {X Y : ℙ A} →  (X ° ∩ Y °) ⊆ (X ∩ Y)°
  interiorLemma5 {X}{Y} x (H , G) = H >> λ(P , x∈P , T)
                                  → G >> λ(Q , x∈Q , U)
                                  → T >> λ(P⊆X , P∈τ)
                                  → U >> λ(Q⊆Y , Q∈τ)
-                                 → η $ P ∩ Q , (x∈P , x∈Q) , η ((λ a (a∈P , a∈Q) → P⊆X a a∈P , Q⊆Y a a∈Q) , tintersection P∈τ Q∈τ)
+                                 → η $ P ∩ Q
+                                     , (x∈P , x∈Q)
+                                     , η ((λ a (a∈P , a∈Q) → P⊆X a a∈P , Q⊆Y a a∈Q) , tintersection P∈τ Q∈τ)
 
  map-interior : {X Y : ℙ A} → X ⊆ Y → X ° ⊆ Y °
  map-interior {X}{Y} X⊆Y Z Z∈IX = η $ X °
@@ -430,11 +432,13 @@ module _{A : set aℓ}
                                , right _∩_ Y≡V ∙ left _∩_ Y≡U ∙ refl
    }
 
- neighborhoodPoint : A → (V : ℙ A) → Prop
- neighborhoodPoint p V = ∃ λ(U : ℙ A) → (U ∈ τ) × ((p ∈ U) × (U ⊆ V))
+ -- Neighborhood at a point
+ nhood : A → (V : ℙ A) → Prop
+ nhood p V = ∃ λ(U : ℙ A) → (U ∈ τ) × (p ∈ U) × (U ⊆ V)
 
- neighborhood : (ℙ A) → (V : ℙ A) → Prop
- neighborhood Q V = ∃ λ(U : ℙ A) → (U ∈ τ) × ((Q ⊆ U) × (U ⊆ V))
+ -- Neighhorhood at a set
+ nhoodSet : (ℙ A) → (V : ℙ A) → Prop
+ nhoodSet Q V = ∃ λ(U : ℙ A) → (U ∈ τ) × (Q ⊆ U) × (U ⊆ V)
 
  discreteDomainContinuous : (f : B → A) → continuous discrete τ f
  discreteDomainContinuous f = λ _ _ → tt
