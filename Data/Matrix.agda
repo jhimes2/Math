@@ -599,6 +599,10 @@ skipAt : < C ^ S n > → Matrix C n (S n)
 skipAt {n = Z} v u _ = v u
 skipAt {n = S n} v = tl v ∷ ((hd v ∷_) ∘ skipAt (tl v))
 
+replaceAt : C → < C ^ n > → Matrix C n n
+replaceAt {n = Z} c v u x = UNREACHABLE (SNotZ (u .snd .snd))
+replaceAt {n = S n} c v = (c ∷ tl v) ∷ ((hd v ∷_) ∘ replaceAt c (tl v))
+
 -- cofactor
 CF : (M : Matrix A (S n) (S m)) → ℕ< (S n) → ℕ< (S m) → Matrix A m n
 CF M x y = skipAt (skipAt M y ᵀ) x
