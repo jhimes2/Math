@@ -40,6 +40,10 @@ discrete  {A} = λ (_ : ℙ A) → ⊤
 indiscrete : ℙ(ℙ A)
 indiscrete = Pair 𝓤 ∅
 
+-- projection
+pr : {P : A → Type ℓ}(a : A) → (∀ x → P x) → P a
+pr a z = z a
+
 module _{A : set ℓ}{B : set bℓ}{P : A → set aℓ}(τ : ∀ a → ℙ(ℙ(P a))) where
 
  -- https://en.wikipedia.org/wiki/Initial_topology
@@ -50,6 +54,14 @@ module _{A : set ℓ}{B : set bℓ}{P : A → set aℓ}(τ : ∀ a → ℙ(ℙ(P
    initUnion : ∀ Y → Y ⊆ initial X → ⋃ Y ∈ initial X
    initInter : ∀ a b → a ∈ initial X → b ∈ initial X → a ∩ b ∈ initial X
    initProp : ∀ x → isProp (x ∈ initial X)
+
+-- https://en.wikipedia.org/wiki/Product_topology
+ {-# NO_UNIVERSE_CHECK #-}
+ data Π{A : set ℓ}{P : A → set aℓ}(τ : ∀ a → ℙ(ℙ(P a))) : ℙ(ℙ(∀ a → P a)) where
+    ΠIntro : ∀ a → ∀ Y → Y ∈ τ a → (pr a ⁻¹[ Y ]) ∈ Π τ
+    ΠUnion : ∀ Y → Y ⊆ Π τ → ⋃ Y ∈ Π τ
+    ΠInter : ∀ a b → a ∈ Π τ → b ∈ Π τ → a ∩ b ∈ Π τ
+    ΠProp : ∀ x → isProp (x ∈ Π τ)
 
  -- https://en.wikipedia.org/wiki/Final_topology
  final : (X : ∀ a → P a → B) → ℙ(ℙ B)
