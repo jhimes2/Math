@@ -37,6 +37,10 @@ data Maybe (A : Type ℓ) : Type ℓ where
  Just : A → Maybe A
  Nothing : Maybe A
 
+isJust : (x : Maybe A) → Type
+isJust (Just x) = ⊤
+isJust Nothing = ⊥
+
 -- Modus ponens operator
 -- Equivalent to the pipe operator `|>` in F#
 _|>_ : A → (A → B) → B
@@ -80,11 +84,11 @@ infixr 1 _∴_[_]
 
 _↔_ : Type ℓ → Type ℓ' → Type(ℓ ⊔ ℓ')
 A ↔ B = (A → B) × (B → A)
-infixr 0 _↔_ 
+infixr 0 _↔_
 
 _⇔_ : Type ℓ → Type ℓ' → Type(ℓ ⊔ ℓ')
 A ⇔ B = ∥ A ↔ B ∥₁
-infixr 0 _⇔_ 
+infixr 0 _⇔_
 
 {- Syntax to show the goal as we apply proofs which allows
    the code to be more human readable. -}
@@ -160,8 +164,8 @@ instance
   dnmonad = record { μ = λ x y → x (λ z → z y)
                    ; η = λ x y → y x
                    ; monadLemma1 = funExt λ x → funExt λ y → refl
-                   ; monadLemma2 = funExt λ x → funExt λ y → refl 
-                   ; monadLemma3 = funExt λ x → funExt λ y → refl 
+                   ; monadLemma2 = funExt λ x → funExt λ y → refl
+                   ; monadLemma3 = funExt λ x → funExt λ y → refl
                    }
   truncfunctor : functor ∥_∥₁
   truncfunctor = record {
@@ -174,8 +178,8 @@ instance
                       ; η = ∣_∣₁
                       ; monadLemma1 = funExt λ x →
                                  squash₁ (μ' (μ' x)) (μ' (map μ' x))
-                      ; monadLemma2 = funExt λ x → squash₁ (μ' (η' x)) x 
-                      ; monadLemma3 = funExt λ x → squash₁ (μ'(map η' x)) x 
+                      ; monadLemma2 = funExt λ x → squash₁ (μ' (η' x)) x
+                      ; monadLemma3 = funExt λ x → squash₁ (μ'(map η' x)) x
                       }
      where
        μ' : ∥ ∥ A ∥₁ ∥₁ → ∥ A ∥₁
@@ -249,7 +253,7 @@ leftInverse {A}{B} f = Σ λ (g : B → A) → (x : A) → g (f x) ≡ x
 -- If a function has a left inverse, then it is injective
 lInvToInjective : {f : A → B} → leftInverse f → injective f
 lInvToInjective (g , g') x y p = sym (g' x) ⋆ (cong g p) ⋆ (g' y)
-  
+
 -- Propositional Extensionality
 propExt : isProp A → isProp B → (A → B) → (B → A) → A ≡ B
 propExt pA pB ab ba = isoToPath (iso ab ba (λ b → pB (ab (ba b)) b) λ a → pA (ba (ab a)) a)
@@ -374,7 +378,7 @@ corestrictSurj f (b , H) = H >>= λ (a , G) → η $ a , ΣPathPProp (λ x → s
 module _{_∙_ : A → A → A}
         {_*_ : B → B → B}
         {h : A → B} where
-        
+
  _&_ : {{Homomorphism _∙_ _*_ h}} → Σ (image h) → Σ (image h) → Σ (image h)
  _&_ = λ (x , H) (y , G) → (x * y) , H >>= λ(a , P)
                                    → G >>= λ(b , Q)

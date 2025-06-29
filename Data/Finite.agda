@@ -16,41 +16,49 @@ variable
 
 -- finite Sets
 ℕ< : (n : ℕ) → Type
-ℕ< n = Σ (λ m → Σ λ s → add (S m) s ≡ n)
+ℕ< Z = ⊥
+ℕ< (S n) = Maybe (ℕ< n)
 
-finSndIsProp : (a : ℕ) → isProp(Σ λ s → S a + s ≡ n)
-finSndIsProp {n = n} a (x , x') (y , y') =
-   let H = natLCancel (S a) (y' ⋆ sym x') in ΣPathPProp (λ b → IsSet (S (a + b)) n) (sym H)
-
-finFstInj : (a b : ℕ< n) → fst a ≡ fst b → a ≡ b
-finFstInj a b = ΣPathPProp finSndIsProp
-
-finZ : ℕ< (S n)
-finZ {n = n} = Z , n , refl
-
--- increments the value inside
-finS : ℕ< n → ℕ< (S n)
-finS (x , y , p) = S x , y , cong S p
-
-finDecr : {x : ℕ< (S (S n))} → finZ ≢ x → ℕ< (S n)
-finDecr {x = Z , y , H} p = p (ΣPathPProp finSndIsProp refl) |> UNREACHABLE
-finDecr {x = S x , y , H} p = x , y , SInjective H
+finDecr : {x : ℕ< (S (S n))} → Nothing ≢ x → ℕ< (S n)
+finDecr {n} {Just x} H = x
+finDecr {n} {Nothing} H = UNREACHABLE (H refl)
 
 -- Does not increment the value inside, but increments the type
-apparent-finS : ℕ< n → ℕ< (S n)
-apparent-finS (x , y , p) = x , S y , cong S (Sout x y ⋆ p)
+apparent-Just : ℕ< n → ℕ< (S n)
+apparent-Just {S n} (Just x) = Just (apparent-Just x)
+apparent-Just {S n} Nothing = Nothing
 
-¬finZ : ¬ (ℕ< Z)
-¬finZ (x , y , P) = SNotZ P
-
-finS≢finZ : {x : ℕ< n} → finS x ≢ finZ
-finS≢finZ {n} {x = (x , p , r)} contra = SNotZ λ i → fst(contra i)
+Just≢finZ : {x : ℕ< n} → Just x ≢ Nothing
+Just≢finZ {S n} {x} H = subst isJust H tt
 
 finMax : ℕ< (S n)
-finMax {n} = n , Z , cong S (addZ n)
+finMax {Z} = Nothing
+finMax {S n} = Just finMax
+
+JustInjective : ∀{n} → {x y : ℕ< n} → Just x ≡ Just y → x ≡ y
+JustInjective {n} {x} {y} H = eq→≡ (≡→eq H)
+ where
+  eq : ∀{n} → ℕ< n → ℕ< n → Type
+  eq {S n} (Just x) (Just y) = eq x y
+  eq {S n} Nothing Nothing = ⊤
+  eq {S n} _ _ = ⊥
+  eqRefl : ∀{n} → (x : ℕ< n) → eq x x
+  eqRefl {S n} (Just x) = eqRefl x
+  eqRefl {S n} Nothing = tt
+  eq→≡ : ∀{n} → {x y : ℕ< n} → eq x y → x ≡ y
+  eq→≡ {S n} {Just x} {Just y} H = cong Just (eq→≡ H)
+  eq→≡ {S n} {Nothing} {Nothing} H = refl
+  ≡→eq : ∀{n} → {x y : ℕ< n} → x ≡ y → eq x y
+  ≡→eq {n} {x} {y} H = subst (eq x) H (eqRefl x)
 
 finDiscrete : Discrete (ℕ< n)
-finDiscrete = discreteΣ natDiscrete (λ a x y → yes (finSndIsProp a x y))
+finDiscrete {S n} (Just x) (Just y) with finDiscrete x y
+... | yes p = yes (cong Just p)
+... | no ¬p = no (λ z → ¬p (JustInjective z))
+finDiscrete {S n} (Just x) Nothing = no λ x → Just≢finZ x
+finDiscrete {S n} Nothing (Just x) = no λ x → Just≢finZ (sym x)
+finDiscrete {S n} Nothing Nothing = yes refl
+
 
 finIsSet : isSet (ℕ< n)
 finIsSet = Discrete→isSet finDiscrete
@@ -62,89 +70,10 @@ is-∞ : Type ℓ → Type ℓ
 is-∞ A = ¬ (is-finite A)
 
 isPropFinSZ : isProp (ℕ< (S Z))
-isPropFinSZ (Z , y) (Z , w) = ΣPathPProp finSndIsProp refl
-isPropFinSZ _ (S z , w , p) = SNotZ (SInjective p) |> UNREACHABLE
-isPropFinSZ (S x , y , p) _ = SNotZ (SInjective p) |> UNREACHABLE
+isPropFinSZ Nothing Nothing = refl
 
-finSInj : {x y : ℕ< n} → finS x ≡ finS y → x ≡ y
-finSInj {x = x , y} {a , b} p = ΣPathPProp finSndIsProp (SInjective λ i → fst (p i))
-
-finDecrInj : {x y : ℕ< (S(S n))} → (p : finZ ≢ x) → (q : finZ ≢ y) → finDecr p ≡ finDecr q → x ≡ y
-finDecrInj {x = Z , y , z} p q H = p (ΣPathPProp finSndIsProp refl) |> UNREACHABLE
-finDecrInj {x = _} {Z , b , c} p q H = q (ΣPathPProp finSndIsProp refl) |> UNREACHABLE
-finDecrInj {x = S x , y , z} {S a , b , c} p q H = ΣPathPProp finSndIsProp (cong S λ i → fst (H i))
-
--- Pigeon hole principle
--- A mapping from a finite set to a smaller set is not injective.
-pigeonhole : (f : ℕ< (S n + m) → ℕ< n) → ¬(injective f)
-pigeonhole {n = Z} {m} f _ = ¬finZ (f finZ) |> UNREACHABLE
-pigeonhole {n = S n} {m} f contra = let (g , gInj) = G (f , contra) in
-   pigeonhole {n} {m} g gInj
- where
-  G : {n m : ℕ} → (Σ λ(f : ℕ< (S n) → ℕ< (S m)) → injective f)
-                →  Σ λ(g : ℕ< n     → ℕ< m    ) → injective g
-  G {Z} {m} (f , fInj) = (λ x → ¬finZ x |> UNREACHABLE) , λ x → ¬finZ x |> UNREACHABLE
-  G {S n} {Z} (f , fInj) = finS≢finZ (fInj (finS finZ) finZ $ isPropFinSZ (f (finS finZ)) (f finZ))
-                                 |> UNREACHABLE
-  G {S n} {S m} (f , fInj) = decr , decrInj
-   where
-    decr : ℕ< (S n) → ℕ< (S m)
-    decr x with finDiscrete finZ (f (finS x))
-    ...      | (yes p) with finDiscrete finZ (f finZ)
-    ...                 | (yes r) = finS≢finZ (fInj (finS x) finZ (sym p ⋆ r)) |> λ()
-    ...                 | (no r) = finDecr r
-    decr x   | (no p) = finDecr p
-    decrInj : injective decr
-    decrInj x y p with finDiscrete finZ (f (finS x)) | finDiscrete finZ (f (finS y))
-    ...           | (yes a) | (yes b) with finDiscrete finZ (f finZ)
-    ...                       | (yes r) = finS≢finZ (fInj (finS x) finZ (sym a ⋆ r))
-                                        |> UNREACHABLE
-    ...                       | (no r) = finSInj (fInj (finS x) (finS y) (sym a ⋆ b))
-    decrInj x y p | (yes a) | (no b) with finDiscrete finZ (f finZ)
-    ...                       | (yes r) = finS≢finZ (fInj (finS x) finZ (sym a ⋆ r))
-                                        |> UNREACHABLE
-    ...                       | (no r) = finS≢finZ (sym (fInj finZ (finS y) (finDecrInj r b p)))
-                                       |> UNREACHABLE
-    decrInj x y p | (no a)  | (yes b) with finDiscrete finZ (f finZ)
-    ...                       | (yes r) = finS≢finZ (fInj (finS y) finZ (sym b ⋆ r))
-                                        |> UNREACHABLE
-    ...                       | (no r) = finS≢finZ (fInj (finS x) finZ (finDecrInj a r p))
-                                       |> UNREACHABLE
-    decrInj x y p | (no a)  | (no b) = finSInj (fInj (finS x) (finS y) (finDecrInj a b p))
-
--- There does not exist an injective mapping from ℕ to a finite set
-ℕ→Fin¬Inj : ¬(Σ λ(f : ℕ → ℕ< n) → injective f)
-ℕ→Fin¬Inj {n = n} F =
-    let G : Σ λ(g : ℕ< (S n) → ℕ< n) → injective g
-        G = ((fst F) ∘ (λ x → fst x)) , injectiveComp (λ x y p → ΣPathPProp finSndIsProp p)
-                                                      (snd F) in
-    let G2 = Σ λ(g : ℕ< (S n + Z) → ℕ< n) → injective g
-        G2 = transport (λ i → Σ λ (g : ℕ< (addZ (S n) (~ i)) → ℕ< n) → injective g) G in
-  pigeonhole (fst G2) (snd G2)
-
--- A finite set is not equivalent to ℕ
-¬ℕ≅Fin : ¬ ℕ< n ≅ ℕ
-¬ℕ≅Fin (f , inj , surj) = ℕ→Fin¬Inj (f , inj)
-
-fin* : ℕ< n → ℕ< m → ℕ< (n * m)
-fin* {n}{m} (a , y , H) (b , z , G) = (a * b) ,
-             ((b + z) + ((a + y) + ((y * b) + ((a + y) * z)))) ,
- (S (a * b) + ((b + z) + ((a + y) + ((y * b) + ((a + y) * z)))) ≡⟨ cong S (
-  (a * b) + ((b + z) + ((a + y) + ((y * b) + ((a + y) * z))))
-             ≡⟨ a[bc]≡b[ac] (a * b) (b + z) ((a + y) + ((y * b) + ((a + y) * z))) ⟩
-  (b + z) + ((a * b) + ((a + y) + ((y * b) + ((a + y) * z)))) ≡⟨ right _+_ (
-     (a * b) + ((a + y) + ((y * b) + ((a + y) * z)))
-     ≡⟨ a[bc]≡b[ac] (a * b) (a + y) ((y * b) + ((a + y) * z)) ⟩
-     (a + y) + ((a * b) + ((y * b) + ((a + y) * z))) ≡⟨ right _+_ (
-      (a * b) + ((y * b) + ((a + y) * z))    ≡⟨ refl ⟩
-      (a * b) + ((y * b) + ((a + y) * z)) ≡⟨ assoc (a * b) (y * b) ((a + y) * z)⟩
-      ((a * b) + (y * b)) + ((a + y) * z) ≡⟨ left _+_ (sym (rDistribute b a y)) ⟩
-      ((a + y) * b) + ((a + y) * z) ≡⟨ sym (lDistribute (a + y) b z) ⟩
-      (a + y) * (b + z) ≡⟨ comm (a + y) (b + z)⟩
-      (b + z) * (a + y) ∎
-       ) ⟩
-     (a + y) + ((b + z) * (a + y)) ≡⟨ comm (S b + z) (a + y)⟩
-      (a + y) * S(b + z) ∎ ) ⟩
-  (b + z) + ((a + y) * S(b + z)) ∎ ) ⟩
- S(b + z) + ((a + y) * S(b + z)) ≡⟨ cong₂ _*_  H G ⟩
-  n * m ∎)
+finDecrInj : {x y : ℕ< (S(S n))} → (p : Nothing ≢ x) → (q : Nothing ≢ y) → finDecr p ≡ finDecr q → x ≡ y
+finDecrInj {n} {Just x} {Just y} p q H = cong Just H
+finDecrInj {n} {Just x} {Nothing} p q H = UNREACHABLE (q refl)
+finDecrInj {n} {Nothing} {Just x} p q H = UNREACHABLE (p refl)
+finDecrInj {n} {Nothing} {Nothing} p q H = refl
