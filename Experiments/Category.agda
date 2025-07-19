@@ -8,6 +8,8 @@ open import Cubical.Foundations.Equiv
 open import Cubical.Foundations.Isomorphism
 open import Cubical.HITs.SetTruncation renaming (map to map₂ ; elim to elim₂ ; rec to rec₂)
 open import Cubical.HITs.PropositionalTruncation renaming (map to map₁ ; elim to eli₁ ; rec to rec₁) hiding (map2)
+open import Data.Finite
+open import Relations
 
 record functor (F : Type ℓ → Type ℓ') : Type (lsuc ℓ ⊔ ℓ')  where
   field
@@ -471,9 +473,6 @@ module _{A : Set ℓ}{x y z : A}(p : x ≡ y)(q : y ≡ z) where
                                 (p i)
 
 
- compPath6Check2 : compPath6 i1 ≡ hcomp (λ j .p₁ → q j) z
- compPath6Check2 = refl
-
  compPath7 : Interval → A
  compPath7 i = hcomp (λ{j (i = i1) → q j })
                                     (p i)
@@ -482,5 +481,23 @@ module _{A : Set ℓ}{x y z : A}(p : x ≡ y)(q : y ≡ z) where
  compPath7Check1 = refl
 
 
---instance
--- Simplix : Category lzero lzero
+instance
+ Simplex : Category lzero lzero
+ Simplex = record
+            { ob = ℕ
+            ; Hom[_,_] = λ x y → Σ λ(f : ℕ< (S x) → ℕ< (S y)) → ∀ x y → x ≤ y → f x ≤ f y
+            ; Id = λ{x} → id , λ _ _ z → z
+            ; _⋆_ = λ{x}{y}{z} (f , f') (g , g') → (g ∘ f) , λ a b a≤b → g' (f a) (f b) (f' a b a≤b)
+            ; ⋆IdL = λ{x}{y} (f , f') → ΣPathPProp (λ f → isPropΠ λ a
+                                                        → isPropΠ λ b
+                                                        → isProp→ (isRelation (f a) (f b)))
+                                                   refl
+            ; ⋆IdR = λ{x}{y} (f , f') → ΣPathPProp (λ f → isPropΠ λ a
+                                                        → isPropΠ λ b
+                                                        → isProp→ (isRelation (f a) (f b)))
+                                                   refl
+            ; ⋆Assoc = λ{x}{y}{z}{w} (f , f')(g , g') (h , h') → ΣPathPProp (λ f → isPropΠ λ a
+                                                                                 → isPropΠ λ b
+                                                                                 → isProp→ (isRelation (f a) (f b)))
+                                                                 refl
+            }
