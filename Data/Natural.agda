@@ -245,8 +245,8 @@ leℕ (S x) (S y) = leℕ x y
 leℕ _ Z = ⊥
 
 instance
-  categoryNat : Category leℕ
-  categoryNat = record
+  preorderNat : Preorder leℕ
+  preorderNat = record
                  { transitive = λ {a b c} → leTrans a b c
                  ; reflexive = λ a → leRefl a
                  }
@@ -258,20 +258,17 @@ instance
       leRefl Z = tt
       leRefl (S a) = leRefl a
 
-  preorderNat : Preorder leℕ
-  preorderNat = record { isRelation = ≤isProp }
-   where
-    ≤isProp : (a b : ℕ) → isProp (leℕ a b)
-    ≤isProp Z _ = isPropUnit
-    ≤isProp (S a) Z = isProp⊥
-    ≤isProp (S a) (S b) = ≤isProp a b
 
   posetNat : Poset leℕ
-  posetNat = record { antiSymmetric = λ {a b} → leAntiSymmetric a b }
+  posetNat = record { antiSymmetric = λ {a b} → leAntiSymmetric a b ; isRelation = ≤isProp }
    where
     leAntiSymmetric : (a b : ℕ) → leℕ a b → leℕ b a → a ≡ b
     leAntiSymmetric Z Z p q = refl
     leAntiSymmetric (S a) (S b) p q = cong S (leAntiSymmetric a b p q)
+    ≤isProp : (a b : ℕ) → isProp (leℕ a b)
+    ≤isProp Z _ = isPropUnit
+    ≤isProp (S a) Z = isProp⊥
+    ≤isProp (S a) (S b) = ≤isProp a b
   totalOrderNat : TotalOrder _ ℕ
   totalOrderNat = record { _≤_ = leℕ
                          ; stronglyConnected = leStronglyConnected

@@ -132,7 +132,7 @@ instance
  sub1 : {A : Type aℓ} → inclusion (A → Type ℓ)(A → Type ℓ') (aℓ ⊔ ℓ ⊔ ℓ')
  sub1 = record { _⊆_ = λ X Y → ∀ x → x ∈ X → x ∈ Y }
 
- sub2 : {A : Type aℓ}{_≤_ : A → A → Type ℓ}{{_ : Category _≤_}}{P : A → Type bℓ}
+ sub2 : {A : Type aℓ}{_≤_ : A → A → Type ℓ}{{_ : Preorder _≤_}}{P : A → Type bℓ}
       → inclusion (Σ P) (Σ P) ℓ
  sub2 {_≤_ = _≤_} = record { _⊆_ = λ X Y → fst X ≤ fst Y }
 
@@ -141,23 +141,18 @@ instance
        → Property (X ∩ Y)
  ∩Prop = record { propFamily = λ x → isProp× (propFamily x) (propFamily x) }
 
- inclusionCat : {A : Type aℓ} → Category (λ(X Y : A → Type ℓ) → X ⊆ Y)
+ inclusionCat : {A : Type aℓ} → Preorder (λ(X Y : A → Type ℓ) → X ⊆ Y)
  inclusionCat = record
    { transitive = λ{a b c} f g x z → g x (f x z)
    ; reflexive = λ _ x z → z
    }
 
- inclusionCat2 : {P : A → Type aℓ} → {_≤_ : A → A → Type ℓ} → {{_ : Category _≤_}}
-               → Category (λ(X Y : Σ P) → fst X ≤ fst Y)
- inclusionCat2 {_≤_ = _≤_} = record
-   { transitive = λ{a b c} p q → transitive {a = fst a} p q
-   ; reflexive = λ a → reflexive (fst a)
-   }
-
  inclusionPre2 : {P : A → Type aℓ} → {_≤_ : A → A → Type ℓ} → {{_ : Preorder _≤_}}
                → Preorder (λ(X Y : Σ P) → fst X ≤ fst Y)
  inclusionPre2 {_≤_ = _≤_} = record
-   { isRelation = λ (a , _) (b , _) → isRelation a b }
+   { transitive = λ{a b c} p q → transitive {a = fst a} p q
+   ; reflexive = λ a → reflexive (fst a)
+   }
 
 ∩Complement : (X : A → Type ℓ) → X ∩ X ᶜ ≡ ∅
 ∩Complement X = funExt λ x → isoToPath (iso (λ(a , b) → b a |> UNREACHABLE)

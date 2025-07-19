@@ -104,7 +104,7 @@ instance
   where
    aux : (p1 p2 p3 n1 n2 n3 : ℕ) → (p1 * ((p2 * p3) + (n2 * n3))) + (n1 * ((p2 * n3) + (n2 * p3)))
                                  ≡ (((p1 * p2) + (n1 * n2)) * p3) + (((p1 * n2) + (n1 * p2)) * n3)
-   aux p1 p2 p3 n1 n2 n3 = 
+   aux p1 p2 p3 n1 n2 n3 =
       ((p1 * ((p2 * p3) + (n2 * n3))) + (n1 * ((p2 * n3) + (n2 * p3)))≡⟨ left _+_ (lDistribute p1 (p2 * p3) (n2 * n3))⟩
       ((p1 * (p2 * p3)) + (p1 * (n2 * n3))) + (n1 * ((p2 * n3) + (n2 * p3)))
          ≡⟨ sym (assoc (p1 * (p2 * p3)) (p1 * (n2 * n3)) (n1 * ((p2 * n3) + (n2 * p3)))) ⟩
@@ -218,8 +218,8 @@ private
                             λ a b → isRelation (fst a + snd b) (fst b + snd a)
 instance
  -- Integer ≤ relation is a preorder
- intLeCategory : Category le
- intLeCategory = record { transitive = λ {a b c} → intLeTrans a b c
+ intLePreorder : Preorder le
+ intLePreorder = record { transitive = λ {a b c} → intLeTrans a b c
                         ; reflexive = λ a → intLeRefl a
                         }
    where
@@ -229,29 +229,26 @@ instance
     intLeTrans = elimProp3 (λ x y z → isProp→ (isProp→ (intLeProp x z)))
                    λ (a , b) (c , d) (e , f) → λ x y →
          leSlide2 (a + d) (c + b) e x
-      |> λ(H : (e + (a + d)) ≤ (e + (c + b))) → 
+      |> λ(H : (e + (a + d)) ≤ (e + (c + b))) →
          leSlide (a + f) (e + b) c
       (leSlide2 (c + f) (e + d) a y
       |> λ(G : (a + (c + f)) ≤ (a + (e + d)))
         → transitive {a = c + (a + f)} {e + (a + d)}
            (transport (λ i → a[bc]≡b[ac] a c f i ≤ a[bc]≡b[ac] a e d i) G)
            (transport (λ i → (e + (a + d)) ≤ a[bc]≡b[ac] e c b i) H))
- 
- intLePreorder : Preorder le
- intLePreorder = record { isRelation = intLeProp }
 
  -- Integer ≤ relation is a poset
  intLePoset : Poset le
- intLePoset = record { antiSymmetric = λ{a b : ℤ} → aux a b }
+ intLePoset = record { antiSymmetric = λ{a b : ℤ} → aux a b ; isRelation = intLeProp }
   where
    aux : (a b : ℤ) → le a b → le b a → a ≡ b
    aux = elimProp2 (λ x y → isProp→ (isProp→ (IsSet x y)))
            λ (a , b) (c , d) p q → eq/ (a , b) (c , d) (antiSymmetric {a = a + d} p q)
- 
+
  -- Integer ≤ relation is a total order
  intLeTotalOrder : TotalOrder _ ℤ
  intLeTotalOrder = record {
-                     _≤_ = le 
+                     _≤_ = le
                   ; stronglyConnected = λ a b → ℤDiscrete a b
                     |> λ{(yes p) → inl (eqToLe p)
                        ; (no p) → transport (propTruncIdempotent

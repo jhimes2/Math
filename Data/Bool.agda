@@ -107,7 +107,7 @@ private
  le Yes Yes = ⊤
 
 instance
-  boolCategory : Category le
+  boolCategory : Preorder le
   boolCategory = record { transitive = λ{a = a}{b}{c} → auxTrans a b c
                         ; reflexive = λ a → auxRefl a
                         }
@@ -120,22 +120,19 @@ instance
     auxRefl Yes = tt
     auxRefl No = tt
 
-  boolPreorder : Preorder le
-  boolPreorder = record { isRelation = auxRel }
-   where
-    auxRel : (a b : 𝔹) → isProp (le a b)
-    auxRel Yes Yes tt tt = refl
-    auxRel Yes No = isProp⊥
-    auxRel No _ tt tt = refl
 
   boolPoset : Poset le
-  boolPoset = record { antiSymmetric = λ {a b} → auxAS a b }
+  boolPoset = record { antiSymmetric = λ {a b} → auxAS a b ; isRelation = auxRel }
    where
     auxAS : ∀ a b → le a b → le b a → a ≡ b
     auxAS Yes Yes p q = refl
     auxAS Yes No p q = p |> UNREACHABLE
     auxAS No Yes p q = q |> UNREACHABLE
     auxAS No No p q = refl
+    auxRel : (a b : 𝔹) → isProp (le a b)
+    auxRel Yes Yes tt tt = refl
+    auxRel Yes No = isProp⊥
+    auxRel No _ tt tt = refl
 
   boolTotalOrder : TotalOrder _ 𝔹
   boolTotalOrder = record { _≤_ = le
@@ -164,7 +161,7 @@ module _{_∙_ : A → A → A}{{_ : Commutative _∙_}}{{G : group _∙_}} wher
     aux (r1 , Yes) (r2 , No) (r3 , s3) = ≡-× (a[bc]'≡[ab']c' r1 r2 r3) refl
     aux (r1 , No) (r2 , Yes) (r3 , s3) = ≡-× (assoc r1 r2 (inv r3)) refl
     aux (r1 , No) (r2 , No) (r3 , s3) = ≡-× (assoc r1 r2 r3) refl
- 
+
   dihedralGroup : group _●_
   group.e dihedralGroup = e , 0r
   group.inverse dihedralGroup (r , Yes) = (r , Yes) , ≡-× (rInverse r) refl
@@ -179,7 +176,7 @@ open import Data.Natural
    let g : ℕ → 𝔹
        g = λ n → not (f n n) in
        surj g |>
-      λ((n , H) : Σ λ n → f n ≡ g) → 
+      λ((n , H) : Σ λ n → f n ≡ g) →
    let G : f n n ≡ not (f n n)
        G = funExt⁻ H n in
    B≢notB (f n n) G

@@ -22,7 +22,7 @@ jumpInductionAux : (P : ℕ → Type ℓ) → (a n : ℕ)
                   → ((x : ℕ) → P x → P (S(x + a)))
                   → P n
 jumpInductionAux P a n (inl w) Base jump  = Base n w
-jumpInductionAux P a n (inr (x , p)) Base jump = 
+jumpInductionAux P a n (inr (x , p)) Base jump =
                        subst P (sym p) $ jump x
                          let H : (x + a) ≤ n
                              H = (transport (λ i → (x + a) ≤ p (~ i)) (leS2 (add x a) (add x a) (reflexive (x + a)))) in
@@ -54,7 +54,7 @@ private
                                          (S b + mult h (S b)) + r ≡⟨ sym (assoc (S b) (h * S b) r) ⟩
                                          S b + (mult h (S b) + r) ∎ in
                                      leSNEq a (b + (mult h (S b) + r)) (leAdd2 a b (mult h (S b) + r) p) x' |> UNREACHABLE}
- 
+
  divJump : (b x : ℕ) → divProp b x → divProp b (S(x + b))
  divJump b = λ a ((q , r) , (a≡q+b*q+r , r≤b) , y)
                        → (S q , r ) , (( (cong S $
@@ -138,7 +138,7 @@ commonDivisor : ℕ → ℕ → ℕ → Type
 commonDivisor a b c = (c ∣ a) × (c ∣ b)
 
 module divides where
- 
+
  intertwine : (a b c d : ℕ) → a ∣ b → c ∣ d → (a * c) ∣ (b * d)
  intertwine a b c d x y =
     x >>= λ((x , p) : Σ λ x → x * a ≡ b)
@@ -147,7 +147,7 @@ module divides where
           ((x * y) * (a * c) ≡⟨ [ab][cd]≡[ac][bd] x y a c ⟩
           (x * a) * (y * c) ≡⟨ cong₂ _*_ p q ⟩
           b * d ∎)
- 
+
  congruence : (a b : ℕ) → a ∣ b → ∀ m → (m * a) ∣ (m * b)
  congruence a b x m =
   x >>= λ((x , p) : Σ λ x → x * a ≡ b)
@@ -158,10 +158,10 @@ module divides where
          m * (x * a) ≡⟨ cong (mult m) p ⟩
          m * b ∎)
 
- cancel : (a b : ℕ) → ∀ m → (S m * a) ∣ (S m * b) → a ∣ b 
+ cancel : (a b : ℕ) → ∀ m → (S m * a) ∣ (S m * b) → a ∣ b
  cancel a b m x =
    x >>= λ((x , p) : Σ λ x → x * (S m * a) ≡ S m * b)
-       → η $ x , let H = 
+       → η $ x , let H =
                       (x * a) * S m ≡⟨ sym (assoc x a (S m)) ⟩
                       x * (a * S m) ≡⟨ cong (mult x) (comm a (S m))⟩
                       x * (S m * a) ≡⟨ p ⟩
@@ -170,18 +170,18 @@ module divides where
           in multCancel (x * a) b m H
 
  le : (d a : ℕ) → d ∣ S a → d ≤ S a
- le d a x = recTrunc (isRelation d (S a)) 
+ le d a x = recTrunc (isRelation d (S a))
            (λ{(Z , p) → ZNotS p |> UNREACHABLE
            ; (S x , p) → transport (λ i → d ≤ p i) (leAdd2 d d (x * d) (reflexive d)) }) x
 
  sum : (c a b : ℕ) → c ∣ a → c ∣ b → c ∣ (a + b)
- sum c a b x y = 
+ sum c a b x y =
        x >>= λ((x , p) : Σ λ x → x * c ≡ a)
      → y >>= λ((y , q) : Σ λ y → y * c ≡ b)
             → η $ (x + y) , ((x + y) * c ≡⟨ sym (NatMultDist x y c)⟩
                           (x * c) + (y * c) ≡⟨ cong₂ _+_ p q ⟩
                           a + b ∎)
- 
+
  product : (a b : ℕ) → a ∣ b → ∀ c → a ∣ (c * b)
  product a b a∣b c = map (λ (x , p) → c * x ,
          ((c * x) * a ≡⟨ sym (assoc c x a)⟩
@@ -189,8 +189,8 @@ module divides where
          c * b ∎)) a∣b
 
 instance
-  dividesNZCategory : Category _∣_
-  dividesNZCategory = record { transitive = λ{a b c} → trans a b c
+  dividesNZPreorder : Preorder _∣_
+  dividesNZPreorder = record { transitive = λ{a b c} → trans a b c
                              ; reflexive = λ a → η $ (S Z , rIdentity a)
                              }
    where
@@ -204,10 +204,8 @@ instance
           y * b          ≡⟨ q ⟩
           c ∎)
 
-  dividesPreorder : Preorder _∣_
-  dividesPreorder = record { isRelation = λ a b → squash₁ }
   dividesPoset : Poset _∣_
-  dividesPoset = record { antiSymmetric = λ{a b} → antisymmetric a b }
+  dividesPoset = record { antiSymmetric = λ{a b} → antisymmetric a b ; isRelation = λ a b → squash₁ }
    where
     antisymmetric : (a b : ℕ) → a ∣ b → b ∣ a → a ≡ b
     antisymmetric Z b x y = recTrunc (IsSet Z b)
@@ -257,7 +255,7 @@ cutS : (a b : ℕ) → cut (S b + a) b ≡ S (cut a b)
 cutS a b = isLe (S b + a) b
  |> λ{(inl r) → leAddN a b r |> UNREACHABLE
     ; (inr (r , p)) →
- SInjective p |> λ q → 
+ SInjective p |> λ q →
  let D : a ≡ r
      D = natLCancel b (q ⋆ comm r b) in
  let F : inr (r , p) ≡ (isLe (S b + a) b)
@@ -278,7 +276,7 @@ pasteAdd : (a b : ℕ) → paste (S b + a) b ≡ paste a b
 pasteAdd a b = isLe (S b + a) b
  |> λ{(inl r) → leAddN a b r |> UNREACHABLE
     ; (inr (r , p)) →
- SInjective p |> λ q → 
+ SInjective p |> λ q →
  let D : a ≡ r
      D = natLCancel b (q ⋆ comm r b) in
  let F : inr (r , p) ≡ (isLe (S b + a) b)
@@ -318,7 +316,7 @@ cutCopy a (S b) =
  cut (S a + mult b (S a)) a ≡⟨ cong (λ x → cut (S a + x) a) (comm b (S a))⟩
  cut (S a + copy a b) a     ≡⟨ cutS (copy a b) a ⟩
  S (cut (copy a b) a)       ≡⟨ cong S (cutCopy a b)⟩
- S b ∎          
+ S b ∎
 
 pasteCopy : (b r : ℕ) → paste (copy b r) b ≡ Z
 pasteCopy b Z = left paste (multZ (S b)) ⋆ ZPaste b
@@ -499,7 +497,7 @@ pasteSideAdd2 a b c = jumpInduction (λ b → paste (a + paste b c) c ≡ paste 
 
 pasteSideAdd : (a b c : ℕ) → paste (paste b c + a) c ≡ paste (b + a) c
 pasteSideAdd a b c = cong (λ(x : ℕ) → paste x c) (comm (paste b c) a)
-                    ⋆ pasteSideAdd2 a b c ⋆ cong (λ(x : ℕ) → paste x c) (comm a b) 
+                    ⋆ pasteSideAdd2 a b c ⋆ cong (λ(x : ℕ) → paste x c) (comm a b)
 
 pasteIdempotent : (a b : ℕ) → paste (paste a b) b ≡ paste a b
 pasteIdempotent a b = pasteSideAdd2 Z a b

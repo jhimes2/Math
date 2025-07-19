@@ -10,7 +10,7 @@ open import Cubical.Foundations.HLevels
 record OrderedRing (ℓ' : Level) (A : Type ℓ) {{ordring : Ring A}} : Type (lsuc(ℓ ⊔ ℓ')) where
   field
     {{totalOrd}} : TotalOrder ℓ' A
-    addLe : {a b : A} → a ≤ b → (c : A) → (a + c) ≤ (b + c) 
+    addLe : {a b : A} → a ≤ b → (c : A) → (a + c) ≤ (b + c)
     multLt : {a b : A} → 0r < a → 0r < b → 0r < (a * b)
 open OrderedRing {{...}} public
 
@@ -18,7 +18,7 @@ module ordered{{ordring : Ring A}}{{OR : OrderedRing ℓ A}} where
 
   subLe : {a b : A} → (c : A) → (a + c) ≤ (b + c) → a ≤ b
   subLe {a} {b} c p =
-       addLe p (neg c) 
+       addLe p (neg c)
     ∴ a ≤ b [ transport (λ i → [ab]b'≡a a c i ≤ [ab]b'≡a b c i) ]
 
   lemma1 : {a b : A} → a ≤ b → {c d : A} → c ≤ d → (a + c) ≤ (b + d)
@@ -45,8 +45,8 @@ module ordered{{ordring : Ring A}}{{OR : OrderedRing ℓ A}} where
   lemma2 : {a b : A} → a ≤ b → neg b ≤ neg a
   lemma2 {a = a} {b} a≤b =
         let H : 0r - b ≡ neg b
-            H = lIdentity (neg b) in 
-          a≤b 
+            H = lIdentity (neg b) in
+          a≤b
        ∴ (a - a) ≤ (b - a) [ (λ x → addLe x (neg a)) ]
        ∴ 0r ≤ (b - a) [ transport (λ i → rInverse a i ≤ (b - a)) ]
        ∴ 0r ≤ (neg a + b) [ transport (λ i → 0r ≤ comm b (neg a) i) ]
@@ -90,15 +90,14 @@ module ordered{{ordring : Ring A}}{{OR : OrderedRing ℓ A}} where
   Negative = Σ λ (x : A) → 0r < x
 
   instance
-    NZCategory : Category λ ((a , _) (b , _) : nonZero) → a ≤ b
-    NZCategory = record { transitive = transitive {A = A}
+    NZPreorder : Preorder λ ((a , _) (b , _) : nonZero) → a ≤ b
+    NZPreorder = record { transitive = transitive {A = A}
                         ; reflexive = λ(a , _) → reflexive a
                         }
-    NZPreorder : Preorder λ ((a , _) (b , _) : nonZero) → a ≤ b
-    NZPreorder = record { isRelation = λ (a , _) (b , _) → isRelation a b }
     NZPoset : Poset λ ((a , _) (b , _) : nonZero) → a ≤ b
     NZPoset = record { antiSymmetric = λ x y → Σ≡Prop (λ a b p → funExt λ x → b x |> UNREACHABLE)
                                                       (antiSymmetric x y)
+                     ; isRelation =  λ (a , _) (b , _) → isRelation a b
                      }
     NZTotal : TotalOrder ℓ nonZero
     NZTotal = record { _≤_ = λ (a , _) (b , _) → a ≤ b
@@ -145,7 +144,7 @@ module _{{_ : Field A}}{{OF : OrderedRing ℓ A}} where
 
   0<2 : 0r < 2r
   0<2 = ordered.lemma3 (fst zeroLtOne) (fst zeroLtOne) , λ x → snd 2f (sym x)
-  
+
   0<x² : (x : nonZero) → 0r < (fst x * fst x)
   0<x² (x , p) = stronglyConnected 0r x
    |> λ{ (inl q) → multLt (q , λ z → p (sym z)) (q , (λ z → p (sym z)))
@@ -185,7 +184,7 @@ module _{{_ : Ring A}}{{_ : OrderedRing ℓ A}} where
  abs a = fst (ABS a)
 
  absProperty : (a : A) → (a ≤ 0r → neg a ≡ abs a) × (0r ≤ a → a ≡ abs a)
- absProperty a = snd (ABS a) 
+ absProperty a = snd (ABS a)
 
  absHelper : {P : A → Type ℓ}
          → (a : A)

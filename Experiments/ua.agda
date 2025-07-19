@@ -57,6 +57,12 @@ tpAssoc p q a = J (λ B q → tp (p ⋆ q) a ≡ tp q (tp p a) ) refl q
 cong : (f : A → B) → ∀{x y} → x ≡ y → f x ≡ f y
 cong f {x}{y} p = subst (λ z → f x ≡ f z) p refl
 
+congDep : {B : A → Set ℓ}(f : (a : A) → B a) → ∀{x y} → (p : x ≡ y) → subst B p (f x) ≡ f y
+congDep {B} f {x}{y} = J (λ y p → subst B p (f x) ≡ f y) refl
+
+congDep2 : {B : A → Set ℓ}(f : (a : A) → B a) → ∀{x y} → (p : x ≡ y) → subst B p (f x) ≡ f y
+congDep2 {B = B} f {(x)} {(y)} refl = refl
+
 PL5 : {a b c : A}(p : a ≡ b)(q : b ≡ c)(P : (x : A) → a ≡ x → Set ℓ')
            → P b p → P c (p ⋆ q)
 PL5 {a}{b}{c} p q P Z = J (λ X r → P X (p ⋆ r)) Z q
@@ -72,6 +78,14 @@ PL7 {P} Q {Y} Z p = J (λ X p → Q X p (PL5 refl p P Y)) Z p
 PL9 : {a b c : A}(P : (x : A) → a ≡ x → Set ℓ')(p : a ≡ b)
            → P b p → (q : a ≡ c) → P c q
 PL9 {a}{b}{c} P = J (λ z r → P z r → (q : a ≡ c) → P c q) λ x → J (λ z r → P z r) x
+
+PL12 : {a b c : A}(p : a ≡ b)(P : (x : A) → a ≡ x → Set ℓ')
+           → P b p → P a refl
+PL12 {a}{b} p P = PL5 p (sym p) P
+
+PL13 : {a b c : A}(p : a ≡ b)(P : (x : A) → a ≡ x → Set ℓ')
+           → P b p → P a refl
+PL13 {a}{b} p P Z = PL9 P p Z refl
 
 PL10 : {a b : A}{P : (x : A) → a ≡ x → Set ℓ}
      → (Q : (x : A)(r : a ≡ x) → P x r → Set ℓ')
@@ -95,22 +109,29 @@ PL11 : {a b : A}(P : (x : A) → a ≡ x → Set ℓ)
 PL11 {a}{b} P = J (λ b p → (z : P b p) → J P (PL9 P p z refl) p ≡ z) λ z → refl
 {-# REWRITE PL11 #-}
 
-JΠ : {a b : A}(P : (x : A) → a ≡ x → Set ℓ)
-    → (Q : (x : A) (r : a ≡ x) → P x r → Set ℓ')
-    → (base : (z : P a refl) → Q a refl z)
-    → (p : a ≡ b)
-    → J (λ x r → (z : P x r) → Q x r z) base p
-    ≡ λ(z : P b p) → PL10 Q (base (PL9 P p z refl)) p
-JΠ P Q base = J (λ b p → J (λ x r → (z : P x r) → Q x r z) base p ≡ λ(z : P b p) → PL10 Q (base (PL9 P p z refl)) p) refl
+PL14 : (a : A)(P : (x : A) → a ≡ x → Set ℓ)(b : A)(p : a ≡ b)(z : P b p) → J (λ z₁ r → P z₁ r → (q : a ≡ b) → P b q) (λ x → J P x) p z p ≡ z
+PL14 a P b = J (λ b p → (z : P b p) → J (λ z₁ r → P z₁ r → (q : a ≡ b) → P b q) (λ x → J P x) p z p ≡ z) (λ x → refl)
+{-# REWRITE PL14 #-}
 
-JΠ' : {a b : A}(P : (x : A) → a ≡ x → Set ℓ)
-    → (Q : (x : A) (r : a ≡ x) → P x r → Set ℓ')
-    → (base : (z : P a refl) → Q a refl z)
-    → (p : a ≡ b)
-    → J (λ x r → (z : P x r) → Q x r z) base p
-    ≡ λ(z : P b p) → PL7 Q (base (PL5 p (sym p) P z)) p
-JΠ' P Q base = J (λ b p → J (λ x r → (z : P x r) → Q x r z) base p ≡ λ(z : P b p) → PL7 Q (base (PL5 p (sym p) P z)) p) refl
-{-# REWRITE JΠ' #-}
+module _{a b : A}(P : (x : A) → a ≡ x → Set ℓ)(Q : (x : A) (r : a ≡ x) → P x r → Set ℓ')(base : (z : P a refl) → Q a refl z) where
+-- JΠ : (p : a ≡ b)
+--     → J (λ x r → (z : P x r) → Q x r z) base p
+--     ≡ λ(z : P b p) → PL10 Q (base (PL9 P p z refl)) p
+-- JΠ = J (λ b p → J (λ x r → (z : P x r) → Q x r z) base p ≡ λ(z : P b p) → PL10 Q (base (PL9 P p z refl)) p) refl
+
+ JΠ' : (p : a ≡ b)
+     → J (λ x r → (z : P x r) → Q x r z) base p
+     ≡ λ(z : P b p) → PL7 Q (base (PL5 p (sym p) P z)) p
+ JΠ' = J (λ b p → J (λ x r → (z : P x r) → Q x r z) base p ≡ λ(z : P b p) → PL7 Q (base (PL5 p (sym p) P z)) p) refl
+ {-# REWRITE JΠ' #-}
+
+--PL7 {P} Q Y Z p = J (λ X p → Q X p (PL5 refl p P Y)) Z p
+
+-- JΠ2 : (p : a ≡ b)
+--     → J (λ x r → (z : P x r) → Q x r z) base p
+--     ≡ λ(z : P b p) → J (λ x r → Q x r (PL9 P p z r)) (base (PL9 P p z refl)) p
+-- JΠ2 = J (λ b p → J (λ x r → (z : P x r) → Q x r z) base p
+--     ≡ λ(z : P b p) → J (λ x r → Q x r (PL9 P p z r)) (base (PL5 p (sym p) {!!} {!!})) p) refl
 
 testRewrite : (p : A ≡ B) → (f : A → A)
             → subst (λ X → X → X) p f
@@ -149,6 +170,7 @@ isContr A = Σ λ a → (b : A) → a ≡ b
 
 singleton-types-are-singletons : (A : Set ℓ) (a : A) → isContr (singleton-type a)
 singleton-types-are-singletons A a = singleton-type-center a , singleton-type-centered a
+
 
 record Iso (A : Set ℓ)(B : Set ℓ') : Set (ℓ ⊔ ℓ') where
   constructor iso

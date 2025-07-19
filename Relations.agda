@@ -5,41 +5,35 @@ open import Cubical.Foundations.HLevels
 
 module Relations where
 
-record Category {A : Type aℓ} (_≤_ : A → A → Type ℓ) : Type(ℓ ⊔ aℓ) where
- field
-   transitive : {a b c : A} → (a ≤ b) → (b ≤ c) → (a ≤ c)
-   reflexive : (a : A) → a ≤ a
-open Category {{...}} public
-
-eqToLe : {_≤_ : A → A → Type ℓ}{{_ : Category _≤_}} → {a b : A} → a ≡ b → a ≤ b
-eqToLe {_≤_} {a = a} p = transport (λ i → a ≤ p i) (reflexive a)
-
 -- https://en.wikipedia.org/wiki/Preorder
 record Preorder {A : Type aℓ} (_≤_ : A → A → Type ℓ) : Type(ℓ ⊔ aℓ) where
  field
-  {{preCat}} : Category _≤_
-  isRelation : (a b : A) → isProp (a ≤ b)
+  transitive : {a b c : A} → (a ≤ b) → (b ≤ c) → (a ≤ c)
+  reflexive : (a : A) → a ≤ a
 open Preorder {{...}} public
 
+eqToLe : {_≤_ : A → A → Type ℓ}{{_ : Preorder _≤_}} → {a b : A} → a ≡ b → a ≤ b
+eqToLe {_≤_} {a = a} p = transport (λ i → a ≤ p i) (reflexive a)
 
 -- https://en.wikipedia.org/wiki/Partially_ordered_set
 record Poset {A : Type ℓ}(_≤_ : A → A → Type aℓ) : Type (ℓ ⊔ aℓ) where
   field
    {{partpre}} : Preorder _≤_
    antiSymmetric : {a b : A} → (a ≤ b) → (b ≤ a) → a ≡ b
+   isRelation : (a b : A) → isProp (a ≤ b)
 open Poset {{...}} public
 
 _<_ : {A : Type aℓ}{_≤_ : A → A → Type ℓ} → {{Poset _≤_}} → A → A → Type(ℓ ⊔ aℓ)
 _<_ {_≤_} a b = (a ≤ b) × (a ≢ b)
 
-a<b→b≤c→a≢c : {_≤_ : A → A → Type ℓ} {{O : Poset _≤_}} {a b c : A} → a < b → b ≤ c → a ≢ c 
+a<b→b≤c→a≢c : {_≤_ : A → A → Type ℓ} {{O : Poset _≤_}} {a b c : A} → a < b → b ≤ c → a ≢ c
 a<b→b≤c→a≢c {_≤_} {a = a} {b} {c} (q , p) b<c contra = p
      $ antiSymmetric q $ transport (λ i → b ≤ contra (~ i)) b<c
 
-minimal : {A : Type aℓ}{_≤_ : A → A → Type ℓ}{{P : Category _≤_}} → A → Type (ℓ ⊔ aℓ)
+minimal : {A : Type aℓ}{_≤_ : A → A → Type ℓ}{{P : Preorder _≤_}} → A → Type (ℓ ⊔ aℓ)
 minimal {_≤_} a = ∀ x → x ≤ a → a ≤ x
 
-maximal : {A : Type aℓ}{_≤_ : A → A → Type ℓ}{{P : Category _≤_}} → A → Type (ℓ ⊔ aℓ)
+maximal : {A : Type aℓ}{_≤_ : A → A → Type ℓ}{{P : Preorder _≤_}} → A → Type (ℓ ⊔ aℓ)
 maximal {_≤_} a = ∀ x → a ≤ x → x ≤ a
 
 -- https://en.wikipedia.org/wiki/Total_order
