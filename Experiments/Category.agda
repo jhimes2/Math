@@ -55,22 +55,37 @@ record Category ℓ ℓ' : Type (ℓ-suc (ℓ-max ℓ ℓ')) where
 module _ where
 
  open Category {{...}}
- 
+
+ _ᵒᵖ : Category ℓ ℓ' → Category ℓ ℓ'
+ _ᵒᵖ {ℓ}{ℓ'} C = record
+         { ob = ob
+         ; Hom[_,_] = λ x y → Hom[ y , x ]
+         ; Id = Id
+         ; _⋆_ = λ{x}{y}{z} yx zy → zy ⋆ yx
+         ; ⋆IdL = ⋆IdR
+         ; ⋆IdR = ⋆IdL
+         ; ⋆Assoc = λ{x}{y}{z} yx zy wz → sym (⋆Assoc wz zy yx)
+         }
+   where
+    instance
+     openCat : Category ℓ ℓ'
+     openCat = C
+
  private
    variable
      ℓC ℓC' ℓD ℓD' : Level
- 
+
  -- Helpful syntax/notation
  _[_,_] : (C : Category ℓ ℓ') → (x y : C .ob) → Type ℓ'
  _[_,_] C = C .Hom[_,_]
- 
+
  _End[_] : (C : Category ℓ ℓ') → (x : C .ob) → Type ℓ'
  C End[ x ] = C [ x , x ]
- 
+
  -- Needed to define this in order to be able to make the subsequence syntax declaration
  seq' : ∀ (C : Category ℓ ℓ') {x y z} (f : C [ x , y ]) (g : C [ y , z ]) → C [ x , z ]
  seq' C = C ._⋆_
- 
+
  -- composition
  comp' : ∀ (C : Category ℓ ℓ') {x y z} (g : C [ y , z ]) (f : C [ x , y ]) → C [ x , z ]
  comp' {ℓ}{ℓ'} C x y = y ⋆ x
@@ -78,31 +93,31 @@ module _ where
     instance
       Cat : Category ℓ ℓ'
       Cat = C
- 
+
  infixr 16 comp'
  syntax comp' C g f = g ∘⟨ C ⟩ f
- 
+
  infixl 15 seq'
  syntax seq' C f g = f ⋆⟨ C ⟩ g
- 
+
  record LocallySmall ℓ ℓ' : Type (lsuc(ℓ ⊔ ℓ')) where
   field
    {{LSCat}} : Category ℓ ℓ'
    isSetHom : ∀{x y} → isSet (LSCat [ x , y ])
 
  open LocallySmall
- 
+
  -- Isomorphisms and paths in categories
- 
+
 -- record isIso (C : Category ℓ ℓ'){x y : C .ob}(f : C [ x , y ]) : Type ℓ' where
 --   constructor isiso
 --   field
 --     inv : C [ y , x ]
 --     sec : inv ⋆⟨ C ⟩ f ≡ C .Id
 --     ret : f ⋆⟨ C ⟩ inv ≡ C .Id
--- 
+--
 -- open isIso
--- 
+--
 -- isPropIsIso : {C : LocallySmall ℓ ℓ'}{x y : ob}(f : Hom[ x , y ]) → isProp (isIso (C .LSCat) f)
 -- isPropIsIso {C = C} f p q i .inv =
 --     (sym (⋆IdL _)
@@ -116,29 +131,29 @@ module _ where
 -- isPropIsIso {C = C} f p q i .ret j =
 --   isSet→SquareP (λ i j → C .isSetHom)
 --     (p .ret) (q .ret) (λ i → f ⋆ isPropIsIso {C = C} f p q i .inv) refl i j
--- 
+--
 -- CatIso : (C : Category ℓ ℓ') (x y : C .ob) → Type ℓ'
 -- CatIso C x y = Σ[ f ∈ C [ x , y ] ] isIso C f
- 
- 
+
+
  record Functor (C : Category ℓC ℓC') (D : Category ℓD ℓD') :
           Type (ℓ-max (ℓ-max ℓC ℓC') (ℓ-max ℓD ℓD')) where
    no-eta-equality
- 
+
    open Category
- 
+
    field
      F-ob  : C .ob → D .ob
      F-hom : {x y : C .ob} → C [ x , y ] → D [ F-ob x , F-ob y ]
      F-Id  : {x : C .ob} → F-hom (C .Id) ≡ D .Id {x = F-ob x}
      F-seq : {x y z : C .ob} (f : C [ x , y ]) (g : C [ y , z ])
            → F-hom (f ⋆⟨ C ⟩ g) ≡ (F-hom f) ⋆⟨ D ⟩ (F-hom g)
- 
+
    isFull = (x y : _) (F[f] : D [ F-ob x , F-ob y ]) → ∃[ f ∈ C [ x , y ] ] F-hom f ≡ F[f]
    isFaithful = (x y : _) (f g : C [ x , y ]) → F-hom f ≡ F-hom g → f ≡ g
    isFullyFaithful = (x y : _) → isEquiv (F-hom {x = x} {y = y})
 --   isEssentiallySurj = (d : D .ob) → ∃[ c ∈ C .ob ] CatIso D (F-ob c) d
- 
+
    -- preservation of commuting squares and triangles
    F-square : {x y u v : C .ob}
               {f : C [ x , y ]} {g : C [ x , u ]}
@@ -146,7 +161,7 @@ module _ where
             → f ⋆⟨ C ⟩ k ≡ g ⋆⟨ C ⟩ h
             → (F-hom f) ⋆⟨ D ⟩ (F-hom k) ≡ (F-hom g) ⋆⟨ D ⟩ (F-hom h)
    F-square Csquare = sym (F-seq _ _) ∙∙ cong F-hom Csquare ∙∙ F-seq _ _
- 
+
    F-triangle : {x y z : C .ob}
                 {f : C [ x , y ]} {g : C [ y , z ]} {h : C [ x , z ]}
               → f ⋆⟨ C ⟩ g ≡ h
@@ -167,7 +182,7 @@ module _ where
       → C .ob
       → D .ob
  _⟅_⟆ = F-ob
- 
+
  -- action on morphisms
  infix 30 _⟪_⟫ -- same infix level as on objects since these will never be used in the same context
  _⟪_⟫ : (F : Functor C D)
@@ -242,7 +257,7 @@ module _{A : Category aℓ bℓ} {C : Category ℓ ℓ'}(S : Functor A C)(c : C 
          ∙∙ C .⋆Assoc (S ⟪ a ⟫) (S ⟪ a' ⟫) w₂
          ∙∙ cong (λ x → x ∘⟨ C ⟩ (S ⟪ a ⟫)) h'
          ∙ h)
-   IdL : ∀{x y} → (h : Hom x y) → aux ID h ≡ h 
+   IdL : ∀{x y} → (h : Hom x y) → aux ID h ≡ h
    IdL {(a₀ , h₀)}{(a₁ , h₁)}(f , H) =
     let g = (f ∘⟨ A ⟩ A .Id) in
     let G1 : h₁ ∘⟨ C ⟩ (S ⟪ f ⟫) ≡ h₁ ∘⟨ C ⟩ (S ⟪ f ∘⟨ A ⟩ Id A ⟫)
@@ -267,7 +282,7 @@ module _{A : Category aℓ bℓ} {C : Category ℓ ℓ'}(S : Functor A C)(c : C 
 
  UniversalProperty : (_↓_) .ob → Type (aℓ ⊔ bℓ ⊔ ℓ')
  UniversalProperty x = Terminal {C = _↓_} x
- 
+
 module _{C : Category ℓ ℓ'}
         {D : Category aℓ bℓ}(a : C .ob)(X : D .ob)(F : Functor C D) where
 
@@ -289,7 +304,7 @@ record Monad{𝕁 : Category ℓ ℓ'}{ℂ : Category aℓ bℓ}(J : Functor �
   mAssoc : {X Y Z : 𝕁 .ob}(k : ℂ [ J ⟅ X ⟆ , T Y ])(l : ℂ [ J ⟅ Y ⟆ , T Z ]) → μ(μ l ∘⟨ ℂ ⟩ k) ≡ μ l ∘⟨ ℂ ⟩ μ k
 
 
- 
+
 
 -- _↓_ : (X : D .ob) (F : Functor C D) → Category (ℓ-max ℓ bℓ) (ℓ-max ℓ' bℓ)
 -- X ↓ F = record
@@ -357,7 +372,7 @@ module _{ℓ : Level} where
                    }
 --  setCat : Category (lsuc ℓ) ℓ
 --  setCat = record
---            { ob = Σ λ(X : Type ℓ) → isSet X 
+--            { ob = Σ λ(X : Type ℓ) → isSet X
 --            ; Hom[_,_] = λ(X , _)(Y , _) → X → Y
 --            ; Id = λ x → x
 --            ; _⋆_ = λ {x} {y} {z} f g z₁ → g (f z₁)
@@ -368,7 +383,7 @@ module _{ℓ : Level} where
 --  setCatLS : LocallySmall (lsuc ℓ) ℓ
 --  setCatLS = record {
 --     LSCat = setCat
---   ; isSetHom = λ{(x , xS)}{(y , yS)} → isSet→ yS 
+--   ; isSetHom = λ{(x , xS)}{(y , yS)} → isSet→ yS
 --   }
   monoidCat : {A : Type ℓ}{_*_ : A → A → A}{{M : Monoid _*_}} → Category ℓ ℓ
   monoidCat {A = A}{_*_} = record
@@ -381,7 +396,7 @@ module _{ℓ : Level} where
                ; ⋆Assoc = λ{_ _ _ _} f g h → sym (assoc f g h)
                }
   Δ' : {{C : Category ℓ ℓ'}} → Functor C (C <×> C)
-  Δ' = record { F-ob = Δ 
+  Δ' = record { F-ob = Δ
               ; F-hom = Δ
               ; F-Id = refl
               ; F-seq = λ f g → refl
@@ -421,7 +436,7 @@ icontr = I0 , aux
  where
   aux2 : PathP (λ i → I0 ≡ icomp i) refl icomp
   aux2 i j =
-    let H : Interval → Partial ( i ∨ ~ i ∨ j ∨ ~ j) 𝕀 
+    let H : Interval → Partial ( i ∨ ~ i ∨ j ∨ ~ j) 𝕀
         H = λ k → λ{(i = i0) → I0
                    ;(i = i1) → icomp j
                    ;(j = i0) → I0
@@ -445,7 +460,7 @@ compPath4 {A} {x}{y}{z} p q i = hcomp (compAux p q i) y
 
 compPath5 : I0 ≡ I1
 compPath5 i = hcomp (λ j → λ{(i = i0) → I0
-                            ;(i = i1) → I1 }) 
+                            ;(i = i1) → I1 })
   (icomp i)
 
 module _{A : Set ℓ}{x y z : A}(p : x ≡ y)(q : y ≡ z) where
@@ -463,7 +478,9 @@ module _{A : Set ℓ}{x y z : A}(p : x ≡ y)(q : y ≡ z) where
  compPath7 i = hcomp (λ{j (i = i1) → q j })
                                     (p i)
 
- compPath7Check1 : compPath6 i1 ≡ z 
+ compPath7Check1 : compPath6 i1 ≡ z
  compPath7Check1 = refl
 
 
+--instance
+-- Simplix : Category lzero lzero
