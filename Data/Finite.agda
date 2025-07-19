@@ -148,3 +148,37 @@ fin+ {S n} {S m} (Just x) (Just y) = transport (λ i → Maybe (ℕ< (Sout n m (
 fin* : ℕ< n → ℕ< m → ℕ< (n * m)
 fin* {S n} {S m} Nothing _ = Nothing
 fin* {S n} {S m} (Just x) y = fin+ y (fin* x y)
+
+finLe : ℕ< n → ℕ< n → Type
+finLe {S n} (Just x) (Just y) = finLe x y
+finLe {S n} (Just x) Nothing = ⊥
+finLe {S n} Nothing y = ⊤
+
+instance
+ finLePreOrder : Preorder (finLe {n = n})
+ finLePreOrder = record { transitive = λ{a}{b}{c} → finLeTransitive a b c ; reflexive = finLeRefl }
+  where
+   finLeTransitive : (x y z : ℕ< n) → finLe x y → finLe y z → finLe x z
+   finLeTransitive {S n} (Just x) (Just y) (Just z) H G = finLeTransitive x y z H G
+   finLeTransitive {S n} Nothing y z H G = tt
+   finLeRefl : (x : ℕ< n) → finLe x x
+   finLeRefl {S n} (Just x) = finLeRefl x
+   finLeRefl {S n} Nothing = tt
+
+ finLePoset : Poset (finLe {n = n})
+ finLePoset = record { antiSymmetric = λ{a}{b} → finLeAntiSym a b ; isRelation = finLeRel }
+  where
+   finLeAntiSym : (x y : ℕ< n) → finLe x y → finLe y x → x ≡ y
+   finLeAntiSym {S n} (Just x) (Just y) H G = cong Just (finLeAntiSym x y H G)
+   finLeAntiSym {S n} Nothing Nothing H G = refl
+   finLeRel : (x y : ℕ< n) → isProp (finLe x y)
+   finLeRel {S n} (Just x) (Just y) p q = finLeRel x y p q
+   finLeRel {S n} Nothing y tt tt = refl
+
+ finLeTotalOrd : TotalOrder lzero (ℕ< n)
+ finLeTotalOrd = record { _≤_ = finLe ; stronglyConnected = finLeStrCon }
+  where
+   finLeStrCon : (a b : ℕ< n) → finLe a b ＋ finLe b a
+   finLeStrCon {S n} (Just x) (Just y) = finLeStrCon x y
+   finLeStrCon {S n} (Just x) Nothing = inr tt
+   finLeStrCon {S n} Nothing b = inl tt
