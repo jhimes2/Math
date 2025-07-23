@@ -387,6 +387,7 @@ module _{ℓ : Level} where
 --     LSCat = setCat
 --   ; isSetHom = λ{(x , xS)}{(y , yS)} → isSet→ yS
 --   }
+
   monoidCat : {A : Type ℓ}{_*_ : A → A → A}{{M : Monoid _*_}} → Category ℓ ℓ
   monoidCat {A = A}{_*_} = record
                { ob = Unit ℓ
@@ -501,3 +502,13 @@ instance
                                                                                  → isProp→ (isRelation (f a) (f b)))
                                                                  refl
             }
+
+homFunctor : (C : Category ℓ ℓ')(x : C .ob) → Functor C typeCat
+homFunctor C x = record { F-ob = C [ x ,_]
+                        ; F-hom = λ H → λ z → (C ⋆ z) H
+                        ; F-Id = λ{y} → funExt λ z → C .⋆IdR z
+                        ; F-seq = λ f g → funExt λ z → sym (C .⋆Assoc z f g)
+                        }
+
+simplex : ℕ → Functor (Simplex ᵒᵖ) typeCat
+simplex n = homFunctor (Simplex ᵒᵖ) n
