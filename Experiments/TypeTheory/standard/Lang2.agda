@@ -1,6 +1,6 @@
 {-# OPTIONS --hidden-argument-pun #-}
 
-module standard.Lang1 where
+module standard.Lang2 where
 
 open import standard.Terms
 
@@ -34,7 +34,7 @@ infix 4 _::_
 
 parseId : ↦ ↦ Var (S Z) :: ■ Z ⇒ Var Z ⇒ Var Z
 parseId = abst(abst (var (var sort)))
-          
+
 
 testId2 : (A : tm) → (A :: ■ Z)
         → ↦ Var Z :: (A ⇒ A)
@@ -42,7 +42,7 @@ testId2 = λ (A : tm) (X : A :: ■ Z)
         → abst (var X)
 
 test : ↦ (Var Z ⇒ Var Z) :: (■ Z ⇒ ■ Z)
-test = abst (form (var sort) (weak (var sort) (var sort))) 
+test = abst (form (var sort) (weak (var sort) (var sort)))
 
 -- Definition of false
 FALSE : ■ Z ⇒ Var Z :: ■ Z
@@ -140,13 +140,13 @@ impossibleType x p z (sortStep w) = impossibleType x p z w
 testLeft : ↦ ↦ Var Z :: ■ Z ⇒ ■ Z ⇒ ■ Z
 testLeft = abst
             (weak (abst (var sort))sort)
-            
+
 
 testRight : ↦ ↦ Var (S Z) :: ■ Z ⇒ ■ Z ⇒ ■ Z
 testRight = abst
              (abst (var (weak sort sort))
               )
-             
+
 
 ΓRec : (n : ℕ) → Context n
 ΓRec Z = <>
@@ -167,7 +167,7 @@ v5 = Var (S(S(S(S(S Z)))))
 transposeParse : ↦ ↦ ↦ ↦ ↦ ↦ Appl (Appl v3 v5) v4
               :: ■ Z ⇒ ■ Z ⇒ ■ Z ⇒ (v0 ⇒ v1 ⇒ v2) ⇒ v1 ⇒ v0 ⇒ v2
 transposeParse = abst (abst (abst (abst (abst (abst (appl
-       (appl f1 (var v03)) (weak (var v12) v03))))))) 
+       (appl f1 (var v03)) (weak (var v12) v03)))))))
  where
   v01 : cons (■ Z) (cons (■ Z) (cons (■ Z) <>)) ⊢ v0 :: (■ Z)
   v01 = weak (weak (var sort) (weak sort sort))
