@@ -44,6 +44,13 @@ record TotalOrder (ℓ : Level) (A : Type aℓ) : Type (lsuc ℓ ⊔ aℓ)
    stronglyConnected : (a b : A) → (a ≤ b) ＋ (b ≤ a)
 open TotalOrder {{...}} public
 
+module _{A : Type ℓ}(_<_ : A → A → Type ℓ) where
+ data Acc(a : A) : Type ℓ where
+  acc : (∀ x → x < a → Acc x) → Acc a
+
+ wellFounded : Type ℓ
+ wellFounded = ∀ a → Acc a
+
 flipNeg : {{TO : TotalOrder aℓ A}}{a b : A} → ¬(b ≤ a) → a < b
 flipNeg {a} {b} p = (stronglyConnected a b
                          |>  (λ{ (inl x) → x

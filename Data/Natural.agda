@@ -507,3 +507,12 @@ completeInduction P a base jump n = Aux n n (reflexive n)
 
 ℕ-rec : A → (ℕ → A → A) → ℕ → A
 ℕ-rec {A = A} = ℕ-elim (λ _ → A)
+
+wellFoundedℕ : wellFounded λ x y → S x ≤ y
+wellFoundedℕ Z = acc λ x ()
+wellFoundedℕ (S a) with wellFoundedℕ a
+... | acc H = acc λ x x≤a → natDiscrete x a |> λ{ (yes p)
+    → subst (Acc (λ a b → S a ≤ b)) (sym p) (acc H)
+    ; (no ¬p) →
+      let G : (S x) ≤ a
+          G = ltS x a (x≤a , ¬p) in H x G}
