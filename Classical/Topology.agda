@@ -9,11 +9,15 @@ module Classical.Topology where
 
 open import Classical.Classical public
 open import Cubical.HITs.SetQuotients
+open import Cubical.HITs.PropositionalTruncation renaming (rec to rec₁ ; map to map₁)
+
+isTrivial : {A : Type aℓ} → (A → Type ℓ) → Type (aℓ ⊔ ℓ)
+isTrivial X = ∀ x y → x ∈ X → y ∈ X
 
 -- https://en.wikipedia.org/wiki/Topological_space
 record topology {A : set aℓ} (T : ℙ(ℙ A)) : set aℓ where
   field
-   tfull : 𝓤 ∈ T
+   tTrivial : ∀ X → isTrivial X → X ∈ T
    tunion : {X : ℙ(ℙ A)} → X ⊆ T → ⋃ X ∈ T
    tintersection : {X Y : ℙ A} → X ∈ T → Y ∈ T → X ∩ Y ∈ T
 open topology {{...}}
@@ -25,6 +29,9 @@ tempty {τ} =
       G = tunion ∅⊆X in
     subst τ ⋃∅≡∅ G
 
+tfull : {τ : ℙ(ℙ A)}{{T : topology τ}} → 𝓤 ∈ τ
+tfull {τ} = tTrivial 𝓤 λ x y z → z
+
 record disconnectedTopology {A : set aℓ} (T : ℙ(ℙ A)) : set aℓ where
  field
   {{dTop}} : topology T
@@ -34,68 +41,64 @@ record disconnectedTopology {A : set aℓ} (T : ℙ(ℙ A)) : set aℓ where
   V≢∅ : V ≢ ∅
   U≢∅ : U ≢ ∅
 
+connected : {A : set aℓ} → ℙ(ℙ A) → set aℓ
+connected τ = ∀ X → X ∈ τ → X ᶜ ∈ τ → isTrivial X
+
 discrete : ℙ(ℙ A)
 discrete  {A} = λ (_ : ℙ A) → ⊤
 
-indiscrete : ℙ(ℙ A)
-indiscrete = Pair 𝓤 ∅
+indiscrete : {A : set aℓ} → ℙ(ℙ A)
+indiscrete X = ∥ isTrivial X ∥
+
+trivialPreimage : (X : B → Type ℓ) → isTrivial X → (f : A → B) → isTrivial (f ⁻¹[ X ])
+trivialPreimage X H f = λ x y → H (f x) (f y)
 
 -- projection
 pr : {P : A → Type ℓ}(a : A) → (∀ x → P x) → P a
 pr a z = z a
 
-module _{A : set ℓ}{B : set bℓ}{P : A → set aℓ}(τ : ∀ a → ℙ(ℙ(P a))) where
+module _{A : set ℓ}{P : A → set aℓ}(τ : ∀ a → ℙ(ℙ(P a))) where
 
  -- https://en.wikipedia.org/wiki/Initial_topology
  {-# NO_UNIVERSE_CHECK #-}
- data initial (X : ∀ a → B → P a) : ℙ(ℙ B) where
-   init𝓤 : 𝓤 ∈ initial X
+ data initial {B : set bℓ} (X : ∀ a → B → P a) : ℙ(ℙ B) where
+   initTrivial : ∀ x → isTrivial x → x ∈ initial X
    initIntro : ∀ a → ∀ Y → Y ∈ τ a → (X a ⁻¹[ Y ]) ∈ initial X
    initUnion : ∀ Y → Y ⊆ initial X → ⋃ Y ∈ initial X
    initInter : ∀ a b → a ∈ initial X → b ∈ initial X → a ∩ b ∈ initial X
    initProp : ∀ x → isProp (x ∈ initial X)
 
 -- https://en.wikipedia.org/wiki/Product_topology
+-- Note that proving `𝓤 ∈ Π` requires case analysis of whether the index `A` is empty or not
  {-# NO_UNIVERSE_CHECK #-}
- data Π{A : set ℓ}{P : A → set aℓ}(τ : ∀ a → ℙ(ℙ(P a))) : ℙ(ℙ(∀ a → P a)) where
-    ΠIntro : ∀ a → ∀ Y → Y ∈ τ a → (pr a ⁻¹[ Y ]) ∈ Π τ
-    ΠUnion : ∀ Y → Y ⊆ Π τ → ⋃ Y ∈ Π τ
-    ΠInter : ∀ a b → a ∈ Π τ → b ∈ Π τ → a ∩ b ∈ Π τ
-    ΠProp : ∀ x → isProp (x ∈ Π τ)
+ data Π : ℙ(ℙ(∀ a → P a)) where
+    ΠIntro : ∀ a → ∀ Y → Y ∈ τ a → (pr a ⁻¹[ Y ]) ∈ Π
+    ΠUnion : ∀ Y → Y ⊆ Π → ⋃ Y ∈ Π
+    ΠInter : ∀ a b → a ∈ Π → b ∈ Π → a ∩ b ∈ Π
+    ΠProp : ∀ x → isProp (x ∈ Π)
 
  -- https://en.wikipedia.org/wiki/Final_topology
  final : (X : ∀ a → P a → B) → ℙ(ℙ B)
  final X H = ∥ (∀ a → X a ⁻¹[ H ] ∈ τ a) ∥
 
+→Top : {τ₁ : ℙ(ℙ A)}{{T1 : topology τ₁}}{τ₂ : ℙ(ℙ B)}{{T2 : topology τ₂}} → ℙ(ℙ (A → B))
+→Top {B} {τ₂} = Π {P = λ _ → B} λ _ → τ₂
+
 instance
  DiscreteTopology : topology (discrete {lsuc ℓ} {A})
  DiscreteTopology =
     record
-     { tfull = tt
+     { tTrivial = λ X z → tt
      ; tunion = λ _ → tt
      ; tintersection = λ _ _ → tt
      }
  IndiscreteTopology : topology (indiscrete {A = A})
  IndiscreteTopology =
     record
-     { tfull = η $ inl refl
-     ; tunion = λ {X} H →
-      LEM (𝓤 ∈ X)
-        |> λ{ (inl p) → η (inl (funExt λ x → propExt
-           (λ G → tt) λ G → η (𝓤 , tt , p)))
-            ; (inr p) → η $ inr (funExt λ x → propExt (_>> λ(Y , F , G)
-             → H Y G >> λ{ (inl q) → p (subst X q G) ; (inr q) → substP x (sym q) F }) λ x∈∅ → UNREACHABLE $ x∈∅)}
-     ; tintersection = λ{X}{Y} ∥X∈ind∥ ∥Y∈ind∥ →
-                               ∥X∈ind∥ >> λ{(inl x)
-                             → ∥Y∈ind∥ >> λ{(inl y)
-                             → η $ inl $ funExt λ z →
-                             (X ∩ Y) z ≡⟨ cong (λ w → (w ∩ Y) z) x ⟩
-                             (𝓤 ∩ Y) z ≡⟨ cong (λ w → (𝓤 ∩ w) z) y ⟩
-                             (𝓤 ∩ 𝓤) z ≡⟨ propExt (λ (T , U) → U)
-                              (λ _ → tt , tt) ⟩
-                             𝓤 z ∎
-                             ; (inr y) → η $ inr $ right _∩_ y ∙ X∩∅≡∅ X  }; (inr x)
-                             →  η $ inr ((left _∩_ x) ∙ comm ∅ Y ∙ (X∩∅≡∅ Y))}
+     { tTrivial = λ X H → η H
+     ; tunion = λ {X} H → η λ x y x∈⋃X → x∈⋃X >> λ (Y , x∈Y , Y∈X) →
+                   H Y Y∈X >> λ G → η (Y , G x y x∈Y , Y∈X)
+     ; tintersection = λ{X}{Y} P Q → P >> λ P → Q >> λ Q → η λ x y z → P x y (z .fst) , Q x y (z .snd)
      }
 
 -- contravariant map
@@ -108,7 +111,7 @@ module _{A : set aℓ}
 
  instance
   initialTop : {X : ∀ a → (∀ a → P a) → P a} → topology (initial τ X)
-  initialTop = record { tfull = init𝓤
+  initialTop = record { tTrivial = initTrivial
                       ; tunion = λ {X} → initUnion X
                       ; tintersection = λ {X} {Y} → initInter X Y
                       }
@@ -116,7 +119,7 @@ module _{A : set aℓ}
   instance
    finalTop : {X : ∀ a → P a → B} →  topology (final τ X)
    finalTop {X} =
-     record { tfull = η $ λ a → T a .tfull
+     record { tTrivial = λ Y H → η λ a → T a .tTrivial (X a ⁻¹[ Y ]) λ x y → H (X a x) (X a y)
             ; tunion = λ{Y} H → η $ λ a → subst (τ a) (sym (∪preimage Y (X a)))
               $ T a .tunion λ z → _>> λ (b , b∈Y , G) → subst (τ a) (sym G)
               $ H b b∈Y >> λ c → c a
@@ -148,7 +151,8 @@ module _{A : set aℓ}        {B : set aℓ}
   -- Proving that the (not) product space is a topological space
   PSInst : topology (NotProductSpace τ₀ τ₁)
   PSInst = record
-     { tfull = η ((λ a → tfull) , (λ b → tfull))
+     { tTrivial = λ X x → η ((λ a → T1 .tTrivial (λ b → X (a , b)) (λ x₁ y → x (a , x₁) (a , y)))
+                                  , λ b → T0 .tTrivial (λ a → X (a , b)) (λ x₁ y → x (x₁ , b) (y , b)))
      ; tunion = λ{X} H → η ((λ a → [wts (λ b → (a , b)) ⁻¹[ ⋃ X ] ∈ τ₁ ]
       subst τ₁ (sym (∪preimage X (λ b → a , b)))
         (tunion (λ z → _>> λ (P , P∈X , G) → subst τ₁ (sym G) $
@@ -165,7 +169,8 @@ module _{A : set aℓ}        {B : set aℓ}
   -- Proving that the disjoint union space is a topological space
   disjointUnion : topology (τ₀ ⊎ τ₁)
   disjointUnion = record
-                { tfull = (tfull , tfull)
+                { tTrivial = λ X H → T0 .tTrivial (λ a → X (inl a)) (λ x y → H (inl x) (inl y))
+                                   , T1 .tTrivial (λ b → X (inr b)) λ x y → H (inr x) (inr y)
                 ; tunion = λ{Z}
                             (Z⊆⊎ : (∀ x → x ∈ Z → (λ p → x (inl p)) ∈ τ₀
                                                 × (λ p → x (inr p)) ∈ τ₁)) →
@@ -217,7 +222,7 @@ module _{A : set aℓ}        {B : set aℓ}
  -- The set of all topological spaces on a set contains the universal set.
  𝓤∈setOfTop : 𝓤 ∈ λ(τ : ℙ(ℙ A)) → ∥ topology τ ∥
  𝓤∈setOfTop = η $
-     record { tfull = tt
+     record { tTrivial = λ X z → tt
             ; tunion = λ {X} z → tt
             ; tintersection = λ {X} {Y} z _ → z
             }
@@ -226,7 +231,7 @@ module _{A : set aℓ}        {B : set aℓ}
  setOfTopClosed∩ : {X Y : ℙ(ℙ A)}
                  → ∥ topology X ∥ → ∥ topology Y ∥ → ∥ topology (X ∩ Y) ∥
  setOfTopClosed∩ {X}{Y} = _>> λ τ₀ → _>> λ τ₁ → η $
-     record { tfull = τ₀ .tfull , τ₁ .tfull
+     record { tTrivial = λ X₁ z → τ₀ .tTrivial X₁ z , τ₁ .tTrivial X₁ z
             ; tunion = λ{P} P⊆X∩Y →
                       let P⊆X : P ⊆ X
                           P⊆X = λ x x∈P → fst(P⊆X∩Y x x∈P) in
@@ -243,9 +248,9 @@ module _{A : set aℓ}        {B : set aℓ}
  setOfTopNotTop H = let instance τ = H in
                     τ .tunion ∅⊆X >> λ τ₁ →
                     let τ₂ : topology ∅
-                        τ₂ = subst topology ⋃∅≡∅ τ₁ in τ₂ .tfull
+                        τ₂ = subst topology ⋃∅≡∅ τ₁ in tfull {{T = τ₂}}
 
-module _{τ : ℙ(ℙ A)}{{T : topology τ}} where
+module _{A : set ℓ}{τ : ℙ(ℙ A)}{{T : topology τ}} where
 
  closed : ℙ(ℙ A)
  closed s = s ᶜ ∈ τ
@@ -333,6 +338,22 @@ module _{τ : ℙ(ℙ A)}{{T : topology τ}} where
        λ x∈clos[X]ᶜ → η ((Cl X)ᶜ , x∈clos[X]ᶜ , η (closureClosed ,
        λ z P z∈X → P $ η $ λ Q → _>> λ(X⊆Q , Qᶜ∈τ) → X⊆Q z z∈X))
 
+ dense : ℙ A → Type _
+ dense X = ∀ x → x ∈ Cl X
+
+ {-
+   ∃ Y∈τⁿ⁺¹. ∃ : (f : ℕ × ℝⁿ → ℝⁿ⁺¹). Y ⊆
+ -}
+
+ -- record Leb(_+_ : A → A → A)(X Y : ℙ A) : set ℓ where
+ --   field
+ --    X∈τ : X ∈ τ
+ --    Y∈τ : Y ∈ τ
+ --    f : Σ X → Σ Y
+ --    leb : ∀ x → (x∈X : x ∈ X) → Σ λ(Z : ℙ A)
+ --                              → Σ λ(H : Z ⊆ X)
+ --                              → Σ λ(G : x ∈ Z)
+
 restrict : (f : A → B) → (Q : A → Type ℓ) → Σ Q → B
 restrict f Q = λ(x : Σ Q) → f (fst x)
 
@@ -354,7 +375,7 @@ module _{A : set aℓ}(τ : ℙ(ℙ A)){{T : topology τ}} where
  qTopInst : {_~_ : A → A → Prop}
           → topology (quotientTopology _~_)
  qTopInst = record
-  { tfull = tfull
+  { tTrivial = λ X x → T .tTrivial ([_] ⁻¹[ X ]) (λ x₁ y → x [ x₁ ] [ y ])
   ; tunion = λ{X} X⊆τ/~
            → [wts [_] ⁻¹[ ⋃ X ] ∈ τ ]
              [wts (⋃ X ∘ [_]) ∈ τ ]
@@ -429,13 +450,16 @@ module _{A : set aℓ}(τ : ℙ(ℙ A)){{T : topology τ}} where
  ssTopology : (Q : ℙ A) → ℙ(ℙ (Σ Q))
  ssTopology Q = λ(G : ℙ (Σ Q)) → ∃ λ(U : ℙ A) → (U ∈ τ) × (G ≡ (λ(x , _) → x ∈ U))
 
+
 module _{A : set aℓ}
         (τ : ℙ(ℙ A)){{T : topology τ}} where
 
  instance
   SubspaceTopology : {X : ℙ A} → topology (ssTopology τ X)
   SubspaceTopology {X} = record
-     { tfull = η $ 𝓤 , tfull , refl
+     { tTrivial = λ Y H → η ((λ a → ∥ (∀ z → z ∈ Y) ∥) , tTrivial (λ a → ∥ ((z : Σ X) → z ∈ Y) ∥)
+         (λ x y t → t) , funExt λ x → propExt (λ t → η (λ z → H _ z t))
+            λ t → t >> λ t → t x)
      ; tunion = λ{X} H → η $ (⋃ λ U → (U ∈ τ) × (λ x → fst x ∈ U) ∈ X) , tunion
      (λ x (G , F) → G) , funExt λ Y → propExt (_>> λ(F , Y∈F , F∈X)
        → H F F∈X >> λ(U , U∈τ , R ) → η $ U , (substP Y (sym R) Y∈F) , U∈τ , subst X R F∈X
@@ -457,16 +481,17 @@ module _{A : set aℓ}
  discreteDomainContinuous f = λ _ _ → tt
 
  indiscreteCodomainContinuous : (f : A → B) → continuous τ indiscrete f
- indiscreteCodomainContinuous f V R = R >>
-  λ{ (inl p) →
-   let H : f ⁻¹[ V ] ≡ 𝓤
-       H = cong (f ⁻¹[_]) p in
-    subst τ (sym H) tfull
-   ; (inr p) →
-   let H : f ⁻¹[ V ] ≡ ∅
-       H = cong (f ⁻¹[_]) p in
-       subst τ (sym H) tempty
-    }
+ indiscreteCodomainContinuous f V R = R >> λ R → T .tTrivial (f ⁻¹[ V ]) (λ x y → R (f x) (f y))
+-- R >>
+-- λ{ (inl p) →
+--   let H : f ⁻¹[ V ] ≡ 𝓤
+--       H = cong (f ⁻¹[_]) p in
+--    subst τ (sym H) tfull
+--   ; (inr p) →
+--   let H : f ⁻¹[ V ] ≡ ∅
+--       H = cong (f ⁻¹[_]) p in
+--       subst τ (sym H) tempty
+--    }
 
  record Base (ℬ : ℙ(ℙ A)) : set aℓ where
   field
@@ -554,3 +579,140 @@ module _{A : set aℓ}
      instance
       inst : HousedOff τ₁ (f x) (f y)
       inst = haus (f x) (f y)
+
+data 𝔹 : Type₁ where
+  true false : 𝔹
+
+data ℕ : Type₁ where
+  Z : ℕ
+  S : ℕ → ℕ
+
+record Total(A : Type₁) : Type₁ where
+ field
+  _≤_ : A → A → Prop
+  reflexive : (x : A) → x ≤ x
+  transitive : {x y z : A} → x ≤ y → y ≤ z → x ≤ z
+  antisymmetric : (x y : A) → x ≤ y → y ≤ x → x ≡ y
+  stronglyConnected : (x y : A) → (x ≤ y) ＋ (y ≤ x)
+ squeeze : ∀{x y} → x ≤ y → ∀{z} → y ≤ z → x ≡ z → (x ≡ y) × (y ≡ z)
+ squeeze {x}{y} x≤y {z} y≤z x≡z = let z≤y = subst (_≤ y) x≡z x≤y in
+                                  let y≤x = subst (y ≤_) (sym x≡z) y≤z in
+          antisymmetric x y x≤y y≤x , sym (antisymmetric z y z≤y y≤z)
+open Total {{...}}
+
+leℕ : ℕ → ℕ → Prop
+leℕ Z _ = ⊤
+leℕ (S x) (S y) = leℕ x y
+leℕ _ Z = ⊥
+
+instance
+  Totalℕ : Total ℕ
+  Totalℕ = record
+                 { _≤_ = leℕ
+                 ; transitive = λ {a b c} → leTrans a b c
+                 ; reflexive = λ a → leRefl a
+                 ; antisymmetric = leAntiSymmetric
+                 ; stronglyConnected = leStronglyConnected
+                 }
+    where
+      leTrans : (a b c : ℕ) → leℕ a b → leℕ b c → leℕ a c
+      leTrans Z _ _ _ _ = tt
+      leTrans (S a) (S b) (S c) = leTrans a b c
+      leRefl : (a : ℕ) → leℕ a a
+      leRefl Z = tt
+      leRefl (S a) = leRefl a
+      leAntiSymmetric : (a b : ℕ) → leℕ a b → leℕ b a → a ≡ b
+      leAntiSymmetric Z Z p q = refl
+      leAntiSymmetric (S a) (S b) p q = cong S (leAntiSymmetric a b p q)
+      leStronglyConnected : (a b : ℕ) → leℕ a b ＋ leℕ b a
+      leStronglyConnected Z _ = inl tt
+      leStronglyConnected (S a) Z =  inr tt
+      leStronglyConnected (S a) (S b) = leStronglyConnected a b
+
+--≡＋< : ∀{a b} → a ≤ b → (a ≡ b) ＋ (S a ≤ b)
+--≡＋< {(Z)} {(Z)} a≤b = inl refl
+--≡＋< {(Z)} {S b} a≤b = inr tt
+--≡＋< {S a} {S b} a≤b with ≡＋< {a} {b} a≤b
+--... | inl x = inl (cong S x)
+--... | inr x = inr x
+--
+--_xor_ : 𝔹 → 𝔹 → Prop
+--_xor_ true true = ⊥
+--_xor_ true false = ⊤
+--_xor_ false true = ⊤
+--_xor_ false false = ⊥
+--
+--_<_ : 𝔹 → 𝔹 → Prop
+--true < _ = ⊥
+--false < false = ⊥
+--false < true = ⊥
+--
+--_≤𝔹_ : 𝔹 → 𝔹 → Prop
+--false ≤𝔹 _ = ⊤
+--true ≤𝔹 false = ⊥
+--true ≤𝔹 true = ⊤
+--
+--ℝ : Type₁
+--ℝ = Σ λ(f : ℕ → 𝔹) → ∃ λ b → f Z xor b
+--
+--le[0,1] : (ℕ → 𝔹) → (ℕ → 𝔹) → Prop
+--le[0,1] f g = ∥ (∀ x → (∀ y → S y ≤ x → f y ≡ g y) → f x ≤𝔹 g x) ∥
+--
+--isTrue : 𝔹 → Prop
+--isTrue true = ⊤
+--isTrue false = ⊥
+--
+--𝔹Dec : (a b : 𝔹) → (a ≡ b) ＋ (a ≢ b)
+--𝔹Dec true true = inl refl
+--𝔹Dec true false = inr λ H → let T : isTrue true
+--                                T = tt in subst isTrue H tt
+--𝔹Dec false true = inr λ H → subst isTrue (sym H) tt
+--𝔹Dec false false = inl refl
+--
+--𝔹binary : (a : 𝔹) → (a ≡ true) ＋ (a ≡ false)
+--𝔹binary true = inl refl
+--𝔹binary false = inr refl
+--
+--a<b→a≡f : {a b : 𝔹} → a < b → a ≡ false
+--a<b→a≡f {(false)} {b} H = refl
+--
+--a<b→b≡t : {a b : 𝔹} → a < b → b ≡ true
+--a<b→b≡t {(a)} {(true)} H = refl
+--a<b→b≡t {(false)} {(false)} ()
+--
+--a<b→a≤b : ∀ a b → S a ≤ b → a ≤ b
+--a<b→a≤b Z b p = tt
+--a<b→a≤b (S a) (S b) p = a<b→a≤b a b p
+--
+--instance
+-- Total𝔹 : Total 𝔹
+-- Total𝔹 ._≤_ = _≤𝔹_
+-- Total𝔹 .transitive {(true)} {(true)} {(z)} a b = b
+-- Total𝔹 .transitive {(true)} {(false)} {(z)} ()
+-- Total𝔹 .transitive {(false)} {(y)} {(z)} a b = tt
+-- Total𝔹 .reflexive true = tt
+-- Total𝔹 .reflexive false = tt
+-- Total𝔹 .antisymmetric true true a b = refl
+-- Total𝔹 .antisymmetric true false ()
+-- Total𝔹 .antisymmetric false true x ()
+-- Total𝔹 .antisymmetric false false x y = refl
+-- Total𝔹 .stronglyConnected true true = inl tt
+-- Total𝔹 .stronglyConnected true false = inr tt
+-- Total𝔹 .stronglyConnected false y = inl tt
+--
+-- Total[0,1] : Total (ℕ → 𝔹)
+-- Total[0,1] ._≤_ = le[0,1]
+-- Total[0,1] .transitive {(x)} {(y)} {(z)} H G = H >>= λ H
+--                                              → G >>= λ G
+--                                              → η
+--   $ λ a p → transitive {x = x a}{y = y a} (H a {!!}) {!!}
+--  where
+--   aux : ((a : ℕ) → ((b : ℕ) → S b ≤ a → x b ≡ y b) → x a ≤ y a)
+--       → ((a : ℕ) → ((b : ℕ) → S b ≤ a → y b ≡ z b) → y a ≤ z a)
+--       →  (a : ℕ) → ((b : ℕ) → S b ≤ a → x b ≡ z b) → ((b : ℕ) → S b ≤ a → (x b ≡ y b) × (y b ≡ z b))
+--   aux H G (S a) p b b≤a =
+--      let R = aux H G a (λ c d → p c (a<b→a≤b c a d)) in squeeze (H b (λ c c<b → R c (transitive {x = S c}{y = b} c<b b≤a) .fst))
+--        (G b (λ c c<b → R c (transitive {x = S c}{y = b} c<b b≤a) .snd)) (p b b≤a)
+-- Total[0,1] .reflexive f = η λ x p → reflexive (f x)
+-- Total[0,1] .antisymmetric f g f≤g g≤f = funExt {!λ x → !}
+-- Total[0,1] .stronglyConnected = {!!}
