@@ -7,12 +7,9 @@ variable
  B : Set ℓ'
  C : Set ℓ''
 
+
 data _≡_ {A : Set ℓ}(a : A) : A → Set ℓ where
  refl : a ≡ a
-infix 4 _≡_
-
-id : A → A
-id x = x
 
 J : {a : A}
   → (C : (b : A) → a ≡ b → Set ℓ')
@@ -20,12 +17,17 @@ J : {a : A}
   → {b : A}(p : a ≡ b) → C b p
 J C c refl = c
 
-tp : A ≡ B → A → B
-tp p a = J (λ x _ → x) a p
---tp refl a = a
 
 subst : (P : A → Set ℓ) → {a b : A} → a ≡ b → P a → P b
-subst P p Pa = J (λ x _ → P x) Pa p
+subst P {a}{b} p H = J (λ x _ → P x) H p
+
+infix 4 _≡_
+
+id : A → A
+id x = x
+
+tp : A ≡ B → A → B
+tp p a = J (λ x _ → x) a p
 
 _⋆_ : {a b c : A} → a ≡ b → b ≡ c → a ≡ c
 _⋆_ {a = a}{b}{c} p q = subst (λ x → a ≡ x) q p
@@ -48,11 +50,14 @@ pathInv2 p = J (λ x p → (sym p ⋆ p) ≡ refl) refl p
 pathId : {a b : A} → (p : a ≡ b) → J (λ x _ → a ≡ x) refl p ≡ p
 pathId p = J (λ x p → refl ⋆ p ≡ p) refl p
 
+pathId2 : {a b : A} → (p : a ≡ b) → p ⋆ refl ≡ p
+pathId2 p = refl
+
 tpAssoc : (p : A ≡ B)(q : B ≡ C) → (a : A) → J (λ x _ → x) a (J (λ x _ → A ≡ x) p q) ≡ tp q (tp p a)
 tpAssoc p q a = J (λ B q → tp (p ⋆ q) a ≡ tp q (tp p a) ) refl q
 
 {-# BUILTIN REWRITE _≡_ #-}
-{-# REWRITE pathInv pathInv2 pathId tpAssoc #-}
+{-# REWRITE pathInv pathId tpAssoc #-}
 
 cong : (f : A → B) → ∀{x y} → x ≡ y → f x ≡ f y
 cong f {x}{y} p = subst (λ z → f x ≡ f z) p refl
@@ -63,6 +68,10 @@ congDep {B} f {x}{y} = J (λ y p → subst B p (f x) ≡ f y) refl
 congDep2 : {B : A → Set ℓ}(f : (a : A) → B a) → ∀{x y} → (p : x ≡ y) → subst B p (f x) ≡ f y
 congDep2 {B = B} f {(x)} {(y)} refl = refl
 
+PL4 : {b c : A}(q : b ≡ c)(P : (x : A) → b ≡ x → Set ℓ)
+           → P b refl → P c q
+PL4 {b}{c} q P Z = J (λ X r → P X r) Z q
+
 PL5 : {a b c : A}(p : a ≡ b)(q : b ≡ c)(P : (x : A) → a ≡ x → Set ℓ')
            → P b p → P c (p ⋆ q)
 PL5 {a}{b}{c} p q P Z = J (λ X r → P X (p ⋆ r)) Z q
@@ -72,20 +81,24 @@ PL7 : {a b : A}{P : (x : A) → a ≡ x → Set ℓ}
    → {Y : P a refl}
    → (Z : Q a refl Y)
    → (p : a ≡ b)
-   → Q b p (PL5 refl p P Y)
-PL7 {P} Q {Y} Z p = J (λ X p → Q X p (PL5 refl p P Y)) Z p
+   → Q b p (PL4 p P Y)
+PL7 {P} Q {Y} Z p = J (λ X p → Q X p (PL4 p P Y)) Z p
+
+PL1 : {a b : A}{P : (x : A) → Set ℓ}
+   → (Q : (x : A) → P x → Set ℓ')
+   → {Y : P a}
+   → (Z : Q a Y)
+   → (p : a ≡ b)
+   → Q b (subst P p Y)
+PL1 {P} Q {Y} Z = PL7 (λ x _ H → Q x H) Z
 
 PL9 : {a b c : A}(P : (x : A) → a ≡ x → Set ℓ')(p : a ≡ b)
            → P b p → (q : a ≡ c) → P c q
 PL9 {a}{b}{c} P = J (λ z r → P z r → (q : a ≡ c) → P c q) λ x → J (λ z r → P z r) x
 
-PL12 : {a b c : A}(p : a ≡ b)(P : (x : A) → a ≡ x → Set ℓ')
+PL12 : {a b : A}(P : (x : A) → a ≡ x → Set ℓ'){p : a ≡ b}
            → P b p → P a refl
-PL12 {a}{b} p P = PL5 p (sym p) P
-
-PL13 : {a b c : A}(p : a ≡ b)(P : (x : A) → a ≡ x → Set ℓ')
-           → P b p → P a refl
-PL13 {a}{b} p P Z = PL9 P p Z refl
+PL12 {a}{b} P {p} H = PL5 p (sym p) P H
 
 PL10 : {a b : A}{P : (x : A) → a ≡ x → Set ℓ}
      → (Q : (x : A)(r : a ≡ x) → P x r → Set ℓ')
@@ -95,11 +108,19 @@ PL10 : {a b : A}{P : (x : A) → a ≡ x → Set ℓ}
      → Q b p (PL9 P refl Y p)
 PL10 {a}{b} {P} Q {Y} Z = J (λ b p → Q b p (PL9 P refl Y p)) Z
 
+record Σ {A : Set ℓ}(P : A → Set ℓ') : Set (ℓ ⊔ ℓ') where
+ constructor _,_
+ field
+   fst : A
+   snd : P fst
+open Σ
+infixr 3 _,_
+
 PL8 : {a b : A}(P : (x : A) → a ≡ x → Set ℓ)
    → (p : a ≡ b)
    → (z : P b p)
-   → J P (PL5 p (sym p) P z) p ≡ z
-PL8 P = J (λ X p → (z : P X p) → J P (PL5 p (sym p) P z) p ≡ z) λ _ → refl
+   → J P (PL12 P z) p ≡ z
+PL8 P = J (λ X p → (z : P X p) → J P (PL12 P z) p ≡ z) λ _ → refl
 {-# REWRITE PL8 #-}
 
 PL11 : {a b : A}(P : (x : A) → a ≡ x → Set ℓ)
@@ -107,31 +128,27 @@ PL11 : {a b : A}(P : (x : A) → a ≡ x → Set ℓ)
    → (z : P b p)
    → J P (PL9 P p z refl) p ≡ z
 PL11 {a}{b} P = J (λ b p → (z : P b p) → J P (PL9 P p z refl) p ≡ z) λ z → refl
-{-# REWRITE PL11 #-}
 
 PL14 : (a : A)(P : (x : A) → a ≡ x → Set ℓ)(b : A)(p : a ≡ b)(z : P b p) → J (λ z₁ r → P z₁ r → (q : a ≡ b) → P b q) (λ x → J P x) p z p ≡ z
 PL14 a P b = J (λ b p → (z : P b p) → J (λ z₁ r → P z₁ r → (q : a ≡ b) → P b q) (λ x → J P x) p z p ≡ z) (λ x → refl)
-{-# REWRITE PL14 #-}
 
-module _{a b : A}(P : (x : A) → a ≡ x → Set ℓ)(Q : (x : A) (r : a ≡ x) → P x r → Set ℓ')(base : (z : P a refl) → Q a refl z) where
--- JΠ : (p : a ≡ b)
---     → J (λ x r → (z : P x r) → Q x r z) base p
---     ≡ λ(z : P b p) → PL10 Q (base (PL9 P p z refl)) p
--- JΠ = J (λ b p → J (λ x r → (z : P x r) → Q x r z) base p ≡ λ(z : P b p) → PL10 Q (base (PL9 P p z refl)) p) refl
+module _{a b : A}(P : (x : A) → a ≡ x → Set ℓ)(Q : (x : A) (r : a ≡ x) → P x r → Set ℓ') where
 
- JΠ' : (p : a ≡ b)
+ PL15 : (base : (z : P a refl) → Q a refl z)(p : a ≡ b) (z : P b p)
+      → Q b p (PL4 p P (PL12 P z))
+ PL15 base p z = PL7 Q (base (PL12 P z)) p
+
+ JΣ : (base : Σ λ(z : P a refl) → Q a refl z) (p : a ≡ b)
+    → J (λ x r → Σ λ(z : P x r) → Q x r z) base p
+    ≡ (PL4 p P (fst base) , PL7 Q (snd base) p)
+ JΣ (z , y) = J (λ b p → J (λ x r → Σ (Q x r)) (z , y) p ≡ (PL4 p P z , PL7 Q y p)) refl
+ {-# REWRITE JΣ #-}
+
+ JΠ : (base : (z : P a refl) → Q a refl z)(p : a ≡ b)
      → J (λ x r → (z : P x r) → Q x r z) base p
-     ≡ λ(z : P b p) → PL7 Q (base (PL5 p (sym p) P z)) p
- JΠ' = J (λ b p → J (λ x r → (z : P x r) → Q x r z) base p ≡ λ(z : P b p) → PL7 Q (base (PL5 p (sym p) P z)) p) refl
- {-# REWRITE JΠ' #-}
-
---PL7 {P} Q Y Z p = J (λ X p → Q X p (PL5 refl p P Y)) Z p
-
--- JΠ2 : (p : a ≡ b)
---     → J (λ x r → (z : P x r) → Q x r z) base p
---     ≡ λ(z : P b p) → J (λ x r → Q x r (PL9 P p z r)) (base (PL9 P p z refl)) p
--- JΠ2 = J (λ b p → J (λ x r → (z : P x r) → Q x r z) base p
---     ≡ λ(z : P b p) → J (λ x r → Q x r (PL9 P p z r)) (base (PL5 p (sym p) {!!} {!!})) p) refl
+     ≡ PL15 base p
+ JΠ base = J (λ b p → J (λ x r → (z : P x r) → Q x r z) base p ≡ λ(z : P b p) → PL7 Q (base (PL12 P z)) p) refl
+ {-# REWRITE JΠ #-}
 
 testRewrite : (p : A ≡ B) → (f : A → A)
             → subst (λ X → X → X) p f
@@ -145,14 +162,6 @@ H-rule P base = J (λ X p → P X (tp p)) base
 _∘_ : (B → C) → (A → B) → A → C
 f ∘ g = λ x → f (g x)
 infixl 5 _∘_
-
-record Σ {A : Set ℓ}(P : A → Set ℓ') : Set (ℓ ⊔ ℓ') where
- constructor _,_
- field
-   fst : A
-   snd : P fst
-open Σ
-infixr 3 _,_
 
 _×_ : Set ℓ → Set ℓ' → Set (ℓ ⊔ ℓ')
 X × Y = Σ λ(_ : X) → Y
@@ -170,7 +179,6 @@ isContr A = Σ λ a → (b : A) → a ≡ b
 
 singleton-types-are-singletons : (A : Set ℓ) (a : A) → isContr (singleton-type a)
 singleton-types-are-singletons A a = singleton-type-center a , singleton-type-centered a
-
 
 record Iso (A : Set ℓ)(B : Set ℓ') : Set (ℓ ⊔ ℓ') where
   constructor iso
@@ -247,6 +255,7 @@ funExt {ℓ}{ℓ'}{A}{B} {f}{g} H = cong (λ π a → π (f a , g a , H a)) q
 
   ϕ : (Δ → B) → (B → B)
   ϕ π = π ∘ δ
+
   ρ : isIso ϕ
   ρ = (precomp α B)
 
@@ -254,7 +263,8 @@ funExt {ℓ}{ℓ'}{A}{B} {f}{g} H = cong (λ π a → π (f a , g a , H a)) q
   p = refl
 
   r : (fst ρ) (ϕ π₀) ≡ (fst ρ) (ϕ π₁)
-  r = cong (fst ρ) refl
+  r = cong (fst ρ) let H : ϕ π₀ ≡ ϕ π₁
+                       H = refl in H
 
   q : π₀ ≡ π₁
   q = subst (λ x → x ≡ π₁) (snd (snd ρ) π₀) (snd (snd ρ) π₁)
@@ -348,9 +358,73 @@ tpInv4 : (p : A ≡ B) → (∀ x → (tp⁻¹ p ∘ tp p) x ≡ x)
 tpInv4 = J (λ _ p → ∀ x →  (tp⁻¹ p ∘ tp p) x ≡ x) λ x → refl
 
 
-PL6 : (p : A ≡ B)
-   → (p ⋆ (sym p ⋆ p)) ≡ p
-PL6 p = refl
+--PL6 : (p : A ≡ B)
+--   → (p ⋆ (sym p ⋆ p)) ≡ p
+--PL6 p = refl
 
 grpLem : {a b c : A} → (p : a ≡ b)(q : b ≡ c) → sym(p ⋆ q) ≡ sym q ⋆ sym p
 grpLem {a}{b}{c} p q = J (λ x q → sym(p ⋆ q) ≡ sym q ⋆ sym p) refl q
+
+data ⊥ : Set where
+
+data ℕ : Set where
+ Z : ℕ
+ S : ℕ → ℕ
+
+data Vec (A : Set ℓ) : ℕ → Set ℓ where
+ nil : Vec A Z
+ cons : A → {n : ℕ} → Vec A n → Vec A (S n)
+
+data Maybe (A : Set ℓ) : Set ℓ where
+ Just : A → Maybe A
+ Nothing : Maybe A
+
+
+ℕ< : ℕ → Set
+ℕ< Z = ⊥
+ℕ< (S n) = Maybe (ℕ< n)
+
+Vec₂ : ℕ → Set ℓ → Set ℓ
+Vec₂ n A = ℕ< n → A
+
+Vec₁ : ℕ → Set ℓ → Set ℓ
+Vec₁ n A = Vec A n
+
+<> : ℕ< Z → A
+<> ()
+
+variable n : ℕ
+
+-- hd
+hd : (ℕ< (S n) → A) → A
+hd v = v Nothing
+
+-- tl
+tl : (ℕ<(S n) → A) → ℕ< n → A
+tl v x = v (Just x)
+
+_∷_ : A → (ℕ< n → A) → (ℕ< (S n) → A)
+(a ∷ v) (Just x) = v x
+(a ∷ v) Nothing = a
+
+tuple-η : (f : ℕ< (S n) → A) → hd f ∷ tl f ≡ f
+tuple-η {n = n} f = funExt λ{ (Just x) → refl ; Nothing → refl}
+
+vecf₁ : ∀ n → Vec₁ n A → Vec₂ n A
+vecf₁ Z nil = λ ()
+vecf₁ (S n) (cons x xs) = x ∷ vecf₁ n xs
+
+vecf₂ : ∀ n → Vec₂ n A → Vec₁ n A
+vecf₂ Z X = nil
+vecf₂ (S n) X = cons (hd X) (vecf₂ n (tl X))
+
+vInv₁ : (x : Vec₂ n A) → vecf₁ n (vecf₂ n x) ≡ x
+vInv₁ {(Z)} x = funExt λ ()
+vInv₁ {S n} x = cong (hd x ∷_) (vInv₁ (tl x)) ⋆ tuple-η x
+
+vInv₂ : (x : Vec₁ n A) → vecf₂ n (vecf₁ n x) ≡ x
+vInv₂ {(Z)} nil = refl
+vInv₂ {S n} (cons x xs) = cong (cons x) (vInv₂ xs)
+
+vIso : ∀ n → Iso (Vec₁ n A) (Vec₂ n A)
+vIso n = iso (vecf₁ n) (vecf₂ n) vInv₁ vInv₂
