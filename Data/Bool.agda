@@ -169,11 +169,10 @@ module _{_∙_ : A → A → A}{{_ : Commutative _∙_}}{{G : group _∙_}} wher
   group.lIdentity dihedralGroup (r , Yes) = ≡-× (lIdentity r) refl
   group.lIdentity dihedralGroup (r , No) = ≡-× (lIdentity r) refl
 
-open import Data.Natural
-
-ℕ→𝔹notSurjℕ : ¬(Σ λ(f : ℕ → (ℕ → 𝔹)) → rightInverse f)
-ℕ→𝔹notSurjℕ (f , surj) =
-   let g : ℕ → 𝔹
+-- Cantor's diagonal argument
+A→𝔹notSurjA : ¬(Σ λ(f : A → A → 𝔹) → rightInverse f)
+A→𝔹notSurjA {A = A} (f , surj) =
+   let g : A → 𝔹
        g = λ n → not (f n n) in
        surj g |>
       λ((n , H) : Σ λ n → f n ≡ g) →
@@ -181,5 +180,5 @@ open import Data.Natural
        G = funExt⁻ H n in
    B≢notB (f n n) G
 
-ℕ→𝔹¬≅ℕ : ¬((ℕ → 𝔹) ≅ ℕ)
-ℕ→𝔹¬≅ℕ (f , _ , surj) = ℕ→𝔹notSurjℕ (f , surj)
+A→𝔹¬≅A : ¬((A → 𝔹) ≅ A)
+A→𝔹¬≅A (f , _ , surj) = A→𝔹notSurjA (f , surj)
