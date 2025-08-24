@@ -436,7 +436,7 @@ module _{C : Type cℓ} {{R : Ring C}} where
    aux {n = S n} (Just x) Nothing = refl
    aux {n = S n} Nothing (Just x) = refl
 
- -- Partially applied matrix transformation is identity function
+ -- Applying Identity matrix to matrix transformation is an identity function
  MT-ID : (v : ℕ< n → C) → MT I v ≡ v
  MT-ID v = funExt λ x → aux v x
   where
