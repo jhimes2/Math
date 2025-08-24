@@ -140,13 +140,17 @@ _++_ {n = Z} u v x = v x
 _++_ {n = S n} u v Nothing = u Nothing
 _++_ {n = S n} u v (Just x) = (tl u ++ v) x
 
-_>>_#_ : (a b : ℕ) → (ℕ< (a + b) → A) → ℕ< b → A
-Z >> b # v = v
-S a >> b # v = a >> b # tl v
+-- <#, #>, and <#> are useful for functions indexed by binomial types (BType).
 
-_<<_#_ : (a b : ℕ) → (ℕ< (a + b) → A) → ℕ< a → A
-Z << b # v = <>
-S a << b # v = hd v ∷ (a << b # tl v)
+<# : (A ＋ B → C) → A → C
+<# f a = f (inl a)
+
+#> : (A ＋ B → C) → B → C
+#> f b = f (inr b)
+
+_<#>_ : (A → C) → (B → C) → A ＋ B → C
+(f <#> g) (inl x) = f x
+(f <#> g) (inr x) = g x
 
 foldr++ : (f : A → B → B) → (q : B) → (x : < A ^ n >) → (y : < A ^ m >)
         → foldr f q (x ++ y) ≡ foldr f (foldr f q y) x
@@ -800,23 +804,21 @@ module _ {C : Type ℓ}{{R : CRing C}} where
         fold- (λ(x : ℕ< (S n)) → u x * fold- (hd (tl(skipAt $ tl (M ᵀ) ᵀ)x) * (det ∘ (skipAt $ tl (tl(skipAt $ tl (M ᵀ) ᵀ)x) ᵀ)))) ≡⟨⟩
           fold- (u * (det ∘ (tl(skipAt $ tl (M ᵀ)ᵀ)))) ∎
 
+
  -- `ℕ< a → C` indexes variables to a polynomial
  -- `ℕ< (split a b) → C` indexes coefficients to an `a` variable polynomial of degree `b`.
- Poly : ∀{a} → (ℕ< a → C) → ∀{b} → (ℕ< (split a b) → C) → C
- Poly {Z} var {b} co = hd co
- Poly {S a} var {Z} co = hd co
- Poly {S a} var {S b} co = Poly (tl var) (split a (S b) << split (S a) b # co)
-                         + (hd var * Poly var {b} (split a (S b) >> split (S a) b # co))
+ Poly : ∀{a} → (ℕ< a → C) → ∀{b} → (BType a b → C) → C
+ Poly {Z} var {b} co = co tt
+ Poly {S a} var {Z} co = co tt
+ Poly {S a} var {S b} co = Poly (tl var) (<# co)
+                         + (hd var * Poly var (#> co))
 
  -- Partial derivative for polynomial coeffiecients
- ∂ : ∀{a b} → (ℕ< (split a (S b)) → C) → ℕ< a → ℕ< (split a b) → C
- ∂ {a} {Z} v n u = v (subst ℕ< (sym (split1 a)) (Just n))
- ∂ {S a} {S b} v Nothing = let G = split a (S(S b)) >> split (S a) (S b) # v in
-          (split a (S b) << split (S a) b # G) ++ ((split a (S b) >> split (S a) b # G) + ∂ {b = b} G Nothing)
- ∂ {S a} {S b} v (Just x) =
-      ∂ (split a (S(S b)) << split (S a) (S b) # v) x
-   ++ ∂ (split a (S(S b)) >> split (S a) (S b) # v) (Just x)
+ ∂ : ∀{a b} → (BType a (S b) → C) → ℕ< a → BType a b → C
+ ∂ {S a} {Z} v x u = <# v (Fin→BType x)
+ ∂ {S a} {S b} v Nothing = <# (#> v) <#> (#> (#> v) + hd (∂ (#> v)))
+ ∂ {S a} {S b} v (Just x) = ∂ (<# v) x <#> tl (∂ (#> v)) x
 
  -- Jacobian for polynomials
- Jacobian : (ℕ< n → ℕ< (split n (S n)) → C) → ℕ< n → ℕ< n → ℕ< (split n n) → C
+ Jacobian : (ℕ< n → BType n (S n) → C) → ℕ< n → ℕ< n → BType n n → C
  Jacobian F = ∂ ∘ F

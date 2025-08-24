@@ -19,6 +19,17 @@ variable
 ℕ< Z = ⊥
 ℕ< (S n) = Maybe (ℕ< n)
 
+-- Binomial type
+BType : ℕ → ℕ → Type
+BType Z b = ⊤
+BType (S b) Z = ⊤
+BType (S a) (S b) = BType a (S b) ＋ BType (S a) b
+
+Fin→BType : ℕ< (S n) → BType n (S Z)
+Fin→BType {Z} x = tt
+Fin→BType {S n} (Just x) = inl (Fin→BType x)
+Fin→BType {S n} Nothing = inr tt
+
 finDecr : {x : ℕ< (S (S n))} → Nothing ≢ x → ℕ< (S n)
 finDecr {n} {Just x} H = x
 finDecr {n} {Nothing} H = UNREACHABLE (H refl)
