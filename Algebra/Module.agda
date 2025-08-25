@@ -434,7 +434,7 @@ module _{scalar : Type ℓ}{member : Type ℓ'}{{R : Ring scalar}}{{V : Affine m
   afCoset : {H : member → Type aℓ}{{SG : Submodule H}}{m : member} → Affine (Σ H) (Σ (cosetL H m))
   afCoset {H = H}{m} = record
                  { _<+_ = λ (y , y∈H) (x , m<->x∈H) → y <+> x ,
-                  ((m <-> x) <-> y ∈ H   ⟦ op-closed m<->x∈H (inv-closed y∈H) ⟧
+                  (∵ (m <-> x) <-> y ∈ H [ op-closed m<->x∈H (inv-closed y∈H) ]
                    ∴ m <-> (y <+> x) ∈ H [ subst H ([ab']c'≡a[cb]' m x y) ])
                  ; _<-_ = λ(x , m<->x∈H)(y , m<->y∈H) → -< m <-> x > <+>(m <-> y) , op-closed (inv-closed m<->x∈H)
                                                                                               m<->y∈H

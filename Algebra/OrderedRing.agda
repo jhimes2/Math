@@ -34,8 +34,8 @@ module ordered{{ordring : Ring A}}{{OR : OrderedRing ℓ A}} where
               |> λ(p : (c - d) ≤ 0r) → p
         in
     transitive G H |> λ(r : (c - d) ≤ (b - a)) →
-          let H = (c + a) ≤ (d + a) ⟦ addLe q a ⟧
-                 ∴ (a + c) ≤ (d + a) [ transport (λ i → comm c a i ≤ (d + a)) ]
+          let H = ∵ (c + a) ≤ (d + a) [ addLe q a ]
+                  ∴ (a + c) ≤ (d + a) [ transport (λ i → comm c a i ≤ (d + a)) ]
           in
           let G : (d + a) ≤ (b + d)
               G = transport (λ i → comm a d i ≤ (b + d)) (addLe p d)
