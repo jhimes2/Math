@@ -1,4 +1,4 @@
-{-# OPTIONS --cubical --safe --backtracking-instance-search --hidden-argument-pun --prop #-}
+{-# OPTIONS --cubical --safe --backtracking-instance-search --hidden-argument-puns --prop #-}
 
 module Classical.SetTheory where
 

@@ -1,4 +1,4 @@
-{-# OPTIONS --hidden-argument-pun --safe #-}
+{-# OPTIONS --hidden-argument-puns --safe #-}
 
 open import Agda.Primitive public
 

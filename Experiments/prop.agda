@@ -1,4 +1,4 @@
-{-# OPTIONS --without-K --hidden-argument-pun #-}
+{-# OPTIONS --without-K --hidden-argument-puns #-}
 
 open import Agda.Primitive hiding (Prop) public
 

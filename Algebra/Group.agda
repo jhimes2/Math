@@ -1,4 +1,4 @@
-{-# OPTIONS --cubical --safe --hidden-argument-pun --backtracking-instance-search #-}
+{-# OPTIONS --cubical --safe --hidden-argument-puns --backtracking-instance-search #-}
 
 module Algebra.Group where
 

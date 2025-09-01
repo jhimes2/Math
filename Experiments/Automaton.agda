@@ -1,4 +1,4 @@
-{-# OPTIONS --cubical --hidden-argument-pun --prop #-}
+{-# OPTIONS --cubical --hidden-argument-puns --prop #-}
 
 module Experiments.Automaton where
 

@@ -1,4 +1,4 @@
-{-# OPTIONS --cubical --safe --backtracking-instance-search --hidden-argument-pun #-}
+{-# OPTIONS --cubical --safe --backtracking-instance-search --hidden-argument-puns #-}
 
 open import Prelude
 open import Cubical.Foundations.HLevels

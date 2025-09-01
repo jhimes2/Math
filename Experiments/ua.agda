@@ -1,4 +1,4 @@
-{-# OPTIONS --rewriting --without-K --hidden-argument-pun #-}
+{-# OPTIONS --rewriting --without-K --hidden-argument-puns #-}
 open import Agda.Primitive public
 
 variable

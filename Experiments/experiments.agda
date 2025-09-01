@@ -1,4 +1,4 @@
-{-# OPTIONS --allow-unsolved-metas --cubical --hidden-argument-pun #-}
+{-# OPTIONS --allow-unsolved-metas --cubical --hidden-argument-puns #-}
 
 module Experiments.experiments where
 

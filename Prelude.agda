@@ -1,4 +1,4 @@
-{-# OPTIONS  --cubical --safe --hidden-argument-pun #-}
+{-# OPTIONS  --cubical --safe --hidden-argument-puns #-}
 
 open import Agda.Primitive public
 open import Cubical.Foundations.Prelude
