@@ -1,4 +1,4 @@
-{-# OPTIONS --cubical --safe --backtracking-instance-search #-}
+{-# OPTIONS --cubical --safe --backtracking-instance-search --guardedness #-}
 
 open import Prelude
 open import Algebra.Field

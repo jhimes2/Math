@@ -1,4 +1,4 @@
-{-# OPTIONS --hidden-argument-puns --cubical #-}
+{-# OPTIONS --hidden-argument-puns --cubical --guardedness #-}
 
 ---------------------------------------------------------
 -- Point-Set Topology using the law of excluded middle --

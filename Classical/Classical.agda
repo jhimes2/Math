@@ -1,4 +1,4 @@
-{-# OPTIONS --hidden-argument-puns --cubical #-}
+{-# OPTIONS --hidden-argument-puns --cubical --guardedness #-}
 
 module Classical.Classical where
 

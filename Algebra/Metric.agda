@@ -1,4 +1,4 @@
-{-# OPTIONS --safe --cubical #-}
+{-# OPTIONS --safe --cubical --guardedness #-}
 
 module Algebra.Metric where
 

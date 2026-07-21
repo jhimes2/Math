@@ -1,4 +1,4 @@
-{-# OPTIONS --cubical --safe --hidden-argument-puns #-}
+{-# OPTIONS --cubical --safe --hidden-argument-puns --guardedness #-}
 
 module Predicate where
 

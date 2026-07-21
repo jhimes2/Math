@@ -1,4 +1,4 @@
-{-# OPTIONS --cubical --allow-unsolved-metas #-}
+{-# OPTIONS --cubical --allow-unsolved-metas --guardedness #-}
 
 module NumberTheory.Integer where
 

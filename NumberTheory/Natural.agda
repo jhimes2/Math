@@ -1,4 +1,4 @@
-{-# OPTIONS --cubical --backtracking-instance-search #-}
+{-# OPTIONS --cubical --backtracking-instance-search --guardedness #-}
 
 module NumberTheory.Natural where
 

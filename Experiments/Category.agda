@@ -1,4 +1,4 @@
-{-# OPTIONS --cubical --safe --backtracking-instance-search --hidden-argument-puns #-}
+{-# OPTIONS --cubical --safe --backtracking-instance-search --hidden-argument-puns --guardedness #-}
 
 module Experiments.Category where
 

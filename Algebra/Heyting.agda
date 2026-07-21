@@ -1,4 +1,4 @@
-{-# OPTIONS --cubical --safe --backtracking-instance-search #-}
+{-# OPTIONS --cubical --safe --backtracking-instance-search --guardedness #-}
 
 open import Prelude hiding (_∨_ ; _∧_)
 open import Relations hiding (_≤_)

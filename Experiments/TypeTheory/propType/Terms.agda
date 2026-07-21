@@ -1,4 +1,4 @@
-{-# OPTIONS --backtracking-instance-search #-}
+{-# OPTIONS --backtracking-instance-search --guardedness #-}
 
 module propType.Terms where
 

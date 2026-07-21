@@ -1,4 +1,4 @@
-{-# OPTIONS --cubical --safe --backtracking-instance-search --inversion-max-depth=100 #-}
+{-# OPTIONS --cubical --safe --backtracking-instance-search --inversion-max-depth=100 --guardedness #-}
 
 module Data.Natural where
 

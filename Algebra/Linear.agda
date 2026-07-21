@@ -1,4 +1,4 @@
-{-# OPTIONS --cubical --safe --backtracking-instance-search #-}
+{-# OPTIONS --cubical --safe --backtracking-instance-search --guardedness #-}
 
 module Algebra.Linear where
 

@@ -1,4 +1,4 @@
-{-# OPTIONS --hidden-argument-puns #-}
+{-# OPTIONS --hidden-argument-puns --guardedness #-}
 
 module standard.Terms where
 

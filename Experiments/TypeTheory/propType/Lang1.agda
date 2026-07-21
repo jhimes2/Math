@@ -1,4 +1,4 @@
-{-# OPTIONS --hidden-argument-puns #-}
+{-# OPTIONS --hidden-argument-puns --guardedness #-}
 
 module propType.Lang1 where
 

@@ -1,4 +1,4 @@
-{-# OPTIONS --safe --cubical --hidden-argument-puns #-}
+{-# OPTIONS --safe --cubical --hidden-argument-puns --guardedness #-}
 
 module Experiments.TypeTheory.cubical.Lang1 where
 

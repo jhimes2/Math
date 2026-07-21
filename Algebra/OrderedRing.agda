@@ -1,4 +1,4 @@
-{-# OPTIONS --safe --cubical --backtracking-instance-search #-}
+{-# OPTIONS --safe --cubical --backtracking-instance-search --guardedness #-}
 
 module Algebra.OrderedRing where
 

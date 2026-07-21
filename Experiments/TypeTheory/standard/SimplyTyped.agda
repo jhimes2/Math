@@ -1,4 +1,4 @@
-{-# OPTIONS --hidden-argument-puns #-}
+{-# OPTIONS --hidden-argument-puns --guardedness #-}
 
 open import Terms
 

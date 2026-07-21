@@ -1,4 +1,4 @@
-{-# OPTIONS --safe --backtracking-instance-search --cubical #-}
+{-# OPTIONS --safe --backtracking-instance-search --cubical --guardedness #-}
 
 module Data.Bool where
 
