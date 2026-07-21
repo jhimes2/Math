@@ -689,7 +689,7 @@ dpGrp = record {
 -- Every operator can only be part of at most one group
 groupIsProp : (_∙_ : A → A → A) → isProp (group _∙_)
 groupIsProp {A} _∙_ G1 G2 i =
-  let set = λ{a b : A}{p q : a ≡ b} → IsSet a b p q in
+  let set = λ{a b : A}{p q : a ≡ b} → IsSetGrp G1 .IsSet a b p q in
   let E : G1 .e ≡ G2 .e
       E = G1 .e                 ≡⟨ idUnique {{grpIsMonoid {{G2}}}} (G1 .lIdentity (grpIsMonoid {{G2}} .e))⟩
           grpIsMonoid {{G2}} .e ≡⟨ sym (idUnique {{grpIsMonoid {{G2}}}}

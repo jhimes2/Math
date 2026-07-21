@@ -313,7 +313,7 @@ instance
  bijectiveSet : {{_ : is-set A}}{{_ : is-set B}} → is-set (Σ λ(f : A → B) → bijective f)
  bijectiveSet = record { IsSet = isSetΣ (isSet→ IsSet) λ x → isProp→isSet (bijectiveProp x) }
 
-TrueEq : isProp A → A → A ≡ Lift ⊤
+TrueEq : isProp A → A → A ≡ Lift ℓ ⊤
 TrueEq p a = propExt p (λ{ (lift tt) (lift tt) → refl}) (λ _ → lift tt) (λ _ → a)
 
 rem₁ : {P Q : A → Type ℓ} → isProp $ (λ x → ∥ P x ∥₁) ≡ λ x → ∥ Q x ∥₁

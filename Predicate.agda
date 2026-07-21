@@ -62,11 +62,11 @@ DeMorgan6 f (a , p) = f a p
 
 -- Full predicate
 𝓤 : A → Type ℓ
-𝓤 = λ _ → Lift ⊤
+𝓤 {ℓ} = λ _ → Lift ℓ ⊤
 
 -- Empty predicate
 ∅ : A → Type ℓ
-∅ = λ _ → Lift ⊥
+∅ {ℓ} = λ _ → Lift ℓ ⊥
 
 chain : {A : Type aℓ}{_≤_ : A → A → Type ℓ}{{P : Poset _≤_}} → (A → Type bℓ) → Type (ℓ ⊔ aℓ ⊔ bℓ)
 chain {_≤_} C = ∀ a b → a ∈ C → b ∈ C → ¬(a ≤ b) → b ≤ a
