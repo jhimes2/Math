@@ -244,7 +244,7 @@ instance
                      ; inverse = λ v → map inv v , funExt λ x → lInverse (v x)
                      ; lIdentity = λ v → funExt (λ x → lIdentity (v x)) }
 
-  -- A function whose codomain is an underlying set for a ring is a vector for a module.
+  -- A function whose codomain is an underlying set for a ring is a member for a module.
   -- If the codomain is an underlying set for a field, then the function is a vector for a linear space.
  vectMod : {{R : Ring A}} → Module (B → A)
  vectMod = record
