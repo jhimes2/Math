@@ -521,12 +521,13 @@ module _{C : Type cℓ} {{R : Ring C}} where
 {-# DISPLAY mAdd a b = a + b #-}
 {-# DISPLAY mMult a b = a * b #-}
 
-skipAt : < C ^ S n > → Matrix C n (S n)
-skipAt {n = S n} v = tl v ∷ ((hd v ∷_) ∘ skipAt (tl v))
+coface : ℕ< (S n) → ℕ< n → ℕ< (S n)
+coface {n = S n} (Just x) (Just y) = Just (coface x y)
+coface {n = S n} (Just x) Nothing = Nothing
+coface {n = n} Nothing y = Just y
 
---skipAt : < C ^ S n > → Matrix C n (S n)
---skipAt {n = S n} v (Just x) = hd v ∷ skipAt (tl v) x
---skipAt {n = S n} v Nothing = tl v
+skipAt : < C ^ S n > → Matrix C n (S n)
+skipAt i j = i ∘ coface j
 
 replaceAt : C → < C ^ n > → Matrix C n n
 replaceAt {n = S n} c v = (c ∷ tl v) ∷ ((hd v ∷_) ∘ replaceAt c (tl v))
@@ -534,29 +535,6 @@ replaceAt {n = S n} c v = (c ∷ tl v) ∷ ((hd v ∷_) ∘ replaceAt c (tl v))
 -- cofactor
 CF : (M : Matrix A (S n) (S m)) → ℕ< (S n) → ℕ< (S m) → Matrix A m n
 CF M x y = skipAt (skipAt M y ᵀ) x
-
-CF2 : (M : Matrix A (S n) (S m)) → ℕ< (S n) → ℕ< (S m) → Matrix A n m
-CF2 M x y = skipAt (skipAt (M ᵀ) x ᵀ) y
-
-lemma3 : (M : < C ^ (S(S m)) >) → ∀ y →
-         tl (tl (skipAt M) y) ≡
-         skipAt (tl M) y
-lemma3 {m = m} M y =
-   let H : (tl (tl M ∷ ((hd M ∷_) ∘ (skipAt (tl M)))) y) ≡
-           hd M ∷ (skipAt (tl M) y)
-       H = refl
-
-        in
-         tl (tl (skipAt M) y) ≡⟨⟩
-         tl (tl (tl M ∷ ((hd M ∷_) ∘ (skipAt (tl M)))) y) ≡⟨ cong tl H ⟩
-         skipAt (tl M) y ∎
-
-lemma4 : (v : < C ^ S(S n) >) → (b : ℕ< (S n))
-       → (hd v ∷ skipAt (tl v) b)
-       ≡ tl (skipAt v) b
-lemma4 v b = (hd v ∷ skipAt (tl v) b) ≡⟨ right _∷_ (sym (lemma3 v b)) ⟩
-             (hd (tl (skipAt v) b) ∷ tl(tl (skipAt v) b)) ≡⟨ tuple-η (tl (skipAt v) b) ⟩
-             tl (skipAt v) b ∎
 
 skipAtTranspose : (M : Matrix C (S n) m) → ∀ x → skipAt (M ᵀ) x ≡ λ a b → skipAt (M b) x a
 skipAtTranspose {C = C} {n = n}{m} M x = funExt $ aux M x
@@ -583,97 +561,6 @@ hdtlᵀ M = refl
 Matrix-η : (N : Matrix C (S n) m)
          → zip _∷_ (hd ∘ N) (tl ∘ N) ≡ N
 Matrix-η N = funExt λ a → tuple-η (N a)
-
-CFᵀ : ∀ a b → (M : Matrix C (S n)(S m)) →
-        CF (M ᵀ) a b
-      ≡ (CF M b a) ᵀ
-CFᵀ {n = Z} a b M = funExt λ x → funExt λ()
-CFᵀ {n = S n} {m = Z} _ _ M = funExt λ()
-CFᵀ {n = S n} {m = S m} Nothing Nothing M = refl
-CFᵀ {n = S n} {m = S m} Nothing (Just b) M' =
-      let M = (map tl (tl M')) in
-      let x = hd(hd M') in
-      let u = tl(hd M') in
-      let v = (map hd (tl M')) in
-     CF (M' ᵀ) Nothing (Just b) ≡⟨⟩
-     skipAt (skipAt (M' ᵀ) (Just b) ᵀ) Nothing ≡⟨⟩
-     tl ((skipAt (M' ᵀ) (Just b) ᵀ)) ≡⟨⟩
-     tl ((hd (M' ᵀ) ∷ skipAt (tl (M' ᵀ)) b) ᵀ) ≡⟨ cong (λ z → tl ((hd (M' ᵀ) ∷ skipAt (tl (z ᵀ)) b) ᵀ)) (sym (tuple-η M')) ⟩
-     tl ((hd (M' ᵀ) ∷ skipAt (tl ((hd M' ∷ tl M') ᵀ)) b) ᵀ) ≡⟨ cong (λ z → tl ((hd (M' ᵀ) ∷ skipAt (tl ((z ∷ tl M') ᵀ)) b) ᵀ)) (sym (tuple-η (hd M'))) ⟩
-     tl ((hd (M' ᵀ) ∷ skipAt (tl (((x ∷ u) ∷ tl M') ᵀ)) b) ᵀ) ≡⟨ cong (λ z → tl ((hd (M' ᵀ) ∷ skipAt (tl (((x ∷ u)∷ z) ᵀ)) b) ᵀ))
-        (sym (Matrix-η (tl M'))) ⟩
-     tl ((hd (M' ᵀ) ∷ skipAt (tl (((x ∷ u) ∷ zip _∷_ v M) ᵀ)) b) ᵀ) ≡⟨ cong (λ z → tl ((hd (M' ᵀ) ∷ skipAt (tl z) b) ᵀ)) (zipTranspose2 M v u x) ⟩
-     tl ((hd (M' ᵀ) ∷ skipAt (zip _∷_ u (M ᵀ)) b) ᵀ) ≡⟨ cong (λ z → tl (z ᵀ)) (left _∷_ (sym (tuple-η (hd (M' ᵀ))))) ⟩
-     tl (((x ∷ v) ∷ skipAt (zip _∷_ u (M ᵀ)) b) ᵀ) ≡⟨⟩
-     (tl ∘ ((x ∷ v) ∷ skipAt (zip _∷_ u (M ᵀ)) b))ᵀ ≡⟨ cong _ᵀ (∘∷ tl (skipAt (zip _∷_ u (M ᵀ)) b) ((x ∷ v))) ⟩
-     (v ∷ (tl ∘ skipAt (zip _∷_ u (M ᵀ)) b))ᵀ ≡⟨ cong (λ z → (v ∷ (tl ∘ z b))ᵀ) (skipAtZip (M ᵀ) u) ⟩
-     (v ∷ (tl ∘ (zip _∷_ (skipAt u b) (skipAt (M ᵀ) b))))ᵀ ≡⟨ cong (λ z → (v ∷ z) ᵀ) (tl∘zip∷ (λ z → x) (skipAt (M ᵀ) b)) ⟩
-     (v ∷ skipAt (M ᵀ) b) ᵀ ≡⟨⟩
-     (v ∷ skipAt (tl(tl M' ᵀ)) b) ᵀ ≡⟨⟩
-     ((hd (tl M' ᵀ)) ∷ skipAt (tl(tl M' ᵀ)) b) ᵀ ≡⟨⟩
-     ((hd (tl M' ᵀ)) ∷ skipAt (tl(tl M' ᵀ)) b) ᵀ ≡⟨⟩
-     skipAt (tl M' ᵀ)(Just b) ᵀ ≡⟨⟩
-     skipAt (skipAt M' Nothing ᵀ)(Just b) ᵀ ≡⟨⟩
-     (CF M' (Just b) Nothing ᵀ) ∎
-CFᵀ {n = S n} {m = S m} (Just a) Nothing M' =
-      let M = (map tl (tl M')) in
-      let x = hd(hd M') in
-      let u = tl(hd M') in
-      let v = (map hd (tl M')) in
-
-     CF (M' ᵀ) (Just a) Nothing ≡⟨⟩
-     skipAt (skipAt (M' ᵀ) Nothing ᵀ) (Just a) ≡⟨⟩
-     skipAt (skipAt (M' ᵀ) Nothing ᵀ) (Just a) ≡⟨⟩
-     skipAt (tl (M' ᵀ) ᵀ) (Just a) ≡⟨⟩
-     hd (tl (M' ᵀ) ᵀ) ∷ skipAt (tl(tl (M' ᵀ) ᵀ)) a ≡⟨⟩
-     tl (hd M') ∷ skipAt (tl(tl (M' ᵀ) ᵀ)) a ≡⟨⟩
-     tl (hd M') ∷ skipAt (tl ∘ (tl M')) a ≡⟨⟩
-     u ∷ skipAt M a ≡⟨ sym (ᵀInject (zipTranspose (skipAt M a) u)) ⟩
-     tl ((x ∷ (skipAt v a)) ∷ zip _∷_ u (skipAt M a ᵀ) )ᵀ ≡⟨ cong (λ z → tl z ᵀ) (sym (zipTranspose2 (skipAt M a) (skipAt v a) u x)) ⟩
-     tl (((x ∷ u) ∷ zip _∷_ (skipAt v a) (skipAt M a)) ᵀ)ᵀ ≡⟨ cong (λ z → tl (((x ∷ u) ∷ z a) ᵀ) ᵀ) (sym (skipAtZip M v)) ⟩
-     tl (((x ∷ u) ∷ skipAt (zip _∷_ v M) a) ᵀ)ᵀ ≡⟨ cong (λ z → tl (((x ∷ u) ∷ skipAt z a) ᵀ) ᵀ) (Matrix-η (tl M')) ⟩
-     tl (((x ∷ u) ∷ skipAt (tl M') a) ᵀ)ᵀ ≡⟨ cong (λ z → tl ((z ∷ skipAt (tl M') a) ᵀ) ᵀ) (tuple-η (hd M')) ⟩
-     tl ((hd M' ∷ skipAt (tl M') a) ᵀ)ᵀ ≡⟨⟩
-     (tl (skipAt M' (Just a) ᵀ) ᵀ) ≡⟨⟩
-     (skipAt (skipAt M' (Just a) ᵀ) Nothing ᵀ) ≡⟨⟩
-     (CF M' Nothing (Just a) ᵀ) ∎
-CFᵀ {n = S n} {m = S m} (Just b) (Just a) M' =
-      let Sa : ℕ< (S(S n))
-          Sa = Just a in
-      let Sb : ℕ< (S(S m))
-          Sb = Just b in
-      let M = (map tl (tl M')) in
-      let x = hd(hd M') in
-      let u = tl(hd M') in
-      let v = (map hd (tl M')) in
-
-       CF (M' ᵀ) Sb Sa ≡⟨⟩
-       skipAt (skipAt (M' ᵀ) Sa ᵀ) Sb ≡⟨ cong (λ z → skipAt (skipAt (z ᵀ) Sa ᵀ) Sb) (sym (tuple-η M')) ⟩
-       skipAt (skipAt ((hd M' ∷ tl M') ᵀ) Sa ᵀ) Sb ≡⟨ cong (λ z → skipAt (skipAt ((z ∷ tl M') ᵀ) Sa ᵀ) Sb) (sym (tuple-η (hd M'))) ⟩
-       skipAt (skipAt (((hd(hd M') ∷ tl(hd M')) ∷ tl M')ᵀ) Sa ᵀ) Sb ≡⟨⟩
-       skipAt (skipAt (((x ∷ u) ∷ tl M')ᵀ) Sa ᵀ) Sb ≡⟨ cong (λ z → skipAt (skipAt (((x ∷ u) ∷ z) ᵀ) Sa ᵀ) Sb) (sym (Matrix-η (tl M'))) ⟩
-       skipAt (skipAt (((x ∷ u) ∷ zip _∷_ v M)ᵀ) Sa ᵀ) Sb ≡⟨ cong (λ z → skipAt (skipAt z Sa ᵀ) Sb) (zipTranspose2 M v u x)⟩
-       skipAt (skipAt (((x ∷ v) ∷ zip _∷_ u (M ᵀ))) Sa ᵀ) Sb ≡⟨⟩
-       skipAt (((x ∷ v) ∷ skipAt (zip _∷_ u (M ᵀ)) a) ᵀ) Sb
-         ≡⟨ cong (λ z → (skipAt (((x ∷ v) ∷ z a) ᵀ) Sb)) (skipAtZip (M ᵀ) u) ⟩
-       skipAt (((x ∷ v) ∷ zip _∷_ (skipAt u a) (skipAt (M ᵀ) a))ᵀ) Sb ≡⟨ cong (λ z → skipAt z Sb) (zipTranspose2 (skipAt (M ᵀ) a) (skipAt u a) v x) ⟩
-       skipAt ((x ∷ (skipAt u a)) ∷ zip _∷_ v ((skipAt (M ᵀ) a)ᵀ)) Sb ≡⟨⟩
-       ((x ∷ (skipAt u a)) ∷ skipAt (zip _∷_ v ((skipAt (M ᵀ) a)ᵀ))b)
-         ≡⟨ cong (λ z → ((x ∷ (skipAt u a)) ∷ z b)) (skipAtZip (skipAt (M ᵀ) a ᵀ) v) ⟩
-       ((x ∷ (skipAt u a)) ∷ (zip _∷_ (skipAt v b) (skipAt ((skipAt (M ᵀ) a)ᵀ) b))) ≡⟨⟩
-       ((x ∷ (skipAt u a)) ∷ (zip _∷_ (skipAt v b) (CF (M ᵀ) b a))) ≡⟨ right _∷_ (cong (zip _∷_ (skipAt v b)) (CFᵀ b a (λ z z₁ → M' (Just z) (Just z₁)))) ⟩
-       (x ∷ skipAt u a) ∷ zip _∷_ (skipAt v b) ((CF M a b)ᵀ) ≡⟨⟩
-       (x ∷ skipAt u a) ∷ zip _∷_ (skipAt v b) ((skipAt (skipAt M b ᵀ) a)ᵀ) ≡⟨ sym (zipTranspose2 (skipAt (skipAt M b ᵀ) a) (skipAt u a) (skipAt v b) x) ⟩
-       ((x ∷ skipAt v b) ∷ (zip _∷_ (skipAt u a) (skipAt (skipAt M b ᵀ) a))) ᵀ ≡⟨ cong _ᵀ (right _∷_ (sym (cong (λ z → z a) (skipAtZip (skipAt M b ᵀ) u)))) ⟩
-       ((x ∷ skipAt v b) ∷ (skipAt (tl((x ∷ (skipAt v b)) ∷ (zip _∷_ u (skipAt M b ᵀ)))) a)) ᵀ ≡⟨⟩
-        skipAt ((x ∷ (skipAt v b)) ∷ (zip _∷_ u (skipAt M b ᵀ))) Sa ᵀ ≡⟨ cong (λ z → skipAt z Sa ᵀ) (sym (zipTranspose2 (skipAt M b) (skipAt v b) u x)) ⟩
-        skipAt (((x ∷ u) ∷ (zip _∷_ (skipAt v b) (skipAt M b))) ᵀ) Sa ᵀ ≡⟨ cong (λ z → skipAt (((x ∷ u) ∷ z b) ᵀ) Sa ᵀ) (sym (skipAtZip M v)) ⟩
-        skipAt (((x ∷ u) ∷ skipAt (tl((x ∷ u) ∷ (zip _∷_ v M))) b) ᵀ) Sa ᵀ ≡⟨⟩
-        skipAt (skipAt ((x ∷ u) ∷ (zip _∷_ v M)) Sb ᵀ) Sa ᵀ ≡⟨ cong (λ z → skipAt (skipAt ((x ∷ u) ∷ z) Sb ᵀ) Sa ᵀ) (Matrix-η (tl M')) ⟩
-        skipAt (skipAt ((x ∷ u) ∷ tl M') Sb ᵀ) Sa ᵀ ≡⟨ cong (λ z → skipAt z Sa ᵀ) (cong (λ z → skipAt (z ∷ tl M') Sb ᵀ) (tuple-η (hd M'))) ⟩
-        skipAt (skipAt (hd M' ∷ tl M') Sb ᵀ) Sa ᵀ ≡⟨ cong (λ z → skipAt (skipAt z Sb ᵀ) Sa ᵀ) (tuple-η M') ⟩
-        skipAt (skipAt M' Sb ᵀ) Sa ᵀ ≡⟨⟩
-       (CF M' Sa Sb) ᵀ ∎
 
 --finNZ : ℕ → Type
 --finNZ n = Σ λ x → Σ λ y → add (S(S x)) y ≡ S(S n)
@@ -751,31 +638,14 @@ module _ {C : Type ℓ}{{R : CRing C}} where
  detTranspose {n = Z} M = refl
  detTranspose {n = S Z} M = refl
  detTranspose {n = S (S n)} M =
-   let v = tl(hd M) in
-   let u = tl(hd (M ᵀ)) in
-   let x = hd (hd M) in
-   let N : Matrix C (S n) (S (S n))
-       N = tl M ᵀ in
-   let O = tl (M ᵀ) ᵀ in
-   let H : det(hd (skipAt $ tl M ᵀ)) ≡ det((hd (skipAt $ tl M ᵀ))ᵀ)
-       H = detTranspose (hd (skipAt $ tl M ᵀ)) in
-    let P : ∀ x y → (CF ((tl(tl M ᵀ))) y x ᵀ) ≡ (CF ((tl(tl M ᵀ))ᵀ) x y)
-        P = λ x y → sym (CFᵀ x y (tl(tl M ᵀ))) in
-    let G : ∀ x y → det ((skipAt $ tl (tl(skipAt $ tl M ᵀ)y) ᵀ) x)
-                  ≡ det ((skipAt $ tl (tl(skipAt $ tl (M ᵀ) ᵀ)x) ᵀ) y)
-        G = λ x y →
-          det ((skipAt  (tl (tl(skipAt $ tl M ᵀ)y) ᵀ)) x) ≡⟨ cong (λ z → det (z x)) (cong skipAt (cong _ᵀ (lemma3 (tl M ᵀ) y))) ⟩
-          det ((skipAt ((skipAt (tl(tl M ᵀ))y) ᵀ)) x) ≡⟨⟩
-          det (CF (tl(tl M ᵀ)) x y) ≡⟨ detTranspose (CF (tl(tl M ᵀ)) x y) ⟩
-          det (CF ((tl(tl M ᵀ))) x y ᵀ) ≡⟨ cong det (P y x) ⟩
-          det (CF ((tl(tl M ᵀ))ᵀ) y x) ≡⟨⟩
-          det ((skipAt (((skipAt $ tl(tl M ᵀ) ᵀ)x) ᵀ)) y) ≡⟨⟩
-          det ((skipAt (((skipAt $ tl(tl (M ᵀ) ᵀ))x) ᵀ)) y) ≡⟨ sym (cong (λ z → det (skipAt (z ᵀ) y)) (lemma3 (tl (M ᵀ) ᵀ) x)) ⟩
-          det ((skipAt (tl (tl(skipAt $ tl (M ᵀ) ᵀ)x) ᵀ)) y) ∎
-       in
-   let F : (λ(x y : ℕ< (S n)) → u x * (v y * det ((skipAt $ tl (tl(skipAt $ tl M ᵀ)y) ᵀ) x) ))
+   let v = tl(hd M)
+       u = tl(hd (M ᵀ))
+       x = hd (hd M)
+       H : det(hd (skipAt $ tl M ᵀ)) ≡ det((hd (skipAt $ tl M ᵀ))ᵀ)
+       H = detTranspose (hd (skipAt $ tl M ᵀ))
+       F : (λ(x y : ℕ< (S n)) → u x * (v y * det ((skipAt $ tl (tl(skipAt $ tl M ᵀ)y) ᵀ) x) ))
          ≡ (λ(x y : ℕ< (S n)) → u x * (v y * det ((skipAt $ tl (tl(skipAt $ tl (M ᵀ) ᵀ)x) ᵀ) y)))
-       F = funExt λ x → funExt λ y → right _*_ (right _*_ (G x y))
+       F = funExt λ x → funExt λ y → right _*_ (right _*_ (detTranspose (CF (tl(tl M ᵀ)) x y)))
    in
 
     [wts (x * det(hd (skipAt $ tl M ᵀ))) - (fold- $ v * (det ∘ (tl(skipAt $ tl M ᵀ))))
