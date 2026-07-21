@@ -256,6 +256,17 @@ instance
             ; scaleId = λ v → funExt λ x → lIdentity (v x)
             }
 
+ -- A function whose codomain is an underlying member set for a module is a member for a module.
+ ModMod : {{R : Ring C}}{{M : Module A}} → Module (B → A)
+ ModMod {A = A}{B = B} = record
+           { _<+>_ = zip _<+>_
+           ; _*>_ = λ c v b → c *> v b
+           ; scalarDistribute = λ a u v → funExt λ x → scalarDistribute a (u x) (v x)
+           ; memberDistribute = λ v a b → funExt λ x → memberDistribute (v x) a b
+           ; scalarAssoc = λ v a b → funExt λ x → scalarAssoc (v x) a b
+           ; scaleId = λ v → funExt λ x → scaleId (v x)
+           }
+
 -- This can be generalized to include subtraction
 foldrMC : {_∗_ : A → A → A}{{M : monoid _∗_}}{{C : Commutative _∗_}} → (u v : < A ^ n >)
         → foldr _∗_ e (zip _∗_ u v) ≡ foldr _∗_ e u ∗ foldr _∗_ e v
