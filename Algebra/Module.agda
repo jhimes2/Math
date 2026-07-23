@@ -8,6 +8,9 @@ open import Algebra.CRing public
 open import Cubical.HITs.PropositionalTruncation renaming (rec to truncRec)
 open import Cubical.Foundations.HLevels
 
+variable
+ dℓ : Level
+
 -- https://en.wikipedia.org/wiki/Module_(mathematics)
 -- Try not to confuse 'Module' with Agda's built-in 'module' keyword.
 record Module {scalar : Type ℓ} {{R : Ring scalar}} (member : Type ℓ') : Type(ℓ ⊔ ℓ') where
@@ -271,36 +274,40 @@ module _{scalar : Type ℓ}{member : Type ℓ'}{{R : Ring scalar}}{{V : Module m
     let G = Independent.li YisLI X X⊆Y in
      Independent.li YisLI X X⊆Y (λ z z∈Y → universalSpan z) y y∈Y
 
--- https://en.wikipedia.org/wiki/Module_homomorphism
-record moduleHomomorphism {A : Type ℓ}
-                         {{R : Ring A}}
-                          {<V> : Type ℓ'}
-                          {<U> : Type aℓ}
-                         {{V : Module <V>}}
-                         {{U : Module <U>}}
-                          (T : <U> → <V>) : Type (ℓ ⊔ ℓ' ⊔ lsuc aℓ)
+module _ {A : Type ℓ} {{R : Ring A}}
+          {U : Type aℓ}
+          {V : Type ℓ'}
+         {{U' : Module U}}
+         {{V' : Module V}} where
+ -- https://en.wikipedia.org/wiki/Module_homomorphism
+ record moduleHomomorphism (T : U → V) : Type (ℓ ⊔ ℓ' ⊔ aℓ)
   where field
-  {{addT}} : Homomorphism _<+>_ _<+>_ T
-  multT : ∀ u → (c : A) → T (c *> u) ≡ c *> T u
-open moduleHomomorphism {{...}} public
+   addT : (u v : U) → T (u <+> v) ≡ T u <+> T v
+   multT : ∀ u → (c : A) → T (c *> u) ≡ c *> T u
+ open moduleHomomorphism {{...}} public
+
+ instance
+  modHomomorpism→Homomorphism : {T : U → V} → {{moduleHomomorphism T}} → Homomorphism _<+>_ _<+>_ T
+  modHomomorpism→Homomorphism = record { preserve = addT }
 
 -- I need this for defining a dual space
-modHomomorphismIsProp : {{F : Ring A}}
-                      → {{VS : Module B}}
+modHomomorphismIsProp : {A : Type ℓ}{{R : Ring A}}
+                      → {{VS  : Module B}}
                       → {{VS' : Module C}}
                       → (LT : B → C)
                       → isProp (moduleHomomorphism LT)
 modHomomorphismIsProp {{VS' = VS'}} LT x y i = let set = λ{a b p q} → IsSet a b p q in
  record {
-    addT = record { preserve =
-     λ u v →
-      let H : Homomorphism.preserve (moduleHomomorphism.addT x) u v
-            ≡ Homomorphism.preserve (moduleHomomorphism.addT y) u v
-          H = set in H i }
+    addT = λ u v →
+            let H : moduleHomomorphism.addT x u v
+                  ≡ moduleHomomorphism.addT y u v
+                H = set in H i
   ; multT = λ u c →
      let H : moduleHomomorphism.multT x u c ≡ moduleHomomorphism.multT y u c
          H = set in H i
  }
+
+
 
 module _ {scalar : Type ℓ}{{R : Ring scalar}}
          {A : Type aℓ}{B : Type bℓ}
@@ -357,7 +364,7 @@ module _ {scalar : Type ℓ}{{R : Ring scalar}}
                → {{SLT : moduleHomomorphism R}}
                → moduleHomomorphism (R ∘ T)
   modHomomorphismComp R =
-     record { addT = record { preserve = λ u v → cong R (preserve u v) ⋆ preserve (T u) (T v) }
+     record { addT = λ u v → cong R (preserve u v) ⋆ preserve (T u) (T v)
             ; multT = λ u c → cong R (multT u c) ⋆ multT (T u) c }
 
 -- The set of eigenmembers with the zero member for a module endomorphism 'T' and eigenvalue 'c' is a submodule
@@ -383,13 +390,14 @@ eigenmemberSubmodule T c = record
     ; ssSet = record { propFamily = λ v → IsSet (T v) (c *> v) }
     }
 
-module _ {A : Type ℓ}  {{CR : CRing A}}
+module _ {A : Type ℓ}  {{R : Ring A}}
          {V : Type aℓ} {{V' : Module V}}
          {W : Type bℓ} {{W' : Module W}}
          {X : Type cℓ} {{X' : Module X}} where
 
  -- https://en.wikipedia.org/wiki/Bilinear_map
- record Bilinear (B : V → W → X) : Type (ℓ ⊔ lsuc (aℓ ⊔ bℓ) ⊔ cℓ) where
+ record Bilinear (B : V → W → X) : Type (ℓ ⊔ aℓ ⊔ bℓ ⊔ cℓ) where
+  constructor bilinear
   field
    lLinear : (v : V) → moduleHomomorphism (B v)
    rLinear : (w : W) → moduleHomomorphism (λ x → B x w)
@@ -398,16 +406,27 @@ module _ {A : Type ℓ}  {{CR : CRing A}}
  bilinearLZ : {B : V → W → X} → {{BL : Bilinear B}} → (v : V) → B v Ô ≡ Ô
  bilinearLZ {B = B} v = idToId (B v)
    where instance
-       H : Homomorphism _<+>_ _<+>_ (B v)
-       H = moduleHomomorphism.addT (lLinear v)
+       H : moduleHomomorphism (B v)
+       H = lLinear v
+
 
  bilinearRZ : {B : V → W → X} → {{BL : Bilinear B}} → (w : W) → B Ô w ≡ Ô
  bilinearRZ {B = B} w = idToId (λ x → B x w)
    where instance
-       H : Homomorphism _<+>_ _<+>_ λ x → B x w
-       H = moduleHomomorphism.addT (rLinear w)
+       H : moduleHomomorphism λ x → B x w
+       H = rLinear w
 
-
+module _ {A : Type ℓ}  {{R : Ring A}}
+         {V : Type aℓ} {{V' : Module V}}
+         {W : Type bℓ} {{W' : Module W}}
+         {X : Type cℓ} {{X' : Module X}}
+         {Y : Type dℓ} {{Y' : Module Y}} where
+ record Trilinear (B : V → W → X → Y) : Type (ℓ ⊔ aℓ ⊔ bℓ ⊔ cℓ ⊔ dℓ) where
+  constructor trilinear
+  field
+   tBil : (v : V) → Bilinear (B v)
+   rrLinear : (w : W)(x : X) → moduleHomomorphism (λ v → B v w x)
+ open Trilinear {{...}} public
 
 record Affine{scalar : Type ℓ}{{R : Ring scalar}}(member : Type ℓ')(A : Type aℓ) : Type(ℓ ⊔ ℓ' ⊔ aℓ) where
   field

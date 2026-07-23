@@ -23,11 +23,11 @@ _ᵀ f b a = f a b
 <> : < A ^ Z >
 <> ()
 
--- hd
+-- head
 hd : < A ^ S n > → A
 hd v = v Nothing
 
--- tl
+-- tail
 tl : < A ^ S n > → < A ^ n >
 tl v x = v (Just x)
 
@@ -133,6 +133,17 @@ foldr {n = S n} f b v = f (hd v) (foldr f b (tl v))
 foldl : (A → B → B) → B → < A ^ n > → B
 foldl {n = Z}f b _ = b
 foldl {n = S n} f b v = foldl f (f (hd v) b) (tl v)
+
+coface : ℕ< (S n) → ℕ< n → ℕ< (S n)
+coface {n = S n} (Just x) (Just y) = Just (coface x y)
+coface {n = S n} (Just x) Nothing = Nothing
+coface {n = n} Nothing y = Just y
+
+insert : (i : ℕ< (S n)){P : ℕ< (S n) → Set ℓ} → P i → (∀ j → P (coface i j)) → ∀ j → P j
+insert {n = S n} (Just i) {P} x H (Just j) = insert i {P = tl P} x (λ k → H (Just k)) j
+insert {n = S n} Nothing x H (Just j) = H j
+insert {n = S n} (Just y) x H Nothing = H Nothing
+insert Nothing x H Nothing = x
 
 -- Ordered n-tuple concatenation
 _++_ : < A ^ n > → < A ^ m > → < A ^ (n + m) >
@@ -275,12 +286,131 @@ foldrMC {n = S n} {_∗_ = _∗_} u v =
  right _∗_ (foldrMC (tl u) (tl v))
            ⋆ [ab][cd]≡[ac][bd] (hd u) (hd v) (foldr _∗_ e (tl u)) (foldr _∗_ e (tl v))
 
+module _ {A : Type ℓ}{{R : Ring A}}
+         {V : Type aℓ} {{V' : Module V}}
+         {W : Type bℓ} {{W' : Module W}}
+         {X : Type cℓ} {{X' : Module X}} where
+
+
+ record Bilinear2 (B : V → W → X) : Type (ℓ ⊔ aℓ ⊔ bℓ ⊔ cℓ) where
+  field
+   {{lLinear2}} : moduleHomomorphism B
+   {{rLinear2}} : moduleHomomorphism (B ᵀ)
+ open Bilinear2 {{...}} public
+
+ Bilinear→Bilinear2 : (B : V → W → X){{BL : Bilinear B}} → Bilinear2 B
+ Bilinear→Bilinear2 B {{BL = BL}} =
+  let H1 : (v : V) → moduleHomomorphism (B v)
+      H1 v = (Bilinear.lLinear BL v)
+      H2 : (v : V)(x y : W) → B v (x <+> y) ≡ B v x <+> B v y
+      H2 v = moduleHomomorphism.addT (H1 v)
+      H3 : (v : V) → ∀ u → (c : A) → B v (c *> u) ≡ c *> B v u
+      H3 v = moduleHomomorphism.multT (H1 v)
+      G1 : (v : W) → moduleHomomorphism ((B ᵀ) v)
+      G1 v = (Bilinear.rLinear BL v)
+      G2 : (v : W)(x y : V) → B (x <+> y) v ≡ B x v <+> B y v
+      G2 v = moduleHomomorphism.addT (G1 v)
+      G3 : (v : W) → ∀ u → (c : A) → B (c *> u) v ≡ c *> B u v
+      G3 v = moduleHomomorphism.multT (G1 v)
+  in
+  record {
+     lLinear2 = record
+              { addT = λ u v → funExt λ x → G2 x u v
+              ; multT = λ u c → funExt λ x → G3 x u c
+              }
+   ; rLinear2 = record
+              { addT = λ u c → funExt λ x → H2 x u c
+              ; multT =  λ u c → funExt λ x → H3 x u c
+              }
+   }
+ Bilinear2→Bilinear : (B : V → W → X){{BL : Bilinear2 B}} → Bilinear B
+ Bilinear2→Bilinear B {{BL = BL}} =
+  let H1 : (u v : V) → B (u <+> v) ≡ B u <+> B v
+      H1 = addT
+      H2 : (u : V) (c : A) → B (c *> u) ≡ c *> B u
+      H2 = multT
+      G1 : (u v : W) → (B ᵀ) (u <+> v) ≡ (B ᵀ) u <+> (B ᵀ) v
+      G1 = addT
+      G2 : (u : W) (c : A) → (B ᵀ) (c *> u) ≡ c *> (B ᵀ) u
+      G2 = multT
+  in
+  record {
+     lLinear = λ v →  record
+                      { addT = λ u w → funExt⁻ (G1 u w) v
+                      ; multT = λ u c → funExt⁻ (G2 u c) v
+                      }
+   ; rLinear = λ v →  record
+                      { addT = λ u w → funExt⁻ (H1 u w) v
+                      ; multT = λ u c → funExt⁻ (H2 u c) v
+                      }
+   }
+
+module _ {A : Type ℓ}  {{R : Ring A}}
+         {V : Type aℓ} {{V' : Module V}}
+         {W : Type bℓ} {{W' : Module W}}
+         {X : Type cℓ} {{X' : Module X}}
+         {Y : Type dℓ} {{Y' : Module Y}} where
+
+
+ record Trilinear2 (B : V → W → X → Y) : Type (ℓ ⊔ aℓ ⊔ bℓ ⊔ cℓ ⊔ dℓ) where
+  constructor trilinear2
+  field
+   triLinBilin : Bilinear2 B
+   triLin : moduleHomomorphism (λ(x : X)(v : V)(w : W) → B v w x)
+ open Trilinear {{...}} public
+
+ Trilinear→Trilinear2 : (B : V → W → X → Y){{BL : Trilinear B}} → Trilinear2 B
+ Trilinear→Trilinear2 B {{BL = record { tBil = H ; rrLinear = G }}} =
+  record {
+     triLinBilin = record
+      { lLinear2 = record
+       { addT = λ u v →
+         funExt λ w → funExt λ x → G w x .moduleHomomorphism.addT u v
+       ; multT = λ u c → funExt λ w → funExt λ x → G w x .moduleHomomorphism.multT u c
+       }
+       ; rLinear2 = record { addT = λ a b → funExt λ v → funExt λ x → H v .Bilinear.rLinear x .moduleHomomorphism.addT a b
+       ; multT = λ u c → funExt λ v → funExt λ x → H v .Bilinear.rLinear x .moduleHomomorphism.multT u c }
+      }
+   ; triLin = record
+            { addT = λ a b → funExt λ v → funExt λ x → H v .Bilinear.lLinear x .moduleHomomorphism.addT a b
+            ; multT = λ x a → funExt λ v → funExt λ w → H v .Bilinear.lLinear w .moduleHomomorphism.multT x a
+            }
+   }
+
+ Trilinear2→Trilinear : (B : V → W → X → Y){{BL : Trilinear2 B}} → Trilinear B
+ Trilinear2→Trilinear B {{BL = record { triLinBilin = record { lLinear2 = record { addT = H1 ; multT = H2 }
+                                                             ; rLinear2 = record { addT = H3 ; multT = H4 } } ; triLin = record { addT = G1 ; multT = G2} }}} =
+   trilinear (λ v → bilinear (λ w → record { addT = λ x y →
+    [wts B v w (x <+> y) ≡ B v w x <+> B v w y ]
+     funExt⁻ (funExt⁻ (G1 x y) v) w  ; multT = λ x a →
+        funExt⁻ (funExt⁻ (G2 x a) v) w }) λ x → record { addT = λ w₀ w₁ →
+          [wts B v (w₀ <+> w₁) x ≡ B v w₀ x <+> B v w₁ x ]
+           let H5 = funExt⁻ (H3 w₀ w₁) v
+           in
+            funExt⁻ H5 x
+         ; multT =
+             λ w a → funExt⁻ (funExt⁻ (H4 w a) v) x
+         })
+             λ w x → record { addT = λ v₀ v₁ →
+              funExt⁻ (funExt⁻ (H1 v₀ v₁) w) x ; multT = λ v a → funExt⁻ (funExt⁻ (H2 v a) w) x }
+
+module _ {A : Type ℓ}  {{R : Ring A}}
+         {W : Type aℓ} {{W' : Module W}}
+         {V : ℕ< (S n) → Type ℓ'}
+         (M : ∀ x → Module {{R}} (V x)) where
+
+ multimap : (((j : ℕ< (S n)) → V j) → W) → Type (ℓ ⊔ aℓ ⊔ ℓ')
+ multimap L = (i : ℕ< (S n)) → moduleHomomorphism {{U' = M i}}
+                                                  {{V' = ModMod {A = W}
+                                                                {B = (j : ℕ< n) → V (coface i j)}}}
+                                                  λ x F → L (insert i x F)
+
 instance
   -- Matrix transformation over a ring is a module homomorphism.
   MHMT : {{R : Ring A}} → {M : ℕ< n → B → A} → moduleHomomorphism (MT M)
   MHMT {M = M} =
    record {
-     addT = record { preserve =
+     addT =
        λ u v → funExt λ x →
      MT M (addv u v) x
        ≡⟨⟩
@@ -298,7 +428,7 @@ instance
        ≡⟨⟩
      foldr _+_ 0r (zip _*_ u ((M ᵀ) x)) + foldr _+_ 0r  (zip _*_ v ((M ᵀ) x))
        ≡⟨⟩
-     addv (MT M u) (MT M v) x ∎ }
+     addv (MT M u) (MT M v) x ∎
    ; multT = λ u c → funExt λ x →
        MT M (scaleV c u) x ≡⟨⟩
        foldr _+_ 0r (λ y → (c * u y) * M y x) ≡⟨ cong (foldr _+_ 0r) (funExt λ y → sym (assoc c (u y) (M y x)))⟩
@@ -531,11 +661,6 @@ module _{C : Type cℓ} {{R : Ring C}} where
 
 {-# DISPLAY mAdd a b = a + b #-}
 {-# DISPLAY mMult a b = a * b #-}
-
-coface : ℕ< (S n) → ℕ< n → ℕ< (S n)
-coface {n = S n} (Just x) (Just y) = Just (coface x y)
-coface {n = S n} (Just x) Nothing = Nothing
-coface {n = n} Nothing y = Just y
 
 skipAt : < C ^ S n > → Matrix C n (S n)
 skipAt i j = i ∘ coface j
