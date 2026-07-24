@@ -147,6 +147,16 @@ module _{A : set aℓ}        {B : set aℓ}
         {τ₀ : ℙ(ℙ A)}       {τ₁ : ℙ(ℙ B)}
         {{T0 : topology τ₀}}{{T1 : topology τ₁}} where
 
+ record homeomorphism (f : A → B) : set aℓ where
+  field
+   hInv : B → A
+   hInv1 : ∀ x → f(hInv x) ≡ x
+   hInv2 : ∀ x → hInv(f x) ≡ x
+   cont1 : continuous τ₀ τ₁ f
+   cont2 : continuous τ₁ τ₀ hInv
+ open homeomorphism public
+
+
  instance
   -- Proving that the (not) product space is a topological space
   PSInst : topology (NotProductSpace τ₀ τ₁)
@@ -357,6 +367,10 @@ module _{A : set ℓ}{τ : ℙ(ℙ A)}{{T : topology τ}} where
 restrict : (f : A → B) → (Q : A → Type ℓ) → Σ Q → B
 restrict f Q = λ(x : Σ Q) → f (fst x)
 
+-- Used in the definition of subtopologies
+ϕ : (Q : ℙ A) → ℙ A → ℙ(Σ Q)
+ϕ Q U = fst ⁻¹[ U ]
+
 relax : {X : ℙ A} → ℙ (Σ X) → ℙ A
 relax {X} P a = ∃ λ(p : a ∈ X) → P (a , p)
 
@@ -448,8 +462,7 @@ module _{A : set aℓ}(τ : ℙ(ℙ A)){{T : topology τ}} where
  ssTopology2 Q = λ(G : ℙ A) → ∃ λ(U : ℙ A) → (U ∈ τ) × (G ≡ (Q ∩ U))
 
  ssTopology : (Q : ℙ A) → ℙ(ℙ (Σ Q))
- ssTopology Q = λ(G : ℙ (Σ Q)) → ∃ λ(U : ℙ A) → (U ∈ τ) × (G ≡ (λ(x , _) → x ∈ U))
-
+ ssTopology Q = image (ϕ Q) τ
 
 module _{A : set aℓ}
         (τ : ℙ(ℙ A)){{T : topology τ}} where

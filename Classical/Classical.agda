@@ -376,8 +376,8 @@ instance
     in propExt H G }
 
 -- https://en.wikipedia.org/wiki/Image_(mathematics)
-image : (A → B) → B → Prop
-image f b = ∃ λ a → f a ≡ b
+image : (A → B) → ℙ A → ℙ B
+image f X b = ∃ λ a → a ∈ X × (b ≡ f a)
 
 X∩∅≡∅ : {A : Type ℓ} (X : ℙ A) → X ∩ ∅ ≡ ∅
 X∩∅≡∅ X = funExt λ x → propExt (λ()) λ()
