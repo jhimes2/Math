@@ -204,7 +204,7 @@ module _{A : Type aℓ}{_∙_ : A → A → A}{{G : group _∙_}} where
      (a ∙ inv(inv b)) ≡⟨ right _∙_ (grp.doubleInv b)⟩
      a ∙ b            ≡⟨ ab≡e ⟩
      e ∎
-  ∴ a ≡ inv b [ grp.uniqueInv ]
+  ∴ a ≡ inv b by grp.uniqueInv
 
  a[b'a]'≡b : ∀ a b → a ∙ inv (inv b ∙ a) ≡ b
  a[b'a]'≡b a b = a ∙ inv(inv b ∙ a)       ≡⟨ right _∙_ (sym(grp.lemma1 (inv b) a))⟩
@@ -335,9 +335,9 @@ module _{A : Type aℓ}{_∙_ : A → A → A}{{G : group _∙_}} where
                   → NormalSG H
   normalSGAbelian {H} = record { [gn]g' = λ n n∈H g →
      n∈H
-     ∴ (n ∙ inv g) ∙ g ∈ H    [ subst H (sym ([ab']b≡a n g))]
-     ∴ g ∙ (n ∙ inv g) ∈ H    [ subst H (comm (n ∙ inv g) g)]
-     ∴ (g ∙ n) ∙ inv g ∈ H    [ subst H (assoc g n (inv g))]
+     ∴ (n ∙ inv g) ∙ g ∈ H by subst H (sym ([ab']b≡a n g))
+     ∴ g ∙ (n ∙ inv g) ∈ H by subst H (comm (n ∙ inv g) g)
+     ∴ (g ∙ n) ∙ inv g ∈ H by subst H (assoc g n (inv g))
    }
 
 module _{_∙_ : A → A → A}{{G : group _∙_}}
@@ -363,15 +363,15 @@ module _{_∙_ : A → A → A}{{G : group _∙_}}
                               → b >>= λ(u , u∈N , yu'∈S)
                               → η $ ( u ∙ ((inv y ∙ t) ∙ y)) ,  opClosed u∈N ([g'n]g t t∈N y) , (
            yu'∈S
-        ∴ (x ∙ inv t) ∙ (y ∙ inv u) ∈ S  [ op-closed xt'∈S ]
-        ∴ (((x ∙ y) ∙ inv y) ∙ inv t) ∙ (y ∙ inv u) ∈ S [ subst S (left _∙_ (left _∙_ (sym ([ab]b'≡a x y))))]
-        ∴ ((x ∙ y) ∙ (inv y ∙ inv t)) ∙ (y ∙ inv u) ∈ S [ subst S (left _∙_ (sym (assoc (x ∙ y) (inv y) (inv t))))]
-        ∴ ((x ∙ y) ∙ inv(t ∙ y)) ∙ (y ∙ inv u) ∈ S [ subst S (left _∙_ (right _∙_ (sym (sym(grp.lemma1 t y)))))]
-        ∴ (x ∙ y) ∙ (inv(t ∙ y) ∙ (y ∙ inv u)) ∈ S [ subst S (sym (assoc (x ∙ y) (inv (t ∙ y)) (y ∙ inv u)))]
-        ∴ (x ∙ y) ∙ inv (inv(y ∙ inv u) ∙ (t ∙ y)) ∈ S [ subst S (right _∙_ (a'b≡[b'a]' (t ∙ y) (y ∙ inv u)))]
-        ∴ (x ∙ y) ∙ inv ((u ∙ inv y) ∙ (t ∙ y)) ∈ S [ subst S (right _∙_ (cong inv (left _∙_ (sym (ab'≡[ba']' u y)))))]
-        ∴ (x ∙ y) ∙ inv (u ∙ (inv y ∙ (t ∙ y))) ∈ S [ subst S (right _∙_ (cong inv (sym (assoc u (inv y) (t ∙ y)))))]
-        ∴ (x ∙ y) ∙ inv (u ∙ ((inv y ∙ t) ∙ y)) ∈ S [ subst S (right _∙_ (cong inv (right _∙_ (assoc (inv y) t y))))])
+        ∴ (x ∙ inv t) ∙ (y ∙ inv u) ∈ S  by op-closed xt'∈S
+        ∴ (((x ∙ y) ∙ inv y) ∙ inv t) ∙ (y ∙ inv u) ∈ S by subst S (left _∙_ (left _∙_ (sym ([ab]b'≡a x y))))
+        ∴ ((x ∙ y) ∙ (inv y ∙ inv t)) ∙ (y ∙ inv u) ∈ S by subst S (left _∙_ (sym (assoc (x ∙ y) (inv y) (inv t))))
+        ∴ ((x ∙ y) ∙ inv(t ∙ y)) ∙ (y ∙ inv u) ∈ S by subst S (left _∙_ (right _∙_ (sym (sym(grp.lemma1 t y)))))
+        ∴ (x ∙ y) ∙ (inv(t ∙ y) ∙ (y ∙ inv u)) ∈ S by subst S (sym (assoc (x ∙ y) (inv (t ∙ y)) (y ∙ inv u)))
+        ∴ (x ∙ y) ∙ inv (inv(y ∙ inv u) ∙ (t ∙ y)) ∈ S by subst S (right _∙_ (a'b≡[b'a]' (t ∙ y) (y ∙ inv u)))
+        ∴ (x ∙ y) ∙ inv ((u ∙ inv y) ∙ (t ∙ y)) ∈ S by subst S (right _∙_ (cong inv (left _∙_ (sym (ab'≡[ba']' u y)))))
+        ∴ (x ∙ y) ∙ inv (u ∙ (inv y ∙ (t ∙ y))) ∈ S by subst S (right _∙_ (cong inv (sym (assoc u (inv y) (t ∙ y)))))
+        ∴ (x ∙ y) ∙ inv (u ∙ ((inv y ∙ t) ∙ y)) ∈ S by subst S (right _∙_ (cong inv (right _∙_ (assoc (inv y) t y)))))
     ; submonoid-set = grp.*Set {S = S}
     }
 
@@ -423,7 +423,7 @@ module _{_∙_ : A → A → A}{{G : monoid _∙_}}
   idToId h = h e       ≡⟨ cong h (sym (lIdentity e))⟩
              h (e ∙ e) ≡⟨ preserve e e ⟩
              h e * h e ∎
-          ∴ h e ≡ e   [ grp.lemma3 ]
+          ∴ h e ≡ e by grp.lemma3
 
   instance
    -- The image of a group homomorphism is a submonoid
@@ -542,7 +542,7 @@ module _{A : Type aℓ}{_∙_ : A → A → A}{{G : group _∙_}} where
      h e             ≡⟨ idToId h ⟩
      e               ≡⟨ sym (lInverse (h a))⟩
      inv (h a) * h a ∎
-   ∴ h (inv a) ≡ inv (h a) [ grp.lcancel (h a)]
+   ∴ h (inv a) ≡ inv (h a) by grp.lcancel (h a)
 
   module ker{h : A → B}{{X : Homomorphism _∙_ _*_ h}} where
 
@@ -558,8 +558,8 @@ module _{A : Type aℓ}{_∙_ : A → A → A}{{G : group _∙_}} where
          h x * inv (h y) ≡⟨ right _*_ (cong inv (sym q))⟩
          h x * inv (h x) ≡⟨ rInverse (h x)⟩
          e ∎
-       ∴ x ∙ inv y ≡ e   [ p (x ∙ inv y)]
-       ∴ x ≡ y           [ grp.uniqueInv ]
+       ∴ x ∙ inv y ≡ e   by p (x ∙ inv y)
+       ∴ x ≡ y           by grp.uniqueInv
     }
 
    instance
@@ -739,10 +739,10 @@ _G/_ {A} _∙_ H = A / λ x y → (x ∙ inv y) ∈ H
         H1 = [gn]g' (b ∙ inv b') Q a in
     H1
     ∴ ((a ∙ (b ∙ inv b')) ∙ inv a)∙(a ∙ inv a') ∈ H
-                                      [(λ x → opClosed x P)]
-    ∴ (a ∙ (b ∙ inv b')) ∙ inv a' ∈ H [ subst H ([ab'][bc]≡ac ((a ∙ (b ∙ inv b'))) a (inv a'))]
-    ∴ (a ∙ b) ∙ (inv b' ∙ inv a') ∈ H [ subst H (sym ([ab][cd]≡[a[bc]]d a b (inv b') (inv a')))]
-    ∴ (a ∙ b) ∙ (inv(a' ∙ b')) ∈ H    [ subst H (right _∙_ (grp.lemma1 a' b'))]
+                                      by (λ x → opClosed x P)
+    ∴ (a ∙ (b ∙ inv b')) ∙ inv a' ∈ H by  subst H ([ab'][bc]≡ac ((a ∙ (b ∙ inv b'))) a (inv a'))
+    ∴ (a ∙ b) ∙ (inv b' ∙ inv a') ∈ H by  subst H (sym ([ab][cd]≡[a[bc]]d a b (inv b') (inv a')))
+    ∴ (a ∙ b) ∙ (inv(a' ∙ b')) ∈ H    by  subst H (right _∙_ (grp.lemma1 a' b'))
  where
   -- Restated for faster compilation (kludge)
   idClosed = Submonoid.id-closed (Subgroup.SGSM (NormalSG.NisSG SG))
@@ -773,14 +773,14 @@ module _ {A : Type aℓ}
                  (λ a → subst N (sym (rInverse a)) idClosed)
                  (λ a b ab'∈N →
                      ab'∈N
-                  ∴ inv (a ∙ inv b) ∈ N [ invClosed ]
-                  ∴ inv (inv b) ∙ inv a ∈ N [ subst N (sym(grp.lemma1 a (inv b)))]
-                  ∴ b ∙ inv a ∈ N [ subst N (left _∙_ (grp.doubleInv b))]
+                  ∴ inv (a ∙ inv b) ∈ N by invClosed
+                  ∴ inv (inv b) ∙ inv a ∈ N by subst N (sym(grp.lemma1 a (inv b)))
+                  ∴ b ∙ inv a ∈ N by subst N (left _∙_ (grp.doubleInv b))
                  )
                   λ a b c ab'∈N bc'∈N →
                        bc'∈N
-                    ∴ (a ∙ inv b) ∙ (b ∙ inv c) ∈ N [ opClosed ab'∈N ]
-                    ∴ a ∙ inv c ∈ N [ subst N ([ab'][bc]≡ac a b (inv c))]
+                    ∴ (a ∙ inv b) ∙ (b ∙ inv c) ∈ N by opClosed ab'∈N
+                    ∴ a ∙ inv c ∈ N by subst N ([ab'][bc]≡ac a b (inv c))
 
               ) x y
   where

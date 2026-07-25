@@ -828,3 +828,20 @@ module _ {C : Type ℓ}{{R : CRing C}} where
  -- Jacobian for polynomials
  Jacobian : (ℕ< n → BType n (S n) → C) → ℕ< n → ℕ< n → BType n n → C
  Jacobian F = ∂ ∘ F
+
+{-
+
+(0, 0) ⇒ scalar
+(1, 0) ⇒ Vector
+(0, 1) ⇒ Linear form (covector)
+(1, 1) ⇒ Matrix
+(0, 2) ⇒ Bilinear form
+(2, 0) ⇒ Bivector
+
+A finite vector of length n whose components are n by n matrices would be a (2, 1) tensor.
+
+A "vector of (n, m) tensors" would be a tensor of type (n+1, m).
+
+
+
+-}

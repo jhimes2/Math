@@ -58,19 +58,19 @@ _∘_ :  (B → C) → (A → B) → (A → C)
 f ∘ g = λ a → f (g a)
 
 -- Because
-∵_[_] : (A : Type ℓ) → A → A
-∵ _ [ x ] = x
-infixr 1 ∵_[_]
+∵_by_ : (A : Type ℓ) → A → A
+∵ _ by x = x
+infixl 1 ∵_by_
 
 -- Therefore
-_∴_[_] : A → (B : Type ℓ) → (A → B) → B
-a ∴ _ [ f ] = f a
-infixr 1 _∴_[_]
+_∴_by_ : A → (B : Type ℓ) → (A → B) → B
+a ∴ _ by f = f a
+infixl 1 _∴_by_
 
 ∴-example : {D : Type aℓ} → A → (A → B) → (B → C) → (C → D) → D
-∴-example {A}{B}{C}{D} a f g h = a ∴ B [ f ]
-                                   ∴ C [ g ]
-                                   ∴ D [ h ]
+∴-example {A}{B}{C}{D} a f g h = a ∴ B by f
+                                   ∴ C by g
+                                   ∴ D by h
 
 -- Explicitly exists
 Σ : {A : Type ℓ} → (P : A → Type ℓ') → Type(ℓ ⊔ ℓ')

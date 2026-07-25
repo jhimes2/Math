@@ -1,4 +1,4 @@
-{-# OPTIONS --safe --cubical --backtracking-instance-search --guardedness #-}
+{-# OPTIONS --safe --cubical --guardedness #-}
 
 module Algebra.OrderedRing where
 
@@ -19,7 +19,7 @@ module ordered{{ordring : Ring A}}{{OR : OrderedRing ℓ A}} where
   subLe : {a b : A} → (c : A) → (a + c) ≤ (b + c) → a ≤ b
   subLe {a} {b} c p =
        addLe p (neg c)
-    ∴ a ≤ b [ transport (λ i → [ab]b'≡a a c i ≤ [ab]b'≡a b c i) ]
+    ∴ a ≤ b by transport (λ i → [ab]b'≡a a c i ≤ [ab]b'≡a b c i)
 
   lemma1 : {a b : A} → a ≤ b → {c d : A} → c ≤ d → (a + c) ≤ (b + d)
   lemma1 {a = a} {b} p {c} {d} q =
@@ -34,8 +34,8 @@ module ordered{{ordring : Ring A}}{{OR : OrderedRing ℓ A}} where
               |> λ(p : (c - d) ≤ 0r) → p
         in
     transitive G H |> λ(r : (c - d) ≤ (b - a)) →
-          let H = ∵ (c + a) ≤ (d + a) [ addLe q a ]
-                  ∴ (a + c) ≤ (d + a) [ transport (λ i → comm c a i ≤ (d + a)) ]
+          let H = (∵ (c + a) ≤ (d + a) by addLe q a)
+                  ∴ (a + c) ≤ (d + a) by transport (λ i → comm c a i ≤ (d + a))
           in
           let G : (d + a) ≤ (b + d)
               G = transport (λ i → comm a d i ≤ (b + d)) (addLe p d)
@@ -47,12 +47,12 @@ module ordered{{ordring : Ring A}}{{OR : OrderedRing ℓ A}} where
         let H : 0r - b ≡ neg b
             H = lIdentity (neg b) in
           a≤b
-       ∴ (a - a) ≤ (b - a) [ (λ x → addLe x (neg a)) ]
-       ∴ 0r ≤ (b - a) [ transport (λ i → rInverse a i ≤ (b - a)) ]
-       ∴ 0r ≤ (neg a + b) [ transport (λ i → 0r ≤ comm b (neg a) i) ]
-       ∴ (0r - b) ≤ ((neg a + b) - b) [ (λ x → addLe x (neg b)) ]
-       ∴ (0r - b) ≤ neg a [  transport (λ i → (0r - b) ≤ [ab]b'≡a (neg a) b i) ]
-       ∴ neg b ≤ neg a [ transport (λ i → H i ≤ neg a) ]
+       ∴ (a - a) ≤ (b - a) by (λ x → addLe x (neg a))
+       ∴ 0r ≤ (b - a) by transport (λ i → rInverse a i ≤ (b - a))
+       ∴ 0r ≤ (neg a + b) by transport (λ i → 0r ≤ comm b (neg a) i)
+       ∴ (0r - b) ≤ ((neg a + b) - b) by (λ x → addLe x (neg b))
+       ∴ (0r - b) ≤ neg a by transport (λ i → (0r - b) ≤ [ab]b'≡a (neg a) b i)
+       ∴ neg b ≤ neg a by transport (λ i → H i ≤ neg a)
 
   lemma3 : {a b : A} → a ≤ b → {c : A} → 0r ≤ c → a ≤ (b + c)
   lemma3 {a = a} {b} p {c} q =

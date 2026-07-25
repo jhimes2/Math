@@ -482,14 +482,6 @@ module _{A : set aℓ}
                                , right _∩_ Y≡V ∙ left _∩_ Y≡U ∙ refl
    }
 
- -- Neighborhood at a point
- nhood : A → (V : ℙ A) → Prop
- nhood p V = ∃ λ(U : ℙ A) → (U ∈ τ) × (p ∈ U) × (U ⊆ V)
-
- -- Neighhorhood at a set
- nhoodSet : (ℙ A) → (V : ℙ A) → Prop
- nhoodSet Q V = ∃ λ(U : ℙ A) → (U ∈ τ) × (Q ⊆ U) × (U ⊆ V)
-
  discreteDomainContinuous : (f : B → A) → continuous discrete τ f
  discreteDomainContinuous f = λ _ _ → tt
 

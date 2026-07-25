@@ -5,7 +5,8 @@ module Algebra.Module where
 open import Prelude
 open import Predicate
 open import Algebra.CRing public
-open import Cubical.HITs.PropositionalTruncation renaming (rec to truncRec)
+open import Cubical.HITs.PropositionalTruncation hiding (rec ; rec2)
+open import Cubical.HITs.SetQuotients renaming (rec to truncRec)
 open import Cubical.Foundations.HLevels
 
 variable
@@ -55,8 +56,8 @@ module _{scalar : Type ℓ}{member : Type ℓ'}{{R : Ring scalar}}{{V : Module m
      (0r + 0r) *> v          ≡⟨ left _*>_ (lIdentity 0r)⟩
      0r *> v                 ≡⟨ sym (rIdentity (_*>_ 0r v))⟩
      (0r *> v) <+> Ô ∎
-   ∴ (0r *> v) <+> (0r *> v) ≡ (0r *> v) <+> Ô [ id ]
-   ∴ 0r *> v ≡ Ô                               [ grp.cancel (0r *> v)]
+   ∴ (0r *> v) <+> (0r *> v) ≡ (0r *> v) <+> Ô by id
+   ∴ 0r *> v ≡ Ô                               by grp.cancel (0r *> v)
 
   -- zero member scaled is zero member
   scaleVZ : (c : scalar) → c *> Ô ≡ Ô
@@ -65,7 +66,7 @@ module _{scalar : Type ℓ}{member : Type ℓ'}{{R : Ring scalar}}{{V : Module m
      c *> (Ô <+> Ô)        ≡⟨ right _*>_ (lIdentity Ô)⟩
      c *> Ô                ≡⟨ sym (rIdentity (c *> Ô))⟩
      (c *> Ô) <+> Ô ∎
-   ∴ c *> Ô ≡ Ô          [ grp.cancel (c *> Ô)]
+   ∴ c *> Ô ≡ Ô          by grp.cancel (c *> Ô)
 
   scaleInv : (v : member) → (c : scalar) → neg c *> v ≡ -< c *> v >
   scaleInv v c =
@@ -74,7 +75,7 @@ module _{scalar : Type ℓ}{member : Type ℓ'}{{R : Ring scalar}}{{V : Module m
      (neg c + c) *> v                  ≡⟨ left _*>_ (lInverse c)⟩
      0r *> v                           ≡⟨ scaleZ v ⟩
      Ô ∎
-   ∴ neg c *> v ≡ -< c *> v >        [ grp.uniqueInv ]
+   ∴ neg c *> v ≡ -< c *> v >     by   grp.uniqueInv
 
   scaleNegOneInv : (v : member) → neg 1r *> v ≡ -< v >
   scaleNegOneInv v =
@@ -82,11 +83,16 @@ module _{scalar : Type ℓ}{member : Type ℓ'}{{R : Ring scalar}}{{V : Module m
     -< 1r *> v > ≡⟨ cong -<_> (scaleId v) ⟩
     -< v > ∎
 
-  scaleNeg : (v : member) → (c : scalar) → neg c *> v ≡ c *> -< v >
+  scaleNeg : (v : member)(c : scalar) → neg c *> v ≡ c *> -< v >
   scaleNeg v c = neg c *> v         ≡⟨ left _*>_ (sym(x*-1≡-x c))⟩
                  (c * neg 1r) *> v  ≡⟨ sym (scalarAssoc v c (neg 1r))⟩
                  c *> (neg 1r *> v) ≡⟨ right _*>_ (scaleNegOneInv v)⟩
                  c *> -< v > ∎
+
+  scaleNegOut : (v : member)(c : scalar) → c *> -< v > ≡ -< c *> v >
+  scaleNegOut v c = c *> -< v > ≡⟨ sym (scaleNeg v c) ⟩
+                    neg c *> v    ≡⟨ scaleInv v c ⟩
+                    -< c *> v > ∎
 
   -- https://en.wikipedia.org/wiki/Generating_set_of_a_module
   data Span (X : member → Type aℓ) : member → Type (ℓ ⊔ ℓ' ⊔ aℓ) where
@@ -176,12 +182,75 @@ module _{scalar : Type ℓ}{member : Type ℓ'}{{R : Ring scalar}}{{V : Module m
   SpanX-Ô⊆SpanX _ (spanStep {u} {v} x y c) = spanStep (fst x) (SpanX-Ô⊆SpanX v y) c
   SpanX-Ô⊆SpanX v (spanSet x y i) = spanSet (SpanX-Ô⊆SpanX v x) (SpanX-Ô⊆SpanX v y) i
 
-  record Submodule (X : member → Type aℓ) : Type (aℓ ⊔ ℓ ⊔ ℓ')
-    where field
-     ssZero : Ô ∈ X
-     ssAdd : {v u : member} → v ∈ X → u ∈ X → v <+> u ∈ X
-     ss*> : {v : member} → v ∈ X → (c : scalar) → c *> v ∈ X
-     {{ssSet}} : Property X
+  record Submodule (X : member → Type aℓ) : Type (aℓ ⊔ ℓ ⊔ ℓ') where
+   field
+    ssZero : Ô ∈ X
+    ssAdd : {v u : member} → v ∈ X → u ∈ X → v <+> u ∈ X
+    ss*> : {v : member} → v ∈ X → (c : scalar) → c *> v ∈ X
+    {{ssSet}} : Property X
+
+   instance
+    -- A submodule is a submonoid of the additive group of members
+    SubmoduleSM : Submonoid X _<+>_
+    SubmoduleSM = record
+      { id-closed = ssZero
+      ; op-closed = ssAdd
+      }
+
+    -- A submodule is a subgroup of the additive group of members
+    SubmoduleSG : Subgroup X
+    SubmoduleSG = record
+       { inv-closed = λ{x} x∈X →
+         let H = neg 1r *> x ∈ X ≡⟨ cong X (scaleNegOneInv x)⟩
+                 -< x > ∈ X ∎ in
+         let F : neg 1r *> x ∈ X
+             F = ss*> x∈X (neg 1r) in
+             transport H F
+       }
+
+    ΣSubModule : Module (Σ X)
+    ΣSubModule = record
+                     { _<+>_ = λ (a , a')(b , b') → (a <+> b) , ssAdd a' b'
+                     ; _*>_ = λ x (v , v') → (x *> v) , ss*> v' x
+                     ; scalarDistribute = λ a (u , u')(v , v') → ΣPathPProp propFamily (scalarDistribute a u v)
+                     ; memberDistribute = λ(v , v') a b → ΣPathPProp propFamily (memberDistribute v a b)
+                     ; scalarAssoc = λ(v , v') a b → ΣPathPProp propFamily (scalarAssoc v a b)
+                     ; scaleId = λ(v , v') → ΣPathPProp propFamily (scaleId v)
+                     }
+   _[*>]_ : scalar → (member / λ x y → (x <-> y) ∈ X) → (member / λ x y → (x <-> y) ∈ X)
+   _[*>]_ c = truncRec squash/ (λ u → [ c *> u ]) λ a b p →
+       (∵ c *> (a <-> b) ∈ X            by ss*> p c)
+        ∴ (c *> a) <+> (c *> inv b) ∈ X by subst X (scalarDistribute c a (inv b))
+        ∴ (c *> a) <-> (c *> b) ∈ X     by subst (λ z → ((c *> a) <+> z) ∈ X) (scaleNegOut b c)
+        ∴ [ c *> a ] ≡ [ c *> b ]       by eq/ (c *> a) (c *> b)
+
+   quotientModule : Module (member / λ x y → (x <-> y) ∈ X)
+   quotientModule .Module._<+>_ = ⋆[ _<+>_ / X ]
+   quotientModule .Module.addvStr = quotientGrp {{addvStr}}
+   quotientModule .Module.comMod = record { comm = elimProp2 (λ x y → squash/ (⋆[ _<+>_ / X ] x y) ( (⋆[ _<+>_ / X ] y x)))
+         λ a b → cong [_] (comm a b) }
+   quotientModule .Module._*>_ = _[*>]_
+   quotientModule .Module.scalarDistribute a = elimProp2
+      (λ x y → squash/ ((quotientModule Module.*> a) (⋆[ _<+>_ / X ] x y))
+                       ((⋆[ _<+>_ / X ] (a [*>] x))
+                                        (a [*>] y)))
+                      (λ x y → cong [_] (scalarDistribute a x y))
+   quotientModule .Module.memberDistribute v a b =
+      let H : (v : member / (λ x y → (x <-> y) ∈ X))
+            → (a + b) [*>] v
+            ≡ ⋆[ _<+>_ / X ] (a [*>] v) (b [*>] v)
+          H = elimProp (λ v → squash/ ((a + b) [*>] v) (⋆[ V .Module._<+>_ / X ] (a [*>] v) (b [*>] v)))
+              λ v → cong [_] (memberDistribute v a b)
+      in H v
+   quotientModule .Module.scalarAssoc v a b =
+    let H : (v : member / (λ x y → (x <-> y) ∈ X))
+          → (a [*>] (b [*>] v)) ≡ (a * b) [*>] v
+        H = elimProp (λ v → squash/ (a [*>] (b [*>] v)) ((a * b) [*>] v))
+            λ v → cong [_] (scalarAssoc v a b)
+    in
+     H v
+   quotientModule .Module.scaleId = elimProp (λ v → squash/ (1r [*>] v)  v) λ v → cong [_] (scaleId v)
+
   open Submodule {{...}} public
 
   -- Equivalent definition of a submodule
@@ -214,35 +283,6 @@ module _{scalar : Type ℓ}{member : Type ℓ'}{{R : Ring scalar}}{{V : Module m
       ; ss*> = λ{v} v∈X c → SpanX⊆X (c *> v)
                                     (span*> v v∈X c)
       }
-
-  instance
-   -- A submodule is a submonoid of the additive group of members
-   SubmoduleSM : {X : member → Type aℓ}{{_ : Submodule X}} → Submonoid X _<+>_
-   SubmoduleSM = record
-     { id-closed = ssZero
-     ; op-closed = ssAdd
-     }
-
-   -- A submodule is a subgroup of the additive group of members
-   SubmoduleSG : {X : member → Type aℓ}{{_ : Submodule X}} → Subgroup X
-   SubmoduleSG {X = X} = record
-      { inv-closed = λ{x} x∈X →
-        let H = neg 1r *> x ∈ X ≡⟨ cong X (scaleNegOneInv x)⟩
-                -< x > ∈ X ∎ in
-        let F : neg 1r *> x ∈ X
-            F = ss*> x∈X (neg 1r) in
-            transport H F
-      }
-
-   ΣSubModule : {X : member → Type aℓ}{{SM : Submodule X}} → Module (Σ X)
-   ΣSubModule {X} = record
-                    { _<+>_ = λ (a , a')(b , b') → (a <+> b) , ssAdd a' b'
-                    ; _*>_ = λ x (v , v') → (x *> v) , ss*> v' x
-                    ; scalarDistribute = λ a (u , u')(v , v') → ΣPathPProp propFamily (scalarDistribute a u v)
-                    ; memberDistribute = λ(v , v') a b → ΣPathPProp propFamily (memberDistribute v a b)
-                    ; scalarAssoc = λ(v , v') a b → ΣPathPProp propFamily (scalarAssoc v a b)
-                    ; scaleId = λ(v , v') → ΣPathPProp propFamily (scaleId v)
-                    }
 
   -- The span of a set of members is a submodule
   spanIsSubmodule : {X : member → Type aℓ} → Submodule (Span X)
@@ -306,8 +346,6 @@ modHomomorphismIsProp {{VS' = VS'}} LT x y i = let set = λ{a b p q} → IsSet a
      let H : moduleHomomorphism.multT x u c ≡ moduleHomomorphism.multT y u c
          H = set in H i
  }
-
-
 
 module _ {scalar : Type ℓ}{{R : Ring scalar}}
          {A : Type aℓ}{B : Type bℓ}
@@ -453,8 +491,8 @@ module _{scalar : Type ℓ}{member : Type ℓ'}{{R : Ring scalar}}{{V : Affine m
   afCoset : {H : member → Type aℓ}{{SG : Submodule H}}{m : member} → Affine (Σ H) (Σ (cosetL H m))
   afCoset {H = H}{m} = record
                  { _<+_ = λ (y , y∈H) (x , m<->x∈H) → y <+> x ,
-                  (∵ (m <-> x) <-> y ∈ H [ op-closed m<->x∈H (inv-closed y∈H) ]
-                   ∴ m <-> (y <+> x) ∈ H [ subst H ([ab']c'≡a[cb]' m x y) ])
+                  ((∵ (m <-> x) <-> y ∈ H by op-closed m<->x∈H (inv-closed y∈H))
+                   ∴ m <-> (y <+> x) ∈ H by subst H ([ab']c'≡a[cb]' m x y) )
                  ; _<-_ = λ(x , m<->x∈H)(y , m<->y∈H) → -< m <-> x > <+>(m <-> y) , op-closed (inv-closed m<->x∈H)
                                                                                               m<->y∈H
                  ; afId = λ(a , m<->a∈H) → ΣPathPProp (λ b → propFamily (m <-> b)) (lIdentity a)
