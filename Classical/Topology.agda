@@ -17,7 +17,7 @@ isTrivial X = ∀ x y → x ∈ X → y ∈ X
 -- https://en.wikipedia.org/wiki/Topological_space
 record topology {A : set aℓ} (T : ℙ(ℙ A)) : set aℓ where
   field
-   tTrivial : ∀ X → isTrivial X → X ∈ T
+   tfull : 𝓤 ∈ T
    tunion : {X : ℙ(ℙ A)} → X ⊆ T → ⋃ X ∈ T
    tintersection : {X Y : ℙ A} → X ∈ T → Y ∈ T → X ∩ Y ∈ T
 open topology {{...}}
@@ -28,9 +28,6 @@ tempty {τ} =
   let G : ⋃ ∅ ∈ τ
       G = tunion ∅⊆X in
     subst τ ⋃∅≡∅ G
-
-tfull : {τ : ℙ(ℙ A)}{{T : topology τ}} → 𝓤 ∈ τ
-tfull {τ} = tTrivial 𝓤 λ x y z → z
 
 record disconnectedTopology {A : set aℓ} (T : ℙ(ℙ A)) : set aℓ where
  field
@@ -62,20 +59,15 @@ module _{A : set ℓ}{P : A → set aℓ}(τ : ∀ a → ℙ(ℙ(P a))) where
  -- https://en.wikipedia.org/wiki/Initial_topology
  {-# NO_UNIVERSE_CHECK #-}
  data initial {B : set bℓ} (X : ∀ a → B → P a) : ℙ(ℙ B) where
-   initTrivial : ∀ x → isTrivial x → x ∈ initial X
+   initfull : 𝓤 ∈ initial X
    initIntro : ∀ a → ∀ Y → Y ∈ τ a → (X a ⁻¹[ Y ]) ∈ initial X
    initUnion : ∀ Y → Y ⊆ initial X → ⋃ Y ∈ initial X
    initInter : ∀ a b → a ∈ initial X → b ∈ initial X → a ∩ b ∈ initial X
    initProp : ∀ x → isProp (x ∈ initial X)
 
 -- https://en.wikipedia.org/wiki/Product_topology
--- Note that proving `𝓤 ∈ Π` requires case analysis of whether the index `A` is empty or not
- {-# NO_UNIVERSE_CHECK #-}
- data Π : ℙ(ℙ(∀ a → P a)) where
-    ΠIntro : ∀ a → ∀ Y → Y ∈ τ a → (pr a ⁻¹[ Y ]) ∈ Π
-    ΠUnion : ∀ Y → Y ⊆ Π → ⋃ Y ∈ Π
-    ΠInter : ∀ a b → a ∈ Π → b ∈ Π → a ∩ b ∈ Π
-    ΠProp : ∀ x → isProp (x ∈ Π)
+ Π : ℙ(ℙ(∀ a → P a))
+ Π = initial pr
 
  -- https://en.wikipedia.org/wiki/Final_topology
  final : (X : ∀ a → P a → B) → ℙ(ℙ B)
@@ -88,14 +80,14 @@ instance
  DiscreteTopology : topology (discrete {lsuc ℓ} {A})
  DiscreteTopology =
     record
-     { tTrivial = λ X z → tt
+     { tfull = tt
      ; tunion = λ _ → tt
      ; tintersection = λ _ _ → tt
      }
  IndiscreteTopology : topology (indiscrete {A = A})
  IndiscreteTopology =
     record
-     { tTrivial = λ X H → η H
+     { tfull = η $ λ x y z → z
      ; tunion = λ {X} H → η λ x y x∈⋃X → x∈⋃X >> λ (Y , x∈Y , Y∈X) →
                    H Y Y∈X >> λ G → η (Y , G x y x∈Y , Y∈X)
      ; tintersection = λ{X}{Y} P Q → P >> λ P → Q >> λ Q → η λ x y z → P x y (z .fst) , Q x y (z .snd)
@@ -111,7 +103,7 @@ module _{A : set aℓ}
 
  instance
   initialTop : {X : ∀ a → (∀ a → P a) → P a} → topology (initial τ X)
-  initialTop = record { tTrivial = initTrivial
+  initialTop = record { tfull = initfull
                       ; tunion = λ {X} → initUnion X
                       ; tintersection = λ {X} {Y} → initInter X Y
                       }
@@ -119,7 +111,7 @@ module _{A : set aℓ}
   instance
    finalTop : {X : ∀ a → P a → B} →  topology (final τ X)
    finalTop {X} =
-     record { tTrivial = λ Y H → η λ a → T a .tTrivial (X a ⁻¹[ Y ]) λ x y → H (X a x) (X a y)
+     record { tfull = η $ λ a → T a .topology.tfull
             ; tunion = λ{Y} H → η $ λ a → subst (τ a) (sym (∪preimage Y (X a)))
               $ T a .tunion λ z → _>> λ (b , b∈Y , G) → subst (τ a) (sym G)
               $ H b b∈Y >> λ c → c a
@@ -161,8 +153,7 @@ module _{A : set aℓ}        {B : set aℓ}
   -- Proving that the (not) product space is a topological space
   PSInst : topology (NotProductSpace τ₀ τ₁)
   PSInst = record
-     { tTrivial = λ X x → η ((λ a → T1 .tTrivial (λ b → X (a , b)) (λ x₁ y → x (a , x₁) (a , y)))
-                                  , λ b → T0 .tTrivial (λ a → X (a , b)) (λ x₁ y → x (x₁ , b) (y , b)))
+     { tfull = η $ (λ a → T1 .topology.tfull) , (λ b → T0 .topology.tfull)
      ; tunion = λ{X} H → η ((λ a → [wts (λ b → (a , b)) ⁻¹[ ⋃ X ] ∈ τ₁ ]
       subst τ₁ (sym (∪preimage X (λ b → a , b)))
         (tunion (λ z → _>> λ (P , P∈X , G) → subst τ₁ (sym G) $
@@ -179,8 +170,7 @@ module _{A : set aℓ}        {B : set aℓ}
   -- Proving that the disjoint union space is a topological space
   disjointUnion : topology (τ₀ ⊎ τ₁)
   disjointUnion = record
-                { tTrivial = λ X H → T0 .tTrivial (λ a → X (inl a)) (λ x y → H (inl x) (inl y))
-                                   , T1 .tTrivial (λ b → X (inr b)) λ x y → H (inr x) (inr y)
+                { tfull = (T0 .topology.tfull) , (T1 .topology.tfull)
                 ; tunion = λ{Z}
                             (Z⊆⊎ : (∀ x → x ∈ Z → (λ p → x (inl p)) ∈ τ₀
                                                 × (λ p → x (inr p)) ∈ τ₁)) →
@@ -232,7 +222,7 @@ module _{A : set aℓ}        {B : set aℓ}
  -- The set of all topological spaces on a set contains the universal set.
  𝓤∈setOfTop : 𝓤 ∈ λ(τ : ℙ(ℙ A)) → ∥ topology τ ∥
  𝓤∈setOfTop = η $
-     record { tTrivial = λ X z → tt
+     record { tfull = tt
             ; tunion = λ {X} z → tt
             ; tintersection = λ {X} {Y} z _ → z
             }
@@ -241,7 +231,7 @@ module _{A : set aℓ}        {B : set aℓ}
  setOfTopClosed∩ : {X Y : ℙ(ℙ A)}
                  → ∥ topology X ∥ → ∥ topology Y ∥ → ∥ topology (X ∩ Y) ∥
  setOfTopClosed∩ {X}{Y} = _>> λ τ₀ → _>> λ τ₁ → η $
-     record { tTrivial = λ X₁ z → τ₀ .tTrivial X₁ z , τ₁ .tTrivial X₁ z
+     record { tfull = τ₀ .topology.tfull , τ₁ .topology.tfull
             ; tunion = λ{P} P⊆X∩Y →
                       let P⊆X : P ⊆ X
                           P⊆X = λ x x∈P → fst(P⊆X∩Y x x∈P) in
@@ -258,7 +248,8 @@ module _{A : set aℓ}        {B : set aℓ}
  setOfTopNotTop H = let instance τ = H in
                     τ .tunion ∅⊆X >> λ τ₁ →
                     let τ₂ : topology ∅
-                        τ₂ = subst topology ⋃∅≡∅ τ₁ in tfull {{T = τ₂}}
+                        τ₂ = subst topology ⋃∅≡∅ τ₁ in τ₂ .tfull
+
 
 module _{A : set ℓ}{τ : ℙ(ℙ A)}{{T : topology τ}} where
 
@@ -334,6 +325,18 @@ module _{A : set ℓ}{τ : ℙ(ℙ A)}{{T : topology τ}} where
                                      , (x∈P , x∈Q)
                                      , η ((λ a (a∈P , a∈Q) → P⊆X a a∈P , Q⊆Y a a∈Q) , tintersection P∈τ Q∈τ)
 
+ interiorLemma6 : {X : ℙ A} → isTrivial X → X ⊆ X °
+ interiorLemma6 {X} H a a∈X =
+  let G : 𝓤 ≡ X
+      G = funExt λ x → propExt (λ z → H a x a∈X) (λ z → tt) in
+  subst (λ Z → a ∈ Z °) G (η $ 𝓤 , tt , η ((λ x z → z) , tfull))
+
+ trivialOpen : {X : ℙ A} → isTrivial X → X ∈ τ
+ trivialOpen {X} H =
+  let G : X ° ≡ X
+      G = funExt λ x → propExt  (interiorLemma1 x) (interiorLemma6 H x) in
+  subst τ G (interiorLemma3 X)
+
  map-interior : {X Y : ℙ A} → X ⊆ Y → X ° ⊆ Y °
  map-interior {X}{Y} X⊆Y Z Z∈IX = η $ X °
                                     , Z∈IX
@@ -389,7 +392,7 @@ module _{A : set aℓ}(τ : ℙ(ℙ A)){{T : topology τ}} where
  qTopInst : {_~_ : A → A → Prop}
           → topology (quotientTopology _~_)
  qTopInst = record
-  { tTrivial = λ X x → T .tTrivial ([_] ⁻¹[ X ]) (λ x₁ y → x [ x₁ ] [ y ])
+  { tfull = T .topology.tfull
   ; tunion = λ{X} X⊆τ/~
            → [wts [_] ⁻¹[ ⋃ X ] ∈ τ ]
              [wts (⋃ X ∘ [_]) ∈ τ ]
@@ -458,9 +461,6 @@ module _{A : set aℓ}(τ : ℙ(ℙ A)){{T : topology τ}} where
    where
     open HousedOff {{...}}
 
- ssTopology2 : (Q : ℙ A) → ℙ(ℙ A)
- ssTopology2 Q = λ(G : ℙ A) → ∃ λ(U : ℙ A) → (U ∈ τ) × (G ≡ (Q ∩ U))
-
  ssTopology : (Q : ℙ A) → ℙ(ℙ (Σ Q))
  ssTopology Q = image (ϕ Q) τ
 
@@ -470,9 +470,7 @@ module _{A : set aℓ}
  instance
   SubspaceTopology : {X : ℙ A} → topology (ssTopology τ X)
   SubspaceTopology {X} = record
-     { tTrivial = λ Y H → η ((λ a → ∥ (∀ z → z ∈ Y) ∥) , tTrivial (λ a → ∥ ((z : Σ X) → z ∈ Y) ∥)
-         (λ x y t → t) , funExt λ x → propExt (λ t → η (λ z → H _ z t))
-            λ t → t >> λ t → t x)
+     { tfull = η $ 𝓤 , (T .topology.tfull) , refl
      ; tunion = λ{X} H → η $ (⋃ λ U → (U ∈ τ) × (λ x → fst x ∈ U) ∈ X) , tunion
      (λ x (G , F) → G) , funExt λ Y → propExt (_>> λ(F , Y∈F , F∈X)
        → H F F∈X >> λ(U , U∈τ , R ) → η $ U , (substP Y (sym R) Y∈F) , U∈τ , subst X R F∈X
@@ -486,17 +484,7 @@ module _{A : set aℓ}
  discreteDomainContinuous f = λ _ _ → tt
 
  indiscreteCodomainContinuous : (f : A → B) → continuous τ indiscrete f
- indiscreteCodomainContinuous f V R = R >> λ R → T .tTrivial (f ⁻¹[ V ]) (λ x y → R (f x) (f y))
--- R >>
--- λ{ (inl p) →
---   let H : f ⁻¹[ V ] ≡ 𝓤
---       H = cong (f ⁻¹[_]) p in
---    subst τ (sym H) tfull
---   ; (inr p) →
---   let H : f ⁻¹[ V ] ≡ ∅
---       H = cong (f ⁻¹[_]) p in
---       subst τ (sym H) tempty
---    }
+ indiscreteCodomainContinuous f P H = trivialOpen (λ x y G → H >> λ H → H (f x) (f y) G)
 
  record Base (ℬ : ℙ(ℙ A)) : set aℓ where
   field
