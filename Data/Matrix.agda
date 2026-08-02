@@ -8,6 +8,10 @@ open import Algebra.Linear
 open import Data.Finite
 open import Cubical.Foundations.HLevels
 
+variable
+ ℓd : Level
+ D : Type ℓd
+
 -- Transpose
 _ᵀ : (A → B → C) → (B → A → C)
 _ᵀ f b a = f a b
@@ -24,20 +28,20 @@ _ᵀ f b a = f a b
 <> ()
 
 -- head
-hd : < A ^ S n > → A
+hd : (Maybe B → A) → A
 hd v = v Nothing
 
 -- tail
-tl : < A ^ S n > → < A ^ n >
+tl : (Maybe B → A) → B → A
 tl v x = v (Just x)
 
-_∷_ : A → < A ^ n > → < A ^ S n >
+_∷_ : A → (B → A) → Maybe B → A
 (a ∷ v) (Just x) = v x
 (a ∷ v) Nothing = a
 
 -- tuple η-conversion
-tuple-η : (f : < A ^ S n >) → hd f ∷ tl f ≡ f
-tuple-η {n = n} f = funExt λ{ (Just x) → refl ; Nothing → refl}
+tuple-η : (f : Maybe B → A) → hd f ∷ tl f ≡ f
+tuple-η f = funExt λ{ (Just x) → refl ; Nothing → refl}
 
 instance
  emptyTupleIsProp : is-prop < A ^ Z >
@@ -56,18 +60,14 @@ tuple-elim P base step {n = S n} x =
 zip : (A → B → C) → {D : Type ℓ} → (D → A) → (D → B) → (D → C)
 zip f u v d = f (u d) (v d)
 
-zipHead : (f : < A ^ S n > → < B ^ S n > → < C ^ S n >)
-              → ∀ x y → hd {n = n} (zip f x y) ≡ f (hd x) (hd y)
-zipHead f x y = funExt λ z → refl
-
 Matrix : Type ℓ → ℕ → ℕ → Type ℓ
 Matrix A n m = < < A ^ n > ^ m >
 
-zip∷ : (f : A → B → C)(v : < A ^ n >)(u : < B ^ n >) → ∀ x y → zip f (x ∷ v) (y ∷ u) ≡ f x y ∷ zip f v u
+zip∷ : (f : A → B → C)(v : D → A)(u : D → B) → ∀ x y → zip f (x ∷ v) (y ∷ u) ≡ f x y ∷ zip f v u
 zip∷ f v u x y = funExt λ{ (Just z) → refl ; Nothing → refl}
 
-∘∷ : (f : A → B) → (v : < A ^ n >) → ∀ x → f ∘ (x ∷ v) ≡ f x ∷ (f ∘ v)
-∘∷ f v x  = funExt λ{ (Just z) → refl ; Nothing → refl}
+∘∷ : (f : A → B) → (v : C → A) → ∀ x → f ∘ (x ∷ v) ≡ f x ∷ (f ∘ v)
+∘∷ f v x = funExt λ{ (Just z) → refl ; Nothing → refl}
 
 Matrix-elim : (P : ∀{n m} → Matrix A n m → Type ℓ)
             → (∀ m → (P (<> {A = < A ^ m >})))
